@@ -1,0 +1,117 @@
+<section class="manual-shell">
+  <div class="container py-5">
+    <header class="manual-header">
+      <div>
+        <span class="manual-header__eyebrow">Armado manual asistido</span>
+        <h1 class="manual-header__title">Construye pieza por pieza</h1>
+        <p class="manual-header__copy">
+          Selecciona componentes del catalogo mock y revisa compatibilidad basica en tiempo real.
+        </p>
+      </div>
+      <a routerLink="/catalog" class="manual-header__link">Ver catalogo</a>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="step-panel">
+        <h2>Categorias</h2>
+        <div class="step-list">
+          @for (category of categories; track trackCategory($index, category)) {
+            <button
+              class="step-item"
+              type="button"
+              [class.step-item--active]="activeCategory() === category"
+              [class.step-item--done]="selections()[category]"
+              (click)="selectCategory(category)"
+            >
+              <span>{{ category }}</span>
+              <small>{{ categoryStatus(category) }}</small>
+            </button>
+          }
+        </div>
+      </aside>
+
+      <main class="picker-panel">
+        <div class="picker-panel__top">
+          <div>
+            <span>Seleccion actual</span>
+            <h2>{{ activeCategory() }}</h2>
+          </div>
+          <strong>{{ activeProducts().length }} opciones</strong>
+        </div>
+
+        <div class="product-list">
+          @for (product of activeProducts(); track trackProduct($index, product)) {
+            <button
+              class="manual-product"
+              type="button"
+              [class.manual-product--selected]="isSelected(product)"
+              (click)="selectProduct(product)"
+            >
+              <span class="manual-product__mark" [style.--product-tone]="product.imageTone">
+                {{ product.category }}
+              </span>
+              <span class="manual-product__body">
+                <span class="manual-product__meta">{{ product.brand }} | Stock {{ product.stock }}</span>
+                <strong>{{ product.name }}</strong>
+                <small>{{ product.shortDescription }}</small>
+                <span class="manual-product__tags">
+                  @for (tag of product.compatibilityTags; track tag) {
+                    <em>{{ tag }}</em>
+                  }
+                </span>
+              </span>
+              <span class="manual-product__price">S/ {{ product.price }}</span>
+            </button>
+          }
+        </div>
+      </main>
+
+      <aside class="summary-panel">
+        <div class="summary-panel__score">
+          <span>Progreso</span>
+          <strong>{{ completedCount() }}/{{ categories.length }}</strong>
+        </div>
+
+        <section class="selected-list">
+          <h2>Build actual</h2>
+          @for (category of categories; track trackCategory($index, category)) {
+            <div class="selected-row">
+              <div>
+                <span>{{ category }}</span>
+                <strong>{{ selections()[category]?.name ?? 'Sin seleccionar' }}</strong>
+              </div>
+              @if (selections()[category]; as selected) {
+                <button type="button" (click)="removeProduct(category)">Quitar</button>
+                <small>S/ {{ selected.price }}</small>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="validation-list">
+          <h2>Compatibilidad</h2>
+          @for (validation of validations(); track trackValidation($index, validation)) {
+            <div class="validation-item" [class.validation-item--warning]="validation.status === 'warning'">
+              <span>{{ validation.status === 'ok' ? 'OK' : '!' }}</span>
+              <div>
+                <strong>{{ validation.label }}</strong>
+                <p>{{ validation.detail }}</p>
+              </div>
+            </div>
+          }
+        </section>
+
+        <div class="quote-box">
+          <span>Total estimado</span>
+          <strong>S/ {{ total() }}</strong>
+          <p [class.quote-box__warning]="hasWarnings()">
+            {{ hasWarnings() ? 'Revisa las alertas antes de cotizar.' : 'Build lista para cotizacion.' }}
+          </p>
+          <button type="button" [disabled]="hasWarnings() || completedCount() < categories.length">
+            Generar cotizacion
+          </button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

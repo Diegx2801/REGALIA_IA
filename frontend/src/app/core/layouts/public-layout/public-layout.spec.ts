@@ -1,17 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
-import { PublicLayout } from './public-layout';
+import { PublicLayoutComponent } from './public-layout';
 
 describe('PublicLayout', () => {
-  let component: PublicLayout;
-  let fixture: ComponentFixture<PublicLayout>;
+  let component: PublicLayoutComponent;
+  let fixture: ComponentFixture<PublicLayoutComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PublicLayout],
+      imports: [PublicLayoutComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PublicLayout);
+    fixture = TestBed.createComponent(PublicLayoutComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

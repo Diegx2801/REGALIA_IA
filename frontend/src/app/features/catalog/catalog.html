@@ -1,0 +1,158 @@
+<section class="catalog-shell">
+  <div class="container py-5">
+    <header class="catalog-header">
+      <div>
+        <span class="catalog-header__eyebrow">Catalogo mock</span>
+        <h1 class="catalog-header__title">Componentes disponibles</h1>
+        <p class="catalog-header__copy">
+          Explora productos, filtra por categoria y revisa atributos tecnicos como los enviaria Spring Boot mas adelante.
+        </p>
+      </div>
+      <div class="catalog-header__metric">
+        <span>Productos</span>
+        <strong>{{ filteredProducts().length }}</strong>
+      </div>
+    </header>
+
+    <div class="category-strip" role="list" aria-label="Categorias de componentes">
+      @for (category of categories; track category) {
+        <button
+          class="category-chip"
+          type="button"
+          [class.category-chip--active]="filtersForm.controls.category.value === category"
+          (click)="applyQuickCategory(category)"
+        >
+          {{ category === 'All' ? 'Todos' : category }}
+        </button>
+      }
+    </div>
+
+    <div class="catalog-layout">
+      <aside class="filter-panel">
+        <form [formGroup]="filtersForm" (change)="onFiltersChanged()" (input)="onFiltersChanged()">
+          <div class="filter-panel__top">
+            <h2>Filtros</h2>
+            <button type="button" class="filter-panel__reset" (click)="resetFilters()">Reset</button>
+          </div>
+
+          <label class="catalog-label" for="search">Buscar</label>
+          <input
+            id="search"
+            class="form-control catalog-input"
+            type="search"
+            placeholder="RTX, AM5, DDR5..."
+            formControlName="search"
+          >
+
+          <label class="catalog-label" for="category">Categoria</label>
+          <select id="category" class="form-select catalog-input" formControlName="category">
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category === 'All' ? 'Todos' : category }}</option>
+            }
+          </select>
+
+          <label class="catalog-label" for="brand">Marca</label>
+          <select id="brand" class="form-select catalog-input" formControlName="brand">
+            @for (brand of brands; track brand) {
+              <option [value]="brand">{{ brand === 'All' ? 'Todas' : brand }}</option>
+            }
+          </select>
+
+          <label class="catalog-label" for="maxPrice">Precio maximo: S/ {{ filtersForm.controls.maxPrice.value }}</label>
+          <input
+            id="maxPrice"
+            class="form-range catalog-range"
+            type="range"
+            min="100"
+            max="3000"
+            step="50"
+            formControlName="maxPrice"
+          >
+
+          <label class="stock-toggle">
+            <input type="checkbox" formControlName="stockOnly">
+            <span>Mostrar solo con stock</span>
+          </label>
+        </form>
+      </aside>
+
+      <main class="product-zone">
+        <div class="product-grid">
+          @for (product of filteredProducts(); track trackProduct($index, product)) {
+            <button
+              class="product-card"
+              type="button"
+              [class.product-card--selected]="selectedProduct()?.id === product.id"
+              (click)="selectProduct(product)"
+            >
+              <span class="product-card__visual" [style.--product-tone]="product.imageTone">
+                <span>{{ product.category }}</span>
+              </span>
+              <span class="product-card__body">
+                <span class="product-card__category">{{ product.category }} | {{ product.brand }}</span>
+                <strong class="product-card__name">{{ product.name }}</strong>
+                <span class="product-card__description">{{ product.shortDescription }}</span>
+                <span class="product-card__footer">
+                  <strong>S/ {{ product.price }}</strong>
+                  <small>Stock: {{ product.stock }}</small>
+                </span>
+              </span>
+            </button>
+          } @empty {
+            <div class="catalog-empty">
+              <h2>No hay productos con esos filtros</h2>
+              <p>Ajusta el precio, categoria o busqueda para volver a mostrar resultados.</p>
+            </div>
+          }
+        </div>
+      </main>
+
+      <aside class="detail-panel">
+        @if (selectedProduct(); as product) {
+          <div class="detail-panel__visual" [style.--product-tone]="product.imageTone">
+            <span>{{ product.category }}</span>
+          </div>
+          <span class="detail-panel__category">{{ product.category }} | {{ product.brand }}</span>
+          <h2>{{ product.name }}</h2>
+          <p>{{ product.shortDescription }}</p>
+
+          <div class="detail-panel__price">
+            <span>Precio tienda</span>
+            <strong>S/ {{ product.price }}</strong>
+          </div>
+
+          <section>
+            <h3>Atributos dinamicos</h3>
+            <div class="attribute-list">
+              @for (attribute of attributeEntries(product); track trackAttribute($index, attribute)) {
+                <div class="attribute-list__row">
+                  <span>{{ attribute[0] }}</span>
+                  <strong>{{ attribute[1] }}</strong>
+                </div>
+              }
+            </div>
+          </section>
+
+          <section>
+            <h3>Compatibilidad</h3>
+            <div class="tag-list">
+              @for (tag of product.compatibilityTags; track trackValue($index, tag)) {
+                <span>{{ tag }}</span>
+              }
+            </div>
+          </section>
+
+          <div class="detail-panel__store">
+            <span>Tienda</span>
+            <strong>{{ product.storeName }}</strong>
+          </div>
+        } @else {
+          <div class="detail-panel__empty">
+            <h2>Selecciona un producto</h2>
+            <p>El detalle mostrara atributos tecnicos y tags de compatibilidad.</p>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+</section>

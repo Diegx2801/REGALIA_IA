@@ -18,6 +18,26 @@ export const routes: Routes = [
             path: '',
             loadComponent: () => import('./features/landing/landing')
             .then(m => m.LandingComponent)
+        },
+        {
+            path: 'builder',
+            loadComponent: () => import('./features/builder/builder')
+            .then(m => m.BuilderComponent)
+        },
+        {
+            path: 'catalog',
+            loadComponent: () => import('./features/catalog/catalog')
+            .then(m => m.CatalogComponent)
+        },
+        {
+            path: 'manual-builder',
+            loadComponent: () => import('./features/manual-builder/manual-builder')
+            .then(m => m.ManualBuilderComponent)
+        },
+        {
+            path: 'marketplace-quotes',
+            loadComponent: () => import('./features/marketplace-quotes/marketplace-quotes')
+            .then(m => m.MarketplaceQuotesComponent)
         }
         ]
     }

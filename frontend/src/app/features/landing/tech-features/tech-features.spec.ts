@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TechFeatures } from './tech-features';
+import { TechFeaturesComponent } from './tech-features';
 
 describe('TechFeatures', () => {
-  let component: TechFeatures;
-  let fixture: ComponentFixture<TechFeatures>;
+  let component: TechFeaturesComponent;
+  let fixture: ComponentFixture<TechFeaturesComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TechFeatures],
+      imports: [TechFeaturesComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(TechFeatures);
+    fixture = TestBed.createComponent(TechFeaturesComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

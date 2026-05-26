@@ -1,0 +1,142 @@
+<section class="quotes-shell">
+  <div class="container py-5">
+    <header class="quotes-header">
+      <div>
+        <span class="quotes-header__eyebrow">Marketplace por tienda completa</span>
+        <h1 class="quotes-header__title">Comparador de cotizaciones</h1>
+        <p class="quotes-header__copy">
+          La IA propone una build objetivo y el sistema rankea tiendas que pueden vender la PC completa sin mezclar proveedores.
+        </p>
+      </div>
+      <a routerLink="/builder" class="quotes-header__link">Editar requerimientos</a>
+    </header>
+
+    <div class="market-summary">
+      <div>
+        <span>Tiendas evaluadas</span>
+        <strong>{{ quotes().length }}</strong>
+      </div>
+      <div>
+        <span>Promedio cotizado</span>
+        <strong>S/ {{ averageTotal() }}</strong>
+      </div>
+      <div>
+        <span>Modelo</span>
+        <strong>1 tienda</strong>
+      </div>
+    </div>
+
+    <div class="quotes-layout">
+      <main class="quote-ranking">
+        @for (quote of quotes(); track trackQuote($index, quote); let index = $index) {
+          <button
+            class="quote-card"
+            type="button"
+            [class.quote-card--selected]="selectedQuote().id === quote.id"
+            (click)="selectQuote(quote)"
+          >
+            <span class="quote-card__rank">#{{ index + 1 }}</span>
+            <span class="quote-card__content">
+              <span class="quote-card__highlight">{{ quote.highlight }}</span>
+              <strong>{{ quote.store.name }}</strong>
+              <small>{{ quote.buildName }} | {{ quote.target }}</small>
+              <span class="quote-card__meta">
+                <em>{{ quote.store.district }}</em>
+                <em>{{ quote.stockStatus }}</em>
+                <em>{{ quote.store.deliveryTime }}</em>
+              </span>
+            </span>
+            <span class="quote-card__score">
+              <strong>{{ quote.score }}</strong>
+              <small>score</small>
+            </span>
+            <span class="quote-card__price">
+              <strong>S/ {{ quote.total }}</strong>
+              <small [class.quote-card__difference--up]="priceDifference(quote) > 0">
+                {{ priceDifference(quote) > 0 ? '+' : '' }}S/ {{ priceDifference(quote) }}
+              </small>
+            </span>
+          </button>
+        }
+      </main>
+
+      <aside class="quote-detail">
+        @if (selectedQuote(); as quote) {
+          <div class="quote-detail__top">
+            <div>
+              <span>{{ quote.highlight }}</span>
+              <h2>{{ quote.store.name }}</h2>
+              <p>{{ quote.explanation }}</p>
+            </div>
+            <div class="quote-detail__total">
+              <span>Total</span>
+              <strong>S/ {{ quote.total }}</strong>
+            </div>
+          </div>
+
+          <div class="store-grid">
+            <div>
+              <span>Rating</span>
+              <strong>{{ quote.store.rating }} / 5</strong>
+              <small>{{ quote.store.reviews }} reseñas</small>
+            </div>
+            <div>
+              <span>Garantia</span>
+              <strong>{{ quote.store.warranty }}</strong>
+            </div>
+            <div>
+              <span>Entrega</span>
+              <strong>{{ quote.store.deliveryTime }}</strong>
+              <small>Respuesta: {{ quote.store.responseTime }}</small>
+            </div>
+          </div>
+
+          <section class="score-panel">
+            <h3>Desglose del ranking</h3>
+            <div class="score-list">
+              <div>
+                <span>Precio</span>
+                <strong>{{ quote.scoreBreakdown.price }}</strong>
+              </div>
+              <div>
+                <span>Stock</span>
+                <strong>{{ quote.scoreBreakdown.stock }}</strong>
+              </div>
+              <div>
+                <span>Reputacion</span>
+                <strong>{{ quote.scoreBreakdown.reputation }}</strong>
+              </div>
+              <div>
+                <span>Garantia</span>
+                <strong>{{ quote.scoreBreakdown.warranty }}</strong>
+              </div>
+              <div>
+                <span>Entrega</span>
+                <strong>{{ quote.scoreBreakdown.delivery }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="build-panel">
+            <h3>Build completa de esta tienda</h3>
+            <div class="component-table">
+              @for (component of quote.components; track trackComponent($index, component)) {
+                <div class="component-row">
+                  <span>{{ component.category }}</span>
+                  <strong>{{ component.name }}</strong>
+                  <small>{{ component.brand }}</small>
+                  <em>S/ {{ component.price }}</em>
+                </div>
+              }
+            </div>
+          </section>
+
+          <div class="quote-actions">
+            <button type="button">Solicitar cotizacion protegida</button>
+            <a routerLink="/manual-builder">Ajustar manualmente</a>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+</section>

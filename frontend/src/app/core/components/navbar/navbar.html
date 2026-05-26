@@ -6,7 +6,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark py-3 fixed-top navbar-custom">
     <div class="container">
         <!-- BEM Bloque: brand-logo -->
-        <a class="navbar-brand brand-logo d-flex align-items-center" href="#">
+        <a class="navbar-brand brand-logo d-flex align-items-center" routerLink="/">
             <img src="/images/logo-icon-navbar.png" alt="PCBuilder AI Logo" class="brand-logo__img">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -14,12 +14,16 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item"><a class="nav-link text-light fw-medium" href="#inicio">Plataforma</a></li>
-                <li class="nav-item"><a class="nav-link text-light fw-medium" href="#caracteristicas">Motor IA</a></li>
-                <li class="nav-item"><a class="nav-link text-light fw-medium" href="#negocio">Portal Tiendas</a></li>
+                <li class="nav-item"><a class="nav-link text-light fw-medium" routerLink="/" fragment="inicio">Plataforma</a></li>
+                <li class="nav-item"><a class="nav-link text-light fw-medium" routerLink="/builder">Generar Build</a></li>
+                <li class="nav-item"><a class="nav-link text-light fw-medium" routerLink="/manual-builder">Armado Manual</a></li>
+                <li class="nav-item"><a class="nav-link text-light fw-medium" routerLink="/marketplace-quotes">Cotizaciones</a></li>
+                <li class="nav-item"><a class="nav-link text-light fw-medium" routerLink="/catalog">Catálogo</a></li>
+                <li class="nav-item"><a class="nav-link text-light fw-medium" routerLink="/" fragment="caracteristicas">Motor IA</a></li>
+                <li class="nav-item"><a class="nav-link text-light fw-medium" routerLink="/" fragment="negocio">Portal Tiendas</a></li>
                 <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
                     <!-- BEM Bloque: btn-custom con modificador outline-primary -->
-                    <a class="btn px-4 rounded-pill btn-custom btn-custom--outline-primary" href="#">Acceso B2B</a>
+                    <a class="btn px-4 rounded-pill btn-custom btn-custom--outline-primary" routerLink="/builder">Acceso B2B</a>
                 </li>
             </ul>
         </div>
