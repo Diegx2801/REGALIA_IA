@@ -1,0 +1,9 @@
+/* =========================================================================
+    ESTILOS: LandingComponent 
+   ========================================================================= */
+.landing-section--gradient {
+    /* Fondo degradado suave para separar secciones en B2B Dark Tech */
+    background: linear-gradient(180deg, #12141d 0%, #171a26 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}

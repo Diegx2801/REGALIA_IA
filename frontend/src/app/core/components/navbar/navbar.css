@@ -11,13 +11,21 @@
     z-index: 1030;
 }
 
-/* BLOQUE: brand-logo (Manejo de colores de la marca) */
-.brand-logo__highlight {
-    color: #3b82f6; /* Azul IA */
+.navbar-brand {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
-.brand-logo__tag {
-    color: #9ca3af; /* Gris secundario */
+.brand-logo__img {
+    height: 75px !important;
+    max-height: none !important; 
+    width: auto;  
+    object-fit: contain; 
+    transition: transform 0.3s ease;
+}
+/* Un pequeño efecto (opcional) para que se sienta interactivo */
+.brand-logo:hover .brand-logo__img {
+    transform: scale(1.02);
 }
 
 /* BLOQUE: btn-custom (Botón de acción B2B) */
@@ -28,12 +36,12 @@
 
 /* MODIFICADOR: Variante de borde azul */
 .btn-custom--outline-primary {
-    border: 2px solid #1d4ed8;
-    color: #1d4ed8;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
     background: transparent;
 }
 
 .btn-custom--outline-primary:hover {
-    background-color: #1d4ed8;
-    color: #ffffff;
+    background: var(--brand-gradient);
+    border-color: transparent;
 }
