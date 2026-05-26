@@ -1,9 +1,17 @@
+/* ==========================================================================
+   BLOQUE: quotes-shell
+   DESCRIPCION: Contenedor principal de la vista marketplace.
+   ========================================================================== */
 .quotes-shell {
   background: linear-gradient(180deg, #0a0f16 0%, #12141d 100%);
   min-height: 100vh;
   padding-top: 5rem;
 }
 
+/* ==========================================================================
+   BLOQUE: quotes-header
+   DESCRIPCION: Cabecera informativa de la pantalla de cotizaciones.
+   ========================================================================== */
 .quotes-header {
   align-items: end;
   display: flex;
@@ -32,7 +40,7 @@
 }
 
 .quotes-header__link,
-.quote-actions a {
+.quote-actions__secondary {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   color: #ffffff;
@@ -42,6 +50,10 @@
   white-space: nowrap;
 }
 
+/* ==========================================================================
+   BLOQUE: market-summary
+   DESCRIPCION: Indicadores generales del ranking marketplace.
+   ========================================================================== */
 .market-summary {
   display: grid;
   gap: 0.8rem;
@@ -49,7 +61,7 @@
   margin-bottom: 1rem;
 }
 
-.market-summary div,
+.market-summary__item,
 .quote-card,
 .quote-detail {
   background: rgba(30, 34, 53, 0.88);
@@ -57,34 +69,46 @@
   border-radius: 8px;
 }
 
-.market-summary div {
+.market-summary__item {
   padding: 1rem;
 }
 
-.market-summary span,
-.quote-detail__total span,
-.store-grid span,
-.score-list span {
+.market-summary__label,
+.quote-detail__total-label,
+.store-grid__label,
+.score-list__label {
   color: #9ca3af;
   display: block;
 }
 
-.market-summary strong {
+.market-summary__value {
   color: var(--color-brand-green);
   font-size: 1.6rem;
 }
 
+/* ==========================================================================
+   BLOQUE: quotes-layout
+   DESCRIPCION: Distribucion entre ranking de tiendas y detalle seleccionado.
+   ========================================================================== */
 .quotes-layout {
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(26rem, 1fr) minmax(24rem, 31rem);
 }
 
+/* ==========================================================================
+   BLOQUE: quote-ranking
+   DESCRIPCION: Lista vertical de cotizaciones completas por tienda.
+   ========================================================================== */
 .quote-ranking {
   display: grid;
   gap: 0.8rem;
 }
 
+/* ==========================================================================
+   BLOQUE: quote-card
+   DESCRIPCION: Tarjeta de ranking para una tienda y su build completa.
+   ========================================================================== */
 .quote-card {
   align-items: center;
   color: inherit;
@@ -126,16 +150,17 @@
   font-weight: 800;
 }
 
-.quote-card strong,
-.quote-detail h2,
-.build-panel h3,
-.score-panel h3 {
+.quote-card__store,
+.quote-detail__title,
+.build-panel__title,
+.score-panel__title {
   color: #ffffff;
 }
 
-.quote-card small,
-.quote-detail p,
-.store-grid small {
+.quote-card__target,
+.quote-card__score-label,
+.quote-detail__copy,
+.store-grid__hint {
   color: #9ca3af;
 }
 
@@ -146,7 +171,7 @@
   margin-top: 0.35rem;
 }
 
-.quote-card__meta em {
+.quote-card__tag {
   background: rgba(0, 102, 255, 0.14);
   border-radius: 999px;
   color: #bdd4ff;
@@ -160,24 +185,29 @@
   text-align: right;
 }
 
-.quote-card__score strong {
+.quote-card__score-value {
   color: var(--color-brand-green);
   display: block;
   font-size: 1.7rem;
 }
 
-.quote-card__price strong {
+.quote-card__price-value {
+  color: #ffffff;
   display: block;
 }
 
-.quote-card__price small {
+.quote-card__difference {
   color: var(--color-brand-green);
 }
 
 .quote-card__difference--up {
-  color: #ffd166 !important;
+  color: #ffd166;
 }
 
+/* ==========================================================================
+   BLOQUE: quote-detail
+   DESCRIPCION: Panel lateral con tienda, score y componentes de la oferta.
+   ========================================================================== */
 .quote-detail {
   height: fit-content;
   padding: 1rem;
@@ -191,7 +221,7 @@
   justify-content: space-between;
 }
 
-.quote-detail__top > div:first-child > span {
+.quote-detail__highlight {
   color: var(--color-brand-green);
   font-weight: 800;
 }
@@ -201,11 +231,15 @@
   text-align: right;
 }
 
-.quote-detail__total strong {
+.quote-detail__total-value {
   color: var(--color-brand-green);
   font-size: 1.55rem;
 }
 
+/* ==========================================================================
+   BLOQUES: store-grid / score-list
+   DESCRIPCION: Metricas usadas para justificar el ranking de tiendas.
+   ========================================================================== */
 .store-grid,
 .score-list {
   display: grid;
@@ -217,15 +251,15 @@
   margin: 1rem 0;
 }
 
-.store-grid div,
-.score-list div {
+.store-grid__item,
+.score-list__item {
   background: #12141d;
   border-radius: 8px;
   padding: 0.75rem;
 }
 
-.store-grid strong,
-.score-list strong {
+.store-grid__value,
+.score-list__value {
   color: #ffffff;
 }
 
@@ -233,11 +267,15 @@
   grid-template-columns: repeat(5, 1fr);
 }
 
-.score-list strong {
+.score-list__value {
   color: var(--color-brand-green);
   font-size: 1.25rem;
 }
 
+/* ==========================================================================
+   BLOQUE: component-table
+   DESCRIPCION: Tabla compacta de piezas incluidas en la build de una tienda.
+   ========================================================================== */
 .component-table {
   display: grid;
   gap: 0.45rem;
@@ -252,23 +290,31 @@
   padding: 0.55rem 0;
 }
 
-.component-row span {
+.component-row__category {
   color: var(--color-brand-blue);
   font-size: 0.78rem;
   font-weight: 800;
 }
 
-.component-row small {
+.component-row__name {
+  color: #ffffff;
+}
+
+.component-row__brand {
   color: #9ca3af;
 }
 
-.component-row em {
+.component-row__price {
   color: #ffffff;
   font-style: normal;
   font-weight: 800;
   text-align: right;
 }
 
+/* ==========================================================================
+   BLOQUE: quote-actions
+   DESCRIPCION: Acciones para continuar al flujo protegido o ajustar build.
+   ========================================================================== */
 .quote-actions {
   display: flex;
   flex-wrap: wrap;
@@ -276,7 +322,7 @@
   margin-top: 1rem;
 }
 
-.quote-actions button {
+.quote-actions__primary {
   background: var(--brand-gradient);
   border: 0;
   border-radius: 999px;
@@ -326,7 +372,7 @@
     grid-template-columns: 1fr;
   }
 
-  .component-row em {
+  .component-row__price {
     text-align: left;
   }
 }

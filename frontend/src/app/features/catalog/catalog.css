@@ -1,9 +1,17 @@
+/* ==========================================================================
+   BLOQUE: catalog-shell
+   DESCRIPCION: Contenedor principal del catalogo de componentes.
+   ========================================================================== */
 .catalog-shell {
   background: linear-gradient(180deg, #0a0f16 0%, #12141d 100%);
   min-height: 100vh;
   padding-top: 5rem;
 }
 
+/* ==========================================================================
+   BLOQUE: catalog-header
+   DESCRIPCION: Cabecera con resumen de productos encontrados.
+   ========================================================================== */
 .catalog-header {
   align-items: end;
   display: flex;
@@ -49,6 +57,10 @@
   font-size: 2rem;
 }
 
+/* ==========================================================================
+   BLOQUES: category-strip / category-chip
+   DESCRIPCION: Filtros rapidos por categoria de hardware.
+   ========================================================================== */
 .category-strip {
   display: flex;
   gap: 0.6rem;
@@ -73,12 +85,20 @@
   color: #ffffff;
 }
 
+/* ==========================================================================
+   BLOQUE: catalog-layout
+   DESCRIPCION: Distribucion de filtros, grilla de productos y detalle.
+   ========================================================================== */
 .catalog-layout {
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(14rem, 17rem) 1fr minmax(17rem, 21rem);
 }
 
+/* ==========================================================================
+   BLOQUE: filter-panel
+   DESCRIPCION: Panel de filtros del catalogo.
+   ========================================================================== */
 .filter-panel,
 .detail-panel,
 .product-card,
@@ -147,6 +167,10 @@
   margin-top: 1rem;
 }
 
+/* ==========================================================================
+   BLOQUE: product-card
+   DESCRIPCION: Card de producto dentro del catalogo.
+   ========================================================================== */
 .product-grid {
   display: grid;
   gap: 0.85rem;
@@ -231,6 +255,10 @@
   color: #9ca3af;
 }
 
+/* ==========================================================================
+   BLOQUE: detail-panel
+   DESCRIPCION: Detalle tecnico del producto seleccionado.
+   ========================================================================== */
 .detail-panel__visual {
   align-items: center;
   aspect-ratio: 16 / 10;
@@ -271,6 +299,10 @@
   margin: 1rem 0 0.6rem;
 }
 
+/* ==========================================================================
+   BLOQUES: attribute-list / tag-list
+   DESCRIPCION: Atributos dinamicos y etiquetas de compatibilidad.
+   ========================================================================== */
 .attribute-list {
   display: grid;
   gap: 0.45rem;
@@ -311,6 +343,10 @@
   padding: 0.3rem 0.6rem;
 }
 
+/* ==========================================================================
+   BLOQUE: catalog-empty
+   DESCRIPCION: Estado sin resultados para los filtros aplicados.
+   ========================================================================== */
 .catalog-empty {
   color: #ffffff;
   grid-column: 1 / -1;

@@ -45,6 +45,7 @@ export class ManualBuilderComponent {
   readonly completedCount = computed(() => this.selectedProducts().length);
 
   readonly validations = computed<ManualValidation[]>(() => {
+    // Cada check representa una regla tecnica visual del MVP frontend.
     const selection = this.selections();
     const checks: ManualValidation[] = [];
 

@@ -1,7 +1,7 @@
 <section class="quotes-shell">
   <div class="container py-5">
     <header class="quotes-header">
-      <div>
+      <div class="quotes-header__content">
         <span class="quotes-header__eyebrow">Marketplace por tienda completa</span>
         <h1 class="quotes-header__title">Comparador de cotizaciones</h1>
         <p class="quotes-header__copy">
@@ -12,17 +12,17 @@
     </header>
 
     <div class="market-summary">
-      <div>
-        <span>Tiendas evaluadas</span>
-        <strong>{{ quotes().length }}</strong>
+      <div class="market-summary__item">
+        <span class="market-summary__label">Tiendas evaluadas</span>
+        <strong class="market-summary__value">{{ quotes().length }}</strong>
       </div>
-      <div>
-        <span>Promedio cotizado</span>
-        <strong>S/ {{ averageTotal() }}</strong>
+      <div class="market-summary__item">
+        <span class="market-summary__label">Promedio cotizado</span>
+        <strong class="market-summary__value">S/ {{ averageTotal() }}</strong>
       </div>
-      <div>
-        <span>Modelo</span>
-        <strong>1 tienda</strong>
+      <div class="market-summary__item">
+        <span class="market-summary__label">Modelo</span>
+        <strong class="market-summary__value">1 tienda</strong>
       </div>
     </div>
 
@@ -38,21 +38,21 @@
             <span class="quote-card__rank">#{{ index + 1 }}</span>
             <span class="quote-card__content">
               <span class="quote-card__highlight">{{ quote.highlight }}</span>
-              <strong>{{ quote.store.name }}</strong>
-              <small>{{ quote.buildName }} | {{ quote.target }}</small>
+              <strong class="quote-card__store">{{ quote.store.name }}</strong>
+              <small class="quote-card__target">{{ quote.buildName }} | {{ quote.target }}</small>
               <span class="quote-card__meta">
-                <em>{{ quote.store.district }}</em>
-                <em>{{ quote.stockStatus }}</em>
-                <em>{{ quote.store.deliveryTime }}</em>
+                <em class="quote-card__tag">{{ quote.store.district }}</em>
+                <em class="quote-card__tag">{{ quote.stockStatus }}</em>
+                <em class="quote-card__tag">{{ quote.store.deliveryTime }}</em>
               </span>
             </span>
             <span class="quote-card__score">
-              <strong>{{ quote.score }}</strong>
-              <small>score</small>
+              <strong class="quote-card__score-value">{{ quote.score }}</strong>
+              <small class="quote-card__score-label">score</small>
             </span>
             <span class="quote-card__price">
-              <strong>S/ {{ quote.total }}</strong>
-              <small [class.quote-card__difference--up]="priceDifference(quote) > 0">
+              <strong class="quote-card__price-value">S/ {{ quote.total }}</strong>
+              <small class="quote-card__difference" [class.quote-card__difference--up]="priceDifference(quote) > 0">
                 {{ priceDifference(quote) > 0 ? '+' : '' }}S/ {{ priceDifference(quote) }}
               </small>
             </span>
@@ -63,77 +63,77 @@
       <aside class="quote-detail">
         @if (selectedQuote(); as quote) {
           <div class="quote-detail__top">
-            <div>
-              <span>{{ quote.highlight }}</span>
-              <h2>{{ quote.store.name }}</h2>
-              <p>{{ quote.explanation }}</p>
+            <div class="quote-detail__intro">
+              <span class="quote-detail__highlight">{{ quote.highlight }}</span>
+              <h2 class="quote-detail__title">{{ quote.store.name }}</h2>
+              <p class="quote-detail__copy">{{ quote.explanation }}</p>
             </div>
             <div class="quote-detail__total">
-              <span>Total</span>
-              <strong>S/ {{ quote.total }}</strong>
+              <span class="quote-detail__total-label">Total</span>
+              <strong class="quote-detail__total-value">S/ {{ quote.total }}</strong>
             </div>
           </div>
 
           <div class="store-grid">
-            <div>
-              <span>Rating</span>
-              <strong>{{ quote.store.rating }} / 5</strong>
-              <small>{{ quote.store.reviews }} reseñas</small>
+            <div class="store-grid__item">
+              <span class="store-grid__label">Rating</span>
+              <strong class="store-grid__value">{{ quote.store.rating }} / 5</strong>
+              <small class="store-grid__hint">{{ quote.store.reviews }} resenas</small>
             </div>
-            <div>
-              <span>Garantia</span>
-              <strong>{{ quote.store.warranty }}</strong>
+            <div class="store-grid__item">
+              <span class="store-grid__label">Garantia</span>
+              <strong class="store-grid__value">{{ quote.store.warranty }}</strong>
             </div>
-            <div>
-              <span>Entrega</span>
-              <strong>{{ quote.store.deliveryTime }}</strong>
-              <small>Respuesta: {{ quote.store.responseTime }}</small>
+            <div class="store-grid__item">
+              <span class="store-grid__label">Entrega</span>
+              <strong class="store-grid__value">{{ quote.store.deliveryTime }}</strong>
+              <small class="store-grid__hint">Respuesta: {{ quote.store.responseTime }}</small>
             </div>
           </div>
 
           <section class="score-panel">
-            <h3>Desglose del ranking</h3>
+            <h3 class="score-panel__title">Desglose del ranking</h3>
             <div class="score-list">
-              <div>
-                <span>Precio</span>
-                <strong>{{ quote.scoreBreakdown.price }}</strong>
+              <div class="score-list__item">
+                <span class="score-list__label">Precio</span>
+                <strong class="score-list__value">{{ quote.scoreBreakdown.price }}</strong>
               </div>
-              <div>
-                <span>Stock</span>
-                <strong>{{ quote.scoreBreakdown.stock }}</strong>
+              <div class="score-list__item">
+                <span class="score-list__label">Stock</span>
+                <strong class="score-list__value">{{ quote.scoreBreakdown.stock }}</strong>
               </div>
-              <div>
-                <span>Reputacion</span>
-                <strong>{{ quote.scoreBreakdown.reputation }}</strong>
+              <div class="score-list__item">
+                <span class="score-list__label">Reputacion</span>
+                <strong class="score-list__value">{{ quote.scoreBreakdown.reputation }}</strong>
               </div>
-              <div>
-                <span>Garantia</span>
-                <strong>{{ quote.scoreBreakdown.warranty }}</strong>
+              <div class="score-list__item">
+                <span class="score-list__label">Garantia</span>
+                <strong class="score-list__value">{{ quote.scoreBreakdown.warranty }}</strong>
               </div>
-              <div>
-                <span>Entrega</span>
-                <strong>{{ quote.scoreBreakdown.delivery }}</strong>
+              <div class="score-list__item">
+                <span class="score-list__label">Entrega</span>
+                <strong class="score-list__value">{{ quote.scoreBreakdown.delivery }}</strong>
               </div>
             </div>
           </section>
 
           <section class="build-panel">
-            <h3>Build completa de esta tienda</h3>
+            <h3 class="build-panel__title">Build completa de esta tienda</h3>
             <div class="component-table">
               @for (component of quote.components; track trackComponent($index, component)) {
                 <div class="component-row">
-                  <span>{{ component.category }}</span>
-                  <strong>{{ component.name }}</strong>
-                  <small>{{ component.brand }}</small>
-                  <em>S/ {{ component.price }}</em>
+                  <span class="component-row__category">{{ component.category }}</span>
+                  <strong class="component-row__name">{{ component.name }}</strong>
+                  <small class="component-row__brand">{{ component.brand }}</small>
+                  <em class="component-row__price">S/ {{ component.price }}</em>
                 </div>
               }
             </div>
           </section>
 
           <div class="quote-actions">
-            <button type="button">Solicitar cotizacion protegida</button>
-            <a routerLink="/manual-builder">Ajustar manualmente</a>
+            <button class="quote-actions__primary" type="button">Solicitar cotizacion protegida</button>
+            <a class="quote-actions__secondary" routerLink="/manual-builder">Ajustar manualmente</a>
           </div>
         }
       </aside>

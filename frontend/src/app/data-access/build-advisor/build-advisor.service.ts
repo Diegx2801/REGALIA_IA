@@ -8,6 +8,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class BuildAdvisorService {
+  // Simula el futuro endpoint POST /api/builds/recommend de Spring Boot.
   generateBuild(requirements: BuildRequirements): RecommendedBuild {
     const components = this.pickComponents(requirements);
     const subtotal = components.reduce((sum, component) => sum + component.price, 0);
@@ -31,6 +32,7 @@ export class BuildAdvisorService {
   }
 
   private pickComponents(requirements: BuildRequirements): PcComponent[] {
+    // Regla mock: ajusta plataforma y GPU segun presupuesto y preferencia declarada.
     const highBudget = requirements.budget >= 5200;
     const entryBudget = requirements.budget < 3300;
     const prefersNvidia = requirements.brandPreference.toLowerCase().includes('nvidia');
@@ -127,6 +129,7 @@ export class BuildAdvisorService {
   }
 
   private getCompatibilityChecks(requirements: BuildRequirements): ValidationCheck[] {
+    // Validaciones iniciales del MVP frontend: socket, RAM, PSU y balance CPU/GPU.
     const entryBudget = requirements.budget < 3300;
 
     return [

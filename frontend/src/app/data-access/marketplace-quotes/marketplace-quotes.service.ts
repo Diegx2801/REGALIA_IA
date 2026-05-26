@@ -4,6 +4,7 @@ import { PcComponent } from '../../shared/models/pc-build.model';
 
 @Injectable({ providedIn: 'root' })
 export class MarketplaceQuotesService {
+  // Ofertas mock: cada tienda vende una build completa, sin mezclar piezas entre tiendas.
   private readonly quotes: MarketplaceQuote[] = [
     {
       id: 1,
@@ -132,6 +133,7 @@ export class MarketplaceQuotesService {
   ];
 
   getQuotes(): MarketplaceQuote[] {
+    // El ranking inicial se ordena por score total del marketplace.
     return [...this.quotes].sort((a, b) => b.score - a.score);
   }
 

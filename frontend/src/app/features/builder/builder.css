@@ -1,3 +1,7 @@
+/* ==========================================================================
+   BLOQUE: builder-shell
+   DESCRIPCION: Contenedor principal del generador automatico de builds.
+   ========================================================================== */
 .builder-shell {
   background:
     linear-gradient(180deg, rgba(10, 15, 22, 0.98), rgba(18, 20, 29, 1)),
@@ -6,6 +10,10 @@
   padding-top: 5rem;
 }
 
+/* ==========================================================================
+   BLOQUE: builder-header
+   DESCRIPCION: Cabecera de contexto para explicar el flujo MVP.
+   ========================================================================== */
 .builder-header {
   max-width: 760px;
 }
@@ -31,6 +39,10 @@
   margin: 0;
 }
 
+/* ==========================================================================
+   BLOQUE: builder-panel
+   DESCRIPCION: Formulario de requerimientos del usuario.
+   ========================================================================== */
 .builder-panel,
 .result-panel,
 .empty-state {
@@ -138,6 +150,10 @@
   color: #ffffff;
 }
 
+/* ==========================================================================
+   BLOQUE: result-panel
+   DESCRIPCION: Resultado de build recomendado por el servicio mock.
+   ========================================================================== */
 .result-panel {
   padding: 1.25rem;
 }
@@ -164,6 +180,10 @@
   font-size: 1.6rem;
 }
 
+/* ==========================================================================
+   BLOQUE: component-row
+   DESCRIPCION: Representacion de cada componente sugerido.
+   ========================================================================== */
 .component-list {
   display: grid;
   gap: 0.75rem;
@@ -225,6 +245,10 @@
   color: #ffffff;
 }
 
+/* ==========================================================================
+   BLOQUES: validation-card / quote-card
+   DESCRIPCION: Validacion tecnica y resumen de cotizacion.
+   ========================================================================== */
 .section-title {
   color: #ffffff;
   font-size: 1rem;
@@ -304,6 +328,10 @@
   font-size: 1.35rem;
 }
 
+/* ==========================================================================
+   BLOQUE: empty-state
+   DESCRIPCION: Estado inicial antes de generar una build.
+   ========================================================================== */
 .empty-state {
   min-height: 34rem;
   padding: 2rem;

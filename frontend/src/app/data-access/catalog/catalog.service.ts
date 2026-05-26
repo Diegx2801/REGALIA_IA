@@ -4,6 +4,7 @@ import { ComponentCategory } from '../../shared/models/pc-build.model';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogService {
+  // Catalogo mock compartido por builder, catalogo y armado manual.
   private readonly products: CatalogProduct[] = [
     {
       id: 1,
@@ -176,6 +177,7 @@ export class CatalogService {
   }
 
   filterProducts(filters: CatalogFilters): CatalogProduct[] {
+    // Replica en frontend los filtros que luego deberian resolverse desde la API.
     const search = filters.search.trim().toLowerCase();
 
     return this.products.filter((product) => {

@@ -1,9 +1,17 @@
+/* ==========================================================================
+   BLOQUE: manual-shell
+   DESCRIPCION: Contenedor principal del armado manual asistido.
+   ========================================================================== */
 .manual-shell {
   background: linear-gradient(180deg, #0a0f16 0%, #12141d 100%);
   min-height: 100vh;
   padding-top: 5rem;
 }
 
+/* ==========================================================================
+   BLOQUE: manual-header
+   DESCRIPCION: Cabecera de la experiencia de armado manual.
+   ========================================================================== */
 .manual-header {
   align-items: end;
   display: flex;
@@ -41,12 +49,20 @@
   white-space: nowrap;
 }
 
+/* ==========================================================================
+   BLOQUE: manual-layout
+   DESCRIPCION: Layout de categorias, selector y resumen de build.
+   ========================================================================== */
 .manual-layout {
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(12rem, 15rem) 1fr minmax(19rem, 23rem);
 }
 
+/* ==========================================================================
+   BLOQUES: step-panel / step-item
+   DESCRIPCION: Navegacion por categorias obligatorias.
+   ========================================================================== */
 .step-panel,
 .picker-panel,
 .summary-panel {
@@ -99,6 +115,10 @@
   color: var(--color-brand-green);
 }
 
+/* ==========================================================================
+   BLOQUE: picker-panel
+   DESCRIPCION: Lista de productos disponibles para la categoria activa.
+   ========================================================================== */
 .picker-panel__top {
   align-items: center;
   display: flex;
@@ -122,6 +142,10 @@
   gap: 0.75rem;
 }
 
+/* ==========================================================================
+   BLOQUE: manual-product
+   DESCRIPCION: Opcion seleccionable dentro del armado manual.
+   ========================================================================== */
 .manual-product {
   background: #12141d;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -190,6 +214,10 @@
   white-space: nowrap;
 }
 
+/* ==========================================================================
+   BLOQUES: summary-panel / selected-row
+   DESCRIPCION: Resumen de componentes elegidos por el usuario.
+   ========================================================================== */
 .summary-panel__score,
 .quote-box {
   background: #12141d;
@@ -247,6 +275,10 @@
   grid-column: 1 / -1;
 }
 
+/* ==========================================================================
+   BLOQUES: validation-list / validation-item
+   DESCRIPCION: Alertas de compatibilidad en tiempo real.
+   ========================================================================== */
 .validation-list {
   margin-top: 1rem;
 }
@@ -286,6 +318,10 @@
   margin: 0.1rem 0 0;
 }
 
+/* ==========================================================================
+   BLOQUE: quote-box
+   DESCRIPCION: Total estimado y accion de cotizacion mock.
+   ========================================================================== */
 .quote-box {
   margin-bottom: 0;
 }
