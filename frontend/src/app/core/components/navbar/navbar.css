@@ -1,0 +1,39 @@
+/* =========================================================================
+    ESTILOS: Navbar Encapsulado
+    DESCRIPCIÓN: Control visual de transparencias, fuentes y botones de navegación.
+   ========================================================================= */
+
+/* BLOQUE: navbar-custom (Efecto cristal sobre el navbar base de Bootstrap) */
+.navbar-custom {
+    background-color: rgba(18, 20, 29, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 1030;
+}
+
+/* BLOQUE: brand-logo (Manejo de colores de la marca) */
+.brand-logo__highlight {
+    color: #3b82f6; /* Azul IA */
+}
+
+.brand-logo__tag {
+    color: #9ca3af; /* Gris secundario */
+}
+
+/* BLOQUE: btn-custom (Botón de acción B2B) */
+.btn-custom {
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* MODIFICADOR: Variante de borde azul */
+.btn-custom--outline-primary {
+    border: 2px solid #1d4ed8;
+    color: #1d4ed8;
+    background: transparent;
+}
+
+.btn-custom--outline-primary:hover {
+    background-color: #1d4ed8;
+    color: #ffffff;
+}

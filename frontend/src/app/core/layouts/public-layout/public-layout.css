@@ -1,0 +1,3 @@
+.layout-public {
+    min-height: 100dvh; /* Se adapta dinámicamente si el teclado o la barra del celular aparecen */
+}

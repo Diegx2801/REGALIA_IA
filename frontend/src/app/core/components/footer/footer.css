@@ -1,0 +1,24 @@
+/* =========================================================================
+    ESTILOS: Footer Encapsulado
+    DESCRIPCIÓN: Separación visual de fondo y manejo de contrastes sobre gris oscuro.
+   ========================================================================= */
+
+/* BLOQUE: footer-main (Contenedor principal) */
+.footer-main {
+    background-color: #0b0d14;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100%;
+}
+
+/* ELEMENTOS: Textos internos del footer */
+.footer-main__title {
+    color: #f8fafc;
+}
+
+.footer-main__highlight {
+    color: #3b82f6; /* Azul de confianza técnica */
+}
+
+.footer-main__text {
+    color: #9ca3af; /* Gris pizarra para textos secundarios */
+}
