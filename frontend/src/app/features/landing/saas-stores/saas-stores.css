@@ -1,0 +1,10 @@
+/* =========================================================================
+    ESTILOS: SaasStoresComponent (Metodología BEM)
+   ========================================================================= */
+.metric-box { background-color: #1e2235; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; color: #f8fafc; }
+.metric-box__value { font-family: var(--font-display); }
+.metric-box__value--blue { color: #1d4ed8; }
+.metric-box__value--cyan { color: #00ffcc; }
+.metric-box__label { color: #9ca3af; font-weight: 500; }
+.benefit-list { color: #9ca3af; font-weight: 500; }
+.benefit-list__icon { color: #00ffcc; }

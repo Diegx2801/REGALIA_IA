@@ -1,0 +1,45 @@
+/* =========================================================================
+    SISTEMA DE DISEÑO (DESIGN TOKENS)
+   ========================================================================= */
+:root {
+    /* Tipografía */
+    --font-base: 'Inter', sans-serif;
+    --font-display: 'Space Grotesk', sans-serif;
+    
+    /* Colores de Marca (Extraídos del Logo) */
+    --color-brand-blue: #0066ff; /* Azul del circuito */
+    --color-brand-green: #00ff66; /* Verde de los ventiladores / AI */
+    
+    /* Degradado oficial */
+    --brand-gradient: linear-gradient(135deg, var(--color-brand-blue) 0%, var(--color-brand-green) 100%);
+    
+    /* Fondos oscuros */
+    --color-bg-dark: #0a0f16;
+    --color-text-light: #f8fafc;
+}
+
+/* =========================================================================
+    ESTILOS GLOBALES BASE (Resets)
+   ========================================================================= */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-bg-dark); 
+    color: var(--color-text-light);
+    font-family: var(--font-base); 
+}
+
+/* Títulos y clases de Display heredan la fuente tecnológica*/
+h1, h2, h3, h4, h5, h6, 
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+}
+
+/* Forzamos a que la raíz de Angular ocupe toda la pantalla para el Layout */
+app-root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
