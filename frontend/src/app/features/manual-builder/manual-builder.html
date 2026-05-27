@@ -1,86 +1,131 @@
-<section class="provider-shell">
-  <div class="container py-5">
-    <header class="provider-header">
-      <span>Portal de proveedores</span>
-      <h1>Registro, perfil y reputacion para emprendedores locales.</h1>
-      <p>
-        El proveedor no espera ofertas manuales: configura su perfil y REGALIA le deriva pedidos confirmados
-        cuando el matching detecta compatibilidad.
+<section class="manual-page">
+  <div class="container manual-page__container">
+    <header class="manual-header">
+      <span class="manual-header__eyebrow">Constructor manual</span>
+      <h1 class="manual-header__title">Arma una solicitud precisa sin usar IA.</h1>
+      <p class="manual-header__text">
+        Selecciona ocasión, presupuesto, estilo y zona para generar una reserva clara con proveedores compatibles.
       </p>
     </header>
 
-    <div class="provider-layout">
-      <form class="onboarding-panel" [formGroup]="providerForm">
-        <h2>Perfil base</h2>
+    <div class="manual-layout">
+      <form class="manual-form" [formGroup]="manualForm" (change)="onFormChanged()" (input)="onFormChanged()" (ngSubmit)="confirmManualRequest()">
+        <div class="manual-form__head">
+          <span class="manual-form__eyebrow">Datos de la solicitud</span>
+          <h2 class="manual-form__title">Preferencias del regalo</h2>
+        </div>
 
-        <label for="businessName">Nombre del negocio</label>
-        <input id="businessName" type="text" formControlName="businessName">
+        <div class="manual-form__grid">
+          <label class="manual-field" for="manual-occasion">
+            <span class="manual-field__label">Ocasión</span>
+            <select id="manual-occasion" class="manual-field__control" formControlName="occasion">
+              @for (occasion of occasions; track occasion) {
+                <option [value]="occasion">{{ occasion }}</option>
+              }
+            </select>
+          </label>
 
-        <label for="category">Categoria</label>
-        <select id="category" formControlName="category">
-          @for (category of categories; track category) {
-            <option [value]="category">{{ category }}</option>
-          }
-        </select>
+          <label class="manual-field" for="manual-category">
+            <span class="manual-field__label">Categoría</span>
+            <select id="manual-category" class="manual-field__control" formControlName="category">
+              @for (category of categories; track category) {
+                <option [value]="category">{{ category }}</option>
+              }
+            </select>
+          </label>
 
-        <label for="priceFrom">Precio desde</label>
-        <input id="priceFrom" type="number" formControlName="priceFrom">
+          <label class="manual-field" for="manual-budget">
+            <span class="manual-field__label">Presupuesto</span>
+            <input id="manual-budget" class="manual-field__control" type="number" min="20" max="2000" formControlName="budget">
+          </label>
 
-        <label for="deliveryTime">Tiempo de entrega</label>
-        <input id="deliveryTime" type="text" formControlName="deliveryTime">
+          <label class="manual-field" for="manual-style">
+            <span class="manual-field__label">Estilo</span>
+            <input id="manual-style" class="manual-field__control" type="text" formControlName="style">
+          </label>
 
-        <label for="whatsapp">WhatsApp</label>
-        <input id="whatsapp" type="text" formControlName="whatsapp">
+          <label class="manual-field" for="manual-date">
+            <span class="manual-field__label">Fecha</span>
+            <input id="manual-date" class="manual-field__control" type="text" formControlName="deliveryDate">
+          </label>
 
-        <label for="availability">Disponibilidad</label>
-        <input id="availability" type="text" formControlName="availability">
+          <label class="manual-field" for="manual-district">
+            <span class="manual-field__label">Distrito</span>
+            <input id="manual-district" class="manual-field__control" type="text" formControlName="district">
+          </label>
+        </div>
 
-        <button type="button">Guardar perfil mock</button>
+        <label class="manual-field" for="manual-details">
+          <span class="manual-field__label">Comentarios adicionales</span>
+          <textarea id="manual-details" class="manual-field__control" rows="4" formControlName="details"></textarea>
+        </label>
+
+        <button class="manual-form__button" type="submit">Generar solicitud manual</button>
       </form>
 
-      <main class="provider-list">
-        @for (provider of providers(); track trackProvider($index, provider)) {
+      <main class="manual-providers" aria-label="Proveedores compatibles">
+        <div class="manual-providers__head">
+          <span class="manual-providers__eyebrow">Compatibles</span>
+          <h2 class="manual-providers__title">{{ compatibleProviders().length }} opciones sugeridas</h2>
+        </div>
+
+        @for (provider of compatibleProviders(); track trackProvider($index, provider)) {
           <button
             type="button"
-            class="provider-row"
-            [class.provider-row--selected]="selectedProvider().id === provider.id"
+            class="manual-provider-card"
+            [class.manual-provider-card--selected]="selectedProvider().id === provider.id"
             (click)="selectProvider(provider)"
           >
-            <div>
-              <span>{{ provider.category }}</span>
-              <strong>{{ provider.businessName }}</strong>
-              <small>{{ provider.availability }} · {{ provider.deliveryTime }}</small>
-            </div>
-            <em>{{ provider.reputation }}%</em>
+            <span class="manual-provider-card__score">{{ provider.reputation }}%</span>
+            <span class="manual-provider-card__body">
+              <span class="manual-provider-card__category">{{ provider.category }}</span>
+              <strong class="manual-provider-card__title">{{ provider.businessName }}</strong>
+              <small class="manual-provider-card__text">{{ provider.availability }} · {{ provider.deliveryTime }}</small>
+              <span class="manual-provider-card__tags">
+                @for (style of provider.styles; track trackText($index, style)) {
+                  <span>{{ style }}</span>
+                }
+              </span>
+            </span>
+            <span class="manual-provider-card__price">Desde S/ {{ provider.priceFrom }}</span>
           </button>
+        } @empty {
+          <article class="manual-empty">
+            <h2 class="manual-empty__title">Aún no hay compatibilidad exacta</h2>
+            <p class="manual-empty__text">Sube el presupuesto o cambia categoría para ampliar las opciones.</p>
+          </article>
         }
       </main>
 
-      <aside class="profile-panel">
+      <aside class="manual-summary">
+        <span class="manual-summary__eyebrow">Resumen de solicitud</span>
+        <h2 class="manual-summary__title">{{ manualForm.controls.occasion.value }}</h2>
+        <p class="manual-summary__text">{{ manualForm.controls.details.value }}</p>
+
+        <div class="manual-summary__facts">
+          <span>{{ manualForm.controls.district.value }}</span>
+          <span>{{ manualForm.controls.deliveryDate.value }}</span>
+          <span>{{ manualForm.controls.style.value }}</span>
+        </div>
+
         @if (selectedProvider(); as provider) {
-          <span>Perfil publico</span>
-          <h2>{{ provider.businessName }}</h2>
-          <p>{{ provider.description }}</p>
+          <section class="manual-summary__provider">
+            <span>Proveedor seleccionado</span>
+            <strong>{{ provider.businessName }}</strong>
+            <small>{{ provider.rating }} ★ · {{ provider.reviews }} reseñas</small>
+          </section>
+        }
 
-          <div class="profile-panel__metrics">
-            <div><strong>{{ provider.rating }}</strong><span>calificacion</span></div>
-            <div><strong>{{ provider.reviews }}</strong><span>resenas</span></div>
-            <div><strong>S/ {{ provider.priceFrom }}</strong><span>desde</span></div>
-          </div>
+        <section class="manual-breakdown">
+          <h3 class="manual-breakdown__title">Reserva estimada</h3>
+          <div class="manual-breakdown__row"><span>Total pedido</span><strong>S/ {{ reservationBreakdown().estimatedOrder }}</strong></div>
+          <div class="manual-breakdown__row"><span>Seña</span><strong>S/ {{ reservationBreakdown().reservation }}</strong></div>
+          <div class="manual-breakdown__row"><span>Comisión REGALIA</span><strong>S/ {{ reservationBreakdown().platformCommission }}</strong></div>
+          <div class="manual-breakdown__row"><span>Proveedor recibe</span><strong>S/ {{ reservationBreakdown().providerCredit }}</strong></div>
+        </section>
 
-          <h3>Trabajos anteriores</h3>
-          <div class="portfolio-list">
-            @for (item of provider.portfolio; track trackText($index, item)) {
-              <span>{{ item }}</span>
-            }
-          </div>
-
-          <h3>Calidad operativa</h3>
-          <div class="quality-list">
-            <div><span>Puntualidad</span><strong>{{ provider.reviewSummary.punctuality }}</strong></div>
-            <div><span>Comunicacion</span><strong>{{ provider.reviewSummary.communication }}</strong></div>
-            <div><span>Presentacion</span><strong>{{ provider.reviewSummary.presentation }}</strong></div>
-          </div>
+        @if (submitted()) {
+          <p class="manual-summary__success">Solicitud manual lista para enviar a proveedores compatibles.</p>
         }
       </aside>
     </div>

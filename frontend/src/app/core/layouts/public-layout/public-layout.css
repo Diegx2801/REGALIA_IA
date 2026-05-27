@@ -1,11 +1,11 @@
-.layout-public {
-  background: var(--color-surface-muted);
+.public-layout {
+  background: var(--color-bg);
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
 }
 
-.main-content-wrapper {
+.public-layout__main {
   flex: 1 0 auto;
   min-height: calc(100dvh - 10rem);
   width: 100%;

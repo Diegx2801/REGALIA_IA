@@ -1,80 +1,85 @@
-<section class="providers-shell">
-  <div class="container py-5">
-    <header class="providers-header">
-      <div>
-        <span>Catalogo inteligente</span>
-        <h1>Proveedores locales listos para pedidos personalizados.</h1>
-        <p>
-          No es una tienda comun. Cada perfil muestra disponibilidad, precios referenciales,
-          reputacion y estilo para alimentar el matching de REGALIA.
+<section class="catalog-page">
+  <div class="container catalog-page__container">
+    <header class="catalog-header">
+      <div class="catalog-header__copy">
+        <span class="catalog-header__eyebrow">Catálogo REGALIA</span>
+        <h1 class="catalog-header__title">Proveedores locales listos para pedidos personalizados.</h1>
+        <p class="catalog-header__text">
+          Explora perfiles con disponibilidad, precios referenciales, reputación y estilos para reservar sin perder tiempo.
         </p>
       </div>
-      <strong>{{ filteredProviders().length }} proveedores</strong>
+      <strong class="catalog-header__count">{{ filteredProviders().length }} proveedores</strong>
     </header>
 
-    <div class="category-strip">
+    <nav class="category-strip" aria-label="Filtro rápido por categoría">
       @for (category of categories; track category) {
         <button
+          class="category-strip__chip"
           type="button"
-          [class.category-chip--active]="filtersForm.controls.category.value === category"
+          [class.category-strip__chip--active]="filtersForm.controls.category.value === category"
           (click)="applyCategory(category)"
         >
           {{ category }}
         </button>
       }
-    </div>
+    </nav>
 
-    <div class="providers-layout">
-      <aside class="filters-panel">
-        <form [formGroup]="filtersForm" (change)="onFiltersChanged()" (input)="onFiltersChanged()">
-          <div class="filters-panel__top">
-            <h2>Filtros</h2>
-            <button type="button" (click)="resetFilters()">Limpiar</button>
+    <div class="catalog-layout">
+      <aside class="catalog-filters">
+        <form class="catalog-filters__form" [formGroup]="filtersForm" (change)="onFiltersChanged()" (input)="onFiltersChanged()">
+          <div class="catalog-filters__head">
+            <h2 class="catalog-filters__title">Filtros</h2>
+            <button class="catalog-filters__clear" type="button" (click)="resetFilters()">Limpiar</button>
           </div>
 
-          <label for="search">Buscar</label>
-          <input id="search" type="search" placeholder="flores, elegante, desayuno..." formControlName="search">
+          <label class="filter-field" for="search">
+            <span class="filter-field__label">Buscar</span>
+            <input id="search" class="filter-field__control" type="search" placeholder="flores, elegante, desayuno..." formControlName="search">
+          </label>
 
-          <label for="category">Categoria</label>
-          <select id="category" formControlName="category">
-            @for (category of categories; track category) {
-              <option [value]="category">{{ category }}</option>
-            }
-          </select>
+          <label class="filter-field" for="category">
+            <span class="filter-field__label">Categoría</span>
+            <select id="category" class="filter-field__control" formControlName="category">
+              @for (category of categories; track category) {
+                <option [value]="category">{{ category }}</option>
+              }
+            </select>
+          </label>
 
-          <label for="occasion">Ocasion</label>
-          <select id="occasion" formControlName="occasion">
-            @for (occasion of occasions; track occasion) {
-              <option [value]="occasion">{{ occasion }}</option>
-            }
-          </select>
+          <label class="filter-field" for="occasion">
+            <span class="filter-field__label">Ocasión</span>
+            <select id="occasion" class="filter-field__control" formControlName="occasion">
+              @for (occasion of occasions; track occasion) {
+                <option [value]="occasion">{{ occasion }}</option>
+              }
+            </select>
+          </label>
 
-          <label for="maxPrice">Desde hasta S/ {{ filtersForm.controls.maxPrice.value }}</label>
-          <input id="maxPrice" type="range" min="20" max="700" step="10" formControlName="maxPrice">
+          <label class="filter-field" for="maxPrice">
+            <span class="filter-field__label">Precio desde hasta S/ {{ filtersForm.controls.maxPrice.value }}</span>
+            <input id="maxPrice" class="filter-field__range" type="range" min="20" max="700" step="10" formControlName="maxPrice">
+          </label>
 
-          <label class="filters-panel__check">
+          <label class="catalog-filters__check">
             <input type="checkbox" formControlName="availableOnly">
             <span>Solo disponibles</span>
           </label>
         </form>
       </aside>
 
-      <main class="provider-grid">
+      <main class="provider-grid" aria-label="Proveedores disponibles">
         @for (provider of filteredProviders(); track trackProvider($index, provider)) {
-          <article
-            class="provider-card"
-            [class.provider-card--selected]="selectedProvider().id === provider.id"
-          >
+          <article class="provider-card" [class.provider-card--selected]="selectedProvider().id === provider.id">
             <button type="button" class="provider-card__main" (click)="selectProvider(provider)">
-              <span class="provider-card__badge">{{ provider.featured ? 'Destacado' : provider.availability }}</span>
+              <span class="provider-card__badge">{{ provider.featured ? 'Destacado' : 'Verificado' }}</span>
               <span class="provider-card__category">{{ provider.category }}</span>
-              <h2>{{ provider.businessName }}</h2>
-              <p>{{ provider.description }}</p>
-              <div class="provider-card__styles">
+              <h2 class="provider-card__title">{{ provider.businessName }}</h2>
+              <p class="provider-card__text">{{ provider.description }}</p>
+              <span class="provider-card__tags">
                 @for (style of provider.styles; track trackText($index, style)) {
                   <span>{{ style }}</span>
                 }
-              </div>
+              </span>
             </button>
             <div class="provider-card__footer">
               <span>{{ provider.district }} · {{ provider.distanceKm }} km</span>
@@ -83,35 +88,35 @@
           </article>
         } @empty {
           <div class="empty-state">
-            <h2>No hay proveedores con esos filtros</h2>
-            <p>Ajusta categoria, ocasion o presupuesto para mostrar nuevas opciones.</p>
+            <h2 class="empty-state__title">No hay proveedores con esos filtros</h2>
+            <p class="empty-state__text">Ajusta categoría, ocasión o presupuesto para mostrar nuevas opciones.</p>
           </div>
         }
       </main>
 
       <aside class="provider-detail">
         @if (selectedProvider(); as provider) {
-          <span>{{ provider.category }}</span>
-          <h2>{{ provider.businessName }}</h2>
-          <p>{{ provider.description }}</p>
+          <span class="provider-detail__eyebrow">{{ provider.category }}</span>
+          <h2 class="provider-detail__title">{{ provider.businessName }}</h2>
+          <p class="provider-detail__text">{{ provider.description }}</p>
 
           <div class="provider-detail__score">
             <strong>{{ provider.rating }}</strong>
-            <span>{{ provider.reviews }} resenas · reputacion {{ provider.reputation }}%</span>
+            <span>{{ provider.reviews }} reseñas · reputación {{ provider.reputation }}%</span>
           </div>
 
-          <section>
-            <h3>Datos para matching</h3>
+          <section class="detail-block">
+            <h3 class="detail-block__title">Datos para matching</h3>
             <div class="detail-list">
-              <div><span>Entrega</span><strong>{{ provider.deliveryTime }}</strong></div>
-              <div><span>Disponibilidad</span><strong>{{ provider.availability }}</strong></div>
-              <div><span>WhatsApp</span><strong>{{ provider.whatsapp }}</strong></div>
-              <div><span>Pagos</span><strong>{{ provider.paymentMethods.join(', ') }}</strong></div>
+              <div class="detail-list__row"><span>Entrega</span><strong>{{ provider.deliveryTime }}</strong></div>
+              <div class="detail-list__row"><span>Disponibilidad</span><strong>{{ provider.availability }}</strong></div>
+              <div class="detail-list__row"><span>WhatsApp</span><strong>{{ provider.whatsapp }}</strong></div>
+              <div class="detail-list__row"><span>Pagos</span><strong>{{ provider.paymentMethods.join(', ') }}</strong></div>
             </div>
           </section>
 
-          <section>
-            <h3>Portafolio</h3>
+          <section class="detail-block">
+            <h3 class="detail-block__title">Portafolio</h3>
             <div class="portfolio-list">
               @for (item of provider.portfolio; track trackText($index, item)) {
                 <span>{{ item }}</span>
@@ -119,7 +124,7 @@
             </div>
           </section>
 
-          <button type="button">Usar en solicitud</button>
+          <a class="provider-detail__button" routerLink="/pedir-con-ia">Usar en solicitud</a>
         }
       </aside>
     </div>

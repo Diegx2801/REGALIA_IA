@@ -1,7 +1,7 @@
 /**
  * =========================================================================
- * COMPONENTE LAYOUT: PublicLayoutComponent
- * DESCRIPCIÓN: Contenedor estructural para todas las vistas públicas (Marketing).
+ * COMPONENTE DE ESTRUCTURA: PublicLayoutComponent
+ * DESCRIPCIÓN: Contenedor estructural para todas las vistas públicas de comunicación comercial.
  * =========================================================================
  */
 import { Component } from '@angular/core';

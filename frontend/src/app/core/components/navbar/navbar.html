@@ -1,36 +1,49 @@
-<nav class="navbar navbar-expand-lg py-3 fixed-top navbar-custom">
-  <div class="container">
-    <a class="navbar-brand brand-logo d-flex align-items-center" routerLink="/">
-      <span class="brand-logo__mark">R</span>
-      <span class="brand-logo__text">REGALIA</span>
+<!-- Navegación de alta gama compartida por las vistas públicas de REGALIA -->
+<nav class="regalia-navbar" aria-label="Navegación principal">
+  <div class="container regalia-navbar__inner">
+    <a class="regalia-navbar__brand" routerLink="/" (click)="closeMenu()" aria-label="REGALIA inicio">
+      <span class="regalia-navbar__brand-media" aria-hidden="true">
+        <img class="regalia-navbar__brand-image" src="/images/r_regalia.png" alt="">
+      </span>
     </a>
 
     <button
-      class="navbar-toggler"
+      class="regalia-navbar__toggle"
+      [class.regalia-navbar__toggle--open]="isMenuOpen()"
       type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarNav"
-      aria-controls="navbarNav"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
+      aria-controls="regalia-navbar-menu"
+      [attr.aria-expanded]="isMenuOpen()"
+      aria-label="Abrir menú"
+      (click)="toggleMenu()"
     >
-      <span class="navbar-toggler-icon"></span>
+      <span></span>
+      <span></span>
+      <span></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item"><a class="nav-link fw-medium" routerLink="/" fragment="inicio">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium" routerLink="/match">Pedir con IA</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium" routerLink="/catalogo">Catalogo</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium" routerLink="/proveedores">Proveedores</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium" routerLink="/panel">Panel</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium" routerLink="/" fragment="modelo">Modelo</a></li>
-        <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
-          <a class="btn px-4 rounded-pill btn-custom btn-custom--outline-primary" routerLink="/match">
-            Crear solicitud
+    <div
+      id="regalia-navbar-menu"
+      class="regalia-navbar__menu"
+      [class.regalia-navbar__menu--open]="isMenuOpen()"
+    >
+      <div class="regalia-navbar__links">
+        @for (item of navItems; track item.route) {
+          <a
+            class="regalia-navbar__link"
+            routerLinkActive="regalia-navbar__link--active"
+            [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+            [routerLink]="item.route"
+            (click)="closeMenu()"
+          >
+            {{ item.label }}
           </a>
-        </li>
-      </ul>
+        }
+      </div>
+
+      <a class="regalia-navbar__cta" routerLink="/pedir-con-ia" (click)="closeMenu()">
+        <span aria-hidden="true">✦</span>
+        Crear solicitud
+      </a>
     </div>
   </div>
 </nav>
