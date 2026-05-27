@@ -24,4 +24,11 @@ describe('CatalogComponent', () => {
 
     expect(component.filteredProducts().every((product) => product.category === 'GPU')).toBe(true);
   });
+
+  it('should render storefront products', () => {
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Ryzen 5 7600');
+    expect(fixture.nativeElement.textContent).toContain('Ordenar');
+  });
 });

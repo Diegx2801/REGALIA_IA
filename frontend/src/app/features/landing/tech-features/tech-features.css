@@ -1,9 +1,9 @@
 /* =========================================================================
     ESTILOS: TechFeaturesComponent (Metodología BEM)
    ========================================================================= */
-.feature-card { background-color: #1e2235; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; transition: all 0.3s ease; }
-.feature-card:hover { border-color: #1d4ed8; transform: translateY(-4px); box-shadow: 0 10px 30px rgba(29, 78, 216, 0.1); }
-.feature-card__icon--blue { color: #1d4ed8; }
-.feature-card__icon--cyan { color: #00ffcc; }
-.feature-card__title { color: #f8fafc; }
-.feature-card__description { color: #9ca3af; font-weight: 500; }
+.feature-card { background-color: #ffffff; border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06); transition: all 0.3s ease; }
+.feature-card:hover { border-color: #0f766e; transform: translateY(-4px); box-shadow: 0 14px 34px rgba(15, 118, 110, 0.12); }
+.feature-card__icon--blue { color: #475569; }
+.feature-card__icon--cyan { color: #0f766e; }
+.feature-card__title { color: var(--color-text-main); }
+.feature-card__description { color: var(--color-text-muted); font-weight: 500; }

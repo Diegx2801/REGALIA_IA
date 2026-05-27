@@ -1,111 +1,142 @@
-/* ==========================================================================
-   BLOQUE: catalog-shell
-   DESCRIPCION: Contenedor principal del catalogo de componentes.
-   ========================================================================== */
-.catalog-shell {
-  background: linear-gradient(180deg, #0a0f16 0%, #12141d 100%);
+.storefront-shell {
+  background: var(--color-surface-muted);
+  color: #111827;
   min-height: 100vh;
   padding-top: 5rem;
 }
 
-/* ==========================================================================
-   BLOQUE: catalog-header
-   DESCRIPCION: Cabecera con resumen de productos encontrados.
-   ========================================================================== */
-.catalog-header {
-  align-items: end;
-  display: flex;
-  gap: 1.5rem;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
+.storefront-topbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-size: 0.85rem;
 }
 
-.catalog-header__eyebrow {
-  color: var(--color-brand-green);
-  font-size: 0.82rem;
+.storefront-topbar__inner {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  min-height: 2.5rem;
+}
+
+.storefront-topbar__inner span:first-child,
+.storefront-topbar__inner strong {
+  color: #0b7a35;
   font-weight: 800;
+}
+
+.storefront-container {
+  padding-bottom: 3rem;
+  padding-top: 1.25rem;
+}
+
+.store-hero {
+  align-items: stretch;
+  background:
+    linear-gradient(135deg, #ffffff 0%, #f7f3ea 52%, #edf7f3 100%),
+    #ffffff;
+  border: 1px solid #e3e9f1;
+  border-radius: 8px;
+  color: #111827;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr minmax(16rem, 22rem);
+  margin-bottom: 1rem;
+  padding: 1.5rem;
+}
+
+.store-hero__eyebrow,
+.results-toolbar__eyebrow {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
   text-transform: uppercase;
 }
 
-.catalog-header__title {
-  color: #ffffff;
-  font-size: clamp(2rem, 4vw, 3.1rem);
-  margin: 0.35rem 0 0.7rem;
-}
-
-.catalog-header__copy {
-  color: #9ca3af;
+.store-hero__title {
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  line-height: 1;
+  margin: 0.35rem 0 0.65rem;
   max-width: 46rem;
 }
 
-.catalog-header__metric {
-  background: rgba(30, 34, 53, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.store-hero__copy {
+  color: #4b5563;
+  margin: 0;
+  max-width: 47rem;
+}
+
+.deal-card {
+  background: #ffffff;
+  border: 1px solid #dfe7ef;
   border-radius: 8px;
-  min-width: 8rem;
+  color: #111827;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 10rem;
   padding: 1rem;
-  text-align: right;
+  text-align: left;
 }
 
-.catalog-header__metric span {
-  color: #9ca3af;
-  display: block;
+.deal-card__label {
+  color: #0b7a35;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-.catalog-header__metric strong {
-  color: var(--color-brand-green);
-  font-size: 2rem;
+.deal-card strong {
+  font-size: 1.25rem;
+  margin: 0.25rem 0;
 }
 
-/* ==========================================================================
-   BLOQUES: category-strip / category-chip
-   DESCRIPCION: Filtros rapidos por categoria de hardware.
-   ========================================================================== */
+.deal-card small {
+  color: #4b5563;
+  margin-top: 0.5rem;
+}
+
 .category-strip {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.5rem;
   margin-bottom: 1rem;
   overflow-x: auto;
-  padding-bottom: 0.3rem;
+  padding-bottom: 0.25rem;
 }
 
 .category-chip {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid #d7dce3;
   border-radius: 999px;
-  color: #d7deea;
-  font-weight: 700;
+  color: #374151;
+  font-weight: 800;
   padding: 0.55rem 0.9rem;
   white-space: nowrap;
 }
 
 .category-chip--active {
-  background: var(--brand-gradient);
-  border-color: transparent;
+  background: #0f766e;
+  border-color: #0f766e;
   color: #ffffff;
 }
 
-/* ==========================================================================
-   BLOQUE: catalog-layout
-   DESCRIPCION: Distribucion de filtros, grilla de productos y detalle.
-   ========================================================================== */
-.catalog-layout {
+.store-layout {
+  align-items: start;
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(14rem, 17rem) 1fr minmax(17rem, 21rem);
 }
 
-/* ==========================================================================
-   BLOQUE: filter-panel
-   DESCRIPCION: Panel de filtros del catalogo.
-   ========================================================================== */
 .filter-panel,
 .detail-panel,
 .product-card,
-.catalog-empty {
-  background: rgba(30, 34, 53, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.catalog-empty,
+.results-toolbar {
+  background: #ffffff;
+  border: 1px solid #dfe4ea;
   border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
 }
 
 .filter-panel,
@@ -124,158 +155,271 @@
 
 .filter-panel h2,
 .detail-panel h2 {
-  color: #ffffff;
-  font-size: 1.2rem;
+  color: #111827;
+  font-size: 1.12rem;
   margin: 0;
 }
 
 .filter-panel__reset {
   background: transparent;
   border: 0;
-  color: var(--color-brand-green);
-  font-weight: 800;
+  color: #0f766e;
+  font-weight: 900;
 }
 
 .catalog-label {
-  color: #d7deea;
-  font-weight: 800;
+  color: #374151;
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 900;
   margin: 1rem 0 0.35rem;
 }
 
-.catalog-input {
-  background-color: #111827;
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #f8fafc;
+.catalog-input,
+.sort-control select {
+  background-color: #f8fafc;
+  border: 1px solid #cfd7e3;
+  border-radius: 8px;
+  color: #111827;
+  min-height: 2.65rem;
+  padding: 0 0.75rem;
+  width: 100%;
 }
 
-.catalog-input:focus {
-  background-color: #111827;
-  border-color: var(--color-brand-blue);
-  box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.16);
-  color: #f8fafc;
+.catalog-input:focus,
+.sort-control select:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.12);
+  outline: 0;
 }
 
 .catalog-range {
-  accent-color: var(--color-brand-blue);
+  accent-color: #0f766e;
+  width: 100%;
 }
 
 .stock-toggle {
   align-items: center;
-  color: #e5e7eb;
+  color: #374151;
   display: flex;
   gap: 0.6rem;
   margin-top: 1rem;
 }
 
-/* ==========================================================================
-   BLOQUE: product-card
-   DESCRIPCION: Card de producto dentro del catalogo.
-   ========================================================================== */
+.results-toolbar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem 1rem;
+}
+
+.results-toolbar strong,
+.results-toolbar small {
+  display: block;
+}
+
+.results-toolbar strong {
+  color: #111827;
+  font-size: 1.1rem;
+}
+
+.results-toolbar small,
+.results-toolbar__eyebrow,
+.sort-control span {
+  color: #6b7280;
+}
+
+.sort-control {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  min-width: 14rem;
+}
+
+.sort-control label {
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
 .product-grid {
   display: grid;
   gap: 0.85rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .product-card {
-  color: inherit;
-  display: grid;
-  gap: 0.9rem;
-  grid-template-columns: 5.2rem 1fr;
-  min-height: 12rem;
-  padding: 0.85rem;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  min-height: 28rem;
+  overflow: hidden;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .product-card:hover,
 .product-card--selected {
-  border-color: var(--color-brand-blue);
+  border-color: #0f766e;
   transform: translateY(-2px);
+}
+
+.product-card__preview,
+.product-card__name {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.product-card__preview {
+  background: #fafaf8;
+  min-height: 11rem;
+  padding: 0.75rem;
+  position: relative;
+}
+
+.product-card__badge {
+  background: #0f766e;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  left: 0.75rem;
+  padding: 0.28rem 0.55rem;
+  position: absolute;
+  top: 0.75rem;
+  z-index: 1;
 }
 
 .product-card__visual,
 .detail-panel__visual {
+  align-items: center;
   background:
-    radial-gradient(circle, var(--product-tone) 0%, rgba(255, 255, 255, 0.08) 46%, rgba(10, 15, 22, 0.95) 72%),
-    #111827;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+    radial-gradient(circle at 50% 35%, var(--product-tone) 0%, rgba(255, 255, 255, 0.96) 46%, #dfe7ef 74%),
+    #fafaf8;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
+  display: flex;
+  justify-content: center;
 }
 
 .product-card__visual {
-  align-items: center;
-  display: flex;
-  justify-content: center;
+  height: 9.4rem;
 }
 
 .product-card__visual span,
 .detail-panel__visual span {
-  color: #ffffff;
+  color: #111827;
   font-family: var(--font-display);
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 900;
 }
 
 .product-card__body {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  min-width: 0;
+  padding: 0.9rem;
 }
 
 .product-card__category,
 .detail-panel__category {
-  color: var(--color-brand-green);
-  font-size: 0.78rem;
-  font-weight: 800;
+  color: #0b7a35;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .product-card__name {
-  color: #ffffff;
-  font-size: 1.02rem;
-  margin: 0.2rem 0;
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.25;
+  margin: 0.25rem 0;
 }
 
-.product-card__description {
-  color: #9ca3af;
-  font-size: 0.9rem;
+.product-card__rating,
+.product-card__shipping,
+.product-card__installments,
+.product-card p {
+  color: #6b7280;
+  font-size: 0.84rem;
 }
 
-.product-card__footer {
-  align-items: center;
+.product-card p {
+  margin: 0.35rem 0 0.75rem;
+}
+
+.product-card__pricing {
+  align-items: baseline;
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.45rem;
   margin-top: auto;
 }
 
-.product-card__footer strong {
+.product-card__pricing strong {
+  color: #111827;
+  font-size: 1.35rem;
+}
+
+.product-card__pricing small {
+  color: #b45309;
+  font-weight: 900;
+}
+
+.product-card__old-price {
+  color: #8c95a3;
+  text-decoration: line-through;
+}
+
+.product-card__installments,
+.product-card__shipping {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.product-card__actions {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 0.8rem;
+}
+
+.product-card__primary,
+.product-card__secondary,
+.detail-panel__cta {
+  border: 0;
+  border-radius: 8px;
+  font-weight: 900;
+  min-height: 2.5rem;
+}
+
+.product-card__primary,
+.detail-panel__cta {
+  background: #0f766e;
   color: #ffffff;
 }
 
-.product-card__footer small {
-  color: #9ca3af;
+.product-card__secondary {
+  background: #f1f5f9;
+  color: #334155;
 }
 
-/* ==========================================================================
-   BLOQUE: detail-panel
-   DESCRIPCION: Detalle tecnico del producto seleccionado.
-   ========================================================================== */
 .detail-panel__visual {
-  align-items: center;
   aspect-ratio: 16 / 10;
-  display: flex;
-  justify-content: center;
   margin-bottom: 1rem;
 }
 
 .detail-panel p,
 .detail-panel__empty p {
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .detail-panel__price,
 .detail-panel__store {
   align-items: center;
-  background: #12141d;
+  background: #f8fafc;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
@@ -285,31 +429,41 @@
 
 .detail-panel__price span,
 .detail-panel__store span {
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .detail-panel__price strong {
-  color: var(--color-brand-green);
-  font-size: 1.35rem;
+  color: #0b7a35;
+  font-size: 1.45rem;
+}
+
+.detail-panel__commerce {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.detail-panel__commerce span {
+  background: #edf7f3;
+  border-radius: 8px;
+  color: #0b7a35;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.55rem 0.7rem;
 }
 
 .detail-panel h3 {
-  color: #ffffff;
+  color: #111827;
   font-size: 0.98rem;
   margin: 1rem 0 0.6rem;
 }
 
-/* ==========================================================================
-   BLOQUES: attribute-list / tag-list
-   DESCRIPCION: Atributos dinamicos y etiquetas de compatibilidad.
-   ========================================================================== */
 .attribute-list {
   display: grid;
   gap: 0.45rem;
 }
 
 .attribute-list__row {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #edf0f4;
   display: flex;
   gap: 0.75rem;
   justify-content: space-between;
@@ -317,13 +471,13 @@
 }
 
 .attribute-list__row span {
-  color: #9ca3af;
+  color: #6b7280;
   text-transform: capitalize;
 }
 
 .attribute-list__row strong,
 .detail-panel__store strong {
-  color: #ffffff;
+  color: #111827;
   text-align: right;
 }
 
@@ -334,32 +488,37 @@
 }
 
 .tag-list span {
-  background: rgba(0, 102, 255, 0.14);
-  border: 1px solid rgba(0, 102, 255, 0.22);
+  background: #effaf5;
+  border: 1px solid #ccebdc;
   border-radius: 999px;
-  color: #bdd4ff;
+  color: #0b7a35;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 800;
   padding: 0.3rem 0.6rem;
 }
 
-/* ==========================================================================
-   BLOQUE: catalog-empty
-   DESCRIPCION: Estado sin resultados para los filtros aplicados.
-   ========================================================================== */
+.detail-panel__cta {
+  width: 100%;
+}
+
 .catalog-empty {
-  color: #ffffff;
   grid-column: 1 / -1;
   padding: 2rem;
   text-align: center;
 }
 
 .catalog-empty p {
-  color: #9ca3af;
+  color: #6b7280;
+}
+
+@media (max-width: 1399.98px) {
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1199.98px) {
-  .catalog-layout {
+  .store-layout {
     grid-template-columns: 16rem 1fr;
   }
 
@@ -370,20 +529,35 @@
 }
 
 @media (max-width: 767.98px) {
-  .catalog-header,
-  .catalog-layout {
+  .storefront-topbar__inner,
+  .store-hero,
+  .store-layout,
+  .results-toolbar {
     display: block;
   }
 
-  .catalog-header__metric {
+  .storefront-topbar__inner {
+    padding-bottom: 0.7rem;
+    padding-top: 0.7rem;
+  }
+
+  .deal-card,
+  .filter-panel,
+  .detail-panel,
+  .results-toolbar {
     margin-top: 1rem;
-    text-align: left;
   }
 
   .filter-panel,
   .detail-panel {
-    margin-bottom: 1rem;
     position: static;
+  }
+
+  .sort-control {
+    align-items: start;
+    display: grid;
+    margin-top: 0.75rem;
+    min-width: 0;
   }
 
   .product-grid {

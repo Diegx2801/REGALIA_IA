@@ -7,15 +7,22 @@
     --font-display: 'Space Grotesk', sans-serif;
     
     /* Colores de Marca (Extraídos del Logo) */
-    --color-brand-blue: #0066ff; /* Azul del circuito */
-    --color-brand-green: #00ff66; /* Verde de los ventiladores / AI */
+    --color-brand-blue: #475569; /* Grafito tecnico usado como acento secundario */
+    --color-brand-green: #0f766e; /* Verde petroleo usado como acento principal */
+    --color-accent-warm: #f59e0b;
+    --color-accent-soft: #edf7f3;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f6f7f5;
+    --color-border: #d9e0dc;
+    --color-text-main: #111827;
+    --color-text-muted: #647067;
     
     /* Degradado oficial */
-    --brand-gradient: linear-gradient(135deg, var(--color-brand-blue) 0%, var(--color-brand-green) 100%);
+    --brand-gradient: linear-gradient(135deg, #0f766e 0%, #475569 100%);
     
     /* Fondos oscuros */
-    --color-bg-dark: #0a0f16;
-    --color-text-light: #f8fafc;
+    --color-bg-dark: #f6f7f5;
+    --color-text-light: #111827;
 }
 
 /* =========================================================================
@@ -25,7 +32,7 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: var(--color-bg-dark); 
+    background-color: var(--color-bg-dark);
     color: var(--color-text-light);
     font-family: var(--font-base); 
 }

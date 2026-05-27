@@ -6,12 +6,19 @@ export interface CatalogProduct {
   name: string;
   brand: string;
   price: number;
+  previousPrice?: number;
   stock: number;
   imageTone: string;
   attributes: Record<string, string>;
   compatibilityTags: string[];
   shortDescription: string;
   storeName: string;
+  rating: number;
+  reviews: number;
+  discountLabel?: string;
+  shippingLabel: string;
+  warrantyLabel: string;
+  sellerBadge: string;
 }
 
 export interface CatalogFilters {

@@ -19,8 +19,6 @@ import {
 export class BuilderComponent {
   private readonly buildAdvisor = inject(BuildAdvisorService);
 
-  readonly recommendedBuild = signal<RecommendedBuild | null>(null);
-
   readonly requirementsForm = new FormGroup({
     budget: new FormControl(4500, {
       nonNullable: true,
@@ -39,6 +37,10 @@ export class BuilderComponent {
     brandPreference: new FormControl('NVIDIA si entra en presupuesto', { nonNullable: true }),
     notes: new FormControl('', { nonNullable: true }),
   });
+
+  readonly recommendedBuild = signal<RecommendedBuild | null>(
+    this.buildAdvisor.generateBuild(this.requirementsForm.getRawValue()),
+  );
 
   generateBuild(): void {
     if (this.requirementsForm.invalid) {

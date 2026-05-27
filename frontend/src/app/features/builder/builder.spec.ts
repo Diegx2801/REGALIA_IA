@@ -24,4 +24,10 @@ describe('BuilderComponent', () => {
 
     expect(component.recommendedBuild()).toBeTruthy();
   });
+
+  it('should render the default recommended build', () => {
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Build gaming + streaming');
+  });
 });

@@ -376,3 +376,84 @@
     text-align: left;
   }
 }
+
+.quotes-shell {
+  background: var(--color-surface-muted);
+  color: var(--color-text-main);
+}
+
+.quotes-header__eyebrow,
+.quote-card__highlight,
+.quote-detail__highlight,
+.quote-card__difference,
+.market-summary__value,
+.quote-card__score-value,
+.quote-detail__total-value,
+.score-list__value {
+  color: #0f766e;
+}
+
+.quotes-header__title,
+.quote-card__store,
+.quote-detail__title,
+.build-panel__title,
+.score-panel__title,
+.store-grid__value,
+.score-list__value,
+.component-row__name,
+.component-row__price,
+.quote-card__price-value {
+  color: var(--color-text-main);
+}
+
+.quotes-header__copy,
+.market-summary__label,
+.quote-detail__total-label,
+.store-grid__label,
+.score-list__label,
+.quote-card__target,
+.quote-card__score-label,
+.quote-detail__copy,
+.store-grid__hint,
+.component-row__brand {
+  color: var(--color-text-muted);
+}
+
+.quotes-header__link,
+.quote-actions__secondary {
+  border-color: var(--color-border);
+  color: #334155;
+}
+
+.market-summary__item,
+.quote-card,
+.quote-detail {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.quote-card:hover,
+.quote-card--selected {
+  border-color: #0f766e;
+}
+
+.quote-card__rank,
+.quote-actions__primary {
+  background: #0f766e;
+}
+
+.quote-card__tag,
+.store-grid__item,
+.score-list__item {
+  background: #fafaf8;
+  color: #0b7a35;
+}
+
+.component-row {
+  border-bottom-color: var(--color-border);
+}
+
+.component-row__category {
+  color: #0f766e;
+}

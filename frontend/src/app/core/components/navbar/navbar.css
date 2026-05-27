@@ -5,10 +5,28 @@
 
 /* BLOQUE: navbar-custom (Efecto cristal sobre el navbar base de Bootstrap) */
 .navbar-custom {
-    background-color: rgba(18, 20, 29, 0.95) !important;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     z-index: 1030;
+}
+
+.navbar-custom .nav-link {
+    color: #1f2937 !important;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link:focus {
+    color: #0f766e !important;
+}
+
+.navbar-custom .navbar-toggler {
+    border-color: rgba(17, 24, 39, 0.18);
+}
+
+.navbar-custom .navbar-toggler-icon {
+    filter: invert(1);
 }
 
 .navbar-brand {
@@ -36,12 +54,13 @@
 
 /* MODIFICADOR: Variante de borde azul */
 .btn-custom--outline-primary {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    background: transparent;
+    border: 1px solid rgba(15, 118, 110, 0.22);
+    color: #0f766e;
+    background: #effaf5;
 }
 
 .btn-custom--outline-primary:hover {
-    background: var(--brand-gradient);
-    border-color: transparent;
+    background: #0f766e;
+    border-color: #0f766e;
+    color: #ffffff;
 }

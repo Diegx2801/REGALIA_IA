@@ -1,3 +1,16 @@
 .layout-public {
-    min-height: 100dvh; /* Se adapta dinámicamente si el teclado o la barra del celular aparecen */
+  background: var(--color-surface-muted);
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.main-content-wrapper {
+  flex: 1 0 auto;
+  min-height: calc(100dvh - 10rem);
+  width: 100%;
+}
+
+app-footer {
+  flex: 0 0 auto;
 }

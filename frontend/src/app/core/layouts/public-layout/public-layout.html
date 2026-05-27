@@ -1,15 +1,9 @@
-<!-- =========================================================================
-    ESTRUCTURA: Public Layout Template
-    DESCRIPCIÓN: Distribución del espacio de pantalla para la zona pública.
-    ========================================================================= -->
+<div class="layout-public">
+  <app-navbar></app-navbar>
 
-<!-- Componente de navegación superior global de la carpeta core -->
-<app-navbar></app-navbar>
-
-<!-- Contenedor principal dinámico donde Angular inyectará páginas (Landing, etc.) -->
-<main class="main-content-wrapper">
+  <main class="main-content-wrapper">
     <router-outlet></router-outlet>
-</main>
+  </main>
 
-<!-- Componente de pie de página global de la carpeta core -->
-<app-footer></app-footer>
+  <app-footer></app-footer>
+</div>
