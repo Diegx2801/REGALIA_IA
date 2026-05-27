@@ -1,70 +1,80 @@
-.admin-shell {
-  background: var(--color-cream-soft);
+/* ==========================================================================
+   Panel de Cotizaciones
+   Panel operativo MVP para reservas, estados y comisiones.
+   ========================================================================== */
+.quotes-page {
+  background:
+    radial-gradient(circle at 86% 12%, rgba(246, 196, 83, 0.16), transparent 18rem),
+    var(--color-bg);
   min-height: 100vh;
-  padding-top: 5rem;
 }
 
-.admin-header {
-  margin-bottom: 1.5rem;
-  max-width: 58rem;
+.quotes-page__container {
+  padding-bottom: 3rem;
+  padding-top: 2rem;
 }
 
-.admin-header span,
-.metrics-grid span,
-.order-row > span,
-.order-detail > span {
-  color: var(--color-plum);
+.quotes-header {
+  margin-bottom: 1.3rem;
+  max-width: 62rem;
+}
+
+.quotes-header__eyebrow,
+.metric-card__label,
+.order-row__id,
+.order-detail__eyebrow {
+  color: var(--color-primary);
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
 }
 
-.admin-header h1 {
-  color: var(--color-ink);
-  font-size: 3.15rem;
-  line-height: 1.08;
+.quotes-header__title {
+  font-size: clamp(2.35rem, 4vw, 3.9rem);
+  margin: 0.4rem 0 0.75rem;
 }
 
-.admin-header p,
-.metrics-grid small,
+.quotes-header__text,
+.metric-card__hint,
 .order-row small,
-.order-detail p,
-.commission-box span {
+.order-detail__text,
+.commission-box__row span {
   color: var(--color-muted);
 }
 
 .metrics-grid {
   display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(4, 1fr);
+  gap: 0.9rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 1rem;
 }
 
-.metrics-grid article,
+.metric-card,
 .order-row,
 .order-detail {
-  background: rgba(245, 245, 235, 0.92);
-  border: 1px solid rgba(193, 182, 163, 0.72);
-  border-radius: var(--radius-card);
+  background: rgba(255, 253, 249, 0.95);
+  border: 1px solid rgba(234, 216, 201, 0.95);
+  border-radius: 14px;
   box-shadow: var(--shadow-soft);
 }
 
-.metrics-grid article {
+.metric-card {
   display: grid;
   gap: 0.25rem;
   padding: 1rem;
 }
 
-.metrics-grid strong {
-  color: var(--color-ink);
-  font-size: 1.65rem;
+.metric-card__value {
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 1.85rem;
 }
 
-.admin-layout {
+.quotes-layout {
   align-items: start;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr minmax(20rem, 27rem);
+  grid-template-columns: 1fr minmax(20rem, 28rem);
 }
 
 .order-list {
@@ -77,35 +87,52 @@
   color: inherit;
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: 5rem 1fr 9rem 6rem;
+  grid-template-columns: 5.2rem 1fr 9.5rem 6.2rem;
   padding: 1rem;
   text-align: left;
 }
 
+.order-row:hover,
 .order-row--selected {
-  border-color: var(--color-terracotta);
+  border-color: rgba(242, 109, 91, 0.65);
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-3px);
+}
+
+.order-row__main {
+  display: grid;
+  gap: 0.2rem;
 }
 
 .order-row strong,
-.order-detail h2,
-.commission-box strong {
-  color: var(--color-ink);
+.order-detail__title,
+.commission-box__row strong {
+  color: var(--color-text);
 }
 
-.order-row em {
-  background: var(--color-sand-light);
+.order-row__status {
+  background: rgba(91, 46, 109, 0.1);
   border-radius: var(--radius-pill);
-  color: var(--color-ink);
+  color: var(--color-primary);
   font-style: normal;
-  font-weight: 800;
-  padding: 0.35rem 0.6rem;
+  font-weight: 900;
+  padding: 0.38rem 0.62rem;
   text-align: center;
 }
 
+.order-row__total {
+  text-align: right;
+}
+
 .order-detail {
-  padding: 1rem;
+  padding: 1.1rem;
   position: sticky;
-  top: 6.7rem;
+  top: 7rem;
+}
+
+.order-detail__title {
+  font-size: 1.35rem;
+  margin: 0.25rem 0 0.55rem;
 }
 
 .status-flow {
@@ -113,65 +140,85 @@
   gap: 0.45rem;
 }
 
-.status-flow span {
+.status-flow__step {
   background: #ffffff;
-  border-radius: var(--radius-card);
+  border: 1px solid rgba(234, 216, 201, 0.72);
+  border-radius: 10px;
   color: var(--color-muted);
-  font-weight: 800;
-  padding: 0.65rem;
+  font-weight: 900;
+  padding: 0.68rem;
 }
 
-.status-flow__active {
-  background: var(--color-terracotta) !important;
-  color: #ffffff !important;
+.status-flow__step--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
 }
 
 .commission-box {
   background: #ffffff;
-  border-radius: var(--radius-card);
+  border: 1px solid rgba(234, 216, 201, 0.72);
+  border-radius: 12px;
   margin-top: 1rem;
-  padding: 0.85rem;
+  padding: 0.9rem;
 }
 
-.commission-box h3 {
-  color: var(--color-ink);
+.commission-box__title {
+  font-family: var(--font-base);
   font-size: 1rem;
+  font-weight: 900;
+  margin: 0 0 0.45rem;
 }
 
-.commission-box div {
-  border-bottom: 1px solid var(--color-border);
+.commission-box__row {
+  border-bottom: 1px solid var(--color-sand);
   display: flex;
+  gap: 0.75rem;
   justify-content: space-between;
-  padding: 0.45rem 0;
+  padding: 0.46rem 0;
 }
 
-.commission-box div:last-child {
+.commission-box__row:last-child {
   border-bottom: 0;
 }
 
-.order-detail button {
+.order-detail__button {
   background: var(--brand-gradient);
   border: 0;
   border-radius: var(--radius-pill);
+  box-shadow: 0 14px 30px rgba(242, 109, 91, 0.22);
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 900;
   margin-top: 1rem;
-  min-height: 2.7rem;
+  min-height: 3rem;
   width: 100%;
 }
 
+.order-detail__button:hover {
+  transform: translateY(-2px);
+}
+
 @media (max-width: 991.98px) {
-  .metrics-grid,
-  .admin-layout,
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quotes-layout,
   .order-row {
     grid-template-columns: 1fr;
+  }
+
+  .order-row__total {
+    text-align: left;
   }
 
   .order-detail {
     position: static;
   }
+}
 
-  .admin-header h1 {
-    font-size: 2.25rem;
+@media (max-width: 575.98px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
   }
 }

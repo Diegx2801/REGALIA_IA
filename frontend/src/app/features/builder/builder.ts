@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RegaliaService } from '../../data-access/regalia/regalia.service';
+import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { MatchRecommendation, RegaliaRequest } from '../../shared/models/regalia.model';
 
 @Component({
@@ -19,11 +19,11 @@ export class BuilderComponent {
   readonly selectedRecommendation = signal<MatchRecommendation | null>(null);
 
   readonly requestForm = new FormGroup({
-    need: new FormControl('Necesito un regalo para graduacion, elegante, presupuesto S/120, entrega sabado.', {
+    need: new FormControl('Necesito una torta elegante para graduación, presupuesto S/120, entrega sábado.', {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(12)],
     }),
-    occasion: new FormControl<RegaliaRequest['occasion']>('Graduacion', {
+    occasion: new FormControl<RegaliaRequest['occasion']>('Graduación', {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -32,7 +32,7 @@ export class BuilderComponent {
       validators: [Validators.required, Validators.min(20), Validators.max(2000)],
     }),
     style: new FormControl('elegante', { nonNullable: true }),
-    deliveryDate: new FormControl('Sabado', { nonNullable: true }),
+    deliveryDate: new FormControl('Sábado', { nonNullable: true }),
     district: new FormControl('Trujillo', { nonNullable: true }),
     urgent: new FormControl(false, { nonNullable: true }),
   });
@@ -43,6 +43,10 @@ export class BuilderComponent {
     this.generateMatches();
   }
 
+  /**
+   * Ejecuta el flujo simulado de emparejamiento de REGALIA y mantiene el primer
+   * proveedor como opción recomendada para la reserva.
+   */
   generateMatches(): void {
     if (this.requestForm.invalid) {
       this.requestForm.markAllAsTouched();

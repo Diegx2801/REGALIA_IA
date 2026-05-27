@@ -1,90 +1,145 @@
-/* =========================================================================
-    SISTEMA DE DISEÑO (DESIGN TOKENS)
-   ========================================================================= */
+/* ==========================================================================
+   Variables de Diseño REGALIA
+   Colores, tipografía, espaciado y movimiento globales.
+   ========================================================================== */
 :root {
-    /* Tipografía */
-    --font-base: 'Manrope', sans-serif;
-    --font-display: 'Fraunces', serif;
-    
-    /* Colores de Marca (Extraídos del Logo) */
-    --color-plum: #5b2e6d;
-    --color-coral: #f26d5b;
-    --color-honey: #f6c453;
-    --color-cream-soft: #fff7ef;
-    --color-warm-beige: #ead8c9;
-    --color-terracotta: #c44545;
-    --color-sand-light: #f7eadf;
-    --color-bone-white: #fffdf9;
-    --color-ink: #262033;
-    --color-muted: #6b6272;
-    --color-success: #2e7d68;
-    --color-warning: #b8793d;
-    --color-surface: var(--color-bone-white);
-    --color-surface-muted: var(--color-cream-soft);
-    --color-border: var(--color-sand-light);
-    --color-text-main: var(--color-ink);
-    --color-text-muted: var(--color-muted);
-    
-    /* Sistema visual */
-    --brand-gradient: linear-gradient(135deg, var(--color-coral) 0%, var(--color-terracotta) 100%);
-    --radius-card: 8px;
-    --radius-pill: 999px;
-    --shadow-soft: 0 18px 42px rgba(43, 36, 32, 0.08);
-    --shadow-nav: 0 14px 34px rgba(43, 36, 32, 0.07);
+  --color-primary: #5b2e6d;
+  --color-secondary: #f26d5b;
+  --color-accent: #f6c453;
+  --color-bg: #fff7ef;
+  --color-surface: #ffffff;
+  --color-text: #262033;
+  --color-success: #2e7d68;
+  --color-alert: #c44545;
 
-    /* Fondos */
-    --color-bg-dark: var(--color-cream-soft);
-    --color-text-light: var(--color-ink);
+  --color-primary-soft: rgba(91, 46, 109, 0.1);
+  --color-secondary-soft: rgba(242, 109, 91, 0.13);
+  --color-accent-soft: rgba(246, 196, 83, 0.22);
+  --color-border: #ead8c9;
+  --color-muted: #6b6272;
+  --color-cream: #fffdf9;
+  --color-sand: #f7eadf;
+
+  --font-base: 'Manrope', sans-serif;
+  --font-display: 'Fraunces', serif;
+
+  --brand-gradient: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-alert) 100%);
+  --radius-card: 8px;
+  --radius-panel: 16px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 18px 42px rgba(38, 32, 51, 0.09);
+  --shadow-lift: 0 24px 58px rgba(38, 32, 51, 0.13);
+  --shadow-nav: 0 14px 34px rgba(38, 32, 51, 0.08);
+  --transition-fast: 180ms ease;
+
+  /* Alias compatibles con componentes existentes durante refactorizaciones. */
+  --color-plum: var(--color-primary);
+  --color-coral: var(--color-secondary);
+  --color-honey: var(--color-accent);
+  --color-cream-soft: var(--color-bg);
+  --color-warm-beige: var(--color-border);
+  --color-terracotta: var(--color-alert);
+  --color-sand-light: var(--color-sand);
+  --color-bone-white: var(--color-cream);
+  --color-ink: var(--color-text);
+  --color-surface-muted: var(--color-bg);
+  --color-text-main: var(--color-text);
+  --color-text-muted: var(--color-muted);
 }
 
-/* =========================================================================
-    ESTILOS GLOBALES BASE (Resets)
-   ========================================================================= */
+/* ==========================================================================
+   Base Global
+   Valores accesibles compartidos por todas las vistas Angular.
+   ========================================================================== */
 * {
-    box-sizing: border-box;
-    letter-spacing: 0;
+  box-sizing: border-box;
+  letter-spacing: 0;
 }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    background-color: var(--color-bg-dark);
-    color: var(--color-text-light);
-    font-family: var(--font-base);
-    line-height: 1.55;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
 }
 
-/* Títulos y clases de Display heredan la fuente tecnológica*/
-h1, h2, h3, h4, h5, h6, 
-.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    line-height: 1.04;
-    text-wrap: balance;
+body {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(246, 196, 83, 0.12), transparent 18rem),
+    var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-base);
+  line-height: 1.55;
+  margin: 0;
+  min-height: 100%;
+  padding: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display-1,
+.display-2,
+.display-3,
+.display-4,
+.display-5,
+.display-6 {
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.05;
+  text-wrap: balance;
 }
 
 p {
-    margin-top: 0;
+  margin-top: 0;
+}
+
+a {
+  color: inherit;
 }
 
 button,
 input,
 select,
 textarea {
-    font: inherit;
+  font: inherit;
 }
 
 a,
 button {
-    touch-action: manipulation;
+  touch-action: manipulation;
 }
 
-/* Forzamos a que la raíz de Angular ocupe toda la pantalla para el Layout */
+button,
+[role='button'],
+a,
+input,
+select,
+textarea {
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(246, 196, 83, 0.75);
+  outline-offset: 3px;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
 app-root {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }

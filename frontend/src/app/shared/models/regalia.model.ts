@@ -1,20 +1,21 @@
 export type RegaliaCategory =
   | 'Cajas sorpresa'
   | 'Arreglos florales'
-  | 'Reposteria personalizada'
+  | 'Repostería personalizada'
   | 'Manualidades'
   | 'Sublimados'
-  | 'Decoracion de eventos'
-  | 'Carpinteria personalizada'
+  | 'Decoración de eventos'
+  | 'Carpintería personalizada'
   | 'Servicios creativos';
 
 export type RegaliaOccasion =
-  | 'Cumpleanos'
-  | 'Graduacion'
-  | 'San Valentin'
-  | 'Dia de la Madre'
-  | 'Navidad'
+  | 'Cumpleaños'
+  | 'Día de la Madre'
   | 'Aniversario'
+  | 'Graduación'
+  | 'San Valentín'
+  | 'Navidad'
+  | 'Condolencias'
   | 'Evento corporativo';
 
 export type OrderStatus = 'Pedido aceptado' | 'En proceso' | 'Listo' | 'Entregado';
@@ -25,6 +26,26 @@ export interface ReviewSummary {
   communication: number;
   presentation: number;
   value: number;
+}
+
+export interface OccasionShortcut {
+  id: string;
+  label: string;
+  route: string;
+  icon: 'gift' | 'heart' | 'ring' | 'cap' | 'leaf' | 'grid';
+}
+
+export interface FeaturedProduct {
+  id: number;
+  title: string;
+  provider: string;
+  providerCategory: RegaliaCategory;
+  priceFrom: number;
+  rating: number;
+  reviews: number;
+  imageUrl: string;
+  imagePosition: string;
+  verified: boolean;
 }
 
 export interface RegaliaProvider {
@@ -101,4 +122,10 @@ export interface ProviderFilter {
   occasion: RegaliaOccasion | 'Todas';
   maxPrice: number;
   availableOnly: boolean;
+}
+
+export interface AdminMetric {
+  label: string;
+  value: string;
+  hint: string;
 }

@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RegaliaService } from '../../data-access/regalia/regalia.service';
+import { RouterLink } from '@angular/router';
+import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { ProviderFilter, RegaliaCategory, RegaliaOccasion, RegaliaProvider } from '../../shared/models/regalia.model';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './catalog.html',
   styleUrl: './catalog.css',
 })
@@ -24,7 +25,7 @@ export class CatalogComponent {
     search: new FormControl('', { nonNullable: true }),
     category: new FormControl<RegaliaCategory | 'Todas'>('Todas', { nonNullable: true }),
     occasion: new FormControl<RegaliaOccasion | 'Todas'>('Todas', { nonNullable: true }),
-    maxPrice: new FormControl(250, { nonNullable: true }),
+    maxPrice: new FormControl(300, { nonNullable: true }),
     availableOnly: new FormControl(true, { nonNullable: true }),
   });
 
@@ -34,6 +35,10 @@ export class CatalogComponent {
     return this.regaliaService.filterProviders(filters);
   });
 
+  /**
+   * Mantiene sincronizadas las píldoras de categoría y el selector del formulario,
+   * conservando el detalle del proveedor seleccionado cuando sigue visible.
+   */
   applyCategory(category: RegaliaCategory | 'Todas'): void {
     this.filtersForm.controls.category.setValue(category);
     this.refreshFilters();
@@ -49,7 +54,7 @@ export class CatalogComponent {
       search: '',
       category: 'Todas',
       occasion: 'Todas',
-      maxPrice: 250,
+      maxPrice: 300,
       availableOnly: true,
     });
     this.refreshFilters();

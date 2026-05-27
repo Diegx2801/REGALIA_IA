@@ -11,7 +11,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/landing/landing').then((m) => m.LandingComponent),
       },
       {
-        path: 'match',
+        path: 'pedir-con-ia',
         loadComponent: () => import('./features/builder/builder').then((m) => m.BuilderComponent),
       },
       {
@@ -20,6 +20,10 @@ export const routes: Routes = [
       },
       {
         path: 'proveedores',
+        loadComponent: () => import('./features/catalog/catalog').then((m) => m.CatalogComponent),
+      },
+      {
+        path: 'manual',
         loadComponent: () =>
           import('./features/manual-builder/manual-builder').then((m) => m.ManualBuilderComponent),
       },
@@ -28,9 +32,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/marketplace-quotes/marketplace-quotes').then((m) => m.MarketplaceQuotesComponent),
       },
-      { path: 'builder', redirectTo: 'match', pathMatch: 'full' },
+      {
+        path: 'modelo',
+        loadComponent: () => import('./features/landing/landing').then((m) => m.LandingComponent),
+      },
+      { path: 'match', redirectTo: 'pedir-con-ia', pathMatch: 'full' },
+      { path: 'builder', redirectTo: 'pedir-con-ia', pathMatch: 'full' },
       { path: 'catalog', redirectTo: 'catalogo', pathMatch: 'full' },
-      { path: 'manual-builder', redirectTo: 'proveedores', pathMatch: 'full' },
+      { path: 'manual-builder', redirectTo: 'manual', pathMatch: 'full' },
       { path: 'marketplace-quotes', redirectTo: 'panel', pathMatch: 'full' },
     ],
   },

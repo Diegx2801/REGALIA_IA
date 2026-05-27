@@ -1,7 +1,7 @@
 /**
  * =========================================================================
  * COMPONENTE: FooterComponent
- * DESCRIPCIÓN: Pie de página standalone para la exposición de créditos globales.
+ * DESCRIPCIÓN: Pie de página autónomo para la exposición de créditos globales.
  * =========================================================================
  */
 import { Component } from '@angular/core';

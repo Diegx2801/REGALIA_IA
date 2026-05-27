@@ -1,25 +1,25 @@
-<section class="admin-shell">
-  <div class="container py-5">
-    <header class="admin-header">
-      <span>Panel operativo</span>
-      <h1>Solicitudes, reservas, estados y comisiones de REGALIA.</h1>
-      <p>
-        Vista MVP para monitorear pedidos confirmados, senas, comisiones y avance de proveedores.
+<section class="quotes-page">
+  <div class="container quotes-page__container">
+    <header class="quotes-header">
+      <span class="quotes-header__eyebrow">Panel operativo</span>
+      <h1 class="quotes-header__title">Solicitudes, reservas, estados y comisiones de REGALIA.</h1>
+      <p class="quotes-header__text">
+        Vista MVP para monitorear pedidos confirmados, señas, comisiones y avance de proveedores.
       </p>
     </header>
 
     <div class="metrics-grid">
       @for (metric of metrics; track trackMetric($index, metric)) {
-        <article>
-          <span>{{ metric.label }}</span>
-          <strong>{{ metric.value }}</strong>
-          <small>{{ metric.hint }}</small>
+        <article class="metric-card">
+          <span class="metric-card__label">{{ metric.label }}</span>
+          <strong class="metric-card__value">{{ metric.value }}</strong>
+          <small class="metric-card__hint">{{ metric.hint }}</small>
         </article>
       }
     </div>
 
-    <div class="admin-layout">
-      <main class="order-list">
+    <div class="quotes-layout">
+      <main class="order-list" aria-label="Pedidos activos">
         @for (order of orders(); track trackOrder($index, order)) {
           <button
             class="order-row"
@@ -27,39 +27,40 @@
             [class.order-row--selected]="selectedOrder().id === order.id"
             (click)="selectOrder(order)"
           >
-            <span>#{{ order.id }}</span>
-            <div>
+            <span class="order-row__id">#{{ order.id }}</span>
+            <span class="order-row__main">
               <strong>{{ order.clientName }} · {{ order.occasion }}</strong>
               <small>{{ order.providerName }} · {{ order.category }}</small>
-            </div>
-            <em>{{ order.status }}</em>
-            <strong>S/ {{ order.total }}</strong>
+            </span>
+            <em class="order-row__status">{{ order.status }}</em>
+            <strong class="order-row__total">S/ {{ order.total }}</strong>
           </button>
         }
       </main>
 
       <aside class="order-detail">
         @if (selectedOrder(); as order) {
-          <span>Pedido seleccionado</span>
-          <h2>#{{ order.id }} · {{ order.occasion }}</h2>
-          <p>{{ order.clientName }} eligio a {{ order.providerName }} para {{ order.category }}.</p>
+          <span class="order-detail__eyebrow">Pedido seleccionado</span>
+          <h2 class="order-detail__title">#{{ order.id }} · {{ order.occasion }}</h2>
+          <p class="order-detail__text">{{ order.clientName }} eligió a {{ order.providerName }} para {{ order.category }}.</p>
 
-          <div class="status-flow">
-            <span [class.status-flow__active]="order.status === 'Pedido aceptado'">Pedido aceptado</span>
-            <span [class.status-flow__active]="order.status === 'En proceso'">En proceso</span>
-            <span [class.status-flow__active]="order.status === 'Listo'">Listo</span>
-            <span [class.status-flow__active]="order.status === 'Entregado'">Entregado</span>
+          <div class="status-flow" aria-label="Estado del pedido">
+            @for (status of statuses; track trackStatus($index, status)) {
+              <span class="status-flow__step" [class.status-flow__step--active]="order.status === status">
+                {{ status }}
+              </span>
+            }
           </div>
 
           <section class="commission-box">
-            <h3>Reserva y comision</h3>
-            <div><span>Total pedido</span><strong>S/ {{ order.total }}</strong></div>
-            <div><span>Sena</span><strong>S/ {{ order.reservation }}</strong></div>
-            <div><span>Comision REGALIA</span><strong>S/ {{ order.commission }}</strong></div>
-            <div><span>Saldo proveedor</span><strong>S/ {{ order.reservation - order.commission }}</strong></div>
+            <h3 class="commission-box__title">Reserva y comisión</h3>
+            <div class="commission-box__row"><span>Total pedido</span><strong>S/ {{ selectedBreakdown().estimatedOrder }}</strong></div>
+            <div class="commission-box__row"><span>Seña cliente</span><strong>S/ {{ selectedBreakdown().reservation }}</strong></div>
+            <div class="commission-box__row"><span>Comisión REGALIA</span><strong>S/ {{ selectedBreakdown().platformCommission }}</strong></div>
+            <div class="commission-box__row"><span>Proveedor recibe</span><strong>S/ {{ selectedBreakdown().providerCredit }}</strong></div>
           </section>
 
-          <button type="button">Actualizar estado</button>
+          <button class="order-detail__button" type="button" (click)="advanceSelectedOrderStatus()">Actualizar estado</button>
         }
       </aside>
     </div>

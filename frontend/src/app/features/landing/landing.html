@@ -1,134 +1,168 @@
-<section id="inicio" class="landing-hero">
-  <div class="container">
-    <div class="hero-frame">
-      <div class="hero-copy">
-        <span class="hero-eyebrow">Regalos locales · reservas verificadas · Trujillo</span>
-        <h1>Regalos personalizados en tu ciudad, sin perder tiempo.</h1>
-        <p>
-          Describe la ocasion, el presupuesto y la fecha. REGALIA interpreta tu necesidad,
-          recomienda proveedores compatibles y te permite reservar con una sena clara.
-        </p>
+<div class="landing-page">
+  <!-- Sección principal con filtros de búsqueda del mercado local -->
+  <section id="inicio" class="landing-hero">
+    <div class="container">
+      <div class="landing-hero__frame">
+        <div class="landing-hero__content">
+          <h1 class="landing-hero__title">Regalos personalizados en tu ciudad, sin perder tiempo.</h1>
+          <p class="landing-hero__subtitle">
+            Descubre emprendedores locales, compara opciones y reserva con una seña clara y segura.
+          </p>
 
-        <form class="search-card" aria-label="Buscar detalles personalizados">
-          <label>
-            <span>Ocasion</span>
-            <input type="search" placeholder="Que ocasion celebras?">
-          </label>
-          <label>
-            <span>Presupuesto</span>
-            <select>
-              <option>S/ 50 - S/ 300+</option>
-              <option>S/ 50 - S/ 120</option>
-              <option>S/ 120 - S/ 250</option>
-            </select>
-          </label>
-          <label>
-            <span>Fecha</span>
-            <input type="text" placeholder="Selecciona fecha">
-          </label>
-          <label>
-            <span>Distrito</span>
-            <select>
-              <option>Todos</option>
-              <option>Trujillo</option>
-              <option>Victor Larco</option>
-            </select>
-          </label>
-          <a routerLink="/match">Buscar detalles</a>
-        </form>
+          <form class="hero-search" [formGroup]="searchForm" (ngSubmit)="submitSearch()" aria-label="Buscar detalles personalizados">
+            <label class="hero-search__field" for="landing-occasion">
+              <span class="hero-search__label">Ocasión</span>
+              <select id="landing-occasion" class="hero-search__control" formControlName="occasion">
+                <option>Cumpleaños</option>
+                <option>Día de la Madre</option>
+                <option>Aniversario</option>
+                <option>Graduación</option>
+                <option>Condolencias</option>
+              </select>
+            </label>
+
+            <label class="hero-search__field" for="landing-budget">
+              <span class="hero-search__label">Presupuesto</span>
+              <select id="landing-budget" class="hero-search__control" formControlName="budget">
+                <option>S/ 50 - S/ 300+</option>
+                <option>S/ 50 - S/ 120</option>
+                <option>S/ 120 - S/ 250</option>
+                <option>S/ 250 - S/ 500</option>
+              </select>
+            </label>
+
+            <label class="hero-search__field" for="landing-date">
+              <span class="hero-search__label">Fecha</span>
+              <input id="landing-date" class="hero-search__control" type="date" formControlName="date">
+            </label>
+
+            <label class="hero-search__field" for="landing-district">
+              <span class="hero-search__label">Distrito</span>
+              <select id="landing-district" class="hero-search__control" formControlName="district">
+                <option>Todos</option>
+                <option>Trujillo</option>
+                <option>Víctor Larco</option>
+                <option>El Golf</option>
+                <option>Centro Histórico</option>
+              </select>
+            </label>
+
+            <button class="hero-search__button" type="submit">Buscar detalles</button>
+          </form>
+        </div>
       </div>
 
-      <div class="hero-visual" aria-hidden="true">
-        <img src="/images/regalia-hero-gift.png" alt="">
-      </div>
-    </div>
-
-    <div class="occasion-strip" aria-label="Categorias por ocasion">
-      @for (occasion of occasions; track trackText($index, occasion)) {
-        <a routerLink="/catalogo">
-          <span class="occasion-strip__icon"></span>
-          {{ occasion }}
-        </a>
-      }
-    </div>
-  </div>
-</section>
-
-<section id="categorias" class="landing-section">
-  <div class="container catalog-layout">
-    <main>
-      <div class="section-heading">
-        <span>Destacados para ti</span>
-        <h2>Ideas listas para convertir una ocasion en reserva.</h2>
-      </div>
-
-      <div class="featured-grid">
-        @for (item of featured; track trackFeatured($index, item)) {
-          <article class="featured-card">
-            <div class="featured-card__image" [class]="'featured-card__image featured-card__image--' + item.tone"></div>
-            <div class="featured-card__body">
-              <h3>{{ item.title }}</h3>
-              <span>{{ item.provider }}</span>
-              <div class="featured-card__meta">
-                <strong>{{ item.price }}</strong>
-                <small>{{ item.rating }} · Verificado</small>
-              </div>
-              <a routerLink="/match">Reservar con sena</a>
-            </div>
-          </article>
+      <nav class="occasion-strip" aria-label="Categorías por ocasión">
+        @for (occasion of occasionShortcuts; track trackOccasion($index, occasion)) {
+          <a class="occasion-strip__item" [routerLink]="occasion.route">
+            <span class="occasion-strip__icon" [class]="'occasion-strip__icon occasion-strip__icon--' + occasion.icon" aria-hidden="true"></span>
+            <span>{{ occasion.label }}</span>
+          </a>
         }
+      </nav>
+    </div>
+  </section>
+
+  <!-- Productos destacados usados para validar el flujo de reserva del MVP -->
+  <section class="landing-section">
+    <div class="container landing-market">
+      <main class="landing-market__main">
+        <div class="section-heading">
+          <span class="section-heading__eyebrow">Destacados para ti</span>
+          <h2 class="section-heading__title">Ideas listas para convertir una ocasión en reserva.</h2>
+        </div>
+
+        <div class="featured-products">
+          @for (product of featuredProducts; track trackProduct($index, product)) {
+            <article class="product-card">
+              <div class="product-card__media">
+                <img
+                  class="product-card__image"
+                  [src]="product.imageUrl"
+                  [alt]="product.title"
+                  [style.object-position]="product.imagePosition"
+                >
+              </div>
+              <div class="product-card__body">
+                <h3 class="product-card__title">{{ product.title }}</h3>
+                <p class="product-card__provider">{{ product.provider }}</p>
+                <strong class="product-card__price">Desde S/ {{ product.priceFrom }}</strong>
+                <div class="product-card__meta">
+                  <span class="product-card__rating" aria-label="Calificación">★ {{ product.rating }} ({{ product.reviews }})</span>
+                  @if (product.verified) {
+                    <span class="verified-badge">✓ Verificado</span>
+                  }
+                </div>
+                <a class="product-card__button" routerLink="/pedir-con-ia">Reservar con seña</a>
+              </div>
+            </article>
+          }
+        </div>
+      </main>
+
+      <aside class="landing-market__aside" aria-label="Confianza y campaña">
+        <article class="trust-card">
+          <div class="trust-card__icon" aria-hidden="true">✓</div>
+          <div>
+            <h2 class="trust-card__title">Proveedores confiables</h2>
+            <p class="trust-card__text">
+              Perfiles verificados, precios referenciales y reseñas reales para que reserves con confianza y claridad.
+            </p>
+            <a class="trust-card__link" routerLink="/catalogo">Conoce más →</a>
+          </div>
+        </article>
+
+        <article class="season-card">
+          <span class="season-card__eyebrow">Campaña de temporada</span>
+          <h2 class="season-card__title">Día de la Madre</h2>
+          <p class="season-card__text">Sorprende a mamá con algo único, hecho con amor.</p>
+          <a class="season-card__button" routerLink="/catalogo">Ver ideas</a>
+          <div class="season-card__gift" aria-hidden="true"></div>
+        </article>
+      </aside>
+    </div>
+  </section>
+
+  <section id="modelo" class="business-model">
+    <div class="container business-model__grid">
+      <div class="section-heading">
+        <span class="section-heading__eyebrow">Modelo de negocio</span>
+        <h2 class="section-heading__title">REGALIA conecta clientes con emprendedores locales.</h2>
+        <p class="section-heading__text">
+          No fabricamos productos: ordenamos la búsqueda, filtramos proveedores compatibles y habilitamos reservas con seña.
+        </p>
       </div>
-    </main>
 
-    <aside class="trust-panel">
-      <div class="trust-panel__badge">Verificado</div>
-      <h2>Proveedores confiables</h2>
-      <p>
-        Cada perfil muestra disponibilidad, reputacion, precios referenciales y tiempos de entrega
-        para reducir conversaciones innecesarias.
-      </p>
-      <a routerLink="/catalogo">Conoce mas</a>
-    </aside>
-
-    <aside class="season-card">
-      <span>Campana de temporada</span>
-      <h2>Dia de la Madre</h2>
-      <p>Sorprende con algo unico, reservado a tiempo y hecho por emprendedores locales.</p>
-      <a routerLink="/catalogo">Ver ideas</a>
-    </aside>
-  </div>
-</section>
-
-<section id="modelo" class="landing-section landing-section--cream">
-  <div class="container process-grid">
-    <div class="section-heading">
-      <span>Como funciona</span>
-      <h2>No es foro ni subasta. Es matching con reserva.</h2>
-      <p>
-        El cliente no espera ofertas manuales. REGALIA interpreta, compara disponibilidad,
-        reputacion, cercania y presupuesto, y recomienda opciones concretas.
-      </p>
+      <div class="business-model__steps">
+        <article class="business-step">
+          <strong class="business-step__number">01</strong>
+          <span class="business-step__text">El cliente describe ocasión, presupuesto, fecha y distrito.</span>
+        </article>
+        <article class="business-step">
+          <strong class="business-step__number">02</strong>
+          <span class="business-step__text">REGALIA compara disponibilidad, reputación, cercanía y estilo.</span>
+        </article>
+        <article class="business-step">
+          <strong class="business-step__number">03</strong>
+          <span class="business-step__text">El proveedor recibe solicitudes compatibles, no conversaciones al azar.</span>
+        </article>
+        <article class="business-step">
+          <strong class="business-step__number">04</strong>
+          <span class="business-step__text">La plataforma monetiza por reserva, campañas destacadas y visibilidad premium.</span>
+        </article>
+      </div>
     </div>
-    <div class="process-list">
-      <div><strong>1</strong><span>Cliente escribe una necesidad real</span></div>
-      <div><strong>2</strong><span>La IA detecta ocasion, estilo, presupuesto y urgencia</span></div>
-      <div><strong>3</strong><span>El sistema recomienda proveedores compatibles</span></div>
-      <div><strong>4</strong><span>Reserva con sena, comision clara y pedido confirmado</span></div>
-    </div>
-  </div>
-</section>
+  </section>
 
-<section id="proveedores" class="landing-section provider-band">
-  <div class="container provider-cta">
-    <div class="provider-cta__art" aria-hidden="true"></div>
-    <div>
-      <span>Tienes un emprendimiento?</span>
-      <h2>Unete a REGALIA y recibe pedidos mejor filtrados.</h2>
-      <p>
-        Publica tus trabajos, define precios referenciales, muestra disponibilidad y gana
-        reputacion con cada entrega.
-      </p>
+  <section class="provider-cta-band">
+    <div class="container provider-cta">
+      <div class="provider-cta__art" aria-hidden="true"></div>
+      <div class="provider-cta__copy">
+        <span class="provider-cta__eyebrow">¿Tienes un emprendimiento?</span>
+        <h2 class="provider-cta__title">Únete a REGALIA</h2>
+      </div>
+      <p class="provider-cta__text">Publica tus productos, llega a más clientes y haz crecer tu marca con nosotros.</p>
+      <a class="provider-cta__button" routerLink="/manual">Quiero registrarme →</a>
     </div>
-    <a routerLink="/proveedores">Quiero registrarme</a>
-  </div>
-</section>
+  </section>
+</div>
