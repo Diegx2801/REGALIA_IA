@@ -1,184 +1,123 @@
-<section class="builder-shell">
+<section class="match-shell">
   <div class="container py-5">
-    <div class="builder-header mb-4">
-      <span class="builder-header__eyebrow">MVP Frontend</span>
-      <h1 class="builder-header__title">Generador de build inteligente</h1>
-      <p class="builder-header__copy">
-        Simula el flujo principal del producto: requerimientos, recomendacion, validacion tecnica y cotizacion.
+    <header class="match-header">
+      <span>Motor de solicitud inteligente</span>
+      <h1>Describe lo que necesitas. REGALIA encuentra proveedores compatibles.</h1>
+      <p>
+        El flujo correcto es necesidad -> interpretacion IA -> ranking de proveedores -> reserva con sena.
       </p>
-    </div>
+    </header>
 
-    <div class="row g-4 align-items-start">
-      <div class="col-lg-5">
-        <form class="builder-panel" [formGroup]="requirementsForm" (ngSubmit)="generateBuild()">
-          <div class="builder-panel__header">
-            <h2 class="builder-panel__title">Requerimientos</h2>
-            <span class="builder-panel__status">Datos mock</span>
-          </div>
+    <div class="match-layout">
+      <form class="request-panel" [formGroup]="requestForm" (ngSubmit)="generateMatches()">
+        <div class="request-panel__top">
+          <h2>Solicitud del cliente</h2>
+          <strong>IA local</strong>
+        </div>
 
-          <label class="form-label builder-label" for="budget">Presupuesto</label>
-          <div class="input-group mb-3">
-            <span class="input-group-text">S/</span>
-            <input
-              id="budget"
-              class="form-control builder-input"
-              type="number"
-              min="1800"
-              max="12000"
-              step="100"
-              formControlName="budget"
-            >
-          </div>
-          @if (requirementsForm.controls.budget.invalid && requirementsForm.controls.budget.touched) {
-            <p class="builder-error">Ingresa un presupuesto entre S/1800 y S/12000.</p>
-          }
-
-          <label class="form-label builder-label" for="useCase">Uso principal</label>
-          <select id="useCase" class="form-select builder-input mb-3" formControlName="useCase">
-            <option value="gaming">Gaming</option>
-            <option value="gaming_streaming">Gaming + streaming</option>
-            <option value="design">Diseno / edicion</option>
-            <option value="programming">Programacion</option>
-            <option value="office">Oficina / estudios</option>
-          </select>
-
-          <label class="form-label builder-label" for="resolution">Objetivo de pantalla</label>
-          <select id="resolution" class="form-select builder-input mb-3" formControlName="resolution">
-            <option value="1080p competitivo">1080p competitivo</option>
-            <option value="1080p ultra">1080p ultra</option>
-            <option value="1440p alto">1440p alto</option>
-            <option value="edicion multitarea">Edicion multitarea</option>
-          </select>
-
-          <div class="builder-options">
-            <label class="builder-check">
-              <input type="checkbox" formControlName="streaming">
-              <span>Tambien hare streaming</span>
-            </label>
-            <label class="builder-check">
-              <input type="checkbox" formControlName="rgb">
-              <span>Prefiero case con RGB</span>
-            </label>
-          </div>
-
-          <label class="form-label builder-label" for="brandPreference">Preferencias</label>
-          <input
-            id="brandPreference"
-            class="form-control builder-input mb-3"
-            type="text"
-            formControlName="brandPreference"
-            placeholder="Ej. AMD, NVIDIA, sin RGB"
-          >
-
-          <label class="form-label builder-label" for="notes">Notas del cliente</label>
-          <textarea
-            id="notes"
-            class="form-control builder-input mb-4"
-            rows="3"
-            formControlName="notes"
-            placeholder="Programas, juegos, marcas, tamano de case..."
-          ></textarea>
-
-          <div class="builder-actions">
-            <button class="btn builder-button builder-button--primary" type="submit">
-              Generar build
-            </button>
-            <button class="btn builder-button builder-button--ghost" type="button" (click)="clearBuild()">
-              Limpiar
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="col-lg-7">
-        @if (recommendedBuild(); as build) {
-          <article class="result-panel">
-            <div class="result-panel__top">
-              <div>
-                <span class="result-panel__eyebrow">Build recomendada</span>
-                <h2 class="result-panel__title">{{ build.title }}</h2>
-                <p class="result-panel__target">{{ build.targetExperience }}</p>
-              </div>
-              <div class="result-panel__price">
-                <span>Total piezas</span>
-                <strong>S/ {{ build.total }}</strong>
-              </div>
-            </div>
-
-            <p class="result-panel__explanation">{{ build.explanation }}</p>
-
-            <div class="component-list">
-              @for (component of build.components; track trackComponent($index, component)) {
-                <div class="component-row">
-                  <div>
-                    <span class="component-row__category">{{ component.category }}</span>
-                    <h3 class="component-row__name">{{ component.name }}</h3>
-                    <p class="component-row__reason">{{ component.reason }}</p>
-                    <div class="component-row__tags">
-                      @for (attribute of component.attributes; track attribute) {
-                        <span>{{ attribute }}</span>
-                      }
-                    </div>
-                  </div>
-                  <div class="component-row__meta">
-                    <span>{{ component.brand }}</span>
-                    <strong>S/ {{ component.price }}</strong>
-                    <small>Stock: {{ component.stock }}</small>
-                  </div>
-                </div>
-              }
-            </div>
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-7">
-                <section class="validation-card">
-                  <h3 class="section-title">Validacion tecnica</h3>
-                  @for (check of build.checks; track trackCheck($index, check)) {
-                    <div class="validation-card__item" [class.validation-card__item--warning]="check.status === 'warning'">
-                      <span>{{ check.status === 'ok' ? 'OK' : '!' }}</span>
-                      <div>
-                        <strong>{{ check.label }}</strong>
-                        <p>{{ check.detail }}</p>
-                      </div>
-                    </div>
-                  }
-                </section>
-              </div>
-
-              <div class="col-md-5">
-                <section class="quote-card">
-                  <h3 class="section-title">Cotizacion</h3>
-                  <div class="quote-card__line">
-                    <span>Tienda</span>
-                    <strong>{{ build.quote.storeName }}</strong>
-                  </div>
-                  <div class="quote-card__line">
-                    <span>Subtotal</span>
-                    <strong>S/ {{ build.quote.subtotal }}</strong>
-                  </div>
-                  <div class="quote-card__line">
-                    <span>Servicio</span>
-                    <strong>S/ {{ build.quote.serviceFee }}</strong>
-                  </div>
-                  <div class="quote-card__total">
-                    <span>Total estimado</span>
-                    <strong>S/ {{ build.quote.total }}</strong>
-                  </div>
-                  <p class="quote-card__delivery">Entrega estimada: {{ build.quote.estimatedDelivery }}</p>
-                </section>
-              </div>
-            </div>
-          </article>
-        } @else {
-          <div class="empty-state">
-            <span class="empty-state__mark">AI</span>
-            <h2>Completa los requerimientos</h2>
-            <p>
-              El resultado mostrara componentes compatibles, validaciones y un resumen de cotizacion listo para conectar con Spring Boot.
-            </p>
-          </div>
+        <label for="need">Necesidad</label>
+        <textarea id="need" rows="5" formControlName="need"></textarea>
+        @if (requestForm.controls.need.invalid && requestForm.controls.need.touched) {
+          <p class="form-error">Describe la necesidad con mas detalle.</p>
         }
-      </div>
+
+        <div class="request-panel__grid">
+          <div>
+            <label for="occasion">Ocasion</label>
+            <select id="occasion" formControlName="occasion">
+              @for (occasion of occasions; track occasion) {
+                <option [value]="occasion">{{ occasion }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label for="budget">Presupuesto</label>
+            <input id="budget" type="number" min="20" max="2000" formControlName="budget">
+          </div>
+          <div>
+            <label for="style">Estilo</label>
+            <input id="style" type="text" formControlName="style">
+          </div>
+          <div>
+            <label for="deliveryDate">Fecha de entrega</label>
+            <input id="deliveryDate" type="text" formControlName="deliveryDate">
+          </div>
+        </div>
+
+        <label for="district">Zona de entrega</label>
+        <input id="district" type="text" formControlName="district">
+
+        <label class="request-panel__check">
+          <input type="checkbox" formControlName="urgent">
+          <span>Necesito una opcion express</span>
+        </label>
+
+        <button type="submit">Encontrar proveedores</button>
+      </form>
+
+      <main class="recommendation-zone">
+        @if (interpretedSummary(); as summary) {
+          <section class="interpretation-card">
+            <span>Interpretacion</span>
+            <div>
+              <strong>{{ summary.category }}</strong>
+              <small>{{ summary.occasion }} · {{ summary.style }} · urgencia {{ summary.urgency }}</small>
+            </div>
+            <em>{{ summary.budgetFit }}</em>
+          </section>
+        }
+
+        <div class="recommendation-list">
+          @for (recommendation of recommendations(); track trackRecommendation($index, recommendation)) {
+            <button
+              class="recommendation-card"
+              type="button"
+              [class.recommendation-card--selected]="selectedRecommendation()?.provider?.id === recommendation.provider.id"
+              (click)="selectRecommendation(recommendation)"
+            >
+              <span class="recommendation-card__score">{{ recommendation.score }}%</span>
+              <div>
+                <span class="recommendation-card__category">{{ recommendation.provider.category }}</span>
+                <strong>{{ recommendation.provider.businessName }}</strong>
+                <p>{{ recommendation.reason }}</p>
+                <div class="recommendation-card__tags">
+                  @for (style of recommendation.provider.styles; track trackText($index, style)) {
+                    <span>{{ style }}</span>
+                  }
+                </div>
+              </div>
+              <div class="recommendation-card__meta">
+                <strong>S/ {{ recommendation.reservation.estimatedOrder }}</strong>
+                <small>Reserva S/ {{ recommendation.reservation.reservation }}</small>
+              </div>
+            </button>
+          }
+        </div>
+      </main>
+
+      <aside class="reservation-panel">
+        @if (selectedRecommendation(); as selected) {
+          <span class="reservation-panel__label">Proveedor recomendado</span>
+          <h2>{{ selected.provider.businessName }}</h2>
+          <p>{{ selected.provider.description }}</p>
+
+          <div class="provider-facts">
+            <span>{{ selected.provider.district }}</span>
+            <span>{{ selected.provider.deliveryTime }}</span>
+            <span>{{ selected.provider.rating }} / 5 · {{ selected.provider.reviews }} resenas</span>
+          </div>
+
+          <section class="reservation-box">
+            <h3>Reserva inteligente</h3>
+            <div><span>Pedido estimado</span><strong>S/ {{ selected.reservation.estimatedOrder }}</strong></div>
+            <div><span>Sena cliente</span><strong>S/ {{ selected.reservation.reservation }}</strong></div>
+            <div><span>Comision plataforma</span><strong>S/ {{ selected.reservation.platformCommission }}</strong></div>
+            <div><span>Proveedor recibe</span><strong>S/ {{ selected.reservation.providerCredit }}</strong></div>
+          </section>
+
+          <button type="button">Confirmar reserva</button>
+        }
+      </aside>
     </div>
   </div>
 </section>

@@ -1,116 +1,87 @@
-<section class="manual-shell">
+<section class="provider-shell">
   <div class="container py-5">
-    <header class="manual-header">
-      <div>
-        <span class="manual-header__eyebrow">Armado manual asistido</span>
-        <h1 class="manual-header__title">Construye pieza por pieza</h1>
-        <p class="manual-header__copy">
-          Selecciona componentes del catalogo mock y revisa compatibilidad basica en tiempo real.
-        </p>
-      </div>
-      <a routerLink="/catalog" class="manual-header__link">Ver catalogo</a>
+    <header class="provider-header">
+      <span>Portal de proveedores</span>
+      <h1>Registro, perfil y reputacion para emprendedores locales.</h1>
+      <p>
+        El proveedor no espera ofertas manuales: configura su perfil y REGALIA le deriva pedidos confirmados
+        cuando el matching detecta compatibilidad.
+      </p>
     </header>
 
-    <div class="manual-layout">
-      <aside class="step-panel">
-        <h2>Categorias</h2>
-        <div class="step-list">
-          @for (category of categories; track trackCategory($index, category)) {
-            <button
-              class="step-item"
-              type="button"
-              [class.step-item--active]="activeCategory() === category"
-              [class.step-item--done]="selections()[category]"
-              (click)="selectCategory(category)"
-            >
-              <span>{{ category }}</span>
-              <small>{{ categoryStatus(category) }}</small>
-            </button>
-          }
-        </div>
-      </aside>
+    <div class="provider-layout">
+      <form class="onboarding-panel" [formGroup]="providerForm">
+        <h2>Perfil base</h2>
 
-      <main class="picker-panel">
-        <div class="picker-panel__top">
-          <div>
-            <span>Seleccion actual</span>
-            <h2>{{ activeCategory() }}</h2>
-          </div>
-          <strong>{{ activeProducts().length }} opciones</strong>
-        </div>
+        <label for="businessName">Nombre del negocio</label>
+        <input id="businessName" type="text" formControlName="businessName">
 
-        <div class="product-list">
-          @for (product of activeProducts(); track trackProduct($index, product)) {
-            <button
-              class="manual-product"
-              type="button"
-              [class.manual-product--selected]="isSelected(product)"
-              (click)="selectProduct(product)"
-            >
-              <span class="manual-product__mark" [style.--product-tone]="product.imageTone">
-                {{ product.category }}
-              </span>
-              <span class="manual-product__body">
-                <span class="manual-product__meta">{{ product.brand }} | Stock {{ product.stock }}</span>
-                <strong>{{ product.name }}</strong>
-                <small>{{ product.shortDescription }}</small>
-                <span class="manual-product__tags">
-                  @for (tag of product.compatibilityTags; track tag) {
-                    <em>{{ tag }}</em>
-                  }
-                </span>
-              </span>
-              <span class="manual-product__price">S/ {{ product.price }}</span>
-            </button>
+        <label for="category">Categoria</label>
+        <select id="category" formControlName="category">
+          @for (category of categories; track category) {
+            <option [value]="category">{{ category }}</option>
           }
-        </div>
+        </select>
+
+        <label for="priceFrom">Precio desde</label>
+        <input id="priceFrom" type="number" formControlName="priceFrom">
+
+        <label for="deliveryTime">Tiempo de entrega</label>
+        <input id="deliveryTime" type="text" formControlName="deliveryTime">
+
+        <label for="whatsapp">WhatsApp</label>
+        <input id="whatsapp" type="text" formControlName="whatsapp">
+
+        <label for="availability">Disponibilidad</label>
+        <input id="availability" type="text" formControlName="availability">
+
+        <button type="button">Guardar perfil mock</button>
+      </form>
+
+      <main class="provider-list">
+        @for (provider of providers(); track trackProvider($index, provider)) {
+          <button
+            type="button"
+            class="provider-row"
+            [class.provider-row--selected]="selectedProvider().id === provider.id"
+            (click)="selectProvider(provider)"
+          >
+            <div>
+              <span>{{ provider.category }}</span>
+              <strong>{{ provider.businessName }}</strong>
+              <small>{{ provider.availability }} · {{ provider.deliveryTime }}</small>
+            </div>
+            <em>{{ provider.reputation }}%</em>
+          </button>
+        }
       </main>
 
-      <aside class="summary-panel">
-        <div class="summary-panel__score">
-          <span>Progreso</span>
-          <strong>{{ completedCount() }}/{{ categories.length }}</strong>
-        </div>
+      <aside class="profile-panel">
+        @if (selectedProvider(); as provider) {
+          <span>Perfil publico</span>
+          <h2>{{ provider.businessName }}</h2>
+          <p>{{ provider.description }}</p>
 
-        <section class="selected-list">
-          <h2>Build actual</h2>
-          @for (category of categories; track trackCategory($index, category)) {
-            <div class="selected-row">
-              <div>
-                <span>{{ category }}</span>
-                <strong>{{ selections()[category]?.name ?? 'Sin seleccionar' }}</strong>
-              </div>
-              @if (selections()[category]; as selected) {
-                <button type="button" (click)="removeProduct(category)">Quitar</button>
-                <small>S/ {{ selected.price }}</small>
-              }
-            </div>
-          }
-        </section>
+          <div class="profile-panel__metrics">
+            <div><strong>{{ provider.rating }}</strong><span>calificacion</span></div>
+            <div><strong>{{ provider.reviews }}</strong><span>resenas</span></div>
+            <div><strong>S/ {{ provider.priceFrom }}</strong><span>desde</span></div>
+          </div>
 
-        <section class="validation-list">
-          <h2>Compatibilidad</h2>
-          @for (validation of validations(); track trackValidation($index, validation)) {
-            <div class="validation-item" [class.validation-item--warning]="validation.status === 'warning'">
-              <span>{{ validation.status === 'ok' ? 'OK' : '!' }}</span>
-              <div>
-                <strong>{{ validation.label }}</strong>
-                <p>{{ validation.detail }}</p>
-              </div>
-            </div>
-          }
-        </section>
+          <h3>Trabajos anteriores</h3>
+          <div class="portfolio-list">
+            @for (item of provider.portfolio; track trackText($index, item)) {
+              <span>{{ item }}</span>
+            }
+          </div>
 
-        <div class="quote-box">
-          <span>Total estimado</span>
-          <strong>S/ {{ total() }}</strong>
-          <p [class.quote-box__warning]="hasWarnings()">
-            {{ hasWarnings() ? 'Revisa las alertas antes de cotizar.' : 'Build lista para cotizacion.' }}
-          </p>
-          <button type="button" [disabled]="hasWarnings() || completedCount() < categories.length">
-            Generar cotizacion
-          </button>
-        </div>
+          <h3>Calidad operativa</h3>
+          <div class="quality-list">
+            <div><span>Puntualidad</span><strong>{{ provider.reviewSummary.punctuality }}</strong></div>
+            <div><span>Comunicacion</span><strong>{{ provider.reviewSummary.communication }}</strong></div>
+            <div><span>Presentacion</span><strong>{{ provider.reviewSummary.presentation }}</strong></div>
+          </div>
+        }
       </aside>
     </div>
   </div>

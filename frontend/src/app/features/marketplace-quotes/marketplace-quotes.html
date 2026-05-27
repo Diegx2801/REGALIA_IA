@@ -1,140 +1,65 @@
-<section class="quotes-shell">
+<section class="admin-shell">
   <div class="container py-5">
-    <header class="quotes-header">
-      <div class="quotes-header__content">
-        <span class="quotes-header__eyebrow">Marketplace por tienda completa</span>
-        <h1 class="quotes-header__title">Comparador de cotizaciones</h1>
-        <p class="quotes-header__copy">
-          La IA propone una build objetivo y el sistema rankea tiendas que pueden vender la PC completa sin mezclar proveedores.
-        </p>
-      </div>
-      <a routerLink="/builder" class="quotes-header__link">Editar requerimientos</a>
+    <header class="admin-header">
+      <span>Panel operativo</span>
+      <h1>Solicitudes, reservas, estados y comisiones de REGALIA.</h1>
+      <p>
+        Vista MVP para monitorear pedidos confirmados, senas, comisiones y avance de proveedores.
+      </p>
     </header>
 
-    <div class="market-summary">
-      <div class="market-summary__item">
-        <span class="market-summary__label">Tiendas evaluadas</span>
-        <strong class="market-summary__value">{{ quotes().length }}</strong>
-      </div>
-      <div class="market-summary__item">
-        <span class="market-summary__label">Promedio cotizado</span>
-        <strong class="market-summary__value">S/ {{ averageTotal() }}</strong>
-      </div>
-      <div class="market-summary__item">
-        <span class="market-summary__label">Modelo</span>
-        <strong class="market-summary__value">1 tienda</strong>
-      </div>
+    <div class="metrics-grid">
+      @for (metric of metrics; track trackMetric($index, metric)) {
+        <article>
+          <span>{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+          <small>{{ metric.hint }}</small>
+        </article>
+      }
     </div>
 
-    <div class="quotes-layout">
-      <main class="quote-ranking">
-        @for (quote of quotes(); track trackQuote($index, quote); let index = $index) {
+    <div class="admin-layout">
+      <main class="order-list">
+        @for (order of orders(); track trackOrder($index, order)) {
           <button
-            class="quote-card"
+            class="order-row"
             type="button"
-            [class.quote-card--selected]="selectedQuote().id === quote.id"
-            (click)="selectQuote(quote)"
+            [class.order-row--selected]="selectedOrder().id === order.id"
+            (click)="selectOrder(order)"
           >
-            <span class="quote-card__rank">#{{ index + 1 }}</span>
-            <span class="quote-card__content">
-              <span class="quote-card__highlight">{{ quote.highlight }}</span>
-              <strong class="quote-card__store">{{ quote.store.name }}</strong>
-              <small class="quote-card__target">{{ quote.buildName }} | {{ quote.target }}</small>
-              <span class="quote-card__meta">
-                <em class="quote-card__tag">{{ quote.store.district }}</em>
-                <em class="quote-card__tag">{{ quote.stockStatus }}</em>
-                <em class="quote-card__tag">{{ quote.store.deliveryTime }}</em>
-              </span>
-            </span>
-            <span class="quote-card__score">
-              <strong class="quote-card__score-value">{{ quote.score }}</strong>
-              <small class="quote-card__score-label">score</small>
-            </span>
-            <span class="quote-card__price">
-              <strong class="quote-card__price-value">S/ {{ quote.total }}</strong>
-              <small class="quote-card__difference" [class.quote-card__difference--up]="priceDifference(quote) > 0">
-                {{ priceDifference(quote) > 0 ? '+' : '' }}S/ {{ priceDifference(quote) }}
-              </small>
-            </span>
+            <span>#{{ order.id }}</span>
+            <div>
+              <strong>{{ order.clientName }} · {{ order.occasion }}</strong>
+              <small>{{ order.providerName }} · {{ order.category }}</small>
+            </div>
+            <em>{{ order.status }}</em>
+            <strong>S/ {{ order.total }}</strong>
           </button>
         }
       </main>
 
-      <aside class="quote-detail">
-        @if (selectedQuote(); as quote) {
-          <div class="quote-detail__top">
-            <div class="quote-detail__intro">
-              <span class="quote-detail__highlight">{{ quote.highlight }}</span>
-              <h2 class="quote-detail__title">{{ quote.store.name }}</h2>
-              <p class="quote-detail__copy">{{ quote.explanation }}</p>
-            </div>
-            <div class="quote-detail__total">
-              <span class="quote-detail__total-label">Total</span>
-              <strong class="quote-detail__total-value">S/ {{ quote.total }}</strong>
-            </div>
+      <aside class="order-detail">
+        @if (selectedOrder(); as order) {
+          <span>Pedido seleccionado</span>
+          <h2>#{{ order.id }} · {{ order.occasion }}</h2>
+          <p>{{ order.clientName }} eligio a {{ order.providerName }} para {{ order.category }}.</p>
+
+          <div class="status-flow">
+            <span [class.status-flow__active]="order.status === 'Pedido aceptado'">Pedido aceptado</span>
+            <span [class.status-flow__active]="order.status === 'En proceso'">En proceso</span>
+            <span [class.status-flow__active]="order.status === 'Listo'">Listo</span>
+            <span [class.status-flow__active]="order.status === 'Entregado'">Entregado</span>
           </div>
 
-          <div class="store-grid">
-            <div class="store-grid__item">
-              <span class="store-grid__label">Rating</span>
-              <strong class="store-grid__value">{{ quote.store.rating }} / 5</strong>
-              <small class="store-grid__hint">{{ quote.store.reviews }} resenas</small>
-            </div>
-            <div class="store-grid__item">
-              <span class="store-grid__label">Garantia</span>
-              <strong class="store-grid__value">{{ quote.store.warranty }}</strong>
-            </div>
-            <div class="store-grid__item">
-              <span class="store-grid__label">Entrega</span>
-              <strong class="store-grid__value">{{ quote.store.deliveryTime }}</strong>
-              <small class="store-grid__hint">Respuesta: {{ quote.store.responseTime }}</small>
-            </div>
-          </div>
-
-          <section class="score-panel">
-            <h3 class="score-panel__title">Desglose del ranking</h3>
-            <div class="score-list">
-              <div class="score-list__item">
-                <span class="score-list__label">Precio</span>
-                <strong class="score-list__value">{{ quote.scoreBreakdown.price }}</strong>
-              </div>
-              <div class="score-list__item">
-                <span class="score-list__label">Stock</span>
-                <strong class="score-list__value">{{ quote.scoreBreakdown.stock }}</strong>
-              </div>
-              <div class="score-list__item">
-                <span class="score-list__label">Reputacion</span>
-                <strong class="score-list__value">{{ quote.scoreBreakdown.reputation }}</strong>
-              </div>
-              <div class="score-list__item">
-                <span class="score-list__label">Garantia</span>
-                <strong class="score-list__value">{{ quote.scoreBreakdown.warranty }}</strong>
-              </div>
-              <div class="score-list__item">
-                <span class="score-list__label">Entrega</span>
-                <strong class="score-list__value">{{ quote.scoreBreakdown.delivery }}</strong>
-              </div>
-            </div>
+          <section class="commission-box">
+            <h3>Reserva y comision</h3>
+            <div><span>Total pedido</span><strong>S/ {{ order.total }}</strong></div>
+            <div><span>Sena</span><strong>S/ {{ order.reservation }}</strong></div>
+            <div><span>Comision REGALIA</span><strong>S/ {{ order.commission }}</strong></div>
+            <div><span>Saldo proveedor</span><strong>S/ {{ order.reservation - order.commission }}</strong></div>
           </section>
 
-          <section class="build-panel">
-            <h3 class="build-panel__title">Build completa de esta tienda</h3>
-            <div class="component-table">
-              @for (component of quote.components; track trackComponent($index, component)) {
-                <div class="component-row">
-                  <span class="component-row__category">{{ component.category }}</span>
-                  <strong class="component-row__name">{{ component.name }}</strong>
-                  <small class="component-row__brand">{{ component.brand }}</small>
-                  <em class="component-row__price">S/ {{ component.price }}</em>
-                </div>
-              }
-            </div>
-          </section>
-
-          <div class="quote-actions">
-            <button class="quote-actions__primary" type="button">Solicitar cotizacion protegida</button>
-            <a class="quote-actions__secondary" routerLink="/manual-builder">Ajustar manualmente</a>
-          </div>
+          <button type="button">Actualizar estado</button>
         }
       </aside>
     </div>

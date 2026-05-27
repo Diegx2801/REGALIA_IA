@@ -21,16 +21,11 @@ describe('ManualBuilderComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should add selected products to the build', () => {
-    const cpu = component.products.find((product) => product.category === 'CPU');
+  it('should select a provider profile', () => {
+    const provider = component.providers()[1];
 
-    if (!cpu) {
-      throw new Error('CPU mock product is required');
-    }
+    component.selectProvider(provider);
 
-    component.selectProduct(cpu);
-
-    expect(component.completedCount()).toBe(1);
-    expect(component.total()).toBe(cpu.price);
+    expect(component.selectedProvider().id).toBe(provider.id);
   });
 });

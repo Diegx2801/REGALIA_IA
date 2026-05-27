@@ -20,15 +20,15 @@ describe('CatalogComponent', () => {
   });
 
   it('should filter by category', () => {
-    component.applyQuickCategory('GPU');
+    component.applyCategory('Arreglos florales');
 
-    expect(component.filteredProducts().every((product) => product.category === 'GPU')).toBe(true);
+    expect(component.filteredProviders().every((provider) => provider.category === 'Arreglos florales')).toBe(true);
   });
 
-  it('should render storefront products', () => {
+  it('should render provider catalog', () => {
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Ryzen 5 7600');
-    expect(fixture.nativeElement.textContent).toContain('Ordenar');
+    expect(fixture.nativeElement.textContent).toContain('Dulce Detalle Trujillo');
+    expect(fixture.nativeElement.textContent).toContain('Proveedores locales');
   });
 });

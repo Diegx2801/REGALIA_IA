@@ -1,214 +1,125 @@
-<section class="storefront-shell">
-  <div class="storefront-topbar">
-    <div class="container storefront-topbar__inner">
-      <span>PCBuilder Store</span>
-      <span>Compra por compatibilidad, precio y stock real de tienda</span>
-      <strong>{{ cartCount() }} en carrito</strong>
-    </div>
-  </div>
-
-  <div class="container storefront-container">
-    <header class="store-hero">
-      <div class="store-hero__content">
-        <span class="store-hero__eyebrow">Marketplace gamer</span>
-        <h1 class="store-hero__title">Componentes para armar tu PC</h1>
-        <p class="store-hero__copy">
-          Catalogo estilo retail con promociones, filtros rapidos y detalle tecnico para comprar piezas compatibles sin perder tiempo.
+<section class="providers-shell">
+  <div class="container py-5">
+    <header class="providers-header">
+      <div>
+        <span>Catalogo inteligente</span>
+        <h1>Proveedores locales listos para pedidos personalizados.</h1>
+        <p>
+          No es una tienda comun. Cada perfil muestra disponibilidad, precios referenciales,
+          reputacion y estilo para alimentar el matching de REGALIA.
         </p>
       </div>
-
-      @if (featuredDeal(); as deal) {
-        <button class="deal-card" type="button" (click)="selectProduct(deal)">
-          <span class="deal-card__label">Oferta destacada</span>
-          <strong>{{ deal.name }}</strong>
-          <span>{{ deal.discountLabel ?? ('-' + discountValue(deal) + '%') }} en {{ deal.brand }}</span>
-          <small>S/ {{ deal.price }} | {{ deal.shippingLabel }}</small>
-        </button>
-      }
+      <strong>{{ filteredProviders().length }} proveedores</strong>
     </header>
 
-    <div class="category-strip" role="list" aria-label="Categorias de componentes">
+    <div class="category-strip">
       @for (category of categories; track category) {
         <button
-          class="category-chip"
           type="button"
           [class.category-chip--active]="filtersForm.controls.category.value === category"
-          (click)="applyQuickCategory(category)"
+          (click)="applyCategory(category)"
         >
-          {{ category === 'All' ? 'Todos' : category }}
+          {{ category }}
         </button>
       }
     </div>
 
-    <div class="store-layout">
-      <aside class="filter-panel">
+    <div class="providers-layout">
+      <aside class="filters-panel">
         <form [formGroup]="filtersForm" (change)="onFiltersChanged()" (input)="onFiltersChanged()">
-          <div class="filter-panel__top">
+          <div class="filters-panel__top">
             <h2>Filtros</h2>
-            <button type="button" class="filter-panel__reset" (click)="resetFilters()">Limpiar</button>
+            <button type="button" (click)="resetFilters()">Limpiar</button>
           </div>
 
-          <label class="catalog-label" for="search">Buscar producto</label>
-          <input
-            id="search"
-            class="catalog-input"
-            type="search"
-            placeholder="RTX, AM5, DDR5..."
-            formControlName="search"
-          >
+          <label for="search">Buscar</label>
+          <input id="search" type="search" placeholder="flores, elegante, desayuno..." formControlName="search">
 
-          <label class="catalog-label" for="category">Categoria</label>
-          <select id="category" class="catalog-input" formControlName="category">
+          <label for="category">Categoria</label>
+          <select id="category" formControlName="category">
             @for (category of categories; track category) {
-              <option [value]="category">{{ category === 'All' ? 'Todos' : category }}</option>
+              <option [value]="category">{{ category }}</option>
             }
           </select>
 
-          <label class="catalog-label" for="brand">Marca</label>
-          <select id="brand" class="catalog-input" formControlName="brand">
-            @for (brand of brands; track brand) {
-              <option [value]="brand">{{ brand === 'All' ? 'Todas' : brand }}</option>
+          <label for="occasion">Ocasion</label>
+          <select id="occasion" formControlName="occasion">
+            @for (occasion of occasions; track occasion) {
+              <option [value]="occasion">{{ occasion }}</option>
             }
           </select>
 
-          <label class="catalog-label" for="maxPrice">Hasta S/ {{ filtersForm.controls.maxPrice.value }}</label>
-          <input
-            id="maxPrice"
-            class="catalog-range"
-            type="range"
-            min="100"
-            max="3000"
-            step="50"
-            formControlName="maxPrice"
-          >
+          <label for="maxPrice">Desde hasta S/ {{ filtersForm.controls.maxPrice.value }}</label>
+          <input id="maxPrice" type="range" min="20" max="700" step="10" formControlName="maxPrice">
 
-          <label class="stock-toggle">
-            <input type="checkbox" formControlName="stockOnly">
-            <span>Solo productos con stock</span>
+          <label class="filters-panel__check">
+            <input type="checkbox" formControlName="availableOnly">
+            <span>Solo disponibles</span>
           </label>
         </form>
       </aside>
 
-      <main class="product-zone">
-        <div class="results-toolbar">
-          <div>
-            <span class="results-toolbar__eyebrow">Resultados</span>
-            <strong>{{ filteredProducts().length }} productos</strong>
-            <small>{{ totalStock() }} unidades disponibles</small>
-          </div>
-
-          <div class="sort-control" [formGroup]="filtersForm">
-            <label for="sort">Ordenar</label>
-            <select id="sort" formControlName="sort" (change)="onFiltersChanged()">
-              <option value="featured">Destacados</option>
-              <option value="priceAsc">Menor precio</option>
-              <option value="priceDesc">Mayor precio</option>
-              <option value="rating">Mejor valorados</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="product-grid">
-          @for (product of filteredProducts(); track trackProduct($index, product)) {
-            <article
-              class="product-card"
-              [class.product-card--selected]="selectedProduct()?.id === product.id"
-            >
-              <button class="product-card__preview" type="button" (click)="selectProduct(product)">
-                <span class="product-card__badge">{{ product.sellerBadge }}</span>
-                <span class="product-card__visual" [style.--product-tone]="product.imageTone">
-                  <span>{{ product.category }}</span>
-                </span>
-              </button>
-
-              <div class="product-card__body">
-                <span class="product-card__category">{{ product.brand }} | {{ product.category }}</span>
-                <button class="product-card__name" type="button" (click)="selectProduct(product)">
-                  {{ product.name }}
-                </button>
-                <span class="product-card__rating">{{ product.rating }} ★ ({{ product.reviews }})</span>
-                <p>{{ product.shortDescription }}</p>
-
-                <div class="product-card__pricing">
-                  @if (product.previousPrice) {
-                    <span class="product-card__old-price">S/ {{ product.previousPrice }}</span>
-                  }
-                  <strong>S/ {{ product.price }}</strong>
-                  @if (product.discountLabel) {
-                    <small>{{ product.discountLabel }}</small>
-                  }
-                </div>
-
-                <span class="product-card__installments">6 cuotas desde S/ {{ installmentPrice(product) }}</span>
-                <span class="product-card__shipping">{{ product.shippingLabel }} | Stock {{ product.stock }}</span>
-
-                <div class="product-card__actions">
-                  <button type="button" class="product-card__secondary" (click)="selectProduct(product)">Ver detalle</button>
-                  <button type="button" class="product-card__primary" (click)="addToCart(product)">Agregar</button>
-                </div>
+      <main class="provider-grid">
+        @for (provider of filteredProviders(); track trackProvider($index, provider)) {
+          <article
+            class="provider-card"
+            [class.provider-card--selected]="selectedProvider().id === provider.id"
+          >
+            <button type="button" class="provider-card__main" (click)="selectProvider(provider)">
+              <span class="provider-card__badge">{{ provider.featured ? 'Destacado' : provider.availability }}</span>
+              <span class="provider-card__category">{{ provider.category }}</span>
+              <h2>{{ provider.businessName }}</h2>
+              <p>{{ provider.description }}</p>
+              <div class="provider-card__styles">
+                @for (style of provider.styles; track trackText($index, style)) {
+                  <span>{{ style }}</span>
+                }
               </div>
-            </article>
-          } @empty {
-            <div class="catalog-empty">
-              <h2>No hay productos con esos filtros</h2>
-              <p>Ajusta el precio, categoria o busqueda para volver a mostrar resultados.</p>
+            </button>
+            <div class="provider-card__footer">
+              <span>{{ provider.district }} · {{ provider.distanceKm }} km</span>
+              <strong>S/ {{ provider.priceFrom }} - {{ provider.priceTo }}</strong>
             </div>
-          }
-        </div>
+          </article>
+        } @empty {
+          <div class="empty-state">
+            <h2>No hay proveedores con esos filtros</h2>
+            <p>Ajusta categoria, ocasion o presupuesto para mostrar nuevas opciones.</p>
+          </div>
+        }
       </main>
 
-      <aside class="detail-panel">
-        @if (selectedProduct(); as product) {
-          <div class="detail-panel__visual" [style.--product-tone]="product.imageTone">
-            <span>{{ product.category }}</span>
-          </div>
-          <span class="detail-panel__category">{{ product.category }} | {{ product.brand }}</span>
-          <h2>{{ product.name }}</h2>
-          <p>{{ product.shortDescription }}</p>
+      <aside class="provider-detail">
+        @if (selectedProvider(); as provider) {
+          <span>{{ provider.category }}</span>
+          <h2>{{ provider.businessName }}</h2>
+          <p>{{ provider.description }}</p>
 
-          <div class="detail-panel__price">
-            <span>Precio online</span>
-            <strong>S/ {{ product.price }}</strong>
-          </div>
-
-          <div class="detail-panel__commerce">
-            <span>{{ product.shippingLabel }}</span>
-            <span>Garantia {{ product.warrantyLabel }}</span>
-            <span>{{ product.rating }} ★ con {{ product.reviews }} opiniones</span>
+          <div class="provider-detail__score">
+            <strong>{{ provider.rating }}</strong>
+            <span>{{ provider.reviews }} resenas · reputacion {{ provider.reputation }}%</span>
           </div>
 
           <section>
-            <h3>Atributos tecnicos</h3>
-            <div class="attribute-list">
-              @for (attribute of attributeEntries(product); track trackAttribute($index, attribute)) {
-                <div class="attribute-list__row">
-                  <span>{{ attribute[0] }}</span>
-                  <strong>{{ attribute[1] }}</strong>
-                </div>
-              }
+            <h3>Datos para matching</h3>
+            <div class="detail-list">
+              <div><span>Entrega</span><strong>{{ provider.deliveryTime }}</strong></div>
+              <div><span>Disponibilidad</span><strong>{{ provider.availability }}</strong></div>
+              <div><span>WhatsApp</span><strong>{{ provider.whatsapp }}</strong></div>
+              <div><span>Pagos</span><strong>{{ provider.paymentMethods.join(', ') }}</strong></div>
             </div>
           </section>
 
           <section>
-            <h3>Compatibilidad</h3>
-            <div class="tag-list">
-              @for (tag of product.compatibilityTags; track trackValue($index, tag)) {
-                <span>{{ tag }}</span>
+            <h3>Portafolio</h3>
+            <div class="portfolio-list">
+              @for (item of provider.portfolio; track trackText($index, item)) {
+                <span>{{ item }}</span>
               }
             </div>
           </section>
 
-          <div class="detail-panel__store">
-            <span>Vendido por</span>
-            <strong>{{ product.storeName }}</strong>
-          </div>
-
-          <button type="button" class="detail-panel__cta" (click)="addToCart(product)">Agregar al carrito</button>
-        } @else {
-          <div class="detail-panel__empty">
-            <h2>Selecciona un producto</h2>
-            <p>El detalle mostrara atributos tecnicos, garantia y tags de compatibilidad.</p>
-          </div>
+          <button type="button">Usar en solicitud</button>
         }
       </aside>
     </div>

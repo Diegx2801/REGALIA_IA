@@ -3,38 +3,58 @@
    ========================================================================= */
 :root {
     /* Tipografía */
-    --font-base: 'Inter', sans-serif;
-    --font-display: 'Space Grotesk', sans-serif;
+    --font-base: 'Manrope', sans-serif;
+    --font-display: 'Fraunces', serif;
     
     /* Colores de Marca (Extraídos del Logo) */
-    --color-brand-blue: #475569; /* Grafito tecnico usado como acento secundario */
-    --color-brand-green: #0f766e; /* Verde petroleo usado como acento principal */
-    --color-accent-warm: #f59e0b;
-    --color-accent-soft: #edf7f3;
-    --color-surface: #ffffff;
-    --color-surface-muted: #f6f7f5;
-    --color-border: #d9e0dc;
-    --color-text-main: #111827;
-    --color-text-muted: #647067;
+    --color-plum: #5b2e6d;
+    --color-coral: #f26d5b;
+    --color-honey: #f6c453;
+    --color-cream-soft: #fff7ef;
+    --color-warm-beige: #ead8c9;
+    --color-terracotta: #c44545;
+    --color-sand-light: #f7eadf;
+    --color-bone-white: #fffdf9;
+    --color-ink: #262033;
+    --color-muted: #6b6272;
+    --color-success: #2e7d68;
+    --color-warning: #b8793d;
+    --color-surface: var(--color-bone-white);
+    --color-surface-muted: var(--color-cream-soft);
+    --color-border: var(--color-sand-light);
+    --color-text-main: var(--color-ink);
+    --color-text-muted: var(--color-muted);
     
-    /* Degradado oficial */
-    --brand-gradient: linear-gradient(135deg, #0f766e 0%, #475569 100%);
-    
-    /* Fondos oscuros */
-    --color-bg-dark: #f6f7f5;
-    --color-text-light: #111827;
+    /* Sistema visual */
+    --brand-gradient: linear-gradient(135deg, var(--color-coral) 0%, var(--color-terracotta) 100%);
+    --radius-card: 8px;
+    --radius-pill: 999px;
+    --shadow-soft: 0 18px 42px rgba(43, 36, 32, 0.08);
+    --shadow-nav: 0 14px 34px rgba(43, 36, 32, 0.07);
+
+    /* Fondos */
+    --color-bg-dark: var(--color-cream-soft);
+    --color-text-light: var(--color-ink);
 }
 
 /* =========================================================================
     ESTILOS GLOBALES BASE (Resets)
    ========================================================================= */
+* {
+    box-sizing: border-box;
+    letter-spacing: 0;
+}
+
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
     background-color: var(--color-bg-dark);
     color: var(--color-text-light);
-    font-family: var(--font-base); 
+    font-family: var(--font-base);
+    line-height: 1.55;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* Títulos y clases de Display heredan la fuente tecnológica*/
@@ -42,6 +62,24 @@ h1, h2, h3, h4, h5, h6,
 .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
     font-family: var(--font-display);
     font-weight: 700;
+    line-height: 1.04;
+    text-wrap: balance;
+}
+
+p {
+    margin-top: 0;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+a,
+button {
+    touch-action: manipulation;
 }
 
 /* Forzamos a que la raíz de Angular ocupe toda la pantalla para el Layout */

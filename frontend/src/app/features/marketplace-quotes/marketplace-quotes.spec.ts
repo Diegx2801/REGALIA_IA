@@ -21,11 +21,11 @@ describe('MarketplaceQuotesComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should select a marketplace quote', () => {
-    const quote = component.quotes()[1];
+  it('should select an order', () => {
+    const order = component.orders()[1];
 
-    component.selectQuote(quote);
+    component.selectOrder(order);
 
-    expect(component.selectedQuote().id).toBe(quote.id);
+    expect(component.selectedOrder().id).toBe(order.id);
   });
 });

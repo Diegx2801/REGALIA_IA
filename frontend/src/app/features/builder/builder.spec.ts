@@ -19,15 +19,15 @@ describe('BuilderComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should generate a recommended build', () => {
-    component.generateBuild();
+  it('should generate provider matches', () => {
+    component.generateMatches();
 
-    expect(component.recommendedBuild()).toBeTruthy();
+    expect(component.recommendations().length).toBeGreaterThan(0);
   });
 
-  it('should render the default recommended build', () => {
+  it('should render the default match flow', () => {
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Build gaming + streaming');
+    expect(fixture.nativeElement.textContent).toContain('Dulce Detalle Trujillo');
   });
 });

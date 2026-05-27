@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "BuilderPC": {
+    "Regalia": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -57,10 +57,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "BuilderPC:build:production"
+              "buildTarget": "Regalia:build:production"
             },
             "development": {
-              "buildTarget": "BuilderPC:build:development"
+              "buildTarget": "Regalia:build:development"
             }
           },
           "defaultConfiguration": "development"

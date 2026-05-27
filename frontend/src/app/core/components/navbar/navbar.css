@@ -1,66 +1,70 @@
-/* =========================================================================
-    ESTILOS: Navbar Encapsulado
-    DESCRIPCIÓN: Control visual de transparencias, fuentes y botones de navegación.
-   ========================================================================= */
-
-/* BLOQUE: navbar-custom (Efecto cristal sobre el navbar base de Bootstrap) */
 .navbar-custom {
-    background-color: rgba(255, 255, 255, 0.96) !important;
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-    z-index: 1030;
+  background: rgba(255, 253, 249, 0.94);
+  border-bottom: 1px solid rgba(234, 216, 201, 0.8);
+  box-shadow: 0 12px 30px rgba(38, 32, 51, 0.08);
+  backdrop-filter: blur(14px);
+  z-index: 1030;
+}
+
+.brand-logo {
+  gap: 0.65rem;
+  text-decoration: none;
+}
+
+.brand-logo__mark {
+  align-items: center;
+  background: var(--color-plum);
+  border-radius: 12px;
+  color: #ffffff;
+  display: inline-flex;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  height: 2.45rem;
+  justify-content: center;
+  width: 2.45rem;
+}
+
+.brand-logo__text {
+  color: var(--color-plum);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .navbar-custom .nav-link {
-    color: #1f2937 !important;
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  padding-inline: 0.7rem;
 }
 
 .navbar-custom .nav-link:hover,
 .navbar-custom .nav-link:focus {
-    color: #0f766e !important;
+  color: var(--color-terracotta);
 }
 
 .navbar-custom .navbar-toggler {
-    border-color: rgba(17, 24, 39, 0.18);
+  border-color: rgba(43, 36, 32, 0.18);
 }
 
 .navbar-custom .navbar-toggler-icon {
-    filter: invert(1);
+  filter: invert(1);
 }
 
-.navbar-brand {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
-
-.brand-logo__img {
-    height: 75px !important;
-    max-height: none !important; 
-    width: auto;  
-    object-fit: contain; 
-    transition: transform 0.3s ease;
-}
-/* Un pequeño efecto (opcional) para que se sienta interactivo */
-.brand-logo:hover .brand-logo__img {
-    transform: scale(1.02);
-}
-
-/* BLOQUE: btn-custom (Botón de acción B2B) */
 .btn-custom {
-    font-weight: 500;
-    transition: all 0.3s ease;
+  font-weight: 800;
+  transition: all 0.2s ease;
 }
 
-/* MODIFICADOR: Variante de borde azul */
 .btn-custom--outline-primary {
-    border: 1px solid rgba(15, 118, 110, 0.22);
-    color: #0f766e;
-    background: #effaf5;
+  background: var(--brand-gradient);
+  border: 1px solid transparent;
+  color: #ffffff;
 }
 
 .btn-custom--outline-primary:hover {
-    background: #0f766e;
-    border-color: #0f766e;
-    color: #ffffff;
+  background: var(--color-plum);
+  border-color: var(--color-plum);
+  color: #ffffff;
 }

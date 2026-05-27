@@ -1,11 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CatalogService } from '../../data-access/catalog/catalog.service';
-import { CatalogFilters, CatalogProduct } from '../../shared/models/catalog-product.model';
-import { ComponentCategory } from '../../shared/models/pc-build.model';
-
-type CatalogSort = 'featured' | 'priceAsc' | 'priceDesc' | 'rating';
+import { RegaliaService } from '../../data-access/regalia/regalia.service';
+import { ProviderFilter, RegaliaCategory, RegaliaOccasion, RegaliaProvider } from '../../shared/models/regalia.model';
 
 @Component({
   selector: 'app-catalog',
@@ -15,133 +12,69 @@ type CatalogSort = 'featured' | 'priceAsc' | 'priceDesc' | 'rating';
   styleUrl: './catalog.css',
 })
 export class CatalogComponent {
-  private readonly catalogService = inject(CatalogService);
+  private readonly regaliaService = inject(RegaliaService);
 
-  readonly categories = this.catalogService.getCategories();
-  readonly brands = ['All', ...this.catalogService.getBrands()];
-  readonly products = signal(this.catalogService.getProducts());
-  readonly selectedProduct = signal<CatalogProduct | null>(this.products()[0] ?? null);
-  readonly cartCount = signal(0);
+  readonly categories: Array<RegaliaCategory | 'Todas'> = ['Todas', ...this.regaliaService.getCategories()];
+  readonly occasions: Array<RegaliaOccasion | 'Todas'> = ['Todas', ...this.regaliaService.getOccasions()];
+  readonly providers = signal(this.regaliaService.getProviders());
+  readonly selectedProvider = signal<RegaliaProvider>(this.providers()[0]);
   private readonly filtersVersion = signal(0);
 
   readonly filtersForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
-    category: new FormControl<ComponentCategory | 'All'>('All', { nonNullable: true }),
-    brand: new FormControl('All', { nonNullable: true }),
-    stockOnly: new FormControl(true, { nonNullable: true }),
-    maxPrice: new FormControl(3000, { nonNullable: true }),
-    sort: new FormControl<CatalogSort>('featured', { nonNullable: true }),
+    category: new FormControl<RegaliaCategory | 'Todas'>('Todas', { nonNullable: true }),
+    occasion: new FormControl<RegaliaOccasion | 'Todas'>('Todas', { nonNullable: true }),
+    maxPrice: new FormControl(250, { nonNullable: true }),
+    availableOnly: new FormControl(true, { nonNullable: true }),
   });
 
-  readonly filteredProducts = computed(() => {
+  readonly filteredProviders = computed(() => {
     this.filtersVersion();
-    const filters: CatalogFilters = this.filtersForm.getRawValue();
-    const products = this.catalogService.filterProducts(filters);
-
-    return this.sortProducts(products, this.filtersForm.controls.sort.value);
+    const filters: ProviderFilter = this.filtersForm.getRawValue();
+    return this.regaliaService.filterProviders(filters);
   });
 
-  readonly featuredDeal = computed(() => {
-    return [...this.products()].sort((first, second) => this.discountValue(second) - this.discountValue(first))[0] ?? null;
-  });
-
-  readonly totalStock = computed(() => {
-    return this.filteredProducts().reduce((total, product) => total + product.stock, 0);
-  });
-
-  applyQuickCategory(category: ComponentCategory | 'All'): void {
+  applyCategory(category: RegaliaCategory | 'Todas'): void {
     this.filtersForm.controls.category.setValue(category);
     this.refreshFilters();
-    this.ensureSelectedProductIsVisible();
+    this.ensureSelectedProviderIsVisible();
   }
 
-  selectProduct(product: CatalogProduct): void {
-    this.selectedProduct.set(product);
+  selectProvider(provider: RegaliaProvider): void {
+    this.selectedProvider.set(provider);
   }
 
   resetFilters(): void {
     this.filtersForm.setValue({
       search: '',
-      category: 'All',
-      brand: 'All',
-      stockOnly: true,
-      maxPrice: 3000,
-      sort: 'featured',
+      category: 'Todas',
+      occasion: 'Todas',
+      maxPrice: 250,
+      availableOnly: true,
     });
     this.refreshFilters();
-    this.selectedProduct.set(this.products()[0] ?? null);
+    this.selectedProvider.set(this.providers()[0]);
   }
 
   onFiltersChanged(): void {
     this.refreshFilters();
-    this.ensureSelectedProductIsVisible();
+    this.ensureSelectedProviderIsVisible();
   }
 
-  attributeEntries(product: CatalogProduct): Array<[string, string]> {
-    return Object.entries(product.attributes);
+  trackProvider(_: number, provider: RegaliaProvider): number {
+    return provider.id;
   }
 
-  trackProduct(_: number, product: CatalogProduct): number {
-    return product.id;
-  }
-
-  trackValue(_: number, value: string): string {
+  trackText(_: number, value: string): string {
     return value;
   }
 
-  trackAttribute(_: number, attribute: [string, string]): string {
-    return attribute[0];
-  }
+  private ensureSelectedProviderIsVisible(): void {
+    const selected = this.selectedProvider();
+    const visible = this.filteredProviders();
 
-  discountValue(product: CatalogProduct): number {
-    if (!product.previousPrice) {
-      return 0;
-    }
-
-    return Math.round(((product.previousPrice - product.price) / product.previousPrice) * 100);
-  }
-
-  installmentPrice(product: CatalogProduct): number {
-    return Math.ceil(product.price / 6);
-  }
-
-  addToCart(product: CatalogProduct): void {
-    this.selectedProduct.set(product);
-    this.cartCount.update((count) => count + 1);
-  }
-
-  private sortProducts(products: CatalogProduct[], sort: CatalogSort): CatalogProduct[] {
-    const sortedProducts = [...products];
-
-    if (sort === 'priceAsc') {
-      return sortedProducts.sort((first, second) => first.price - second.price);
-    }
-
-    if (sort === 'priceDesc') {
-      return sortedProducts.sort((first, second) => second.price - first.price);
-    }
-
-    if (sort === 'rating') {
-      return sortedProducts.sort((first, second) => second.rating - first.rating);
-    }
-
-    return sortedProducts.sort((first, second) => {
-      const stockScore = Number(second.stock > 0) - Number(first.stock > 0);
-
-      if (stockScore !== 0) {
-        return stockScore;
-      }
-
-      return this.discountValue(second) - this.discountValue(first);
-    });
-  }
-
-  private ensureSelectedProductIsVisible(): void {
-    const current = this.selectedProduct();
-    const filtered = this.filteredProducts();
-
-    if (!current || !filtered.some((product) => product.id === current.id)) {
-      this.selectedProduct.set(filtered[0] ?? null);
+    if (!visible.some((provider) => provider.id === selected.id)) {
+      this.selectedProvider.set(visible[0] ?? this.providers()[0]);
     }
   }
 

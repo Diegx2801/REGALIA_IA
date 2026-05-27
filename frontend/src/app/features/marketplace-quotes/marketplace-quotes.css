@@ -1,459 +1,177 @@
-/* ==========================================================================
-   BLOQUE: quotes-shell
-   DESCRIPCION: Contenedor principal de la vista marketplace.
-   ========================================================================== */
-.quotes-shell {
-  background: linear-gradient(180deg, #0a0f16 0%, #12141d 100%);
+.admin-shell {
+  background: var(--color-cream-soft);
   min-height: 100vh;
   padding-top: 5rem;
 }
 
-/* ==========================================================================
-   BLOQUE: quotes-header
-   DESCRIPCION: Cabecera informativa de la pantalla de cotizaciones.
-   ========================================================================== */
-.quotes-header {
-  align-items: end;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  margin-bottom: 1rem;
+.admin-header {
+  margin-bottom: 1.5rem;
+  max-width: 58rem;
 }
 
-.quotes-header__eyebrow {
-  color: var(--color-brand-green);
-  font-size: 0.82rem;
+.admin-header span,
+.metrics-grid span,
+.order-row > span,
+.order-detail > span {
+  color: var(--color-plum);
+  font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.quotes-header__title {
-  color: #ffffff;
-  font-size: clamp(2rem, 4vw, 3.1rem);
-  margin: 0.3rem 0 0.65rem;
+.admin-header h1 {
+  color: var(--color-ink);
+  font-size: 3.15rem;
+  line-height: 1.08;
 }
 
-.quotes-header__copy {
-  color: #9ca3af;
-  margin: 0;
-  max-width: 47rem;
+.admin-header p,
+.metrics-grid small,
+.order-row small,
+.order-detail p,
+.commission-box span {
+  color: var(--color-muted);
 }
 
-.quotes-header__link,
-.quote-actions__secondary {
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  color: #ffffff;
-  font-weight: 800;
-  padding: 0.7rem 1rem;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   BLOQUE: market-summary
-   DESCRIPCION: Indicadores generales del ranking marketplace.
-   ========================================================================== */
-.market-summary {
+.metrics-grid {
   display: grid;
-  gap: 0.8rem;
-  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, 1fr);
   margin-bottom: 1rem;
 }
 
-.market-summary__item,
-.quote-card,
-.quote-detail {
-  background: rgba(30, 34, 53, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+.metrics-grid article,
+.order-row,
+.order-detail {
+  background: rgba(245, 245, 235, 0.92);
+  border: 1px solid rgba(193, 182, 163, 0.72);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
 }
 
-.market-summary__item {
+.metrics-grid article {
+  display: grid;
+  gap: 0.25rem;
   padding: 1rem;
 }
 
-.market-summary__label,
-.quote-detail__total-label,
-.store-grid__label,
-.score-list__label {
-  color: #9ca3af;
-  display: block;
+.metrics-grid strong {
+  color: var(--color-ink);
+  font-size: 1.65rem;
 }
 
-.market-summary__value {
-  color: var(--color-brand-green);
-  font-size: 1.6rem;
-}
-
-/* ==========================================================================
-   BLOQUE: quotes-layout
-   DESCRIPCION: Distribucion entre ranking de tiendas y detalle seleccionado.
-   ========================================================================== */
-.quotes-layout {
+.admin-layout {
+  align-items: start;
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(26rem, 1fr) minmax(24rem, 31rem);
+  grid-template-columns: 1fr minmax(20rem, 27rem);
 }
 
-/* ==========================================================================
-   BLOQUE: quote-ranking
-   DESCRIPCION: Lista vertical de cotizaciones completas por tienda.
-   ========================================================================== */
-.quote-ranking {
+.order-list {
   display: grid;
-  gap: 0.8rem;
+  gap: 0.75rem;
 }
 
-/* ==========================================================================
-   BLOQUE: quote-card
-   DESCRIPCION: Tarjeta de ranking para una tienda y su build completa.
-   ========================================================================== */
-.quote-card {
+.order-row {
   align-items: center;
   color: inherit;
   display: grid;
-  gap: 0.9rem;
-  grid-template-columns: 3rem 1fr 4rem 8rem;
+  gap: 0.8rem;
+  grid-template-columns: 5rem 1fr 9rem 6rem;
   padding: 1rem;
   text-align: left;
-  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.quote-card:hover,
-.quote-card--selected {
-  border-color: var(--color-brand-blue);
-  transform: translateY(-2px);
+.order-row--selected {
+  border-color: var(--color-terracotta);
 }
 
-.quote-card__rank {
-  align-items: center;
-  background: var(--brand-gradient);
-  border-radius: 50%;
-  color: #ffffff;
-  display: flex;
-  font-weight: 900;
-  height: 2.4rem;
-  justify-content: center;
-  width: 2.4rem;
+.order-row strong,
+.order-detail h2,
+.commission-box strong {
+  color: var(--color-ink);
 }
 
-.quote-card__content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.quote-card__highlight {
-  color: var(--color-brand-green);
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.quote-card__store,
-.quote-detail__title,
-.build-panel__title,
-.score-panel__title {
-  color: #ffffff;
-}
-
-.quote-card__target,
-.quote-card__score-label,
-.quote-detail__copy,
-.store-grid__hint {
-  color: #9ca3af;
-}
-
-.quote-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.35rem;
-}
-
-.quote-card__tag {
-  background: rgba(0, 102, 255, 0.14);
-  border-radius: 999px;
-  color: #bdd4ff;
-  font-size: 0.75rem;
+.order-row em {
+  background: var(--color-sand-light);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
   font-style: normal;
-  padding: 0.25rem 0.5rem;
+  font-weight: 800;
+  padding: 0.35rem 0.6rem;
+  text-align: center;
 }
 
-.quote-card__score,
-.quote-card__price {
-  text-align: right;
-}
-
-.quote-card__score-value {
-  color: var(--color-brand-green);
-  display: block;
-  font-size: 1.7rem;
-}
-
-.quote-card__price-value {
-  color: #ffffff;
-  display: block;
-}
-
-.quote-card__difference {
-  color: var(--color-brand-green);
-}
-
-.quote-card__difference--up {
-  color: #ffd166;
-}
-
-/* ==========================================================================
-   BLOQUE: quote-detail
-   DESCRIPCION: Panel lateral con tienda, score y componentes de la oferta.
-   ========================================================================== */
-.quote-detail {
-  height: fit-content;
+.order-detail {
   padding: 1rem;
   position: sticky;
-  top: 6.5rem;
+  top: 6.7rem;
 }
 
-.quote-detail__top {
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-}
-
-.quote-detail__highlight {
-  color: var(--color-brand-green);
-  font-weight: 800;
-}
-
-.quote-detail__total {
-  min-width: 8rem;
-  text-align: right;
-}
-
-.quote-detail__total-value {
-  color: var(--color-brand-green);
-  font-size: 1.55rem;
-}
-
-/* ==========================================================================
-   BLOQUES: store-grid / score-list
-   DESCRIPCION: Metricas usadas para justificar el ranking de tiendas.
-   ========================================================================== */
-.store-grid,
-.score-list {
-  display: grid;
-  gap: 0.7rem;
-}
-
-.store-grid {
-  grid-template-columns: repeat(3, 1fr);
-  margin: 1rem 0;
-}
-
-.store-grid__item,
-.score-list__item {
-  background: #12141d;
-  border-radius: 8px;
-  padding: 0.75rem;
-}
-
-.store-grid__value,
-.score-list__value {
-  color: #ffffff;
-}
-
-.score-list {
-  grid-template-columns: repeat(5, 1fr);
-}
-
-.score-list__value {
-  color: var(--color-brand-green);
-  font-size: 1.25rem;
-}
-
-/* ==========================================================================
-   BLOQUE: component-table
-   DESCRIPCION: Tabla compacta de piezas incluidas en la build de una tienda.
-   ========================================================================== */
-.component-table {
+.status-flow {
   display: grid;
   gap: 0.45rem;
 }
 
-.component-row {
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  display: grid;
-  gap: 0.55rem;
-  grid-template-columns: 6.5rem 1fr 5rem 5.5rem;
-  padding: 0.55rem 0;
-}
-
-.component-row__category {
-  color: var(--color-brand-blue);
-  font-size: 0.78rem;
+.status-flow span {
+  background: #ffffff;
+  border-radius: var(--radius-card);
+  color: var(--color-muted);
   font-weight: 800;
+  padding: 0.65rem;
 }
 
-.component-row__name {
-  color: #ffffff;
+.status-flow__active {
+  background: var(--color-terracotta) !important;
+  color: #ffffff !important;
 }
 
-.component-row__brand {
-  color: #9ca3af;
-}
-
-.component-row__price {
-  color: #ffffff;
-  font-style: normal;
-  font-weight: 800;
-  text-align: right;
-}
-
-/* ==========================================================================
-   BLOQUE: quote-actions
-   DESCRIPCION: Acciones para continuar al flujo protegido o ajustar build.
-   ========================================================================== */
-.quote-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+.commission-box {
+  background: #ffffff;
+  border-radius: var(--radius-card);
   margin-top: 1rem;
+  padding: 0.85rem;
 }
 
-.quote-actions__primary {
+.commission-box h3 {
+  color: var(--color-ink);
+  font-size: 1rem;
+}
+
+.commission-box div {
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+}
+
+.commission-box div:last-child {
+  border-bottom: 0;
+}
+
+.order-detail button {
   background: var(--brand-gradient);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: #ffffff;
   font-weight: 800;
-  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  min-height: 2.7rem;
+  width: 100%;
 }
 
-@media (max-width: 1199.98px) {
-  .quotes-layout {
+@media (max-width: 991.98px) {
+  .metrics-grid,
+  .admin-layout,
+  .order-row {
     grid-template-columns: 1fr;
   }
 
-  .quote-detail {
+  .order-detail {
     position: static;
   }
-}
 
-@media (max-width: 767.98px) {
-  .quotes-header,
-  .quote-card {
-    display: block;
+  .admin-header h1 {
+    font-size: 2.25rem;
   }
-
-  .quotes-header__link {
-    display: inline-block;
-    margin-top: 1rem;
-  }
-
-  .market-summary,
-  .store-grid,
-  .score-list {
-    grid-template-columns: 1fr;
-  }
-
-  .quote-card > span {
-    margin-bottom: 0.65rem;
-  }
-
-  .quote-card__score,
-  .quote-card__price,
-  .quote-detail__total {
-    text-align: left;
-  }
-
-  .component-row {
-    grid-template-columns: 1fr;
-  }
-
-  .component-row__price {
-    text-align: left;
-  }
-}
-
-.quotes-shell {
-  background: var(--color-surface-muted);
-  color: var(--color-text-main);
-}
-
-.quotes-header__eyebrow,
-.quote-card__highlight,
-.quote-detail__highlight,
-.quote-card__difference,
-.market-summary__value,
-.quote-card__score-value,
-.quote-detail__total-value,
-.score-list__value {
-  color: #0f766e;
-}
-
-.quotes-header__title,
-.quote-card__store,
-.quote-detail__title,
-.build-panel__title,
-.score-panel__title,
-.store-grid__value,
-.score-list__value,
-.component-row__name,
-.component-row__price,
-.quote-card__price-value {
-  color: var(--color-text-main);
-}
-
-.quotes-header__copy,
-.market-summary__label,
-.quote-detail__total-label,
-.store-grid__label,
-.score-list__label,
-.quote-card__target,
-.quote-card__score-label,
-.quote-detail__copy,
-.store-grid__hint,
-.component-row__brand {
-  color: var(--color-text-muted);
-}
-
-.quotes-header__link,
-.quote-actions__secondary {
-  border-color: var(--color-border);
-  color: #334155;
-}
-
-.market-summary__item,
-.quote-card,
-.quote-detail {
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
-}
-
-.quote-card:hover,
-.quote-card--selected {
-  border-color: #0f766e;
-}
-
-.quote-card__rank,
-.quote-actions__primary {
-  background: #0f766e;
-}
-
-.quote-card__tag,
-.store-grid__item,
-.score-list__item {
-  background: #fafaf8;
-  color: #0b7a35;
-}
-
-.component-row {
-  border-bottom-color: var(--color-border);
-}
-
-.component-row__category {
-  color: #0f766e;
 }

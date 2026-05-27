@@ -1,13 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BuildAdvisorService } from '../../data-access/build-advisor/build-advisor.service';
-import {
-  BuildRequirements,
-  PcComponent,
-  RecommendedBuild,
-  ValidationCheck,
-} from '../../shared/models/pc-build.model';
+import { RegaliaService } from '../../data-access/regalia/regalia.service';
+import { MatchRecommendation, RegaliaRequest } from '../../shared/models/regalia.model';
 
 @Component({
   selector: 'app-builder',
@@ -17,49 +12,57 @@ import {
   styleUrl: './builder.css',
 })
 export class BuilderComponent {
-  private readonly buildAdvisor = inject(BuildAdvisorService);
+  private readonly regaliaService = inject(RegaliaService);
 
-  readonly requirementsForm = new FormGroup({
-    budget: new FormControl(4500, {
+  readonly occasions = this.regaliaService.getOccasions();
+  readonly recommendations = signal<MatchRecommendation[]>([]);
+  readonly selectedRecommendation = signal<MatchRecommendation | null>(null);
+
+  readonly requestForm = new FormGroup({
+    need: new FormControl('Necesito un regalo para graduacion, elegante, presupuesto S/120, entrega sabado.', {
       nonNullable: true,
-      validators: [Validators.required, Validators.min(1800), Validators.max(12000)],
+      validators: [Validators.required, Validators.minLength(12)],
     }),
-    useCase: new FormControl<BuildRequirements['useCase']>('gaming_streaming', {
+    occasion: new FormControl<RegaliaRequest['occasion']>('Graduacion', {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    resolution: new FormControl('1080p competitivo', {
+    budget: new FormControl(120, {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [Validators.required, Validators.min(20), Validators.max(2000)],
     }),
-    streaming: new FormControl(true, { nonNullable: true }),
-    rgb: new FormControl(false, { nonNullable: true }),
-    brandPreference: new FormControl('NVIDIA si entra en presupuesto', { nonNullable: true }),
-    notes: new FormControl('', { nonNullable: true }),
+    style: new FormControl('elegante', { nonNullable: true }),
+    deliveryDate: new FormControl('Sabado', { nonNullable: true }),
+    district: new FormControl('Trujillo', { nonNullable: true }),
+    urgent: new FormControl(false, { nonNullable: true }),
   });
 
-  readonly recommendedBuild = signal<RecommendedBuild | null>(
-    this.buildAdvisor.generateBuild(this.requirementsForm.getRawValue()),
-  );
+  readonly interpretedSummary = computed(() => this.selectedRecommendation()?.interpretedNeed ?? null);
 
-  generateBuild(): void {
-    if (this.requirementsForm.invalid) {
-      this.requirementsForm.markAllAsTouched();
+  constructor() {
+    this.generateMatches();
+  }
+
+  generateMatches(): void {
+    if (this.requestForm.invalid) {
+      this.requestForm.markAllAsTouched();
       return;
     }
 
-    this.recommendedBuild.set(this.buildAdvisor.generateBuild(this.requirementsForm.getRawValue()));
+    const matches = this.regaliaService.matchRequest(this.requestForm.getRawValue());
+    this.recommendations.set(matches);
+    this.selectedRecommendation.set(matches[0] ?? null);
   }
 
-  clearBuild(): void {
-    this.recommendedBuild.set(null);
+  selectRecommendation(recommendation: MatchRecommendation): void {
+    this.selectedRecommendation.set(recommendation);
   }
 
-  trackComponent(_: number, component: PcComponent): string {
-    return `${component.category}-${component.name}`;
+  trackRecommendation(_: number, recommendation: MatchRecommendation): number {
+    return recommendation.provider.id;
   }
 
-  trackCheck(_: number, check: ValidationCheck): string {
-    return check.label;
+  trackText(_: number, value: string): string {
+    return value;
   }
 }

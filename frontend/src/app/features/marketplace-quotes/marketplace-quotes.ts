@@ -1,40 +1,34 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { MarketplaceQuotesService } from '../../data-access/marketplace-quotes/marketplace-quotes.service';
-import { MarketplaceQuote } from '../../shared/models/marketplace-quote.model';
-import { PcComponent } from '../../shared/models/pc-build.model';
+import { RegaliaService } from '../../data-access/regalia/regalia.service';
+import { RegaliaOrder } from '../../shared/models/regalia.model';
 
 @Component({
   selector: 'app-marketplace-quotes',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './marketplace-quotes.html',
   styleUrl: './marketplace-quotes.css',
 })
 export class MarketplaceQuotesComponent {
-  private readonly quotesService = inject(MarketplaceQuotesService);
+  private readonly regaliaService = inject(RegaliaService);
 
-  readonly quotes = signal(this.quotesService.getQuotes());
-  readonly selectedQuote = signal<MarketplaceQuote>(this.quotes()[0]);
-  readonly averageTotal = computed(() => {
-    const totals = this.quotes().map((quote) => quote.total);
-    return Math.round(totals.reduce((sum, total) => sum + total, 0) / totals.length);
-  });
+  readonly orders = signal(this.regaliaService.getOrders());
+  readonly metrics = this.regaliaService.getAdminMetrics();
+  readonly selectedOrder = signal<RegaliaOrder>(this.orders()[0]);
+  readonly totalCommission = computed(() =>
+    this.orders().reduce((sum, order) => sum + order.commission, 0),
+  );
 
-  selectQuote(quote: MarketplaceQuote): void {
-    this.selectedQuote.set(quote);
+  selectOrder(order: RegaliaOrder): void {
+    this.selectedOrder.set(order);
   }
 
-  priceDifference(quote: MarketplaceQuote): number {
-    return quote.total - this.averageTotal();
+  trackMetric(_: number, metric: { label: string }): string {
+    return metric.label;
   }
 
-  trackQuote(_: number, quote: MarketplaceQuote): number {
-    return quote.id;
-  }
-
-  trackComponent(_: number, component: PcComponent): string {
-    return `${component.category}-${component.name}`;
+  trackOrder(_: number, order: RegaliaOrder): number {
+    return order.id;
   }
 }
