@@ -36,6 +36,7 @@ public class RolService {
         return rolMapper.toResponse(rol);
     }
 
+    @Transactional(readOnly = true)
     public RolEntity obtenerEntidadActivaPorNombre(String nombre) {
         return rolRepository.findByNombreIgnoreCaseAndEstadoTrue(nombre)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el rol: " + nombre));

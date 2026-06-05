@@ -1,5 +1,7 @@
 package com.regalia.backend.usuario.application;
 
+import com.regalia.backend.rol.application.RolService;
+import com.regalia.backend.rol.infrastructure.entity.RolEntity;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.usuario.api.dto.UsuarioActualizarRequest;
@@ -8,6 +10,8 @@ import com.regalia.backend.usuario.api.dto.UsuarioResponse;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.mapper.UsuarioMapper;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
+import com.regalia.backend.usuariorol.infrastructure.entity.UsuarioRolEntity;
+import com.regalia.backend.usuariorol.infrastructure.repository.UsuarioRolJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,9 +27,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UsuarioService {
 
+    private static final String ROL_CLIENTE = "CLIENTE";
+
     private final UsuarioJpaRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RolService rolService;
+    private final UsuarioRolJpaRepository usuarioRolRepository;
 
     @Transactional(readOnly = true)
     public List<UsuarioResponse> listarActivos() {
@@ -55,6 +63,8 @@ public class UsuarioService {
         UsuarioEntity usuario = usuarioMapper.toEntity(request, contrasenaHash);
         UsuarioEntity usuarioGuardado = usuarioRepository.save(usuario);
 
+        asignarRolCliente(usuarioGuardado);
+
         return usuarioMapper.toResponse(usuarioGuardado);
     }
 
@@ -78,6 +88,21 @@ public class UsuarioService {
         usuario.setFechaActualizacion(LocalDateTime.now());
 
         usuarioRepository.save(usuario);
+    }
+
+    private void asignarRolCliente(UsuarioEntity usuario) {
+        RolEntity rolCliente = rolService.obtenerEntidadActivaPorNombre(ROL_CLIENTE);
+
+        boolean yaTieneRolCliente = usuarioRolRepository
+                .existsByUsuarioIdUsuarioAndRolIdRolAndEstadoTrue(
+                        usuario.getIdUsuario(),
+                        rolCliente.getIdRol()
+                );
+
+        if (!yaTieneRolCliente) {
+            UsuarioRolEntity usuarioRol = new UsuarioRolEntity(usuario, rolCliente);
+            usuarioRolRepository.save(usuarioRol);
+        }
     }
 
     private UsuarioEntity obtenerEntidadActivaPorId(Long id) {

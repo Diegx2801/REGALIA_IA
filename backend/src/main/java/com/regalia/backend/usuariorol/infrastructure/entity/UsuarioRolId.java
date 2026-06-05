@@ -11,6 +11,7 @@ import java.io.Serializable;
 
 /**
  * Identificador compuesto para la tabla usuario_rol.
+ * Representa la combinación única entre un usuario y un rol.
  */
 @Getter
 @Setter
