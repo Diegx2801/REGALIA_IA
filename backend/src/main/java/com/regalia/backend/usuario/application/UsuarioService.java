@@ -90,6 +90,25 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    @Transactional(readOnly = true)
+    public UsuarioResponse buscarPerfilAutenticado(String correo) {
+        UsuarioEntity usuario = obtenerEntidadActivaPorCorreo(correo);
+
+        return usuarioMapper.toResponse(usuario);
+    }
+
+    @Transactional
+    public UsuarioResponse actualizarPerfilAutenticado(String correo, UsuarioActualizarRequest request) {
+        UsuarioEntity usuario = obtenerEntidadActivaPorCorreo(correo);
+
+        usuarioMapper.updateEntity(usuario, request);
+        usuario.setFechaActualizacion(LocalDateTime.now());
+
+        UsuarioEntity usuarioActualizado = usuarioRepository.save(usuario);
+
+        return usuarioMapper.toResponse(usuarioActualizado);
+    }
+
     private void asignarRolCliente(UsuarioEntity usuario) {
         RolEntity rolCliente = rolService.obtenerEntidadActivaPorNombre(ROL_CLIENTE);
 
@@ -109,5 +128,10 @@ public class UsuarioService {
         return usuarioRepository.findById(id)
                 .filter(UsuarioEntity::getEstado)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario con ID: " + id));
+    }
+
+    private UsuarioEntity obtenerEntidadActivaPorCorreo(String correo) {
+        return usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrue(correo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario autenticado"));
     }
 }

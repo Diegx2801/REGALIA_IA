@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,30 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UsuarioResponse>> obtenerMiPerfil(Authentication authentication) {
+        UsuarioResponse usuario = usuarioService.buscarPerfilAutenticado(authentication.getName());
+
+        return ResponseEntity.ok(
+                ApiResponse.success(usuario)
+        );
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<ApiResponse<UsuarioResponse>> actualizarMiPerfil(
+            Authentication authentication,
+            @Valid @RequestBody UsuarioActualizarRequest request
+    ) {
+        UsuarioResponse usuarioActualizado = usuarioService.actualizarPerfilAutenticado(
+                authentication.getName(),
+                request
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success(usuarioActualizado, "Perfil actualizado correctamente")
+        );
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UsuarioResponse>>> listarActivos() {

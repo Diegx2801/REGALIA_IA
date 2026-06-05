@@ -8,12 +8,12 @@ import jakarta.validation.constraints.Size;
  */
 public record UsuarioActualizarRequest(
 
-        @NotBlank(message = "El nombre es obligatorio")
-        @Size(max = 100, message = "El nombre no debe superar los 100 caracteres")
+        @NotBlank(message = "Los nombres son obligatorios")
+        @Size(max = 100, message = "Los nombres no deben superar los 100 caracteres")
         String nombres,
 
-        @NotBlank(message = "El apellido es obligatorio")
-        @Size(max = 100, message = "El apellido no debe superar los 100 caracteres")
+        @NotBlank(message = "Los apellidos son obligatorios")
+        @Size(max = 100, message = "Los apellidos no deben superar los 100 caracteres")
         String apellidos,
 
         @Size(max = 20, message = "El teléfono no debe superar los 20 caracteres")
