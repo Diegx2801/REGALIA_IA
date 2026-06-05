@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -63,6 +64,7 @@ public class TipoPagoService {
         }
 
         tipoPagoMapper.updateEntity(tipoPago, request);
+        tipoPago.setFechaActualizacion(LocalDateTime.now());
 
         TipoPagoEntity tipoPagoActualizado = tipoPagoRepository.save(tipoPago);
 
@@ -74,6 +76,7 @@ public class TipoPagoService {
         TipoPagoEntity tipoPago = obtenerEntidadPorId(id);
 
         tipoPago.setEstado(false);
+        tipoPago.setFechaActualizacion(LocalDateTime.now());
 
         tipoPagoRepository.save(tipoPago);
     }
