@@ -1,0 +1,177 @@
+<section class="auth-page">
+  <div class="container auth-page__container">
+    <div class="auth-shell">
+      <!-- Panel de contexto: explica beneficios de entrar a REGALIA. -->
+      <section class="auth-hero" aria-label="Resumen de acceso REGALIA">
+        <span class="auth-hero__eyebrow">Acceso REGALIA</span>
+        <h1 class="auth-hero__title">{{ activeTitle() }}</h1>
+        <p class="auth-hero__text">{{ activeText() }}</p>
+
+        <div class="auth-hero__preview" aria-hidden="true">
+          <div class="auth-hero__card auth-hero__card--main">
+            <span></span>
+            <strong>Solicitud activa</strong>
+            <small>Reserva con sena pendiente</small>
+          </div>
+          <div class="auth-hero__card auth-hero__card--stack">
+            <span></span>
+            <strong>Proveedor compatible</strong>
+            <small>Ranking y reputacion</small>
+          </div>
+        </div>
+
+        <div class="auth-benefits" aria-label="Beneficios de autenticacion">
+          <article class="auth-benefit">
+            <strong>Reservas</strong>
+            <span>Historial y estado de pedidos.</span>
+          </article>
+          <article class="auth-benefit">
+            <strong>Proveedores</strong>
+            <span>Favoritos y solicitudes guardadas.</span>
+          </article>
+          <article class="auth-benefit">
+            <strong>Panel</strong>
+            <span>Acceso segun rol registrado.</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- Panel funcional: login y registro comparten una sola pantalla. -->
+      <aside class="auth-panel" aria-label="Formulario de acceso">
+        <div class="auth-tabs" role="tablist" aria-label="Tipo de acceso">
+          <button
+            class="auth-tabs__button"
+            type="button"
+            role="tab"
+            [class.auth-tabs__button--active]="mode() === 'login'"
+            [attr.aria-selected]="mode() === 'login'"
+            (click)="setMode('login')"
+          >
+            Ingresar
+          </button>
+          <button
+            class="auth-tabs__button"
+            type="button"
+            role="tab"
+            [class.auth-tabs__button--active]="mode() === 'registro'"
+            [attr.aria-selected]="mode() === 'registro'"
+            (click)="setMode('registro')"
+          >
+            Registrarme
+          </button>
+        </div>
+
+        @if (mode() === 'login') {
+          <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+            <div class="auth-form__head">
+              <span class="auth-form__eyebrow">Cuenta existente</span>
+              <h2 class="auth-form__title">Ingresa a tu cuenta</h2>
+            </div>
+
+            <label class="auth-field" for="login-email">
+              <span class="auth-field__label">Correo electronico</span>
+              <input id="login-email" class="auth-field__control" type="email" autocomplete="email" formControlName="email">
+            </label>
+            @if (hasLoginError('email')) {
+              <p class="auth-field__error">Ingresa un correo valido.</p>
+            }
+
+            <label class="auth-field" for="login-password">
+              <span class="auth-field__label">Contrasena</span>
+              <input id="login-password" class="auth-field__control" type="password" autocomplete="current-password" formControlName="password">
+            </label>
+            @if (hasLoginError('password')) {
+              <p class="auth-field__error">La contrasena debe tener al menos 6 caracteres.</p>
+            }
+
+            <label class="auth-field" for="login-role">
+              <span class="auth-field__label">Entrar como</span>
+              <select id="login-role" class="auth-field__control" formControlName="role">
+                @for (role of roleOptions; track role) {
+                  <option [value]="role">{{ role }}</option>
+                }
+              </select>
+            </label>
+
+            <div class="auth-form__options">
+              <label class="auth-check">
+                <input type="checkbox" formControlName="remember">
+                <span>Recordar sesion</span>
+              </label>
+              <a routerLink="/registro">Crear cuenta</a>
+            </div>
+
+            <button class="auth-form__button" type="submit">Ingresar</button>
+
+            @if (submitted()) {
+              <p class="auth-form__success">Formulario validado. Listo para conectar con autenticacion backend.</p>
+            }
+          </form>
+        } @else {
+          <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
+            <div class="auth-form__head">
+              <span class="auth-form__eyebrow">Nueva cuenta</span>
+              <h2 class="auth-form__title">Completa tus datos</h2>
+            </div>
+
+            <label class="auth-field" for="register-name">
+              <span class="auth-field__label">Nombre completo</span>
+              <input id="register-name" class="auth-field__control" type="text" autocomplete="name" formControlName="fullName">
+            </label>
+            @if (hasRegisterError('fullName')) {
+              <p class="auth-field__error">Escribe al menos 3 caracteres.</p>
+            }
+
+            <div class="auth-form__grid">
+              <label class="auth-field" for="register-email">
+                <span class="auth-field__label">Correo electronico</span>
+                <input id="register-email" class="auth-field__control" type="email" autocomplete="email" formControlName="email">
+              </label>
+
+              <label class="auth-field" for="register-phone">
+                <span class="auth-field__label">Telefono</span>
+                <input id="register-phone" class="auth-field__control" type="tel" autocomplete="tel" formControlName="phone">
+              </label>
+            </div>
+            @if (hasRegisterError('email') || hasRegisterError('phone')) {
+              <p class="auth-field__error">Revisa correo y telefono antes de continuar.</p>
+            }
+
+            <div class="auth-form__grid">
+              <label class="auth-field" for="register-password">
+                <span class="auth-field__label">Contrasena</span>
+                <input id="register-password" class="auth-field__control" type="password" autocomplete="new-password" formControlName="password">
+              </label>
+
+              <label class="auth-field" for="register-role">
+                <span class="auth-field__label">Rol</span>
+                <select id="register-role" class="auth-field__control" formControlName="role">
+                  @for (role of roleOptions; track role) {
+                    <option [value]="role">{{ role }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            @if (hasRegisterError('password')) {
+              <p class="auth-field__error">La contrasena debe tener al menos 6 caracteres.</p>
+            }
+
+            <label class="auth-check auth-check--terms">
+              <input type="checkbox" formControlName="terms">
+              <span>Acepto el uso de mis datos para gestionar solicitudes y reservas.</span>
+            </label>
+            @if (hasRegisterError('terms')) {
+              <p class="auth-field__error">Debes aceptar las condiciones para registrarte.</p>
+            }
+
+            <button class="auth-form__button" type="submit">Crear cuenta</button>
+
+            @if (submitted()) {
+              <p class="auth-form__success">Registro validado. Listo para conectar con usuarios y roles del backend.</p>
+            }
+          </form>
+        }
+      </aside>
+    </div>
+  </div>
+</section>

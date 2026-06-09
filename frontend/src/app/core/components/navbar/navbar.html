@@ -27,6 +27,7 @@
       [class.regalia-navbar__menu--open]="isMenuOpen()"
     >
       <div class="regalia-navbar__links">
+        <!-- Navegacion publica original de REGALIA. -->
         @for (item of navItems; track item.route) {
           <a
             class="regalia-navbar__link"
@@ -38,7 +39,34 @@
             {{ item.label }}
           </a>
         }
+
+        @if (isLoggedIn()) {
+          <!-- Accesos dinamicos segun rol: cliente, proveedor o administrador. -->
+          @for (item of roleNavItems(); track item.route) {
+            <a
+              class="regalia-navbar__link"
+              routerLinkActive="regalia-navbar__link--active"
+              [routerLink]="item.route"
+              (click)="closeMenu()"
+            >
+              {{ item.label }}
+            </a>
+          }
+        }
       </div>
+
+      @if (isLoggedIn()) {
+        <!-- Resumen de sesion mock visible despues de login/registro. -->
+        <div class="regalia-navbar__session">
+          <strong>{{ currentUser()?.fullName }}</strong>
+          <span>{{ currentUser()?.role }}</span>
+        </div>
+        <button class="regalia-navbar__login" type="button" (click)="logout()">Salir</button>
+      } @else {
+        <a class="regalia-navbar__login" routerLink="/login" routerLinkActive="regalia-navbar__login--active" (click)="closeMenu()">
+          Ingresar
+        </a>
+      }
 
       <a class="regalia-navbar__cta" routerLink="/pedir-con-ia" (click)="closeMenu()">
         <span aria-hidden="true">✦</span>

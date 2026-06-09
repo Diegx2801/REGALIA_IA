@@ -1,0 +1,185 @@
+/* ==========================================================================
+   Calendario de Reservas
+   Vista por fecha para clientes, proveedores y administracion.
+   ========================================================================== */
+.reservations-page {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(246, 196, 83, 0.16), transparent 18rem),
+    var(--color-bg);
+  min-height: 100vh;
+}
+
+.reservations-page__container {
+  padding-bottom: 3rem;
+  padding-top: 2rem;
+}
+
+.reservations-header {
+  margin-bottom: 1.25rem;
+  max-width: 64rem;
+}
+
+.reservations-header__eyebrow,
+.calendar-field__label,
+.reservation-card__id,
+.reservation-card__category,
+.calendar-summary__label {
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.reservations-header__title {
+  font-size: clamp(2.35rem, 4vw, 3.9rem);
+  margin: 0.4rem 0 0.75rem;
+}
+
+.reservations-header__text,
+.reservation-card__text,
+.reservation-card__meta span,
+.empty-calendar__text,
+.calendar-summary p,
+.calendar-summary__box span {
+  color: var(--color-muted);
+}
+
+.calendar-toolbar {
+  background: rgba(255, 253, 249, 0.95);
+  border: 1px solid rgba(234, 216, 201, 0.95);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(13rem, 18rem) 1fr;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.calendar-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.calendar-field__control {
+  background: #ffffff;
+  border: 1px solid rgba(234, 216, 201, 0.98);
+  border-radius: 10px;
+  min-height: 3rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.calendar-strip {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-strip__day {
+  background: #ffffff;
+  border: 1px solid rgba(234, 216, 201, 0.95);
+  border-radius: 10px;
+  color: var(--color-text);
+  font-weight: 900;
+  min-height: 3rem;
+  padding: 0.6rem;
+  text-transform: capitalize;
+}
+
+.calendar-strip__day--active,
+.calendar-strip__day:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.reservations-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr minmax(18rem, 24rem);
+}
+
+.reservation-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.reservation-card,
+.empty-calendar,
+.calendar-summary {
+  background: rgba(255, 253, 249, 0.95);
+  border: 1px solid rgba(234, 216, 201, 0.95);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.reservation-card {
+  align-items: center;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: 5rem 1fr 9rem 5.5rem;
+  padding: 1rem;
+}
+
+.reservation-card__title {
+  font-size: 1.45rem;
+  margin: 0.15rem 0 0.25rem;
+}
+
+.reservation-card__meta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.reservation-card__total {
+  text-align: right;
+}
+
+.empty-calendar,
+.calendar-summary {
+  padding: 1.1rem;
+}
+
+.calendar-summary {
+  display: grid;
+  gap: 0.8rem;
+  position: sticky;
+  top: 7rem;
+}
+
+.calendar-summary > strong {
+  font-family: var(--font-display);
+  font-size: 2rem;
+}
+
+.calendar-summary__box {
+  background: #ffffff;
+  border: 1px solid rgba(234, 216, 201, 0.72);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+}
+
+@media (max-width: 991.98px) {
+  .calendar-toolbar,
+  .reservations-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575.98px) {
+  .calendar-strip,
+  .reservation-card {
+    grid-template-columns: 1fr;
+  }
+
+  .reservation-card__total {
+    text-align: left;
+  }
+}

@@ -1,0 +1,326 @@
+/* ==========================================================================
+   Autenticacion REGALIA
+   Pantalla frontend para login y registro alineada a la identidad visual actual.
+   ========================================================================== */
+:host,
+.auth-page {
+  background:
+    radial-gradient(circle at 10% 12%, rgba(246, 196, 83, 0.16), transparent 18rem),
+    radial-gradient(circle at 92% 18%, rgba(242, 109, 91, 0.14), transparent 16rem),
+    var(--color-bg);
+  display: block;
+  min-height: 100vh;
+}
+
+.auth-page__container {
+  padding-bottom: 3rem;
+  padding-top: 2rem;
+}
+
+.auth-shell {
+  align-items: stretch;
+  display: grid;
+  gap: 1.4rem;
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 31rem);
+}
+
+.auth-hero,
+.auth-panel {
+  background: rgba(255, 253, 249, 0.94);
+  border: 1px solid rgba(234, 216, 201, 0.96);
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.auth-hero {
+  display: grid;
+  overflow: hidden;
+  padding: clamp(1.6rem, 4vw, 3rem);
+  position: relative;
+}
+
+.auth-hero::after {
+  background:
+    linear-gradient(135deg, rgba(91, 46, 109, 0.08), rgba(242, 109, 91, 0.1)),
+    url('/images/r_regalia.png') center / 26rem auto no-repeat;
+  content: '';
+  inset: auto -5rem -6rem auto;
+  min-height: 18rem;
+  opacity: 0.18;
+  position: absolute;
+  width: 28rem;
+}
+
+.auth-hero__eyebrow,
+.auth-form__eyebrow {
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.auth-hero__title {
+  font-size: clamp(2.4rem, 5vw, 4.7rem);
+  margin: 0.45rem 0 1rem;
+  max-width: 46rem;
+}
+
+.auth-hero__text {
+  color: var(--color-muted);
+  font-size: 1.08rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  max-width: 42rem;
+}
+
+.auth-hero__preview {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(13rem, 18rem) minmax(12rem, 16rem);
+  margin-top: auto;
+  max-width: 40rem;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-hero__card {
+  background: #ffffff;
+  border: 1px solid rgba(234, 216, 201, 0.96);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem;
+}
+
+.auth-hero__card span {
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
+  display: block;
+  height: 0.48rem;
+  width: 4rem;
+}
+
+.auth-hero__card strong {
+  font-size: 1rem;
+}
+
+.auth-hero__card small {
+  color: var(--color-muted);
+}
+
+.auth-hero__card--main {
+  min-height: 8.6rem;
+}
+
+.auth-hero__card--stack {
+  margin-bottom: 1.25rem;
+  min-height: 7.2rem;
+}
+
+.auth-benefits {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1.4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-benefit {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(234, 216, 201, 0.86);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.95rem;
+}
+
+.auth-benefit strong {
+  color: var(--color-text);
+}
+
+.auth-benefit span {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.auth-panel {
+  align-self: start;
+  padding: 1rem;
+}
+
+.auth-tabs {
+  background: var(--color-sand);
+  border: 1px solid rgba(234, 216, 201, 0.95);
+  border-radius: 14px;
+  display: grid;
+  gap: 0.4rem;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 1rem;
+  padding: 0.35rem;
+}
+
+.auth-tabs__button {
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--color-muted);
+  font-weight: 900;
+  min-height: 2.9rem;
+  padding: 0.65rem;
+}
+
+.auth-tabs__button--active {
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(38, 32, 51, 0.1);
+  color: var(--color-primary);
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.35rem;
+}
+
+.auth-form__head {
+  margin-bottom: 0.25rem;
+}
+
+.auth-form__title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  margin: 0.25rem 0 0;
+}
+
+.auth-form__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.42rem;
+  margin: 0;
+}
+
+.auth-field__label {
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.auth-field__control {
+  background: #ffffff;
+  border: 1px solid rgba(234, 216, 201, 0.98);
+  border-radius: 10px;
+  color: var(--color-text);
+  min-height: 3.05rem;
+  min-width: 0;
+  padding: 0.72rem 0.8rem;
+  width: 100%;
+}
+
+.auth-field__control:focus {
+  border-color: rgba(91, 46, 109, 0.38);
+  box-shadow: 0 0 0 4px rgba(91, 46, 109, 0.08);
+}
+
+.auth-field__error {
+  color: var(--color-alert);
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: -0.35rem 0 0;
+}
+
+.auth-form__options,
+.auth-check {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.auth-form__options {
+  justify-content: space-between;
+}
+
+.auth-form__options a {
+  color: var(--color-primary);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.auth-check {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.auth-check input {
+  accent-color: var(--color-primary);
+  height: 1rem;
+  width: 1rem;
+}
+
+.auth-check--terms {
+  align-items: start;
+}
+
+.auth-form__button {
+  background: var(--brand-gradient);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(242, 109, 91, 0.22);
+  color: #ffffff;
+  font-weight: 900;
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+}
+
+.auth-form__button:hover {
+  transform: translateY(-2px);
+}
+
+.auth-form__success {
+  background: rgba(46, 125, 104, 0.1);
+  border: 1px solid rgba(46, 125, 104, 0.22);
+  border-radius: 10px;
+  color: var(--color-success);
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+}
+
+@media (max-width: 991.98px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-panel {
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .auth-page__container {
+    padding-top: 1rem;
+  }
+
+  .auth-hero,
+  .auth-panel {
+    border-radius: 14px;
+  }
+
+  .auth-hero__preview,
+  .auth-benefits,
+  .auth-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-form__options {
+    align-items: start;
+    display: grid;
+  }
+}

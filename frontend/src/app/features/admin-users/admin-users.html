@@ -1,0 +1,46 @@
+<section class="admin-users-page">
+  <div class="container admin-users-page__container">
+    <!-- Vista administrativa mock para validar filtrado de roles sin backend. -->
+    <header class="admin-users-header">
+      <span class="admin-users-header__eyebrow">Administracion</span>
+      <h1 class="admin-users-header__title">Usuarios y roles de REGALIA.</h1>
+      <p class="admin-users-header__text">
+        Vista frontend para controlar clientes, proveedores y administradores antes de conectar la gestion real.
+      </p>
+    </header>
+
+    <div class="admin-users-toolbar">
+      <label class="admin-users-filter" for="roleFilter">
+        <span class="admin-users-filter__label">Filtrar por rol</span>
+        <select id="roleFilter" class="admin-users-filter__control" [formControl]="roleFilter" (change)="onFilterChanged()">
+          <option value="Todos">Todos</option>
+          <option value="Cliente">Cliente</option>
+          <option value="Proveedor">Proveedor</option>
+          <option value="Administrador">Administrador</option>
+        </select>
+      </label>
+      <strong class="admin-users-toolbar__count">{{ filteredUsers().length }} usuarios</strong>
+    </div>
+
+    <main class="admin-users-table" aria-label="Usuarios registrados">
+      <div class="admin-users-table__head">
+        <span>Usuario</span>
+        <span>Rol</span>
+        <span>Estado</span>
+        <span>Ultimo acceso</span>
+      </div>
+
+      @for (user of filteredUsers(); track trackUser($index, user)) {
+        <article class="admin-user-row">
+          <div>
+            <strong>{{ user.name }}</strong>
+            <small>{{ user.email }}</small>
+          </div>
+          <span class="admin-user-row__role">{{ user.role }}</span>
+          <span class="admin-user-row__status">{{ user.status }}</span>
+          <span>{{ user.lastAccess }}</span>
+        </article>
+      }
+    </main>
+  </div>
+</section>

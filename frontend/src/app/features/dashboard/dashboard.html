@@ -1,0 +1,49 @@
+<section class="dashboard-page">
+  <div class="container dashboard-page__container">
+    <!-- Encabezado y acciones cambian dinamicamente segun el rol de sesion. -->
+    @if (roleSummary(); as summary) {
+      <header class="dashboard-header">
+        <span class="dashboard-header__eyebrow">{{ summary.eyebrow }}</span>
+        <h1 class="dashboard-header__title">{{ summary.title }}</h1>
+        <p class="dashboard-header__text">{{ summary.text }}</p>
+      </header>
+    }
+
+    <div class="dashboard-layout">
+      <main class="dashboard-main">
+        <!-- Resumen de la sesion mock actual. -->
+        <section class="welcome-card">
+          <div>
+            <span class="welcome-card__label">Sesion activa</span>
+            <h2 class="welcome-card__title">{{ user()?.fullName }}</h2>
+            <p class="welcome-card__text">{{ user()?.email }} · {{ user()?.role }}</p>
+          </div>
+          <a class="welcome-card__button" routerLink="/mis-reservas">Ver calendario</a>
+        </section>
+
+        <section class="action-grid" aria-label="Acciones por rol">
+          @for (action of quickActions(); track action.route) {
+            <a class="action-card" [routerLink]="action.route">
+              <strong>{{ action.label }}</strong>
+              <span>{{ action.hint }}</span>
+            </a>
+          }
+        </section>
+      </main>
+
+      <aside class="dashboard-aside">
+        <article class="summary-card">
+          <span class="summary-card__label">Reservas activas</span>
+          <strong class="summary-card__value">{{ orders.length }}</strong>
+          <small>Pedidos visibles en el calendario.</small>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-card__label">Proveedores</span>
+          <strong class="summary-card__value">{{ providers.length }}</strong>
+          <small>Perfiles disponibles para matching.</small>
+        </article>
+      </aside>
+    </div>
+  </div>
+</section>

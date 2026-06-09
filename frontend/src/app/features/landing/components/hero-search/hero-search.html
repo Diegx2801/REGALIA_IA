@@ -1,0 +1,41 @@
+<!-- Formulario principal de busqueda: envia ocasion, presupuesto, fecha y distrito al flujo IA. -->
+<form class="hero-search" [formGroup]="searchForm" (ngSubmit)="submitSearch()" aria-label="Buscar detalles personalizados">
+  <label class="hero-search__field" for="landing-occasion">
+    <span class="hero-search__label">Ocasion</span>
+    <select id="landing-occasion" class="hero-search__control" formControlName="occasion">
+      <option>Cumpleanos</option>
+      <option>Dia de la Madre</option>
+      <option>Aniversario</option>
+      <option>Graduacion</option>
+      <option>Condolencias</option>
+    </select>
+  </label>
+
+  <label class="hero-search__field" for="landing-budget">
+    <span class="hero-search__label">Presupuesto</span>
+    <select id="landing-budget" class="hero-search__control" formControlName="budget">
+      <option>S/ 50 - S/ 300+</option>
+      <option>S/ 50 - S/ 120</option>
+      <option>S/ 120 - S/ 250</option>
+      <option>S/ 250 - S/ 500</option>
+    </select>
+  </label>
+
+  <label class="hero-search__field hero-search__field--date" for="landing-date">
+    <span class="hero-search__label">Fecha</span>
+    <input id="landing-date" class="hero-search__control" type="date" formControlName="date">
+  </label>
+
+  <label class="hero-search__field" for="landing-district">
+    <span class="hero-search__label">Distrito</span>
+    <select id="landing-district" class="hero-search__control" formControlName="district">
+      <option>Todos</option>
+      <option>Trujillo</option>
+      <option>Victor Larco</option>
+      <option>El Golf</option>
+      <option>Centro Historico</option>
+    </select>
+  </label>
+
+  <button class="hero-search__button" type="submit">Buscar detalles</button>
+</form>

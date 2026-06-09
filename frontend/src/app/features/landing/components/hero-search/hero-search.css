@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Buscador Principal
+   Componente aislado para mantener el landing liviano y controlar desktop/mobile.
+   ========================================================================== */
+:host {
+  display: block;
+  max-width: 60rem;
+}
+
+.hero-search {
+  align-items: end;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(234, 216, 201, 0.98);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(38, 32, 51, 0.14);
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(4, minmax(8.5rem, 1fr)) minmax(10rem, auto);
+  padding: 0.75rem;
+}
+
+.hero-search__field {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.hero-search__label {
+  color: var(--color-text);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.hero-search__control {
+  appearance: none;
+  background: var(--color-cream);
+  border: 1px solid rgba(234, 216, 201, 0.92);
+  border-radius: 10px;
+  color: var(--color-muted);
+  min-height: 2.95rem;
+  min-width: 0;
+  padding: 0.55rem 0.72rem;
+  width: 100%;
+}
+
+/* Fecha estilizada para que no se sienta como control nativo pegado al formulario. */
+.hero-search__field--date .hero-search__control {
+  color-scheme: light;
+}
+
+.hero-search__button {
+  background: var(--brand-gradient);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(242, 109, 91, 0.22);
+  color: #ffffff;
+  font-weight: 900;
+  min-height: 2.95rem;
+  padding: 0 1.15rem;
+  white-space: nowrap;
+}
+
+.hero-search__button:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1199.98px) {
+  .hero-search {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-search__button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .hero-search {
+    grid-template-columns: 1fr;
+  }
+}

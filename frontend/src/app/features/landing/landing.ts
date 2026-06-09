@@ -1,14 +1,15 @@
 import { ViewportScroller } from '@angular/common';
 import { AfterViewInit, Component, inject } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { FeaturedProduct, OccasionShortcut } from '../../shared/models/regalia.model';
+import { FestiveCalendarComponent } from './components/festive-calendar/festive-calendar';
+import { HeroSearchComponent } from './components/hero-search/hero-search';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [RouterLink, FestiveCalendarComponent, HeroSearchComponent],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })
@@ -20,25 +21,12 @@ export class LandingComponent implements AfterViewInit {
   readonly occasionShortcuts: OccasionShortcut[] = this.regaliaService.getOccasionShortcuts();
   readonly featuredProducts: FeaturedProduct[] = this.regaliaService.getFeaturedProducts();
 
-  readonly searchForm = new FormGroup({
-    occasion: new FormControl('Día de la Madre', { nonNullable: true }),
-    budget: new FormControl('S/ 50 - S/ 300+', { nonNullable: true }),
-    date: new FormControl('', { nonNullable: true }),
-    district: new FormControl('Todos', { nonNullable: true }),
-  });
-
   ngAfterViewInit(): void {
+    // Mantiene compatibilidad con la ruta /modelo desplazando al bloque de modelo de negocio.
     if (this.router.url.startsWith('/modelo')) {
       setTimeout(() => this.viewportScroller.scrollToAnchor('modelo'));
     }
   }
-
-  submitSearch(): void {
-    void this.router.navigate(['/pedir-con-ia'], {
-      queryParams: this.searchForm.getRawValue(),
-    });
-  }
-
   trackOccasion(_: number, occasion: OccasionShortcut): string {
     return occasion.id;
   }

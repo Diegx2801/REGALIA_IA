@@ -1,0 +1,129 @@
+/* ==========================================================================
+   Administracion de Usuarios
+   Vista frontend para roles y estados de cuenta.
+   ========================================================================== */
+.admin-users-page {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(91, 46, 109, 0.12), transparent 18rem),
+    var(--color-bg);
+  min-height: 100vh;
+}
+
+.admin-users-page__container {
+  padding-bottom: 3rem;
+  padding-top: 2rem;
+}
+
+.admin-users-header {
+  margin-bottom: 1.25rem;
+  max-width: 64rem;
+}
+
+.admin-users-header__eyebrow,
+.admin-users-filter__label {
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-users-header__title {
+  font-size: clamp(2.35rem, 4vw, 3.9rem);
+  margin: 0.4rem 0 0.75rem;
+}
+
+.admin-users-header__text,
+.admin-user-row small {
+  color: var(--color-muted);
+}
+
+.admin-users-toolbar,
+.admin-users-table,
+.admin-user-row {
+  background: rgba(255, 253, 249, 0.95);
+  border: 1px solid rgba(234, 216, 201, 0.95);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-users-toolbar {
+  align-items: end;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.admin-users-filter {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 16rem;
+}
+
+.admin-users-filter__control {
+  background: #ffffff;
+  border: 1px solid rgba(234, 216, 201, 0.98);
+  border-radius: 10px;
+  min-height: 3rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.admin-users-toolbar__count {
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+}
+
+.admin-users-table {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+}
+
+.admin-users-table__head,
+.admin-user-row {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: 1fr 10rem 9rem 9rem;
+  padding: 0.9rem;
+}
+
+.admin-users-table__head {
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-user-row {
+  box-shadow: none;
+}
+
+.admin-user-row div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.admin-user-row__role,
+.admin-user-row__status {
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+  font-weight: 900;
+  padding: 0.38rem 0.62rem;
+  text-align: center;
+}
+
+@media (max-width: 767.98px) {
+  .admin-users-toolbar,
+  .admin-users-table__head,
+  .admin-user-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-users-table__head {
+    display: none;
+  }
+}

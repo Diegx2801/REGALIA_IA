@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthSessionService } from '../../services/auth/auth-session.service';
 
 interface NavItem {
   label: string;
@@ -14,7 +15,14 @@ interface NavItem {
   styleUrl: './navbar.css',
 })
 export class NavbarComponent {
+  private readonly authSession = inject(AuthSessionService);
+  private readonly router = inject(Router);
+
   readonly isMenuOpen = signal(false);
+  readonly currentUser = this.authSession.currentUser;
+  readonly isLoggedIn = this.authSession.isLoggedIn;
+  // Links adicionales que aparecen solo cuando existe sesion y dependen del rol activo.
+  readonly roleNavItems = computed(() => this.authSession.navForCurrentRole());
 
   readonly navItems: NavItem[] = [
     { label: 'Inicio', route: '/' },
@@ -31,5 +39,12 @@ export class NavbarComponent {
 
   closeMenu(): void {
     this.isMenuOpen.set(false);
+  }
+
+  logout(): void {
+    // Cierra la sesion mock del frontend y devuelve al usuario a la portada publica.
+    this.authSession.logout();
+    this.closeMenu();
+    void this.router.navigate(['/']);
   }
 }

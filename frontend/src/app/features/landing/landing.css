@@ -44,64 +44,6 @@
   max-width: 44rem;
 }
 
-/* ==========================================================================
-   Buscador Principal
-   Barra de búsqueda estructurada para enviar valores al flujo de solicitud.
-   ========================================================================== */
-.hero-search {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(234, 216, 201, 0.98);
-  border-radius: 16px;
-  box-shadow: 0 18px 40px rgba(38, 32, 51, 0.14);
-  display: grid;
-  grid-template-columns: 1.2fr 1.05fr 1fr 1fr auto;
-  max-width: 68rem;
-  min-height: 6.4rem;
-  overflow: hidden;
-}
-
-.hero-search__field {
-  border-right: 1px solid var(--color-sand);
-  display: grid;
-  gap: 0.38rem;
-  margin: 0;
-  padding: 1.1rem 1rem;
-}
-
-.hero-search__label {
-  color: var(--color-text);
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.hero-search__control {
-  background: #ffffff;
-  border: 1px solid rgba(234, 216, 201, 0.9);
-  border-radius: 8px;
-  color: var(--color-muted);
-  min-height: 2.8rem;
-  min-width: 0;
-  padding: 0.48rem 0.58rem;
-}
-
-.hero-search__button {
-  align-self: center;
-  background: var(--brand-gradient);
-  border: 0;
-  border-radius: 12px;
-  box-shadow: 0 14px 30px rgba(242, 109, 91, 0.22);
-  color: #ffffff;
-  font-weight: 800;
-  justify-self: center;
-  margin: 0 1rem;
-  min-height: 3.6rem;
-  min-width: 10rem;
-  padding: 0 1.2rem;
-}
-
-.hero-search__button:hover {
-  transform: translateY(-2px);
-}
 
 /* ==========================================================================
    Accesos por Ocasión
@@ -465,15 +407,9 @@
 }
 
 @media (max-width: 1199.98px) {
-  .hero-search,
   .featured-products,
   .business-model__steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .hero-search__button {
-    grid-column: 1 / -1;
-    justify-self: stretch;
   }
 }
 
@@ -517,20 +453,10 @@
     font-size: 1rem;
   }
 
-  .hero-search,
   .featured-products,
   .occasion-strip,
   .business-model__steps {
     grid-template-columns: 1fr;
-  }
-
-  .hero-search__field {
-    border-bottom: 1px solid var(--color-sand);
-    border-right: 0;
-  }
-
-  .hero-search__button {
-    margin: 0.9rem;
   }
 
   .product-card__meta,

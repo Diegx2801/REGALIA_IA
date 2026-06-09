@@ -1,0 +1,69 @@
+<section class="reservations-page">
+  <div class="container reservations-page__container">
+    <!-- Calendario reutilizado para cliente, proveedor y admin con textos por rol. -->
+    @if (pageCopy(); as copy) {
+      <header class="reservations-header">
+        <span class="reservations-header__eyebrow">{{ copy.eyebrow }}</span>
+        <h1 class="reservations-header__title">{{ copy.title }}</h1>
+        <p class="reservations-header__text">{{ copy.text }}</p>
+      </header>
+    }
+
+    <!-- Selector de fecha y accesos rapidos para cambiar el dia visible. -->
+    <div class="calendar-toolbar">
+      <label class="calendar-field" for="reservation-date">
+        <span class="calendar-field__label">Fecha</span>
+        <input id="reservation-date" class="calendar-field__control" type="date" [formControl]="selectedDate" (change)="onDateChanged()">
+      </label>
+
+      <nav class="calendar-strip" aria-label="Seleccion rapida por fecha">
+        @for (day of weekDays; track trackDay($index, day)) {
+          <button
+            class="calendar-strip__day"
+            type="button"
+            [class.calendar-strip__day--active]="selectedDate.value === day.date"
+            (click)="selectDate(day.date)"
+          >
+            {{ day.label }}
+          </button>
+        }
+      </nav>
+    </div>
+
+    <div class="reservations-layout">
+      <main class="reservation-list" aria-label="Reservas filtradas por fecha">
+        @for (order of filteredOrders(); track trackOrder($index, order)) {
+          <article class="reservation-card">
+            <span class="reservation-card__id">#{{ order.id }}</span>
+            <div class="reservation-card__main">
+              <span class="reservation-card__category">{{ order.category }}</span>
+              <h2 class="reservation-card__title">{{ order.occasion }}</h2>
+              <p class="reservation-card__text">{{ order.clientName }} · {{ order.providerName }}</p>
+            </div>
+            <div class="reservation-card__meta">
+              <strong>{{ order.scheduledTime }}</strong>
+              <span>{{ order.status }}</span>
+            </div>
+            <strong class="reservation-card__total">S/ {{ order.total }}</strong>
+          </article>
+        } @empty {
+          <article class="empty-calendar">
+            <h2 class="empty-calendar__title">No hay reservas para esta fecha</h2>
+            <p class="empty-calendar__text">Selecciona otro dia del calendario o crea una nueva solicitud.</p>
+          </article>
+        }
+      </main>
+
+      <aside class="calendar-summary">
+        <span class="calendar-summary__label">Fecha seleccionada</span>
+        <strong>{{ selectedDate.value }}</strong>
+        <p>{{ filteredOrders().length }} reserva(s) programada(s).</p>
+
+        <div class="calendar-summary__box">
+          <span>Total estimado</span>
+          <strong>S/ {{ selectedDateTotal() }}</strong>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,189 @@
+﻿<section class="provider-profile-page">
+  <div class="container provider-profile-page__container">
+    <header class="provider-profile-header">
+      <span class="provider-profile-header__eyebrow">Perfil proveedor</span>
+      <h1 class="provider-profile-header__title">Gestiona tu negocio y catalogo visible en REGALIA.</h1>
+      <p class="provider-profile-header__text">
+        MantÃ©n datos, disponibilidad y productos actualizados para mejorar la compatibilidad con solicitudes.
+      </p>
+    </header>
+
+    <div class="provider-profile-layout">
+      <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+        <div class="profile-form__head">
+          <span class="profile-form__eyebrow">Datos comerciales</span>
+          <h2 class="profile-form__title">Informacion del proveedor</h2>
+        </div>
+
+        <div class="profile-form__grid">
+          <label class="profile-field" for="businessName">
+            <span class="profile-field__label">Negocio</span>
+            <input id="businessName" class="profile-field__control" type="text" formControlName="businessName">
+          </label>
+
+          <label class="profile-field" for="ownerName">
+            <span class="profile-field__label">Responsable</span>
+            <input id="ownerName" class="profile-field__control" type="text" formControlName="ownerName">
+          </label>
+
+          <label class="profile-field" for="district">
+            <span class="profile-field__label">Distrito</span>
+            <input id="district" class="profile-field__control" type="text" formControlName="district">
+          </label>
+
+          <label class="profile-field" for="whatsapp">
+            <span class="profile-field__label">WhatsApp</span>
+            <input id="whatsapp" class="profile-field__control" type="tel" formControlName="whatsapp">
+          </label>
+
+          <label class="profile-field" for="availability">
+            <span class="profile-field__label">Disponibilidad</span>
+            <input id="availability" class="profile-field__control" type="text" formControlName="availability">
+          </label>
+
+          <label class="profile-field" for="deliveryTime">
+            <span class="profile-field__label">Tiempo de entrega</span>
+            <input id="deliveryTime" class="profile-field__control" type="text" formControlName="deliveryTime">
+          </label>
+        </div>
+
+        <label class="profile-field" for="description">
+          <span class="profile-field__label">Descripcion</span>
+          <textarea id="description" class="profile-field__control" rows="4" formControlName="description"></textarea>
+        </label>
+
+        <button class="profile-form__button" type="submit">Guardar cambios</button>
+
+        @if (saved()) {
+          <p class="profile-form__success">Perfil actualizado localmente. Listo para conectar a backend.</p>
+        }
+      </form>
+
+      <aside class="provider-preview">
+        @if (provider(); as provider) {
+          <span class="provider-preview__eyebrow">{{ provider.category }}</span>
+          <h2 class="provider-preview__title">{{ provider.businessName }}</h2>
+          <p class="provider-preview__text">{{ provider.description }}</p>
+
+          <div class="provider-preview__score">
+            <strong>{{ provider.rating }}</strong>
+            <span>{{ provider.reviews }} resenas Â· reputacion {{ provider.reputation }}%</span>
+          </div>
+
+          <div class="provider-preview__tags">
+            @for (style of provider.styles; track trackText($index, style)) {
+              <span>{{ style }}</span>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+
+    <section class="provider-upload">
+      <!-- Formulario mock para publicar productos; luego se conectara a persistencia backend. -->
+      <form class="product-form" [formGroup]="productForm" (ngSubmit)="publishProduct()">
+        <div class="product-form__head">
+          <span class="product-form__eyebrow">Publicar producto</span>
+          <h2 class="product-form__title">Sube lo que quieres vender</h2>
+          <p class="product-form__text">
+            Registra nombre, precio, categoria, estado e imagen referencial para mostrarlo en tu catalogo.
+          </p>
+        </div>
+
+        <div class="product-form__grid">
+          <label class="profile-field" for="productName">
+            <span class="profile-field__label">Nombre del producto</span>
+            <input id="productName" class="profile-field__control" type="text" formControlName="name">
+          </label>
+          @if (hasProductError('name')) {
+            <p class="profile-field__error">Ingresa un nombre de al menos 3 caracteres.</p>
+          }
+
+          <label class="profile-field" for="productCategory">
+            <span class="profile-field__label">Categoria</span>
+            <select id="productCategory" class="profile-field__control" formControlName="category">
+              <option>Cajas sorpresa</option>
+              <option>Arreglos florales</option>
+              <option>Reposteria personalizada</option>
+              <option>Sublimados</option>
+              <option>Evento corporativo</option>
+            </select>
+          </label>
+
+          <label class="profile-field" for="productPrice">
+            <span class="profile-field__label">Precio desde</span>
+            <input id="productPrice" class="profile-field__control" type="number" min="1" formControlName="price">
+          </label>
+          @if (hasProductError('price')) {
+            <p class="profile-field__error">El precio debe ser mayor a cero.</p>
+          }
+
+          <label class="profile-field" for="productStatus">
+            <span class="profile-field__label">Estado</span>
+            <select id="productStatus" class="profile-field__control" formControlName="status">
+              <option>Activo</option>
+              <option>Pausado</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="profile-field" for="productImage">
+          <span class="profile-field__label">Imagen referencial</span>
+          <input id="productImage" class="profile-field__control" type="file" accept="image/*" (change)="onImageSelected($event)">
+        </label>
+
+        <label class="profile-field" for="productDescription">
+          <span class="profile-field__label">Descripcion comercial</span>
+          <textarea id="productDescription" class="profile-field__control" rows="3" formControlName="description"></textarea>
+        </label>
+        @if (hasProductError('description')) {
+          <p class="profile-field__error">Describe el producto con al menos 10 caracteres.</p>
+        }
+
+        @if (imagePreview()) {
+          <figure class="product-preview">
+            <img [src]="imagePreview()" alt="Vista previa del producto">
+            <figcaption>{{ productForm.controls.imageName.value }}</figcaption>
+          </figure>
+        }
+
+        <div class="product-form__actions">
+          <button class="product-form__button" type="submit">
+            {{ editingProductId() ? 'Guardar producto' : 'Publicar producto' }}
+          </button>
+          @if (editingProductId()) {
+            <button class="product-form__button product-form__button--ghost" type="button" (click)="resetProductForm()">Cancelar edicion</button>
+          }
+        </div>
+
+        @if (productSaved()) {
+          <p class="profile-form__success">Producto agregado localmente al catalogo del proveedor.</p>
+        }
+      </form>
+    </section>
+
+    <section class="provider-catalog">
+      <!-- Catalogo local con acciones de editar/eliminar para validar el flujo del proveedor. -->
+      <div class="provider-catalog__head">
+        <span class="provider-catalog__eyebrow">Catalogo propio</span>
+        <h2 class="provider-catalog__title">Productos publicados</h2>
+      </div>
+
+      <div class="provider-catalog__grid">
+        @for (item of catalogItems(); track trackCatalog($index, item)) {
+          <article class="catalog-item">
+            <img class="catalog-item__image" [src]="item.imagePreview" [alt]="item.name">
+            <span class="catalog-item__status">{{ item.status }}</span>
+            <strong>{{ item.name }}</strong>
+            <small>{{ item.category }} · Desde S/ {{ item.price }}</small>
+            <em>{{ item.imageName }}</em>
+            <div class="catalog-item__actions">
+              <button type="button" (click)="editProduct(item)">Editar</button>
+              <button type="button" (click)="deleteProduct(item)">Eliminar</button>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  </div>
+</section>
