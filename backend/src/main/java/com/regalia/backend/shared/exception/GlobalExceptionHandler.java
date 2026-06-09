@@ -57,4 +57,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Ocurrió un error interno en el servidor"));
     }
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<ApiResponse<Void>> manejarCredencialesInvalidas(CredencialesInvalidasException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
 }
