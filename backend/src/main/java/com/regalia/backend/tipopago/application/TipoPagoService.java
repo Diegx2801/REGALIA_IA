@@ -1,12 +1,12 @@
 package com.regalia.backend.tipopago.application;
 
+import com.regalia.backend.shared.exception.RecursoDuplicadoException;
+import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.tipopago.api.dto.TipoPagoRequest;
 import com.regalia.backend.tipopago.api.dto.TipoPagoResponse;
 import com.regalia.backend.tipopago.infrastructure.entity.TipoPagoEntity;
 import com.regalia.backend.tipopago.infrastructure.mapper.TipoPagoMapper;
 import com.regalia.backend.tipopago.infrastructure.repository.TipoPagoJpaRepository;
-import com.regalia.backend.shared.exception.RecursoDuplicadoException;
-import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,7 @@ public class TipoPagoService {
 
     @Transactional(readOnly = true)
     public TipoPagoResponse buscarPorId(Long id) {
-        TipoPagoEntity tipoPago = obtenerEntidadPorId(id);
+        TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
 
         return tipoPagoMapper.toResponse(tipoPago);
     }
@@ -55,7 +55,7 @@ public class TipoPagoService {
 
     @Transactional
     public TipoPagoResponse actualizar(Long id, TipoPagoRequest request) {
-        TipoPagoEntity tipoPago = obtenerEntidadPorId(id);
+        TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
 
         String nombreNormalizado = request.nombre().trim();
 
@@ -73,7 +73,7 @@ public class TipoPagoService {
 
     @Transactional
     public void desactivar(Long id) {
-        TipoPagoEntity tipoPago = obtenerEntidadPorId(id);
+        TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
 
         tipoPago.setEstado(false);
         tipoPago.setFechaActualizacion(LocalDateTime.now());
@@ -81,8 +81,23 @@ public class TipoPagoService {
         tipoPagoRepository.save(tipoPago);
     }
 
-    private TipoPagoEntity obtenerEntidadPorId(Long id) {
+    @Transactional
+    public TipoPagoResponse reactivar(Long id) {
+        TipoPagoEntity tipoPago = tipoPagoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tipo de pago con ID: " + id));
+
+        if (!tipoPago.getEstado()) {
+            tipoPago.setEstado(true);
+            tipoPago.setFechaActualizacion(LocalDateTime.now());
+            tipoPagoRepository.save(tipoPago);
+        }
+
+        return tipoPagoMapper.toResponse(tipoPago);
+    }
+
+    private TipoPagoEntity obtenerEntidadActivaPorId(Long id) {
         return tipoPagoRepository.findById(id)
+                .filter(TipoPagoEntity::getEstado)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tipo de pago con ID: " + id));
     }
 }

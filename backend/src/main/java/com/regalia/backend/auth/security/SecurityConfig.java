@@ -90,15 +90,10 @@ public class SecurityConfig {
                          */
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").permitAll()
 
                         /*
                          * Perfil propio:
                          * Cualquier usuario autenticado puede consultar y actualizar su propio perfil.
-                         *
-                         * Importante:
-                         * Estas rutas deben ir antes de /api/usuarios/**,
-                         * porque /api/usuarios/me también coincide con /api/usuarios/**.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
@@ -112,7 +107,6 @@ public class SecurityConfig {
                         /*
                          * Usuarios:
                          * Operaciones administrativas sobre usuarios.
-                         * Solo ADMIN puede listar, consultar por ID, actualizar por ID o desactivar usuarios.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasRole("ADMIN")
@@ -121,11 +115,25 @@ public class SecurityConfig {
 
                         /*
                          * Tipos de pago:
-                         * Consultar es público, pero modificar el mantenedor solo puede hacerlo ADMIN.
+                         * Consultar es público, pero crear, actualizar, desactivar
+                         * y reactivar solo puede hacerlo ADMIN.
                          */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/tipos-pago").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tipos-pago/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-pago/**").hasRole("ADMIN")
+
+                        /*
+                         * Tipos de documento:
+                         * Consultar es público, pero crear, actualizar, desactivar
+                         * y reactivar solo puede hacerlo ADMIN.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-documento").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-documento/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-documento/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-documento/**").hasRole("ADMIN")
 
                         /*
                          * Cualquier otra ruta requiere al menos autenticación.
