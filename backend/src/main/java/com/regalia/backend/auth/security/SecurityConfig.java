@@ -99,6 +99,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
 
                         /*
+                        * Documentos del usuario autenticado:
+                        * Cualquier usuario autenticado puede registrar y consultar
+                        * sus documentos enviados para verificación.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").authenticated()
+
+                        /*
                          * Roles:
                          * Información interna del sistema. Solo ADMIN puede consultarla.
                          */
