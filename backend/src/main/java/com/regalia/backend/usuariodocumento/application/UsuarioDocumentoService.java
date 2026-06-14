@@ -7,6 +7,7 @@ import com.regalia.backend.tipodocumento.infrastructure.entity.TipoDocumentoEnti
 import com.regalia.backend.tipodocumento.infrastructure.repository.TipoDocumentoJpaRepository;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
+import com.regalia.backend.usuariodocumento.api.dto.AdminUsuarioDocumentoResponse;
 import com.regalia.backend.usuariodocumento.api.dto.UsuarioDocumentoRequest;
 import com.regalia.backend.usuariodocumento.api.dto.UsuarioDocumentoResponse;
 import com.regalia.backend.usuariodocumento.infrastructure.entity.UsuarioDocumentoEntity;
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Servicio de aplicación para gestionar documentos registrados por usuarios.
+ * Servicio de aplicación para gestionar solicitudes de verificación de documentos.
  */
 @Service
 @RequiredArgsConstructor
@@ -54,6 +55,102 @@ public class UsuarioDocumentoService {
         return usuarioDocumentoMapper.toResponse(documentoGuardado);
     }
 
+    @Transactional(readOnly = true)
+    public List<AdminUsuarioDocumentoResponse> listarDocumentosParaRevision(String estadoVerificacion) {
+        List<UsuarioDocumentoEntity> documentos;
+
+        if (estadoVerificacion == null || estadoVerificacion.isBlank()) {
+            documentos = usuarioDocumentoRepository.findAllByOrderByIdUsuarioDocumentoAsc();
+        } else {
+            String estadoNormalizado = normalizarEstadoVerificacion(estadoVerificacion);
+            documentos = usuarioDocumentoRepository
+                    .findByEstadoVerificacionIgnoreCaseOrderByIdUsuarioDocumentoAsc(estadoNormalizado);
+        }
+
+        return documentos.stream()
+                .map(usuarioDocumentoMapper::toAdminResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminUsuarioDocumentoResponse obtenerDocumentoParaRevision(Long idUsuarioDocumento) {
+        UsuarioDocumentoEntity documento = obtenerSolicitudPorId(idUsuarioDocumento);
+
+        return usuarioDocumentoMapper.toAdminResponse(documento);
+    }
+
+    @Transactional
+    public AdminUsuarioDocumentoResponse verificarDocumento(Long idUsuarioDocumento) {
+        UsuarioDocumentoEntity documento = obtenerSolicitudPorId(idUsuarioDocumento);
+
+        if ("VERIFICADO".equals(documento.getEstadoVerificacion())) {
+            throw new ReglaNegocioException("La solicitud ya se encuentra verificada");
+        }
+
+        if ("RECHAZADO".equals(documento.getEstadoVerificacion())) {
+            throw new ReglaNegocioException("No se puede verificar una solicitud rechazada");
+        }
+
+        if (!Boolean.TRUE.equals(documento.getEstado())) {
+            throw new ReglaNegocioException("No se puede verificar una solicitud inactiva");
+        }
+
+        validarDocumentoNoVerificadoPorOtroUsuario(documento);
+
+        documento.setEstadoVerificacion("VERIFICADO");
+
+        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.save(documento);
+
+        return usuarioDocumentoMapper.toAdminResponse(documentoGuardado);
+    }
+
+    @Transactional
+    public AdminUsuarioDocumentoResponse observarDocumento(Long idUsuarioDocumento) {
+        UsuarioDocumentoEntity documento = obtenerSolicitudPorId(idUsuarioDocumento);
+
+        if ("VERIFICADO".equals(documento.getEstadoVerificacion())) {
+            throw new ReglaNegocioException("No se puede observar una solicitud que ya fue verificada");
+        }
+
+        if ("RECHAZADO".equals(documento.getEstadoVerificacion())) {
+            throw new ReglaNegocioException("No se puede observar una solicitud rechazada");
+        }
+
+        if (!Boolean.TRUE.equals(documento.getEstado())) {
+            throw new ReglaNegocioException("No se puede observar una solicitud inactiva");
+        }
+
+        if ("OBSERVADO".equals(documento.getEstadoVerificacion())) {
+            throw new ReglaNegocioException("La solicitud ya se encuentra observada");
+        }
+
+        documento.setEstadoVerificacion("OBSERVADO");
+
+        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.save(documento);
+
+        return usuarioDocumentoMapper.toAdminResponse(documentoGuardado);
+    }
+
+    @Transactional
+    public AdminUsuarioDocumentoResponse rechazarDocumento(Long idUsuarioDocumento) {
+        UsuarioDocumentoEntity documento = obtenerSolicitudPorId(idUsuarioDocumento);
+
+        if ("VERIFICADO".equals(documento.getEstadoVerificacion())) {
+            throw new ReglaNegocioException("No se puede rechazar una solicitud que ya fue verificada");
+        }
+
+        if ("RECHAZADO".equals(documento.getEstadoVerificacion())) {
+            throw new ReglaNegocioException("La solicitud ya se encuentra rechazada");
+        }
+
+        documento.setEstadoVerificacion("RECHAZADO");
+        documento.setEstado(false);
+
+        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.save(documento);
+
+        return usuarioDocumentoMapper.toAdminResponse(documentoGuardado);
+    }
+
     private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {
         return usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrue(correoUsuario)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario autenticado"));
@@ -63,6 +160,11 @@ public class UsuarioDocumentoService {
         return tipoDocumentoRepository.findById(idTipoDocumento)
                 .filter(TipoDocumentoEntity::getEstado)
                 .orElseThrow(() -> new RecursoNoEncontradoException("El tipo de documento seleccionado no está disponible"));
+    }
+
+    private UsuarioDocumentoEntity obtenerSolicitudPorId(Long idUsuarioDocumento) {
+        return usuarioDocumentoRepository.findById(idUsuarioDocumento)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la solicitud de verificación con ID: " + idUsuarioDocumento));
     }
 
     private void validarLongitudDocumento(TipoDocumentoEntity tipoDocumento, String numeroDocumento) {
@@ -83,5 +185,32 @@ public class UsuarioDocumentoService {
         if (usuarioDocumentoRepository.existsByUsuarioIdUsuarioAndTipoDocumentoIdTipoDocumentoAndEstadoTrue(idUsuario, idTipoDocumento)) {
             throw new RecursoDuplicadoException("Ya tienes una solicitud activa de verificación para este tipo de documento");
         }
+    }
+
+    private void validarDocumentoNoVerificadoPorOtroUsuario(UsuarioDocumentoEntity documento) {
+        boolean existeDocumentoVerificado = usuarioDocumentoRepository
+                .existsByTipoDocumentoIdTipoDocumentoAndNumeroDocumentoIgnoreCaseAndEstadoVerificacionAndEstadoTrueAndIdUsuarioDocumentoNot(
+                        documento.getTipoDocumento().getIdTipoDocumento(),
+                        documento.getNumeroDocumento(),
+                        "VERIFICADO",
+                        documento.getIdUsuarioDocumento()
+                );
+
+        if (existeDocumentoVerificado) {
+            throw new RecursoDuplicadoException("No se puede verificar este documento porque ya existe una cuenta verificada con el mismo número de documento");
+        }
+    }
+
+    private String normalizarEstadoVerificacion(String estadoVerificacion) {
+        String estadoNormalizado = estadoVerificacion.trim().toUpperCase();
+
+        if (!estadoNormalizado.equals("PENDIENTE")
+                && !estadoNormalizado.equals("VERIFICADO")
+                && !estadoNormalizado.equals("OBSERVADO")
+                && !estadoNormalizado.equals("RECHAZADO")) {
+            throw new ReglaNegocioException("El estado de verificación indicado no es válido");
+        }
+
+        return estadoNormalizado;
     }
 }

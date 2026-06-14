@@ -108,6 +108,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").authenticated()
 
                         /*
+                        * Solicitudes de verificación de documentos:
+                        * Solo ADMIN puede consultar, verificar, observar o rechazar
+                        * documentos enviados por usuarios.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios-documentos/**").hasRole("ADMIN")
+
+                        /*
                          * Roles:
                          * Información interna del sistema. Solo ADMIN puede consultarla.
                          */
