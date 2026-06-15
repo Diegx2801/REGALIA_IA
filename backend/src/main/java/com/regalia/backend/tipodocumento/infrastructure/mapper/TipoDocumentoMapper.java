@@ -1,5 +1,6 @@
 package com.regalia.backend.tipodocumento.infrastructure.mapper;
 
+import com.regalia.backend.categoriadocumento.infrastructure.entity.CategoriaDocumentoEntity;
 import com.regalia.backend.tipodocumento.api.dto.TipoDocumentoRequest;
 import com.regalia.backend.tipodocumento.api.dto.TipoDocumentoResponse;
 import com.regalia.backend.tipodocumento.infrastructure.entity.TipoDocumentoEntity;
@@ -13,9 +14,13 @@ import java.util.Locale;
 @Component
 public class TipoDocumentoMapper {
 
-    public TipoDocumentoEntity toEntity(TipoDocumentoRequest request) {
+    public TipoDocumentoEntity toEntity(
+            TipoDocumentoRequest request,
+            CategoriaDocumentoEntity categoriaDocumento
+    ) {
         TipoDocumentoEntity entity = new TipoDocumentoEntity();
 
+        entity.setCategoriaDocumento(categoriaDocumento);
         entity.setNombre(normalizarTexto(request.nombre()));
         entity.setAbreviatura(normalizarTexto(request.abreviatura()));
         entity.setLongitudMinima(request.longitudMinima());
@@ -28,6 +33,8 @@ public class TipoDocumentoMapper {
     public TipoDocumentoResponse toResponse(TipoDocumentoEntity entity) {
         return new TipoDocumentoResponse(
                 entity.getIdTipoDocumento(),
+                entity.getCategoriaDocumento().getIdCategoriaDocumento(),
+                entity.getCategoriaDocumento().getNombre(),
                 entity.getNombre(),
                 entity.getAbreviatura(),
                 entity.getLongitudMinima(),
@@ -38,7 +45,12 @@ public class TipoDocumentoMapper {
         );
     }
 
-    public void updateEntity(TipoDocumentoEntity entity, TipoDocumentoRequest request) {
+    public void updateEntity(
+            TipoDocumentoEntity entity,
+            TipoDocumentoRequest request,
+            CategoriaDocumentoEntity categoriaDocumento
+    ) {
+        entity.setCategoriaDocumento(categoriaDocumento);
         entity.setNombre(normalizarTexto(request.nombre()));
         entity.setAbreviatura(normalizarTexto(request.abreviatura()));
         entity.setLongitudMinima(request.longitudMinima());

@@ -33,7 +33,7 @@ public class UsuarioDocumentoService {
 
     @Transactional(readOnly = true)
     public List<UsuarioDocumentoResponse> listarMisDocumentos(String correoUsuario) {
-        return usuarioDocumentoRepository.findByUsuarioCorreoIgnoreCaseAndEstadoTrueOrderByIdUsuarioDocumentoAsc(correoUsuario)
+        return usuarioDocumentoRepository.findByUsuarioCorreoIgnoreCaseOrderByIdUsuarioDocumentoAsc(correoUsuario)
                 .stream()
                 .map(usuarioDocumentoMapper::toResponse)
                 .toList();

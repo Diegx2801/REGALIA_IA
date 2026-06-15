@@ -14,6 +14,8 @@ public record AdminUsuarioDocumentoResponse(
         Long idTipoDocumento,
         String tipoDocumento,
         String abreviatura,
+        Long idCategoriaDocumento,
+        String categoriaDocumento,
         String numeroDocumento,
         String estadoVerificacion,
         Boolean estado,

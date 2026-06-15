@@ -1,5 +1,6 @@
 package com.regalia.backend.tipodocumento.infrastructure.entity;
 
+import com.regalia.backend.categoriadocumento.infrastructure.entity.CategoriaDocumentoEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,10 @@ public class TipoDocumentoEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_tipo_documento")
     private Long idTipoDocumento;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_categoria_documento", nullable = false)
+    private CategoriaDocumentoEntity categoriaDocumento;
 
     @Column(name = "nombre", nullable = false, length = 80, unique = true)
     private String nombre;

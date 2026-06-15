@@ -99,22 +99,35 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
 
                         /*
-                        * Documentos del usuario autenticado:
-                        * Cualquier usuario autenticado puede registrar y consultar
-                        * sus documentos enviados para verificación.
-                        */
+                         * Documentos del usuario autenticado:
+                         * Cualquier usuario autenticado puede registrar y consultar
+                         * sus documentos enviados para verificación.
+                         */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").authenticated()
 
                         /*
-                        * Solicitudes de verificación de documentos:
-                        * Solo ADMIN puede consultar, verificar, observar o rechazar
-                        * documentos enviados por usuarios.
-                        */
+                         * Solicitudes de verificación de documentos:
+                         * Solo ADMIN puede consultar, verificar, observar o rechazar
+                         * documentos enviados por usuarios.
+                         */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios-documentos/**").hasRole("ADMIN")
+
+                        /*
+                         * Perfil vendedor del usuario autenticado:
+                         * Cualquier usuario autenticado puede convertirse en vendedor
+                         * y consultar su perfil vendedor.
+                         *
+                         * Importante:
+                         * - Crear perfil vendedor NO exige documento verificado.
+                         * - vendedorVerificado se calcula desde usuario_documento.
+                         * - El rol VENDEDOR se asigna al crear el perfil vendedor.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").authenticated()
 
                         /*
                          * Roles:

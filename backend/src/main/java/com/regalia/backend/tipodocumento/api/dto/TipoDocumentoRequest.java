@@ -24,6 +24,9 @@ public record TipoDocumentoRequest(
 
         @NotNull(message = "La longitud máxima es obligatoria")
         @Min(value = 1, message = "La longitud máxima debe ser mayor a 0")
-        Integer longitudMaxima
+        Integer longitudMaxima,
+
+        @NotNull(message = "La categoría del documento es obligatoria")
+        Long idCategoriaDocumento
 ) {
 }

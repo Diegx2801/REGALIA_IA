@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
  */
 public record TipoDocumentoResponse(
         Long idTipoDocumento,
+        Long idCategoriaDocumento,
+        String categoriaDocumento,
         String nombre,
         String abreviatura,
         Integer longitudMinima,

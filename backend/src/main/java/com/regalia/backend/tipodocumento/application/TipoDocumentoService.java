@@ -1,5 +1,7 @@
 package com.regalia.backend.tipodocumento.application;
 
+import com.regalia.backend.categoriadocumento.infrastructure.entity.CategoriaDocumentoEntity;
+import com.regalia.backend.categoriadocumento.infrastructure.repository.CategoriaDocumentoJpaRepository;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
@@ -23,6 +25,7 @@ import java.util.List;
 public class TipoDocumentoService {
 
     private final TipoDocumentoJpaRepository tipoDocumentoRepository;
+    private final CategoriaDocumentoJpaRepository categoriaDocumentoRepository;
     private final TipoDocumentoMapper tipoDocumentoMapper;
 
     @Transactional(readOnly = true)
@@ -45,7 +48,9 @@ public class TipoDocumentoService {
         validarLongitudes(request.longitudMinima(), request.longitudMaxima());
         validarDuplicadosAlCrear(request);
 
-        TipoDocumentoEntity tipoDocumento = tipoDocumentoMapper.toEntity(request);
+        CategoriaDocumentoEntity categoriaDocumento = obtenerCategoriaDocumentoActivaPorId(request.idCategoriaDocumento());
+
+        TipoDocumentoEntity tipoDocumento = tipoDocumentoMapper.toEntity(request, categoriaDocumento);
         TipoDocumentoEntity tipoDocumentoGuardado = tipoDocumentoRepository.save(tipoDocumento);
 
         return tipoDocumentoMapper.toResponse(tipoDocumentoGuardado);
@@ -58,7 +63,9 @@ public class TipoDocumentoService {
         validarLongitudes(request.longitudMinima(), request.longitudMaxima());
         validarDuplicadosAlActualizar(id, request);
 
-        tipoDocumentoMapper.updateEntity(tipoDocumento, request);
+        CategoriaDocumentoEntity categoriaDocumento = obtenerCategoriaDocumentoActivaPorId(request.idCategoriaDocumento());
+
+        tipoDocumentoMapper.updateEntity(tipoDocumento, request, categoriaDocumento);
         tipoDocumento.setFechaActualizacion(LocalDateTime.now());
 
         TipoDocumentoEntity tipoDocumentoActualizado = tipoDocumentoRepository.save(tipoDocumento);
@@ -94,6 +101,12 @@ public class TipoDocumentoService {
         return tipoDocumentoRepository.findById(id)
                 .filter(TipoDocumentoEntity::getEstado)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tipo de documento con ID: " + id));
+    }
+
+    private CategoriaDocumentoEntity obtenerCategoriaDocumentoActivaPorId(Long idCategoriaDocumento) {
+        return categoriaDocumentoRepository.findById(idCategoriaDocumento)
+                .filter(CategoriaDocumentoEntity::getEstado)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la categoría de documento con ID: " + idCategoriaDocumento));
     }
 
     private void validarLongitudes(Integer longitudMinima, Integer longitudMaxima) {

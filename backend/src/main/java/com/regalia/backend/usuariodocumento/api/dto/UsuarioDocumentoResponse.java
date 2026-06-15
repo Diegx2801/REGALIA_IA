@@ -10,6 +10,8 @@ public record UsuarioDocumentoResponse(
         Long idTipoDocumento,
         String tipoDocumento,
         String abreviatura,
+        Long idCategoriaDocumento,
+        String categoriaDocumento,
         String numeroDocumento,
         String estadoVerificacion,
         Boolean estado,
