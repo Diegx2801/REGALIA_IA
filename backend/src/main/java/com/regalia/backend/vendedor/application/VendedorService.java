@@ -4,12 +4,14 @@ import com.regalia.backend.rol.infrastructure.entity.RolEntity;
 import com.regalia.backend.rol.infrastructure.repository.RolJpaRepository;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
+import com.regalia.backend.tienda.infrastructure.repository.TiendaJpaRepository;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
 import com.regalia.backend.usuariodocumento.infrastructure.repository.UsuarioDocumentoJpaRepository;
 import com.regalia.backend.usuariorol.infrastructure.entity.UsuarioRolEntity;
 import com.regalia.backend.usuariorol.infrastructure.entity.UsuarioRolId;
 import com.regalia.backend.usuariorol.infrastructure.repository.UsuarioRolJpaRepository;
+import com.regalia.backend.vendedor.api.dto.AdminVendedorResponse;
 import com.regalia.backend.vendedor.api.dto.VendedorResponse;
 import com.regalia.backend.vendedor.infrastructure.entity.VendedorEntity;
 import com.regalia.backend.vendedor.infrastructure.mapper.VendedorMapper;
@@ -18,8 +20,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
- * Servicio de aplicación para gestionar el perfil vendedor del usuario autenticado.
+ * Servicio de aplicación para gestionar el perfil vendedor del usuario autenticado
+ * y consultas administrativas sobre vendedores.
  */
 @Service
 @RequiredArgsConstructor
@@ -34,6 +39,7 @@ public class VendedorService {
     private final RolJpaRepository rolRepository;
     private final UsuarioRolJpaRepository usuarioRolRepository;
     private final UsuarioDocumentoJpaRepository usuarioDocumentoRepository;
+    private final TiendaJpaRepository tiendaRepository;
     private final VendedorMapper vendedorMapper;
 
     @Transactional
@@ -63,6 +69,41 @@ public class VendedorService {
         Boolean vendedorVerificado = calcularVendedorVerificado(vendedor.getUsuario().getIdUsuario());
 
         return vendedorMapper.toResponse(vendedor, vendedorVerificado);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminVendedorResponse> listarVendedoresAdmin() {
+        return vendedorRepository.findAllByOrderByIdVendedorAsc()
+                .stream()
+                .map(this::construirAdminResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminVendedorResponse obtenerVendedorAdminPorId(Long idVendedor) {
+        VendedorEntity vendedor = vendedorRepository.findById(idVendedor)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el vendedor solicitado"));
+
+        return construirAdminResponse(vendedor);
+    }
+
+    private AdminVendedorResponse construirAdminResponse(VendedorEntity vendedor) {
+        Boolean vendedorVerificado = calcularVendedorVerificado(vendedor.getUsuario().getIdUsuario());
+
+        Long cantidadTiendasActivas = tiendaRepository.countByVendedorIdVendedorAndEstadoTrue(
+                vendedor.getIdVendedor()
+        );
+
+        Long cantidadTiendasTotales = tiendaRepository.countByVendedorIdVendedor(
+                vendedor.getIdVendedor()
+        );
+
+        return vendedorMapper.toAdminResponse(
+                vendedor,
+                vendedorVerificado,
+                cantidadTiendasActivas,
+                cantidadTiendasTotales
+        );
     }
 
     private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {

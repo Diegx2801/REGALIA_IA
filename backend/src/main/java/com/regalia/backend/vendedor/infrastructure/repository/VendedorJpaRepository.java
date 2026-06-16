@@ -3,6 +3,7 @@ package com.regalia.backend.vendedor.infrastructure.repository;
 import com.regalia.backend.vendedor.infrastructure.entity.VendedorEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,4 +14,6 @@ public interface VendedorJpaRepository extends JpaRepository<VendedorEntity, Lon
     Optional<VendedorEntity> findByUsuarioCorreoIgnoreCaseAndEstadoTrue(String correo);
 
     boolean existsByUsuarioIdUsuarioAndEstadoTrue(Long idUsuario);
+
+    List<VendedorEntity> findAllByOrderByIdVendedorAsc();
 }

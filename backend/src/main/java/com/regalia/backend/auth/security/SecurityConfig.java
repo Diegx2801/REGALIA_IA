@@ -130,6 +130,43 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/vendedores/me").authenticated()
 
                         /*
+                         * Administración de vendedores:
+                         * Solo ADMIN puede consultar la lista de vendedores
+                         * y el detalle administrativo de un vendedor.
+                         *
+                         * Nota:
+                         * /api/vendedores/me se declara antes porque pertenece
+                         * al usuario autenticado y no al listado administrativo.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/*").hasRole("ADMIN")
+
+                        /*
+                        * Rubros de tienda:
+                        * Consultar es público, porque permite filtrar tiendas y productos
+                        * sin necesidad de iniciar sesión.
+                        * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/rubros/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/rubros").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/rubros/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/rubros/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/rubros/**").hasRole("ADMIN")
+
+                        /*
+                         * Tiendas del vendedor autenticado:
+                         * Se exige autenticación en SecurityConfig.
+                         * La validación de perfil vendedor activo se realiza en TiendaService
+                         * consultando la BD actual, para evitar depender de un JWT que podría
+                         * no tener aún el rol VENDEDOR después de crear el perfil vendedor.
+                         */
+                        .requestMatchers(HttpMethod.POST, "/api/tiendas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas/mis-tiendas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/tiendas/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/tiendas/*").authenticated()
+
+                        /*
                          * Roles:
                          * Información interna del sistema. Solo ADMIN puede consultarla.
                          */
@@ -145,22 +182,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasRole("ADMIN")
 
                         /*
-                         * Tipos de pago:
-                         * Consultar es público, pero crear, actualizar, desactivar
-                         * y reactivar solo puede hacerlo ADMIN.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").permitAll()
+                        * Tipos de pago:
+                        * Los usuarios autenticados pueden consultar los métodos disponibles
+                        * al realizar operaciones dentro de la plataforma.
+                        * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/tipos-pago").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/tipos-pago/**").hasRole("ADMIN")
 
                         /*
-                         * Tipos de documento:
-                         * Consultar es público, pero crear, actualizar, desactivar
-                         * y reactivar solo puede hacerlo ADMIN.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").permitAll()
+                        * Tipos de documento:
+                        * Los usuarios autenticados pueden consultarlos para registrar
+                        * documentos de identidad o fiscales.
+                        * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/tipos-documento").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/tipos-documento/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tipos-documento/**").hasRole("ADMIN")
