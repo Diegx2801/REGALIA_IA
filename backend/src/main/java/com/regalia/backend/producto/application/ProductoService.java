@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -69,30 +70,36 @@ public class ProductoService {
     }
 
     @Transactional(readOnly = true)
-    public ProductoResponse obtenerProductoPropioPorId(String correoUsuario, Long idProducto) {
+    public ProductoResponse obtenerProductoPropioPorId(
+            String correoUsuario,
+            Long idTienda,
+            Long idProducto
+    ) {
         VendedorEntity vendedor = obtenerVendedorActivoPorCorreo(correoUsuario);
+        TiendaEntity tienda = obtenerTiendaActivaDelVendedor(idTienda, vendedor);
 
-        ProductoEntity producto = obtenerProductoActivo(idProducto);
-
-        validarProductoPerteneceAVendedor(producto, vendedor);
+        ProductoEntity producto = obtenerProductoActivoDeTienda(idProducto, tienda.getIdTienda());
 
         return construirResponse(producto);
     }
 
     @Transactional
-    public ProductoResponse actualizarProducto(String correoUsuario, Long idProducto, ProductoRequest request) {
+    public ProductoResponse actualizarProducto(
+            String correoUsuario,
+            Long idTienda,
+            Long idProducto,
+            ProductoRequest request
+    ) {
         VendedorEntity vendedor = obtenerVendedorActivoPorCorreo(correoUsuario);
+        TiendaEntity tienda = obtenerTiendaActivaDelVendedor(idTienda, vendedor);
 
-        ProductoEntity producto = obtenerProductoActivo(idProducto);
-
-        validarProductoPerteneceAVendedor(producto, vendedor);
-
+        ProductoEntity producto = obtenerProductoActivoDeTienda(idProducto, tienda.getIdTienda());
         TipoProductoEntity tipoProducto = obtenerTipoProductoActivo(request.idTipoProducto());
 
         String nombreNormalizado = normalizarTexto(request.nombre());
 
         validarNombreProductoDisponibleParaActualizar(
-                producto.getTienda().getIdTienda(),
+                tienda.getIdTienda(),
                 nombreNormalizado,
                 producto.getIdProducto()
         );
@@ -109,12 +116,15 @@ public class ProductoService {
     }
 
     @Transactional
-    public void desactivarProducto(String correoUsuario, Long idProducto) {
+    public void desactivarProducto(
+            String correoUsuario,
+            Long idTienda,
+            Long idProducto
+    ) {
         VendedorEntity vendedor = obtenerVendedorActivoPorCorreo(correoUsuario);
+        TiendaEntity tienda = obtenerTiendaActivaDelVendedor(idTienda, vendedor);
 
-        ProductoEntity producto = obtenerProductoActivo(idProducto);
-
-        validarProductoPerteneceAVendedor(producto, vendedor);
+        ProductoEntity producto = obtenerProductoActivoDeTienda(idProducto, tienda.getIdTienda());
 
         /*
          * Regla importante:
@@ -148,7 +158,7 @@ public class ProductoService {
                         "No se encontró la tienda solicitada"
                 ));
 
-        if (!tienda.getVendedor().getIdVendedor().equals(vendedor.getIdVendedor())) {
+        if (!Objects.equals(tienda.getVendedor().getIdVendedor(), vendedor.getIdVendedor())) {
             throw new RecursoNoEncontradoException(
                     "No se encontró la tienda solicitada para el vendedor autenticado"
             );
@@ -164,22 +174,19 @@ public class ProductoService {
                 ));
     }
 
-    private ProductoEntity obtenerProductoActivo(Long idProducto) {
-        return productoJpaRepository.findByIdProductoAndEstadoTrue(idProducto)
+    private ProductoEntity obtenerProductoActivoDeTienda(Long idProducto, Long idTienda) {
+        ProductoEntity producto = productoJpaRepository.findByIdProductoAndEstadoTrue(idProducto)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No se encontró el producto solicitado"
                 ));
-    }
 
-    private void validarProductoPerteneceAVendedor(ProductoEntity producto, VendedorEntity vendedor) {
-        Long idVendedorProducto = producto.getTienda().getVendedor().getIdVendedor();
-        Long idVendedorAutenticado = vendedor.getIdVendedor();
-
-        if (!idVendedorProducto.equals(idVendedorAutenticado)) {
+        if (!Objects.equals(producto.getTienda().getIdTienda(), idTienda)) {
             throw new RecursoNoEncontradoException(
-                    "No se encontró el producto solicitado para el vendedor autenticado"
+                    "No se encontró el producto solicitado en la tienda indicada"
             );
         }
+
+        return producto;
     }
 
     private void validarNombreProductoDisponibleParaCrear(Long idTienda, String nombreProducto) {

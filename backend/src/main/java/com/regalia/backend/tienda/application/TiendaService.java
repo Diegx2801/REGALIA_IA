@@ -19,7 +19,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -123,12 +126,16 @@ public class TiendaService {
 
     private VendedorEntity obtenerVendedorActivoPorCorreo(String correoUsuario) {
         return vendedorRepository.findByUsuarioCorreoIgnoreCaseAndEstadoTrue(correoUsuario)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró un perfil vendedor activo para el usuario autenticado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró un perfil vendedor activo para el usuario autenticado"
+                ));
     }
 
     private TiendaEntity obtenerTiendaActivaPorId(Long idTienda) {
         return tiendaRepository.findByIdTiendaAndEstadoTrue(idTienda)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la tienda solicitada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró la tienda solicitada"
+                ));
     }
 
     private void validarLimiteTiendas(Long idVendedor) {
@@ -141,7 +148,9 @@ public class TiendaService {
 
     private void validarPropiedadTienda(TiendaEntity tienda, Long idVendedor) {
         if (!Objects.equals(tienda.getVendedor().getIdVendedor(), idVendedor)) {
-            throw new RecursoNoEncontradoException("No se encontró la tienda solicitada para el vendedor autenticado");
+            throw new RecursoNoEncontradoException(
+                    "No se encontró la tienda solicitada para el vendedor autenticado"
+            );
         }
     }
 
@@ -151,7 +160,9 @@ public class TiendaService {
         }
 
         UsuarioDocumentoEntity documentoFiscal = usuarioDocumentoRepository.findById(idDocumentoFiscal)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el documento fiscal indicado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el documento fiscal indicado"
+                ));
 
         validarDocumentoFiscal(documentoFiscal, idUsuario);
 
@@ -160,21 +171,31 @@ public class TiendaService {
 
     private void validarDocumentoFiscal(UsuarioDocumentoEntity documentoFiscal, Long idUsuario) {
         if (!Objects.equals(documentoFiscal.getUsuario().getIdUsuario(), idUsuario)) {
-            throw new RecursoNoEncontradoException("El documento fiscal indicado no pertenece al usuario autenticado");
+            throw new RecursoNoEncontradoException(
+                    "El documento fiscal indicado no pertenece al usuario autenticado"
+            );
         }
 
         if (!Boolean.TRUE.equals(documentoFiscal.getEstado())) {
-            throw new RecursoNoEncontradoException("El documento fiscal indicado no está activo");
+            throw new RecursoNoEncontradoException(
+                    "El documento fiscal indicado no está activo"
+            );
         }
 
         if (!ESTADO_DOCUMENTO_VERIFICADO.equalsIgnoreCase(documentoFiscal.getEstadoVerificacion())) {
-            throw new RecursoNoEncontradoException("El documento fiscal indicado aún no está verificado");
+            throw new RecursoNoEncontradoException(
+                    "El documento fiscal indicado aún no está verificado"
+            );
         }
 
         if (documentoFiscal.getTipoDocumento() == null
                 || documentoFiscal.getTipoDocumento().getCategoriaDocumento() == null
-                || !CATEGORIA_FISCAL.equalsIgnoreCase(documentoFiscal.getTipoDocumento().getCategoriaDocumento().getNombre())) {
-            throw new RecursoNoEncontradoException("El documento indicado no pertenece a la categoría fiscal");
+                || !CATEGORIA_FISCAL.equalsIgnoreCase(
+                        documentoFiscal.getTipoDocumento().getCategoriaDocumento().getNombre()
+                )) {
+            throw new RecursoNoEncontradoException(
+                    "El documento indicado no pertenece a la categoría fiscal"
+            );
         }
     }
 
@@ -195,7 +216,9 @@ public class TiendaService {
         List<RubroEntity> rubros = rubroRepository.findByIdRubroInAndEstadoTrue(idsUnicos);
 
         if (rubros.size() != idsUnicos.size()) {
-            throw new RecursoNoEncontradoException("Uno o más rubros no existen o no están activos");
+            throw new RecursoNoEncontradoException(
+                    "Uno o más rubros no existen o no están activos"
+            );
         }
 
         return rubros;
@@ -214,7 +237,8 @@ public class TiendaService {
     private void reemplazarRubros(TiendaEntity tienda, List<Long> idsRubros) {
         List<RubroEntity> rubros = obtenerRubrosActivos(idsRubros);
 
-        List<TiendaRubroEntity> relacionesExistentes = tiendaRubroRepository.findByTiendaIdTienda(tienda.getIdTienda());
+        List<TiendaRubroEntity> relacionesExistentes = tiendaRubroRepository
+                .findByTiendaIdTienda(tienda.getIdTienda());
 
         relacionesExistentes.forEach(relacion -> relacion.setEstado(false));
 
@@ -266,6 +290,8 @@ public class TiendaService {
                 && ESTADO_DOCUMENTO_VERIFICADO.equalsIgnoreCase(documentoFiscal.getEstadoVerificacion())
                 && documentoFiscal.getTipoDocumento() != null
                 && documentoFiscal.getTipoDocumento().getCategoriaDocumento() != null
-                && CATEGORIA_FISCAL.equalsIgnoreCase(documentoFiscal.getTipoDocumento().getCategoriaDocumento().getNombre());
+                && CATEGORIA_FISCAL.equalsIgnoreCase(
+                        documentoFiscal.getTipoDocumento().getCategoriaDocumento().getNombre()
+                );
     }
 }
