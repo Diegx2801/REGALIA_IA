@@ -147,6 +147,7 @@ public class SecurityConfig {
                         * sin necesidad de iniciar sesión.
                         * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
                         */
+                        .requestMatchers(HttpMethod.GET, "/api/rubros").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/rubros/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/rubros").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/rubros/**").hasRole("ADMIN")
@@ -165,6 +166,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tiendas/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/tiendas/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/tiendas/*").authenticated()
+
+                        /*
+                        * Productos de tiendas:
+                        * Se exige autenticación en SecurityConfig.
+                        * La validación real de perfil vendedor activo, propiedad de tienda
+                        * y propiedad del producto se realiza en ProductoService.
+                        *
+                        * Importante:
+                        * - El producto siempre pertenece a una tienda activa.
+                        * - Solo el vendedor dueño de la tienda puede gestionar sus productos.
+                        * - No usamos hasRole("VENDEDOR") por el mismo motivo del módulo tienda:
+                        *   el JWT podría no tener aún el rol VENDEDOR después de crear el perfil.
+                        */
+                        .requestMatchers(HttpMethod.POST, "/api/tiendas/*/productos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*/productos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/productos/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos/*").authenticated()
 
                         /*
                          * Roles:
@@ -187,7 +206,8 @@ public class SecurityConfig {
                         * al realizar operaciones dentro de la plataforma.
                         * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
                         */
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/tipos-pago").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tipos-pago/**").hasRole("ADMIN")
