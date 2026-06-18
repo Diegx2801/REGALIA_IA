@@ -1,8 +1,11 @@
 package com.regalia.backend.tienda.infrastructure.mapper;
 
+import com.regalia.backend.tienda.api.dto.TiendaPublicaDetalleResponse;
+import com.regalia.backend.tienda.api.dto.TiendaPublicaResponse;
 import com.regalia.backend.tienda.api.dto.TiendaRequest;
 import com.regalia.backend.tienda.api.dto.TiendaResponse;
 import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
+import com.regalia.backend.tiendarubro.infrastructure.entity.TiendaRubroEntity;
 import com.regalia.backend.usuariodocumento.infrastructure.entity.UsuarioDocumentoEntity;
 import com.regalia.backend.vendedor.infrastructure.entity.VendedorEntity;
 import org.springframework.stereotype.Component;
@@ -70,6 +73,57 @@ public class TiendaMapper {
         entity.setDescripcion(normalizarTextoOpcional(request.descripcion()));
         entity.setDireccionReferencia(normalizarTextoOpcional(request.direccionReferencia()));
         entity.setDocumentoFiscal(documentoFiscal);
+    }
+
+    public TiendaPublicaResponse toPublicaResponse(
+            TiendaEntity tienda,
+            Boolean tiendaFormalizada,
+            List<TiendaPublicaResponse.RubroResumen> rubros
+    ) {
+        return new TiendaPublicaResponse(
+                tienda.getIdTienda(),
+                tienda.getNombre(),
+                tienda.getDescripcion(),
+                tienda.getDireccionReferencia(),
+                tienda.getEstadoRevision(),
+                tiendaFormalizada,
+                rubros
+        );
+    }
+
+    public TiendaPublicaDetalleResponse toPublicaDetalleResponse(
+            TiendaEntity tienda,
+            Boolean tiendaFormalizada,
+            List<TiendaPublicaDetalleResponse.RubroResumen> rubros
+    ) {
+        return new TiendaPublicaDetalleResponse(
+                tienda.getIdTienda(),
+                tienda.getNombre(),
+                tienda.getDescripcion(),
+                tienda.getDireccionReferencia(),
+                tienda.getEstadoRevision(),
+                tiendaFormalizada,
+                rubros,
+                tienda.getFechaCreacion()
+        );
+    }
+
+    public TiendaPublicaResponse.RubroResumen toPublicaRubroResumen(
+            TiendaRubroEntity relacion
+    ) {
+        return new TiendaPublicaResponse.RubroResumen(
+                relacion.getRubro().getIdRubro(),
+                relacion.getRubro().getNombre()
+        );
+    }
+
+    public TiendaPublicaDetalleResponse.RubroResumen toPublicaDetalleRubroResumen(
+            TiendaRubroEntity relacion
+    ) {
+        return new TiendaPublicaDetalleResponse.RubroResumen(
+                relacion.getRubro().getIdRubro(),
+                relacion.getRubro().getNombre()
+        );
     }
 
     private String normalizarTexto(String texto) {

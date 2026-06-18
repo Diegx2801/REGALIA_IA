@@ -13,7 +13,11 @@ public interface TiendaJpaRepository extends JpaRepository<TiendaEntity, Long> {
 
     List<TiendaEntity> findByVendedorIdVendedorAndEstadoTrueOrderByIdTiendaAsc(Long idVendedor);
 
+    List<TiendaEntity> findByEstadoTrueAndEstadoRevisionNotOrderByIdTiendaAsc(String estadoRevision);
+
     Optional<TiendaEntity> findByIdTiendaAndEstadoTrue(Long idTienda);
+
+    Optional<TiendaEntity> findByIdTiendaAndEstadoTrueAndEstadoRevisionNot(Long idTienda, String estadoRevision);
 
     long countByVendedorIdVendedorAndEstadoTrue(Long idVendedor);
 

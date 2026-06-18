@@ -1,5 +1,28 @@
 package com.regalia.backend.tienda.api.dto;
 
-public class TiendaPublicaDetalleResponse {
-    
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * DTO público para mostrar el detalle de una tienda en el marketplace.
+ *
+ * Puede traer más información que el listado, pero sigue evitando
+ * exponer datos privados o administrativos del vendedor.
+ */
+public record TiendaPublicaDetalleResponse(
+        Long idTienda,
+        String nombre,
+        String descripcion,
+        String direccionReferencia,
+        String estadoRevision,
+        Boolean tiendaFormalizada,
+        List<RubroResumen> rubros,
+        LocalDateTime fechaCreacion
+) {
+
+    public record RubroResumen(
+            Long idRubro,
+            String nombre
+    ) {
+    }
 }

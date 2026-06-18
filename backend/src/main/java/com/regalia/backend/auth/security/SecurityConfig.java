@@ -60,11 +60,21 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         /*
-                         * Rutas públicas:
-                         * No requieren token JWT.
+                         * Autenticación y registro:
+                         * Login y registro inicial de usuarios no requieren token JWT.
                          */
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+
+                        /*
+                         * Marketplace público:
+                         * Rutas abiertas para visitantes y clientes.
+                         * Solo exponen tiendas activas/no rechazadas y productos activos/visibles.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*/productos").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/*").permitAll()
 
                         /*
                          * Perfil propio:
@@ -103,21 +113,21 @@ public class SecurityConfig {
                          * Gestión de tiendas del vendedor autenticado:
                          * Rutas privadas del panel del vendedor.
                          */
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/tiendas/*").authenticated()
+
+                        /*
+                         * Gestión de productos del vendedor autenticado:
+                         * Rutas privadas y anidadas bajo la tienda del vendedor.
+                         */
                         .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas/*/productos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*/productos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
-
-                        /*
-                         * Gestión de productos del vendedor autenticado:
-                         * Rutas privadas del panel del vendedor.
-                         */
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas/*/productos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*/productos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/productos/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/productos/*").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/productos/*").authenticated()
 
                         /*
                          * Administración de vendedores:
@@ -139,29 +149,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/rubros/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/rubros/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/rubros/**").hasRole("ADMIN")
-
-                        /*
-                         * Rutas antiguas de gestión de tiendas:
-                         * Se mantienen temporalmente mientras terminamos el refactor.
-                         * Luego /api/tiendas y /api/tiendas/{id} serán lectura pública.
-                         */
-                        .requestMatchers(HttpMethod.POST, "/api/tiendas").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/tiendas/mis-tiendas").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/tiendas/*").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/tiendas/*").authenticated()
-
-                        /*
-                         * Rutas antiguas de gestión de productos:
-                         * Se mantienen temporalmente mientras terminamos el refactor.
-                         * Luego /api/tiendas/{id}/productos y /api/productos/{id}
-                         * serán lectura pública.
-                         */
-                        .requestMatchers(HttpMethod.POST, "/api/tiendas/*/productos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*/productos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/productos/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/productos/*").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/productos/*").authenticated()
 
                         /*
                          * Roles:

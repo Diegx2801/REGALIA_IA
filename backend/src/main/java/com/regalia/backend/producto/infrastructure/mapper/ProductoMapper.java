@@ -1,5 +1,6 @@
 package com.regalia.backend.producto.infrastructure.mapper;
 
+import com.regalia.backend.producto.api.dto.ProductoPublicoResponse;
 import com.regalia.backend.producto.api.dto.ProductoRequest;
 import com.regalia.backend.producto.api.dto.ProductoResponse;
 import com.regalia.backend.producto.infrastructure.entity.ProductoEntity;
@@ -88,5 +89,32 @@ public class ProductoMapper {
         }
 
         return texto.trim();
+    }
+
+    public ProductoPublicoResponse toPublicoResponse(
+            ProductoEntity producto,
+            List<ProductoPublicoResponse.ImagenResumen> imagenes
+    ) {
+        return new ProductoPublicoResponse(
+                producto.getIdProducto(),
+                producto.getTienda().getIdTienda(),
+                producto.getTienda().getNombre(),
+                producto.getTipoProducto().getIdTipoProducto(),
+                producto.getTipoProducto().getNombre(),
+                producto.getNombre(),
+                producto.getDescripcion(),
+                producto.getPrecio(),
+                producto.getStock(),
+                imagenes
+        );
+    }
+
+    public ProductoPublicoResponse.ImagenResumen toPublicaImagenResumen(
+            ProductoImagenEntity imagen
+    ) {
+        return new ProductoPublicoResponse.ImagenResumen(
+                imagen.getUrlImagen(),
+                imagen.getOrden()
+        );
     }
 }

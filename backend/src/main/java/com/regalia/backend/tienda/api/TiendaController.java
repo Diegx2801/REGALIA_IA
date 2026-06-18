@@ -1,43 +1,32 @@
 package com.regalia.backend.tienda.api;
 
 import com.regalia.backend.shared.response.ApiResponse;
-import com.regalia.backend.tienda.api.dto.TiendaRequest;
-import com.regalia.backend.tienda.api.dto.TiendaResponse;
-import com.regalia.backend.tienda.application.TiendaService;
-import jakarta.validation.Valid;
+import com.regalia.backend.tienda.api.dto.TiendaPublicaDetalleResponse;
+import com.regalia.backend.tienda.api.dto.TiendaPublicaResponse;
+import com.regalia.backend.tienda.application.TiendaConsultaService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * Controlador REST para gestionar tiendas del vendedor autenticado.
+ * Controlador REST público para consultar tiendas visibles
+ * dentro del marketplace de REGALIA.
+ *
+ * No gestiona tiendas del vendedor.
+ * La gestión privada vive en VendedorTiendaController.
  */
 @RestController
 @RequestMapping("/api/tiendas")
 @RequiredArgsConstructor
 public class TiendaController {
 
-    private final TiendaService tiendaService;
+    private final TiendaConsultaService tiendaConsultaService;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<TiendaResponse>> crearTienda(
-            Authentication authentication,
-            @Valid @RequestBody TiendaRequest request
-    ) {
-        TiendaResponse tiendaCreada = tiendaService.crearTienda(authentication.getName(), request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(tiendaCreada, "Tienda creada correctamente"));
-    }
-
-    @GetMapping("/mis-tiendas")
-    public ResponseEntity<ApiResponse<List<TiendaResponse>>> listarMisTiendas(Authentication authentication) {
-        List<TiendaResponse> tiendas = tiendaService.listarMisTiendas(authentication.getName());
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<TiendaPublicaResponse>>> listarTiendasPublicas() {
+        List<TiendaPublicaResponse> tiendas = tiendaConsultaService.listarTiendasPublicas();
 
         return ResponseEntity.ok(
                 ApiResponse.success(tiendas)
@@ -45,39 +34,13 @@ public class TiendaController {
     }
 
     @GetMapping("/{idTienda}")
-    public ResponseEntity<ApiResponse<TiendaResponse>> obtenerMiTiendaPorId(
-            Authentication authentication,
+    public ResponseEntity<ApiResponse<TiendaPublicaDetalleResponse>> obtenerTiendaPublicaPorId(
             @PathVariable Long idTienda
     ) {
-        TiendaResponse tienda = tiendaService.obtenerMiTiendaPorId(authentication.getName(), idTienda);
+        TiendaPublicaDetalleResponse tienda = tiendaConsultaService.obtenerTiendaPublicaPorId(idTienda);
 
         return ResponseEntity.ok(
                 ApiResponse.success(tienda)
-        );
-    }
-
-    @PutMapping("/{idTienda}")
-    public ResponseEntity<ApiResponse<TiendaResponse>> actualizarTienda(
-            Authentication authentication,
-            @PathVariable Long idTienda,
-            @Valid @RequestBody TiendaRequest request
-    ) {
-        TiendaResponse tiendaActualizada = tiendaService.actualizarTienda(authentication.getName(), idTienda, request);
-
-        return ResponseEntity.ok(
-                ApiResponse.success(tiendaActualizada, "Tienda actualizada correctamente")
-        );
-    }
-
-    @DeleteMapping("/{idTienda}")
-    public ResponseEntity<ApiResponse<Void>> eliminarTienda(
-            Authentication authentication,
-            @PathVariable Long idTienda
-    ) {
-        tiendaService.eliminarTienda(authentication.getName(), idTienda);
-
-        return ResponseEntity.ok(
-                ApiResponse.success(null, "Tienda desactivada correctamente")
         );
     }
 }

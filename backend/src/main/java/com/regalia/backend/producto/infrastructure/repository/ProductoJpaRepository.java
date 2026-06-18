@@ -13,7 +13,12 @@ public interface ProductoJpaRepository extends JpaRepository<ProductoEntity, Lon
 
     List<ProductoEntity> findByTiendaIdTiendaAndEstadoTrueOrderByIdProductoAsc(Long idTienda);
 
+    
+    List<ProductoEntity> findByTiendaIdTiendaAndEstadoTrueAndVisibleEnTiendaTrueOrderByIdProductoAsc(Long idTienda);
+
     Optional<ProductoEntity> findByIdProductoAndEstadoTrue(Long idProducto);
+
+    Optional<ProductoEntity> findByIdProductoAndEstadoTrueAndVisibleEnTiendaTrue(Long idProducto);
 
     boolean existsByTiendaIdTiendaAndNombreIgnoreCaseAndEstadoTrue(Long idTienda, String nombre);
 
