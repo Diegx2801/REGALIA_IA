@@ -192,6 +192,20 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/tipos-documento/**").hasRole("ADMIN")
 
                         /*
+                        * Tipos de entrega:
+                        * Catálogo usado para que el cliente seleccione cómo se coordinará
+                        * la entrega del pedido. La consulta es pública porque puede mostrarse
+                        * durante la exploración o creación del pedido.
+                        * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-entrega").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-entrega/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-entrega").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-entrega/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-entrega/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-entrega/**").hasRole("ADMIN")
+
+                        /*
                          * Cualquier otra ruta requiere al menos autenticación.
                          */
                         .anyRequest().authenticated()
