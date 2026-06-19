@@ -69,4 +69,13 @@ public class TipoPagoController {
                 ApiResponse.success(null, "Tipo de pago desactivado correctamente")
         );
     }
+
+    @PatchMapping("/{id}/reactivar")
+    public ResponseEntity<ApiResponse<TipoPagoResponse>> reactivar(@PathVariable Long id) {
+        TipoPagoResponse tipoPagoReactivado = tipoPagoService.reactivar(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(tipoPagoReactivado, "Tipo de pago reactivado correctamente")
+        );
+    }
 }

@@ -17,13 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * Configuración principal de seguridad para la API REST.
- *
- * Define:
- * - Rutas públicas.
- * - Rutas protegidas por autenticación.
- * - Rutas protegidas por rol.
- * - Manejo estandarizado de errores 401 y 403.
- * - Integración del filtro JWT dentro de Spring Security.
  */
 @Configuration
 @EnableWebSecurity
@@ -45,14 +38,6 @@ public class SecurityConfig {
 
                 .exceptionHandling(exception -> exception
 
-                        /*
-                         * Se ejecuta cuando el usuario no está autenticado:
-                         * - No envió token.
-                         * - Envió un token inválido.
-                         * - Envió un token expirado.
-                         *
-                         * Respuesta esperada: 401 Unauthorized.
-                         */
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -62,16 +47,6 @@ public class SecurityConfig {
                             objectMapper.writeValue(response.getOutputStream(), apiResponse);
                         })
 
-                        /*
-                         * Se ejecuta cuando el usuario sí está autenticado,
-                         * pero no tiene permisos suficientes para acceder al recurso.
-                         *
-                         * Ejemplo:
-                         * - CLIENTE intenta eliminar usuarios.
-                         * - CLIENTE intenta consultar roles.
-                         *
-                         * Respuesta esperada: 403 Forbidden.
-                         */
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -85,23 +60,95 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         /*
-                         * Rutas públicas:
-                         * No requieren token JWT.
+                         * Autenticación y registro:
+                         * Login y registro inicial de usuarios no requieren token JWT.
                          */
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").permitAll()
+
+                        /*
+                         * Marketplace público:
+                         * Rutas abiertas para visitantes y clientes.
+                         * Solo exponen tiendas activas/no rechazadas y productos activos/visibles.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tiendas/*/productos").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/*").permitAll()
 
                         /*
                          * Perfil propio:
                          * Cualquier usuario autenticado puede consultar y actualizar su propio perfil.
-                         *
-                         * Importante:
-                         * Estas rutas deben ir antes de /api/usuarios/**,
-                         * porque /api/usuarios/me también coincide con /api/usuarios/**.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
+
+                        /*
+                         * Documentos del usuario autenticado:
+                         * Cualquier usuario autenticado puede registrar y consultar
+                         * sus documentos enviados para verificación.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").authenticated()
+
+                        /*
+                         * Solicitudes de verificación de documentos:
+                         * Solo ADMIN puede consultar, verificar, observar o rechazar
+                         * documentos enviados por usuarios.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios-documentos/**").hasRole("ADMIN")
+
+                        /*
+                         * Perfil vendedor del usuario autenticado:
+                         * Cualquier usuario autenticado puede convertirse en vendedor
+                         * y consultar su perfil vendedor.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").authenticated()
+
+                        /*
+                         * Gestión de tiendas del vendedor autenticado:
+                         * Rutas privadas del panel del vendedor.
+                         */
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/tiendas/*").authenticated()
+
+                        /*
+                         * Gestión de productos del vendedor autenticado:
+                         * Rutas privadas y anidadas bajo la tienda del vendedor.
+                         */
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas/*/productos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*/productos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
+
+                        /*
+                         * Administración de vendedores:
+                         * Solo ADMIN puede consultar la lista de vendedores
+                         * y el detalle administrativo de un vendedor.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/*").hasRole("ADMIN")
+
+                        /*
+                         * Rubros de tienda:
+                         * Consultar es público, porque permite filtrar tiendas y productos
+                         * sin necesidad de iniciar sesión.
+                         * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/rubros").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/rubros/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/rubros").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/rubros/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/rubros/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/rubros/**").hasRole("ADMIN")
 
                         /*
                          * Roles:
@@ -112,7 +159,6 @@ public class SecurityConfig {
                         /*
                          * Usuarios:
                          * Operaciones administrativas sobre usuarios.
-                         * Solo ADMIN puede listar, consultar por ID, actualizar por ID o desactivar usuarios.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasRole("ADMIN")
@@ -121,11 +167,29 @@ public class SecurityConfig {
 
                         /*
                          * Tipos de pago:
-                         * Consultar es público, pero modificar el mantenedor solo puede hacerlo ADMIN.
+                         * Catálogo interno del sistema para diferenciar el concepto
+                         * del pago dentro del flujo de pedido: SEÑA y RESTANTE.
+                         * Su administración y consulta directa queda reservada para ADMIN.
                          */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/tipos-pago").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tipos-pago/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-pago/**").hasRole("ADMIN")
+
+                        /*
+                         * Tipos de documento:
+                         * Los usuarios autenticados pueden consultarlos para registrar
+                         * documentos de identidad o fiscales.
+                         * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-documento").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-documento/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-documento/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-documento/**").hasRole("ADMIN")
 
                         /*
                          * Cualquier otra ruta requiere al menos autenticación.
@@ -133,10 +197,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                /*
-                 * Inserta nuestro filtro JWT antes del filtro estándar de autenticación por usuario/contraseña.
-                 * Así cada request puede ser validado mediante el token enviado en Authorization: Bearer <token>.
-                 */
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .build();
