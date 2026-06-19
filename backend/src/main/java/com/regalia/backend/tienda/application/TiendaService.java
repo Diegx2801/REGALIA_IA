@@ -98,7 +98,7 @@ public class TiendaService {
 
         tiendaMapper.actualizarEntity(tienda, request, documentoFiscal);
 
-        TiendaEntity tiendaActualizada = tiendaRepository.save(tienda);
+        TiendaEntity tiendaActualizada = tiendaRepository.saveAndFlush(tienda);
 
         if (request.idsRubros() != null) {
             reemplazarRubros(tiendaActualizada, request.idsRubros());

@@ -17,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -73,9 +72,8 @@ public class UsuarioService {
         UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
 
         usuarioMapper.updateEntity(usuario, request);
-        usuario.setFechaActualizacion(LocalDateTime.now());
 
-        UsuarioEntity usuarioActualizado = usuarioRepository.save(usuario);
+        UsuarioEntity usuarioActualizado = usuarioRepository.saveAndFlush(usuario);
 
         return usuarioMapper.toResponse(usuarioActualizado);
     }
@@ -85,7 +83,6 @@ public class UsuarioService {
         UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
 
         usuario.setEstado(false);
-        usuario.setFechaActualizacion(LocalDateTime.now());
 
         usuarioRepository.save(usuario);
     }
@@ -102,9 +99,8 @@ public class UsuarioService {
         UsuarioEntity usuario = obtenerEntidadActivaPorCorreo(correo);
 
         usuarioMapper.updateEntity(usuario, request);
-        usuario.setFechaActualizacion(LocalDateTime.now());
 
-        UsuarioEntity usuarioActualizado = usuarioRepository.save(usuario);
+        UsuarioEntity usuarioActualizado = usuarioRepository.saveAndFlush(usuario);
 
         return usuarioMapper.toResponse(usuarioActualizado);
     }

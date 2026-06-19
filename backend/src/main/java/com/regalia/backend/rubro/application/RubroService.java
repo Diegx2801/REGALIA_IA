@@ -33,8 +33,7 @@ public class RubroService {
 
     @Transactional(readOnly = true)
     public RubroResponse obtenerRubroActivoPorId(Long idRubro) {
-        RubroEntity rubro = rubroRepository.findByIdRubroAndEstadoTrue(idRubro)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el rubro solicitado"));
+        RubroEntity rubro = obtenerEntidadActivaPorId(idRubro);
 
         return rubroMapper.toResponse(rubro);
     }
@@ -53,8 +52,7 @@ public class RubroService {
 
     @Transactional
     public RubroResponse actualizarRubro(Long idRubro, RubroRequest request) {
-        RubroEntity rubro = rubroRepository.findByIdRubroAndEstadoTrue(idRubro)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el rubro solicitado"));
+        RubroEntity rubro = obtenerEntidadActivaPorId(idRubro);
 
         String nombreNormalizado = rubroMapper.normalizarNombre(request.nombre());
 
@@ -62,30 +60,39 @@ public class RubroService {
 
         rubroMapper.actualizarEntity(rubro, request);
 
-        RubroEntity rubroActualizado = rubroRepository.save(rubro);
+        RubroEntity rubroActualizado = rubroRepository.saveAndFlush(rubro);
 
         return rubroMapper.toResponse(rubroActualizado);
     }
 
     @Transactional
     public void desactivarRubro(Long idRubro) {
-        RubroEntity rubro = rubroRepository.findByIdRubroAndEstadoTrue(idRubro)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el rubro solicitado"));
+        RubroEntity rubro = obtenerEntidadActivaPorId(idRubro);
 
         rubro.setEstado(false);
+
         rubroRepository.save(rubro);
     }
 
     @Transactional
     public RubroResponse reactivarRubro(Long idRubro) {
-        RubroEntity rubro = rubroRepository.findById(idRubro)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el rubro solicitado"));
+        RubroEntity rubro = rubroRepository.findByIdRubroAndEstadoFalse(idRubro)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el rubro inactivo solicitado"
+                ));
 
         rubro.setEstado(true);
 
-        RubroEntity rubroReactivado = rubroRepository.save(rubro);
+        RubroEntity rubroReactivado = rubroRepository.saveAndFlush(rubro);
 
         return rubroMapper.toResponse(rubroReactivado);
+    }
+
+    private RubroEntity obtenerEntidadActivaPorId(Long idRubro) {
+        return rubroRepository.findByIdRubroAndEstadoTrue(idRubro)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el rubro solicitado"
+                ));
     }
 
     private void validarNombreDisponible(String nombreNormalizado) {

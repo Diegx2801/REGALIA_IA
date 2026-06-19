@@ -61,7 +61,7 @@ public class TipoEntregaService {
 
         tipoEntregaMapper.actualizarEntity(tipoEntrega, request);
 
-        TipoEntregaEntity tipoEntregaActualizado = tipoEntregaJpaRepository.save(tipoEntrega);
+        TipoEntregaEntity tipoEntregaActualizado = tipoEntregaJpaRepository.saveAndFlush(tipoEntrega);
 
         return tipoEntregaMapper.toResponse(tipoEntregaActualizado);
     }
@@ -84,7 +84,7 @@ public class TipoEntregaService {
 
         tipoEntrega.setEstado(true);
 
-        TipoEntregaEntity tipoEntregaReactivado = tipoEntregaJpaRepository.save(tipoEntrega);
+        TipoEntregaEntity tipoEntregaReactivado = tipoEntregaJpaRepository.saveAndFlush(tipoEntrega);
 
         return tipoEntregaMapper.toResponse(tipoEntregaReactivado);
     }

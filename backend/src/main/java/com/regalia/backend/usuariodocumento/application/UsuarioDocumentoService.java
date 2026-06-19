@@ -99,7 +99,7 @@ public class UsuarioDocumentoService {
 
         documento.setEstadoVerificacion("VERIFICADO");
 
-        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.save(documento);
+        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.saveAndFlush(documento);
 
         return usuarioDocumentoMapper.toAdminResponse(documentoGuardado);
     }
@@ -126,7 +126,7 @@ public class UsuarioDocumentoService {
 
         documento.setEstadoVerificacion("OBSERVADO");
 
-        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.save(documento);
+        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.saveAndFlush(documento);
 
         return usuarioDocumentoMapper.toAdminResponse(documentoGuardado);
     }
@@ -146,7 +146,7 @@ public class UsuarioDocumentoService {
         documento.setEstadoVerificacion("RECHAZADO");
         documento.setEstado(false);
 
-        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.save(documento);
+        UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.saveAndFlush(documento);
 
         return usuarioDocumentoMapper.toAdminResponse(documentoGuardado);
     }

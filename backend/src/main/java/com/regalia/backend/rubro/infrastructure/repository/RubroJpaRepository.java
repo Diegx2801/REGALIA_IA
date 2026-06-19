@@ -17,6 +17,8 @@ public interface RubroJpaRepository extends JpaRepository<RubroEntity, Long> {
 
     Optional<RubroEntity> findByIdRubroAndEstadoTrue(Long idRubro);
 
+    Optional<RubroEntity> findByIdRubroAndEstadoFalse(Long idRubro);
+
     boolean existsByNombreIgnoreCase(String nombre);
 
     boolean existsByNombreIgnoreCaseAndIdRubroNot(String nombre, Long idRubro);

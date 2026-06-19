@@ -154,6 +154,7 @@ public class SecurityConfig {
                          * Roles:
                          * Información interna del sistema. Solo ADMIN puede consultarla.
                          */
+                        .requestMatchers(HttpMethod.GET, "/api/roles").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/roles/**").hasRole("ADMIN")
 
                         /*
@@ -204,6 +205,20 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/tipos-entrega/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tipos-entrega/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/tipos-entrega/**").hasRole("ADMIN")
+
+                        /*
+                        * Tipos de producto:
+                        * Catálogo usado para clasificar productos dentro del marketplace.
+                        * La consulta es pública porque puede usarse para filtros públicos
+                        * y para cargar opciones en el panel del vendedor.
+                        * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-producto").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-producto/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-producto").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-producto/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-producto/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-producto/**").hasRole("ADMIN")
 
                         /*
                          * Cualquier otra ruta requiere al menos autenticación.

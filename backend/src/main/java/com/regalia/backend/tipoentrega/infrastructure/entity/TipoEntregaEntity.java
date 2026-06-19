@@ -35,6 +35,9 @@ public class TipoEntregaEntity {
     @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
 
+    /**
+     * Asigna valores iniciales antes de insertar el registro.
+     */
     @PrePersist
     public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
@@ -44,6 +47,9 @@ public class TipoEntregaEntity {
         }
     }
 
+    /**
+     * Actualiza la fecha de modificación antes de guardar cambios.
+     */
     @PreUpdate
     public void preUpdate() {
         this.fechaActualizacion = LocalDateTime.now();

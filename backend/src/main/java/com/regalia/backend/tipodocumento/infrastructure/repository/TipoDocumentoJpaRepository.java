@@ -13,6 +13,10 @@ public interface TipoDocumentoJpaRepository extends JpaRepository<TipoDocumentoE
 
     List<TipoDocumentoEntity> findByEstadoTrueOrderByIdTipoDocumentoAsc();
 
+    Optional<TipoDocumentoEntity> findByIdTipoDocumentoAndEstadoTrue(Long idTipoDocumento);
+
+    Optional<TipoDocumentoEntity> findByIdTipoDocumentoAndEstadoFalse(Long idTipoDocumento);
+
     Optional<TipoDocumentoEntity> findByAbreviaturaIgnoreCaseAndEstadoTrue(String abreviatura);
 
     boolean existsByNombreIgnoreCase(String nombre);
