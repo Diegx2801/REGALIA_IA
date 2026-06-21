@@ -1,92 +1,195 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 
 export type UserRole = 'Cliente' | 'Proveedor' | 'Administrador';
+export type BackendRole = 'CLIENTE' | 'VENDEDOR' | 'ADMIN';
 
-// Usuario de sesion mock usado mientras el frontend no consume autenticacion real.
+export interface ApiResponse<T> {
+  status: 'success' | 'fail' | 'error';
+  data: T;
+  message: string | null;
+}
+
+export interface LoginRequest {
+  correo: string;
+  contrasena: string;
+}
+
+interface LoginResponse {
+  token: string;
+  tipo: string;
+  idUsuario: number;
+  correo: string;
+  roles: BackendRole[];
+  expiraEnMinutos: number;
+}
+
+export interface RegisterRequest {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  telefono: string;
+  contrasena: string;
+}
+
+export interface UserResponse {
+  idUsuario: number;
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  telefono: string | null;
+  estado: boolean;
+  fechaCreacion?: string;
+  fechaActualizacion?: string | null;
+}
+
 export interface SessionUser {
+  id: number;
   fullName: string;
   email: string;
   role: UserRole;
-}
-
-// Item de navegacion condicionado por rol para mantener la navbar dinamica.
-export interface RoleNavItem {
-  label: string;
-  route: string;
   roles: UserRole[];
+  token: string;
+  tokenType: string;
+  expiresAt: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
-  private readonly storageKey = 'regalia_mock_session';
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = '/api';
+  private readonly storageKey = 'regalia_session';
   private readonly userSignal = signal<SessionUser | null>(this.restoreSession());
 
   readonly currentUser = this.userSignal.asReadonly();
-  readonly isLoggedIn = computed(() => this.currentUser() !== null);
+  readonly isLoggedIn = computed(() => {
+    const session = this.currentUser();
+    return session !== null && session.expiresAt > Date.now();
+  });
   readonly role = computed(() => this.currentUser()?.role ?? null);
 
-  readonly roleNavItems: RoleNavItem[] = [
-    { label: 'Mi cuenta', route: '/dashboard', roles: ['Cliente', 'Proveedor', 'Administrador'] },
-    { label: 'Mis reservas', route: '/mis-reservas', roles: ['Cliente', 'Proveedor', 'Administrador'] },
-    { label: 'Perfil proveedor', route: '/perfil-proveedor', roles: ['Proveedor', 'Administrador'] },
-    { label: 'Usuarios', route: '/admin/usuarios', roles: ['Administrador'] },
-  ];
-
-  login(email: string, role: UserRole): void {
-    const user: SessionUser = {
-      fullName: this.nameFromEmail(email),
-      email,
-      role,
-    };
-
-    this.persistSession(user);
+  login(request: LoginRequest, remember: boolean): Observable<SessionUser> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/auth/login`, request).pipe(
+      map((response) => this.toSession(response.data)),
+      tap((session) => this.persistSession(session, remember)),
+      switchMap((session) =>
+        this.http.get<ApiResponse<UserResponse>>(`${this.apiUrl}/usuarios/me`).pipe(
+          map(({ data }) => this.withIdentity(session, data.nombres, data.apellidos)),
+          tap((enrichedSession) => this.persistSession(enrichedSession, remember)),
+          catchError(() => of(session)),
+        ),
+      ),
+    );
   }
 
-  register(fullName: string, email: string, role: UserRole): void {
-    this.persistSession({ fullName, email, role });
+  register(request: RegisterRequest, remember = true): Observable<SessionUser> {
+    return this.http.post<ApiResponse<UserResponse>>(`${this.apiUrl}/usuarios`, request).pipe(
+      switchMap(() =>
+        this.login(
+          {
+            correo: request.correo,
+            contrasena: request.contrasena,
+          },
+          remember,
+        ),
+      ),
+    );
+  }
+
+  updateIdentity(nombres: string, apellidos: string): void {
+    const current = this.currentUser();
+    if (!current) return;
+
+    const updated = this.withIdentity(current, nombres, apellidos);
+    const remember = localStorage.getItem(this.storageKey) !== null;
+    this.persistSession(updated, remember);
   }
 
   logout(): void {
     this.userSignal.set(null);
-    this.storage?.removeItem(this.storageKey);
+    localStorage.removeItem(this.storageKey);
+    sessionStorage.removeItem(this.storageKey);
   }
 
-  homeForRole(role: UserRole): string {
-    if (role === 'Administrador') return '/panel';
-    if (role === 'Proveedor') return '/perfil-proveedor';
-    return '/dashboard';
-  }
-
-  navForCurrentRole(): RoleNavItem[] {
+  homeForCurrentUser(): string {
     const role = this.role();
-    return role ? this.roleNavItems.filter((item) => item.roles.includes(role)) : [];
+    if (role === 'Administrador') return '/admin/resumen';
+    if (role === 'Proveedor') return '/proveedor/resumen';
+    return '/cliente/inicio';
   }
 
   canAccess(roles: UserRole[]): boolean {
-    const role = this.role();
-    return role !== null && roles.includes(role);
+    const userRoles = this.currentUser()?.roles ?? [];
+    return roles.some((role) => userRoles.includes(role));
   }
 
-  private persistSession(user: SessionUser): void {
+  private toSession(response: LoginResponse): SessionUser {
+    const roles = response.roles.map((role) => this.toUserRole(role));
+    const role = this.resolvePrimaryRole(roles);
+
+    return {
+      id: response.idUsuario,
+      fullName: this.nameFromEmail(response.correo),
+      email: response.correo,
+      role,
+      roles,
+      token: response.token,
+      tokenType: response.tipo,
+      expiresAt: Date.now() + response.expiraEnMinutos * 60_000,
+    };
+  }
+
+  private withIdentity(session: SessionUser, nombres: string, apellidos: string): SessionUser {
+    const fullName = `${nombres} ${apellidos}`.trim();
+    return {
+      ...session,
+      fullName: fullName || session.fullName,
+    };
+  }
+
+  private persistSession(user: SessionUser, remember: boolean): void {
+    const serializedSession = JSON.stringify(user);
+
+    localStorage.removeItem(this.storageKey);
+    sessionStorage.removeItem(this.storageKey);
+
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem(this.storageKey, serializedSession);
     this.userSignal.set(user);
-    this.storage?.setItem(this.storageKey, JSON.stringify(user));
   }
 
   private restoreSession(): SessionUser | null {
-    const rawSession = this.storage?.getItem(this.storageKey);
+    const rawSession =
+      localStorage.getItem(this.storageKey) ?? sessionStorage.getItem(this.storageKey);
 
     if (!rawSession) return null;
 
     try {
-      return JSON.parse(rawSession) as SessionUser;
+      const session = JSON.parse(rawSession) as SessionUser;
+      if (session.expiresAt <= Date.now()) {
+        localStorage.removeItem(this.storageKey);
+        sessionStorage.removeItem(this.storageKey);
+        return null;
+      }
+      return session;
     } catch {
-      this.storage?.removeItem(this.storageKey);
+      localStorage.removeItem(this.storageKey);
+      sessionStorage.removeItem(this.storageKey);
       return null;
     }
   }
 
-  private get storage(): Storage | null {
-    return typeof localStorage === 'undefined' ? null : localStorage;
+  private toUserRole(role: BackendRole): UserRole {
+    if (role === 'ADMIN') return 'Administrador';
+    if (role === 'VENDEDOR') return 'Proveedor';
+    return 'Cliente';
+  }
+
+  private resolvePrimaryRole(roles: UserRole[]): UserRole {
+    if (roles.includes('Administrador')) return 'Administrador';
+    if (roles.includes('Proveedor')) return 'Proveedor';
+    return 'Cliente';
   }
 
   private nameFromEmail(email: string): string {

@@ -4,7 +4,9 @@
     <div class="container">
       <div class="landing-hero__frame">
         <div class="landing-hero__content">
-          <h1 class="landing-hero__title">Regalos personalizados en tu ciudad, sin perder tiempo.</h1>
+          <h1 class="landing-hero__title">
+            Regalos personalizados en tu ciudad, sin perder tiempo.
+          </h1>
           <p class="landing-hero__subtitle">
             Descubre emprendedores locales, compara opciones y reserva con una seña clara y segura.
           </p>
@@ -16,7 +18,11 @@
       <nav class="occasion-strip" aria-label="Categorías por ocasión">
         @for (occasion of occasionShortcuts; track trackOccasion($index, occasion)) {
           <a class="occasion-strip__item" [routerLink]="occasion.route">
-            <span class="occasion-strip__icon" [class]="'occasion-strip__icon occasion-strip__icon--' + occasion.icon" aria-hidden="true"></span>
+            <span
+              class="occasion-strip__icon"
+              [class]="'occasion-strip__icon occasion-strip__icon--' + occasion.icon"
+              aria-hidden="true"
+            ></span>
             <span>{{ occasion.label }}</span>
           </a>
         }
@@ -33,7 +39,9 @@
       <main class="landing-market__main">
         <div class="section-heading">
           <span class="section-heading__eyebrow">Destacados para ti</span>
-          <h2 class="section-heading__title">Ideas listas para convertir una ocasión en reserva.</h2>
+          <h2 class="section-heading__title">
+            Ideas listas para convertir una ocasión en reserva.
+          </h2>
         </div>
 
         <div class="featured-products">
@@ -45,14 +53,16 @@
                   [src]="product.imageUrl"
                   [alt]="product.title"
                   [style.object-position]="product.imagePosition"
-                >
+                />
               </div>
               <div class="product-card__body">
                 <h3 class="product-card__title">{{ product.title }}</h3>
                 <p class="product-card__provider">{{ product.provider }}</p>
                 <strong class="product-card__price">Desde S/ {{ product.priceFrom }}</strong>
                 <div class="product-card__meta">
-                  <span class="product-card__rating" aria-label="Calificación">★ {{ product.rating }} ({{ product.reviews }})</span>
+                  <span class="product-card__rating" aria-label="Calificación"
+                    >★ {{ product.rating }} ({{ product.reviews }})</span
+                  >
                   @if (product.verified) {
                     <span class="verified-badge">✓ Verificado</span>
                   }
@@ -70,7 +80,8 @@
           <div>
             <h2 class="trust-card__title">Proveedores confiables</h2>
             <p class="trust-card__text">
-              Perfiles verificados, precios referenciales y reseñas reales para que reserves con confianza y claridad.
+              Perfiles verificados, precios referenciales y reseñas reales para que reserves con
+              confianza y claridad.
             </p>
             <a class="trust-card__link" routerLink="/catalogo">Conoce más →</a>
           </div>
@@ -93,26 +104,35 @@
         <span class="section-heading__eyebrow">Modelo de negocio</span>
         <h2 class="section-heading__title">REGALIA conecta clientes con emprendedores locales.</h2>
         <p class="section-heading__text">
-          No fabricamos productos: ordenamos la búsqueda, filtramos proveedores compatibles y habilitamos reservas con seña.
+          No fabricamos productos: ordenamos la búsqueda, filtramos proveedores compatibles y
+          habilitamos reservas con seña.
         </p>
       </div>
 
       <div class="business-model__steps">
         <article class="business-step">
           <strong class="business-step__number">01</strong>
-          <span class="business-step__text">El cliente describe ocasión, presupuesto, fecha y distrito.</span>
+          <span class="business-step__text"
+            >El cliente describe ocasión, presupuesto, fecha y distrito.</span
+          >
         </article>
         <article class="business-step">
           <strong class="business-step__number">02</strong>
-          <span class="business-step__text">REGALIA compara disponibilidad, reputación, cercanía y estilo.</span>
+          <span class="business-step__text"
+            >REGALIA compara disponibilidad, reputación, cercanía y estilo.</span
+          >
         </article>
         <article class="business-step">
           <strong class="business-step__number">03</strong>
-          <span class="business-step__text">El proveedor recibe solicitudes compatibles, no conversaciones al azar.</span>
+          <span class="business-step__text"
+            >El proveedor recibe solicitudes compatibles, no conversaciones al azar.</span
+          >
         </article>
         <article class="business-step">
           <strong class="business-step__number">04</strong>
-          <span class="business-step__text">La plataforma monetiza por reserva, campañas destacadas y visibilidad premium.</span>
+          <span class="business-step__text"
+            >La plataforma monetiza por reserva, campañas destacadas y visibilidad premium.</span
+          >
         </article>
       </div>
     </div>
@@ -125,8 +145,12 @@
         <span class="provider-cta__eyebrow">¿Tienes un emprendimiento?</span>
         <h2 class="provider-cta__title">Únete a REGALIA</h2>
       </div>
-      <p class="provider-cta__text">Publica tus productos, llega a más clientes y haz crecer tu marca con nosotros.</p>
-      <a class="provider-cta__button" routerLink="/manual">Quiero registrarme →</a>
+      <p class="provider-cta__text">
+        Publica tus productos, llega a más clientes y haz crecer tu marca con nosotros.
+      </p>
+      <a class="provider-cta__button" [routerLink]="sellerRoute()" [queryParams]="sellerQueryParams()"
+        >Quiero vender en REGALIA →</a
+      >
     </div>
   </section>
 </div>

@@ -1,6 +1,7 @@
 import { ViewportScroller } from '@angular/common';
-import { AfterViewInit, Component, inject } from '@angular/core';
+import { AfterViewInit, Component, computed, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { AuthSessionService } from '../../core/services/auth/auth-session.service';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { FeaturedProduct, OccasionShortcut } from '../../shared/models/regalia.model';
 import { FestiveCalendarComponent } from './components/festive-calendar/festive-calendar';
@@ -17,9 +18,16 @@ export class LandingComponent implements AfterViewInit {
   private readonly regaliaService = inject(RegaliaService);
   private readonly router = inject(Router);
   private readonly viewportScroller = inject(ViewportScroller);
+  private readonly authSession = inject(AuthSessionService);
 
   readonly occasionShortcuts: OccasionShortcut[] = this.regaliaService.getOccasionShortcuts();
   readonly featuredProducts: FeaturedProduct[] = this.regaliaService.getFeaturedProducts();
+  readonly sellerRoute = computed(() =>
+    this.authSession.role() === 'Cliente' ? '/cliente/solicitud-proveedor' : '/registro',
+  );
+  readonly sellerQueryParams = computed(() =>
+    this.authSession.role() === 'Cliente' ? null : { origen: 'proveedor' },
+  );
 
   ngAfterViewInit(): void {
     // Mantiene compatibilidad con la ruta /modelo desplazando al bloque de modelo de negocio.

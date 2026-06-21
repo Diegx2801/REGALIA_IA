@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   AdminMetric,
   FeaturedProduct,
+  FixedPriceProduct,
   MatchRecommendation,
   OccasionShortcut,
   OrderStatus,
@@ -97,6 +98,150 @@ export class RegaliaService {
       imageUrl: '/images/regalia-hero-gift.png',
       imagePosition: '78% 68%',
       verified: true,
+    },
+  ];
+
+
+  private readonly fixedPriceProducts: FixedPriceProduct[] = [
+    {
+      id: 101,
+      title: 'Box cumpleaños premium',
+      provider: 'Caja Bonita',
+      providerId: 3,
+      providerCategory: 'Cajas sorpresa',
+      occasion: 'Cumpleaños',
+      price: 89,
+      originalPrice: 105,
+      rating: 4.8,
+      reviews: 94,
+      imageUrl: '/images/regalia-hero-gift.png',
+      imagePosition: '72% 48%',
+      verified: true,
+      badges: ['Más reservado', 'Entrega 24h'],
+      shortDescription: 'Caja lista para cumpleaños con dulces, tarjeta y empaque premium.',
+      description:
+        'Una opción lista para reservar cuando necesitas un detalle rápido, bonito y confiable. Incluye curaduría de dulces, mensaje personalizado y coordinación por WhatsApp antes de preparar el pedido.',
+      includes: ['Caja decorada', 'Dulces surtidos', 'Tarjeta personalizada', 'Moño y empaque premium'],
+      deliveryTime: 'Entrega desde 24 horas',
+      stockStatus: 'Disponible esta semana',
+      personalization: 'Mensaje y colores personalizables',
+      maxQuantity: 5,
+    },
+    {
+      id: 102,
+      title: 'Ramo floral clásico',
+      provider: 'Floralia Studio',
+      providerId: 2,
+      providerCategory: 'Arreglos florales',
+      occasion: 'Aniversario',
+      price: 120,
+      rating: 4.9,
+      reviews: 131,
+      imageUrl: '/images/regalia-hero-gift.png',
+      imagePosition: '48% 28%',
+      verified: true,
+      badges: ['Proveedor verificado', 'Mismo día'],
+      shortDescription: 'Ramo de flores frescas con tarjeta y coordinación express.',
+      description:
+        'Ramo elegante para aniversarios, cumpleaños o fechas especiales. El proveedor valida tonos disponibles y horario de entrega antes de confirmar la reserva.',
+      includes: ['Flores de temporada', 'Papel premium', 'Tarjeta dedicatoria', 'Foto antes de envío'],
+      deliveryTime: 'Entrega el mismo día con cupos',
+      stockStatus: 'Cupos limitados hoy',
+      personalization: 'Color y dedicatoria personalizables',
+      maxQuantity: 4,
+    },
+    {
+      id: 103,
+      title: 'Mini torta personalizada',
+      provider: 'Dulce Detalle Trujillo',
+      providerId: 1,
+      providerCategory: 'Repostería personalizada',
+      occasion: 'Graduación',
+      price: 95,
+      originalPrice: 115,
+      rating: 4.9,
+      reviews: 87,
+      imageUrl: '/images/regalia-hero-gift.png',
+      imagePosition: '84% 52%',
+      verified: true,
+      badges: ['Top calidad', 'Diseño incluido'],
+      shortDescription: 'Mini torta con dedicatoria y decoración según ocasión.',
+      description:
+        'Producto de precio fijo ideal para regalos pequeños. El diseño final se coordina con referencia visual y texto de dedicatoria antes de producir.',
+      includes: ['Mini torta decorada', 'Dedicatoria corta', 'Caja transportadora', 'Confirmación por foto'],
+      deliveryTime: 'Entrega en 24 a 48 horas',
+      stockStatus: 'Disponible esta semana',
+      personalization: 'Sabor, nombre y temática básica',
+      maxQuantity: 3,
+    },
+    {
+      id: 104,
+      title: 'Pack taza + llavero sublimado',
+      provider: 'Sublima Norte',
+      providerId: 4,
+      providerCategory: 'Sublimados',
+      occasion: 'Evento corporativo',
+      price: 45,
+      rating: 4.6,
+      reviews: 62,
+      imageUrl: '/images/regalia-hero-gift.png',
+      imagePosition: '62% 62%',
+      verified: true,
+      badges: ['Precio fijo', 'Corporativo'],
+      shortDescription: 'Pack práctico con sublimado personalizado para regalos rápidos.',
+      description:
+        'Paquete de bajo costo para cumpleaños, graduaciones o pequeños detalles corporativos. Permite personalización con nombre, frase o imagen simple.',
+      includes: ['Taza sublimada', 'Llavero personalizado', 'Bolsa de regalo', 'Vista previa simple'],
+      deliveryTime: 'Entrega en 48 a 72 horas',
+      stockStatus: 'Disponible',
+      personalization: 'Texto o imagen simple',
+      maxQuantity: 10,
+    },
+    {
+      id: 105,
+      title: 'Caja de madera grabada',
+      provider: 'Madera & Detalle',
+      providerId: 5,
+      providerCategory: 'Carpintería personalizada',
+      occasion: 'Día de la Madre',
+      price: 150,
+      rating: 4.8,
+      reviews: 42,
+      imageUrl: '/images/regalia-hero-gift.png',
+      imagePosition: '74% 42%',
+      verified: true,
+      badges: ['Artesanal', 'Premium'],
+      shortDescription: 'Caja pequeña de madera con grabado y acabado artesanal.',
+      description:
+        'Regalo premium de precio fijo con grabado simple. Ideal para detalles familiares, aniversarios y campañas especiales de bajo volumen.',
+      includes: ['Caja de madera', 'Grabado simple', 'Acabado protector', 'Empaque para regalo'],
+      deliveryTime: 'Entrega en 3 a 5 días',
+      stockStatus: 'Agenda abierta',
+      personalization: 'Nombre o frase corta',
+      maxQuantity: 4,
+    },
+    {
+      id: 106,
+      title: 'Mini setup decorativo',
+      provider: 'Momentos Deco',
+      providerId: 6,
+      providerCategory: 'Decoración de eventos',
+      occasion: 'San Valentín',
+      price: 180,
+      rating: 4.9,
+      reviews: 66,
+      imageUrl: '/images/regalia-hero-gift.png',
+      imagePosition: '78% 68%',
+      verified: true,
+      badges: ['Fotográfico', 'Con reserva'],
+      shortDescription: 'Decoración pequeña para mesa, fotos o entrega sorpresa.',
+      description:
+        'Servicio fijo para una decoración compacta con coordinación previa. No reemplaza una cotización completa de evento, pero sirve para experiencias pequeñas.',
+      includes: ['Mini montaje', 'Decoración temática', 'Coordinación de horario', 'Foto del montaje'],
+      deliveryTime: 'Entrega en 2 a 4 días',
+      stockStatus: 'Disponible con reserva',
+      personalization: 'Paleta de color y mensaje',
+      maxQuantity: 2,
     },
   ];
 
@@ -292,6 +437,33 @@ export class RegaliaService {
 
   getFeaturedProducts(): FeaturedProduct[] {
     return [...this.featuredProducts];
+  }
+
+  getFixedPriceProducts(): FixedPriceProduct[] {
+    return [...this.fixedPriceProducts];
+  }
+
+  getFixedPriceProductById(productId: number): FixedPriceProduct | undefined {
+    return this.fixedPriceProducts.find((product) => product.id === productId);
+  }
+
+  filterFixedPriceProducts(filters: ProviderFilter): FixedPriceProduct[] {
+    const search = this.normalizeText(filters.search);
+
+    return this.fixedPriceProducts.filter((product) => {
+      const searchableText = this.normalizeText(
+        `${product.title} ${product.provider} ${product.shortDescription} ${product.badges.join(' ')} ${product.providerCategory}`,
+      );
+      const matchesSearch = search.length === 0 || searchableText.includes(search);
+      const matchesCategory = filters.category === 'Todas' || product.providerCategory === filters.category;
+      const matchesOccasion = filters.occasion === 'Todas' || product.occasion === filters.occasion;
+      const matchesPrice = product.price <= filters.maxPrice;
+      const matchesAvailability =
+        !filters.availableOnly ||
+        !this.normalizeText(product.stockStatus).includes('agotado');
+
+      return matchesSearch && matchesCategory && matchesOccasion && matchesPrice && matchesAvailability;
+    });
   }
 
   getProviders(): RegaliaProvider[] {

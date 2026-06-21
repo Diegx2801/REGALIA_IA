@@ -1,0 +1,20 @@
+<section class="access-page">
+  <div class="access-card">
+    <a class="access-card__brand" routerLink="/" aria-label="REGALIA inicio">
+      <img src="/images/r_regalia.png" alt="REGALIA" />
+    </a>
+
+    <span class="access-card__code">403</span>
+    <span class="access-card__eyebrow">Acceso protegido</span>
+    <h1>Este espacio pertenece a otro tipo de usuario.</h1>
+    <p>
+      Tu sesión está activa, pero el rol asociado a tu cuenta no tiene permiso para abrir esta
+      sección. No se modificó ninguna información.
+    </p>
+
+    <div class="access-card__actions">
+      <a class="access-card__primary" [routerLink]="homeRoute">Ir a mi espacio</a>
+      <button class="access-card__secondary" type="button" (click)="goBack()">Volver atrás</button>
+    </div>
+  </div>
+</section>

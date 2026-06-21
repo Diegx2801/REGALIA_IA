@@ -1,0 +1,109 @@
+<section class="cart-page">
+  <div class="container cart-page__container">
+    <header class="cart-hero">
+      <div>
+        <span class="cart-hero__eyebrow">Carrito REGALIA</span>
+        <h1>Reserva productos con precio fijo sin mezclarlo con cotizaciones personalizadas.</h1>
+        <p>
+          Este carrito es para regalos listos para reservar. Si necesitas algo único o todavía no tienes claro qué pedir,
+          usa el apartado de solicitud con IA.
+        </p>
+      </div>
+      <a class="cart-hero__quote" routerLink="/pedir-con-ia">Cotizar con IA</a>
+    </header>
+
+    @if (hasItems()) {
+      <div class="cart-layout">
+        <main class="cart-list" aria-label="Productos del carrito">
+          <div class="cart-list__head">
+            <div>
+              <span>Productos seleccionados</span>
+              <strong>{{ summary().totalItems }} item(s)</strong>
+            </div>
+            <button type="button" (click)="clear()">Vaciar carrito</button>
+          </div>
+
+          @for (item of items(); track trackItem($index, item)) {
+            <article class="cart-item">
+              <div
+                class="cart-item__media"
+                [style.background-image]="'url(' + item.product.imageUrl + ')'"
+                [style.background-position]="item.product.imagePosition"
+                aria-hidden="true"
+              ></div>
+
+              <div class="cart-item__body">
+                <div class="cart-item__top">
+                  <div>
+                    <span class="cart-item__provider">{{ item.product.provider }}</span>
+                    <h2>{{ item.product.title }}</h2>
+                  </div>
+                  <strong>S/ {{ item.product.price }}</strong>
+                </div>
+
+                <p>{{ item.product.shortDescription }}</p>
+
+                <div class="cart-item__meta">
+                  <span>{{ item.product.deliveryTime }}</span>
+                  <span>{{ item.product.stockStatus }}</span>
+                  <span>{{ item.product.personalization }}</span>
+                </div>
+
+                <div class="cart-item__actions">
+                  <div class="quantity-control" aria-label="Cantidad">
+                    <button type="button" (click)="decrease(item.product.id, item.quantity)">−</button>
+                    <input
+                      type="number"
+                      min="1"
+                      [max]="item.product.maxQuantity"
+                      [value]="item.quantity"
+                      (change)="updateQuantity(item.product.id, $any($event.target).value)"
+                    />
+                    <button type="button" (click)="increase(item.product.id, item.quantity)">+</button>
+                  </div>
+                  <button class="cart-item__remove" type="button" (click)="remove(item.product.id)">Quitar</button>
+                </div>
+              </div>
+            </article>
+          }
+        </main>
+
+        <aside class="cart-summary" aria-label="Resumen del carrito">
+          <span class="cart-summary__eyebrow">Resumen de reserva</span>
+          <h2>Confirmación segura</h2>
+          <p>{{ deliveryNote() }}</p>
+
+          <div class="cart-summary__rows">
+            <div><span>Subtotal</span><strong>S/ {{ summary().subtotal }}</strong></div>
+            <div><span>Reserva inicial 20%</span><strong>S/ {{ summary().reservation }}</strong></div>
+            <div><span>Comisión estimada REGALIA</span><strong>S/ {{ summary().platformCommission }}</strong></div>
+            <div><span>Adelanto al proveedor</span><strong>S/ {{ summary().providerAdvance }}</strong></div>
+            <div class="cart-summary__total"><span>Saldo al recibir</span><strong>S/ {{ summary().remainingToPay }}</strong></div>
+          </div>
+
+          @if (checkoutMode() === 'sent') {
+            <div class="cart-summary__success">
+              <strong>Reserva preparada</strong>
+              <span>En el MVP esta acción queda simulada. Cuando conectemos pagos, aquí se generará la reserva real.</span>
+            </div>
+          }
+
+          <button class="cart-summary__button" type="button" (click)="confirmReservation()">
+            Preparar reserva
+          </button>
+          <a class="cart-summary__secondary" routerLink="/catalogo">Seguir explorando</a>
+        </aside>
+      </div>
+    } @else {
+      <section class="cart-empty">
+        <span aria-hidden="true">🛍️</span>
+        <h2>Tu carrito está vacío</h2>
+        <p>Agrega productos con precio fijo desde el catálogo o crea una solicitud personalizada con IA.</p>
+        <div>
+          <a routerLink="/catalogo">Ver catálogo</a>
+          <a routerLink="/pedir-con-ia">Cotizar con IA</a>
+        </div>
+      </section>
+    }
+  </div>
+</section>

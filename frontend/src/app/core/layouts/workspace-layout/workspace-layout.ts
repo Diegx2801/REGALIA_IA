@@ -1,0 +1,122 @@
+import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  PREVIEW_IDENTITIES,
+  PREVIEW_ROUTES,
+  WorkspaceIdentity,
+} from '../../config/workspace-preview.config';
+import { AuthSessionService, UserRole } from '../../services/auth/auth-session.service';
+
+interface WorkspaceNavItem {
+  label: string;
+  description: string;
+  route: string;
+  icon: string;
+  exact?: boolean;
+}
+
+interface WorkspaceConfig {
+  eyebrow: string;
+  title: string;
+  description: string;
+  navItems: WorkspaceNavItem[];
+}
+
+const WORKSPACE_CONFIG: Record<UserRole, WorkspaceConfig> = {
+  Cliente: {
+    eyebrow: 'Espacio cliente',
+    title: 'Mis regalos',
+    description: 'Solicitudes, reservas y proveedores favoritos en un solo lugar.',
+    navItems: [
+      { label: 'Inicio', description: 'Resumen personal', route: '/cliente/inicio', icon: '⌂', exact: true },
+      { label: 'Explorar', description: 'Catálogo y proveedores', route: '/cliente/explorar', icon: '◇' },
+      { label: 'Carrito', description: 'Productos con precio fijo', route: '/cliente/carrito', icon: '◈' },
+      { label: 'Crear solicitud', description: 'Matching con IA', route: '/cliente/solicitud', icon: '✦' },
+      { label: 'Mis reservas', description: 'Seguimiento y fechas', route: '/cliente/reservas', icon: '◫' },
+      { label: 'Vender en REGALIA', description: 'Solicitud de proveedor', route: '/cliente/solicitud-proveedor', icon: '✧' },
+      { label: 'Mi perfil', description: 'Datos y contacto', route: '/cliente/perfil', icon: '◎' },
+    ],
+  },
+  Proveedor: {
+    eyebrow: 'Espacio proveedor',
+    title: 'Mi negocio',
+    description: 'Gestiona pedidos, disponibilidad y presencia comercial.',
+    navItems: [
+      { label: 'Resumen', description: 'Actividad principal', route: '/proveedor/resumen', icon: '⌂', exact: true },
+      { label: 'Pedidos', description: 'Solicitudes y cotizaciones', route: '/proveedor/pedidos', icon: '◇' },
+      { label: 'Calendario', description: 'Entregas y reservas', route: '/proveedor/calendario', icon: '◫' },
+      { label: 'Perfil del negocio', description: 'Catálogo y disponibilidad', route: '/proveedor/perfil', icon: '▦' },
+      { label: 'Mi cuenta', description: 'Datos personales', route: '/proveedor/cuenta', icon: '◎' },
+    ],
+  },
+  Administrador: {
+    eyebrow: 'Administración',
+    title: 'Centro de control',
+    description: 'Supervisa usuarios, operación y confianza de la plataforma.',
+    navItems: [
+      { label: 'Resumen', description: 'Indicadores generales', route: '/admin/resumen', icon: '⌂', exact: true },
+      { label: 'Operación', description: 'Pedidos y comisiones', route: '/admin/operacion', icon: '◇' },
+      { label: 'Usuarios', description: 'Cuentas y permisos', route: '/admin/usuarios', icon: '◎' },
+      { label: 'Solicitudes', description: 'Validación de proveedores', route: '/admin/solicitudes-proveedor', icon: '✧' },
+      { label: 'Calendario', description: 'Reservas de la plataforma', route: '/admin/calendario', icon: '◫' },
+      { label: 'Mi perfil', description: 'Datos personales', route: '/admin/perfil', icon: '◎' },
+    ],
+  },
+};
+
+@Component({
+  selector: 'app-workspace-layout',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  templateUrl: './workspace-layout.html',
+  styleUrl: './workspace-layout.css',
+})
+export class WorkspaceLayoutComponent {
+  private readonly authSession = inject(AuthSessionService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly previewRole = (this.route.snapshot.data['previewRole'] ?? null) as UserRole | null;
+
+  readonly isMenuOpen = signal(false);
+  readonly isPreview = this.previewRole !== null;
+  readonly activeRole = computed<UserRole>(() => this.previewRole ?? this.authSession.role() ?? 'Cliente');
+  readonly config = computed(() => WORKSPACE_CONFIG[this.activeRole()]);
+  readonly previewHome = computed(() => PREVIEW_ROUTES[this.activeRole()]);
+  readonly user = computed<WorkspaceIdentity | null>(() => {
+    if (this.isPreview) return PREVIEW_IDENTITIES[this.activeRole()];
+    return this.authSession.currentUser();
+  });
+  readonly initials = computed(() => {
+    const name = this.user()?.fullName.trim();
+    if (!name) return 'RG';
+
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
+  });
+
+  routeFor(item: WorkspaceNavItem): string {
+    return this.isPreview ? this.previewHome() : item.route;
+  }
+
+  toggleMenu(): void {
+    this.isMenuOpen.update((isOpen) => !isOpen);
+  }
+
+  closeMenu(): void {
+    this.isMenuOpen.set(false);
+  }
+
+  exitWorkspace(): void {
+    if (this.isPreview) {
+      void this.router.navigate(['/vista-previa']);
+      return;
+    }
+
+    this.authSession.logout();
+    this.closeMenu();
+    void this.router.navigate(['/']);
+  }
+}

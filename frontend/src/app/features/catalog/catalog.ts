@@ -2,8 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { CartService } from '../../core/services/cart/cart.service';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
-import { ProviderFilter, RegaliaCategory, RegaliaOccasion, RegaliaProvider } from '../../shared/models/regalia.model';
+import {
+  FixedPriceProduct,
+  ProviderFilter,
+  RegaliaCategory,
+  RegaliaOccasion,
+  RegaliaProvider,
+} from '../../shared/models/regalia.model';
 
 @Component({
   selector: 'app-catalog',
@@ -14,11 +21,14 @@ import { ProviderFilter, RegaliaCategory, RegaliaOccasion, RegaliaProvider } fro
 })
 export class CatalogComponent {
   private readonly regaliaService = inject(RegaliaService);
+  private readonly cartService = inject(CartService);
 
   readonly categories: Array<RegaliaCategory | 'Todas'> = ['Todas', ...this.regaliaService.getCategories()];
   readonly occasions: Array<RegaliaOccasion | 'Todas'> = ['Todas', ...this.regaliaService.getOccasions()];
   readonly providers = signal(this.regaliaService.getProviders());
   readonly selectedProvider = signal<RegaliaProvider>(this.providers()[0]);
+  readonly addedProductId = signal<number | null>(null);
+  readonly cartTotalItems = this.cartService.totalItems;
   private readonly filtersVersion = signal(0);
 
   readonly filtersForm = new FormGroup({
@@ -29,11 +39,13 @@ export class CatalogComponent {
     availableOnly: new FormControl(true, { nonNullable: true }),
   });
 
-  readonly filteredProviders = computed(() => {
+  readonly currentFilters = computed<ProviderFilter>(() => {
     this.filtersVersion();
-    const filters: ProviderFilter = this.filtersForm.getRawValue();
-    return this.regaliaService.filterProviders(filters);
+    return this.filtersForm.getRawValue();
   });
+
+  readonly filteredProducts = computed(() => this.regaliaService.filterFixedPriceProducts(this.currentFilters()));
+  readonly filteredProviders = computed(() => this.regaliaService.filterProviders(this.currentFilters()));
 
   /**
    * Mantiene sincronizadas las píldoras de categoría y el selector del formulario,
@@ -49,6 +61,11 @@ export class CatalogComponent {
     this.selectedProvider.set(provider);
   }
 
+  addProductToCart(product: FixedPriceProduct): void {
+    this.cartService.addProduct(product);
+    this.addedProductId.set(product.id);
+  }
+
   resetFilters(): void {
     this.filtersForm.setValue({
       search: '',
@@ -57,6 +74,7 @@ export class CatalogComponent {
       maxPrice: 300,
       availableOnly: true,
     });
+    this.addedProductId.set(null);
     this.refreshFilters();
     this.selectedProvider.set(this.providers()[0]);
   }
@@ -68,6 +86,10 @@ export class CatalogComponent {
 
   trackProvider(_: number, provider: RegaliaProvider): number {
     return provider.id;
+  }
+
+  trackProduct(_: number, product: FixedPriceProduct): number {
+    return product.id;
   }
 
   trackText(_: number, value: string): string {

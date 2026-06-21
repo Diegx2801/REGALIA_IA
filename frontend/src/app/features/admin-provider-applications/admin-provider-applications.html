@@ -1,0 +1,137 @@
+<section class="applications-page">
+  <header class="applications-header">
+    <div>
+      <span class="applications-header__eyebrow">Confianza y calidad</span>
+      <h1>Solicitudes de proveedores</h1>
+      <p>Evalúa la propuesta, capacidad operativa y señales de confianza antes de habilitar un negocio.</p>
+    </div>
+    <div class="applications-header__notice">
+      <span aria-hidden="true">i</span>
+      <p><strong>Flujo frontend activo.</strong> La aprobación queda registrada en esta interfaz; el rol VENDEDOR aún se activa desde PostgreSQL.</p>
+    </div>
+  </header>
+
+  <div class="applications-metrics">
+    <article><span>Pendientes</span><strong>{{ pendingCount() }}</strong><small>Recibidas o en revisión</small></article>
+    <article><span>Cambios solicitados</span><strong>{{ changesCount() }}</strong><small>Esperando respuesta</small></article>
+    <article><span>Aprobadas</span><strong>{{ approvedCount() }}</strong><small>Listas para activación</small></article>
+    <article><span>Total</span><strong>{{ applications().length }}</strong><small>Todos los estados</small></article>
+  </div>
+
+  <div class="applications-workspace">
+    <main class="applications-list">
+      <div class="applications-toolbar">
+        <div class="applications-filters" role="group" aria-label="Filtrar solicitudes">
+          <button type="button" [class.active]="filter() === 'all'" (click)="setFilter('all')">Todas</button>
+          <button type="button" [class.active]="filter() === 'submitted'" (click)="setFilter('submitted')">Recibidas</button>
+          <button type="button" [class.active]="filter() === 'under_review'" (click)="setFilter('under_review')">En revisión</button>
+          <button type="button" [class.active]="filter() === 'approved'" (click)="setFilter('approved')">Aprobadas</button>
+        </div>
+        <span>{{ visibleApplications().length }} resultados</span>
+      </div>
+
+      @if (visibleApplications().length === 0) {
+        <div class="applications-empty">
+          <span aria-hidden="true">◇</span>
+          <h2>No hay solicitudes en este estado</h2>
+          <p>Las nuevas postulaciones enviadas desde el onboarding aparecerán aquí automáticamente.</p>
+        </div>
+      } @else {
+        <div class="application-cards">
+          @for (application of visibleApplications(); track application.id) {
+            <button
+              type="button"
+              class="application-card"
+              [class.application-card--selected]="selectedId() === application.id"
+              (click)="selectApplication(application)"
+            >
+              <span class="application-card__avatar">{{ initials(application) }}</span>
+              <span class="application-card__body">
+                <span class="application-card__topline">
+                  <strong>{{ application.businessName }}</strong>
+                  <span class="status" [attr.data-status]="application.status">{{ statusLabel(application.status) }}</span>
+                </span>
+                <span class="application-card__meta">{{ application.responsibleName }} · {{ application.district }}</span>
+                <span class="application-card__categories">{{ application.categories.slice(0, 3).join(' · ') }}</span>
+                <span class="application-card__date">Actualizada {{ application.updatedAt | date: 'd MMM, h:mm a' }}</span>
+              </span>
+              <span class="application-card__arrow" aria-hidden="true">›</span>
+            </button>
+          }
+        </div>
+      }
+    </main>
+
+    <aside class="application-detail" [class.application-detail--open]="selectedApplication()">
+      @if (selectedApplication(); as application) {
+        <header class="application-detail__header">
+          <div>
+            <span class="status" [attr.data-status]="application.status">{{ statusLabel(application.status) }}</span>
+            <h2>{{ application.businessName }}</h2>
+            <p>{{ application.responsibleName }} · {{ application.email }}</p>
+          </div>
+          <button type="button" aria-label="Cerrar detalle" (click)="closeDetail()">×</button>
+        </header>
+
+        <div class="application-detail__scroll">
+          <section class="detail-section detail-section--summary">
+            <div><small>WhatsApp</small><strong>{{ application.whatsapp }}</strong></div>
+            <div><small>RUC</small><strong>{{ application.ruc || 'No informado' }}</strong></div>
+            <div><small>Distrito</small><strong>{{ application.district }}</strong></div>
+            <div><small>Experiencia</small><strong>{{ application.experienceYears ?? 0 }} años</strong></div>
+          </section>
+
+          <section class="detail-section">
+            <span class="detail-section__title">Propuesta comercial</span>
+            <p>{{ application.description }}</p>
+            <div class="category-tags">
+              @for (category of application.categories; track category) { <span>{{ category }}</span> }
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <span class="detail-section__title">Operación</span>
+            <dl>
+              <div><dt>Cobertura</dt><dd>{{ application.serviceZones }}</dd></div>
+              <div><dt>Preparación</dt><dd>{{ application.preparationTime }}</dd></div>
+              <div><dt>Disponibilidad</dt><dd>{{ application.availability }}</dd></div>
+              <div><dt>Entregas</dt><dd>{{ application.deliveryMethods.join(', ') }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="detail-section">
+            <span class="detail-section__title">Confianza</span>
+            <p>{{ application.differentiator }}</p>
+            <div class="external-links">
+              @if (application.instagram) { <span>Instagram: {{ application.instagram }}</span> }
+              @if (application.facebook) { <span>Facebook: {{ application.facebook }}</span> }
+              @if (application.portfolioUrl) { <span>Portafolio: {{ application.portfolioUrl }}</span> }
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <label for="review-note">Observaciones para el proveedor</label>
+            <textarea id="review-note" rows="4" maxlength="500" [formControl]="noteControl" placeholder="Describe cambios requeridos o el motivo de la decisión."></textarea>
+            <small>{{ noteControl.value.length }}/500</small>
+            @if (actionMessage()) { <p class="action-message">{{ actionMessage() }}</p> }
+          </section>
+        </div>
+
+        <footer class="application-detail__actions">
+          @if (application.status === 'submitted') {
+            <button type="button" class="button button--secondary" (click)="startReview(application)">Iniciar revisión</button>
+          }
+          <button type="button" class="button button--ghost" (click)="requestChanges(application)">Solicitar cambios</button>
+          <button type="button" class="button button--danger" (click)="reject(application)">Rechazar</button>
+          <button type="button" class="button button--primary" (click)="approve(application)">Aprobar</button>
+        </footer>
+      } @else {
+        <div class="application-detail__placeholder">
+          <span aria-hidden="true">▦</span>
+          <h2>Selecciona una solicitud</h2>
+          <p>Verás toda la información del negocio y las acciones de revisión en este panel.</p>
+        </div>
+      }
+    </aside>
+  </div>
+</section>

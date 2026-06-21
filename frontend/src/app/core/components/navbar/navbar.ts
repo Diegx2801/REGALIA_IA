@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthSessionService } from '../../services/auth/auth-session.service';
+import { CartService } from '../../services/cart/cart.service';
 
 interface NavItem {
   label: string;
@@ -17,20 +18,20 @@ interface NavItem {
 export class NavbarComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
+  private readonly cartService = inject(CartService);
 
   readonly isMenuOpen = signal(false);
   readonly currentUser = this.authSession.currentUser;
   readonly isLoggedIn = this.authSession.isLoggedIn;
-  // Links adicionales que aparecen solo cuando existe sesion y dependen del rol activo.
-  readonly roleNavItems = computed(() => this.authSession.navForCurrentRole());
+  readonly workspaceRoute = computed(() => this.authSession.homeForCurrentUser());
+  readonly cartTotalItems = this.cartService.totalItems;
 
   readonly navItems: NavItem[] = [
     { label: 'Inicio', route: '/' },
     { label: 'Pedir con IA', route: '/pedir-con-ia' },
     { label: 'Catálogo', route: '/catalogo' },
     { label: 'Proveedores', route: '/proveedores' },
-    { label: 'Panel', route: '/panel' },
-    { label: 'Modelo', route: '/modelo' },
+    { label: 'Cómo funciona', route: '/modelo' },
   ];
 
   toggleMenu(): void {
@@ -42,7 +43,6 @@ export class NavbarComponent {
   }
 
   logout(): void {
-    // Cierra la sesion mock del frontend y devuelve al usuario a la portada publica.
     this.authSession.logout();
     this.closeMenu();
     void this.router.navigate(['/']);

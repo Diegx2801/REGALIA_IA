@@ -1,177 +1,274 @@
 <section class="auth-page">
-  <div class="container auth-page__container">
-    <div class="auth-shell">
-      <!-- Panel de contexto: explica beneficios de entrar a REGALIA. -->
-      <section class="auth-hero" aria-label="Resumen de acceso REGALIA">
-        <span class="auth-hero__eyebrow">Acceso REGALIA</span>
-        <h1 class="auth-hero__title">{{ activeTitle() }}</h1>
-        <p class="auth-hero__text">{{ activeText() }}</p>
+  <a class="auth-brand" routerLink="/" aria-label="Volver al inicio de REGALIA">
+    <img src="/images/r_regalia.png" alt="REGALIA">
+  </a>
 
-        <div class="auth-hero__preview" aria-hidden="true">
-          <div class="auth-hero__card auth-hero__card--main">
-            <span></span>
-            <strong>Solicitud activa</strong>
-            <small>Reserva con sena pendiente</small>
-          </div>
-          <div class="auth-hero__card auth-hero__card--stack">
-            <span></span>
-            <strong>Proveedor compatible</strong>
-            <small>Ranking y reputacion</small>
-          </div>
-        </div>
+  <div class="auth-shell">
+    <section class="auth-story" aria-label="Experiencia REGALIA">
+      <div class="auth-story__veil"></div>
+      <div class="auth-story__content">
+        <span class="auth-story__eyebrow">Regalos con intención</span>
+        <h1>{{ activeTitle() }}</h1>
+        <p>{{ activeText() }}</p>
 
-        <div class="auth-benefits" aria-label="Beneficios de autenticacion">
-          <article class="auth-benefit">
-            <strong>Reservas</strong>
-            <span>Historial y estado de pedidos.</span>
+        <div class="auth-story__trust" aria-label="Beneficios de REGALIA">
+          <article>
+            <span class="auth-story__icon" aria-hidden="true">✦</span>
+            <div>
+              <strong>Proveedores verificados</strong>
+              <small>Perfiles, portafolios y reputación antes de reservar.</small>
+            </div>
           </article>
-          <article class="auth-benefit">
-            <strong>Proveedores</strong>
-            <span>Favoritos y solicitudes guardadas.</span>
-          </article>
-          <article class="auth-benefit">
-            <strong>Panel</strong>
-            <span>Acceso segun rol registrado.</span>
+          <article>
+            <span class="auth-story__icon" aria-hidden="true">◇</span>
+            <div>
+              <strong>Reservas transparentes</strong>
+              <small>Conoce el precio, la fecha y el estado de tu pedido.</small>
+            </div>
           </article>
         </div>
-      </section>
+      </div>
 
-      <!-- Panel funcional: login y registro comparten una sola pantalla. -->
-      <aside class="auth-panel" aria-label="Formulario de acceso">
-        <div class="auth-tabs" role="tablist" aria-label="Tipo de acceso">
+      <div class="auth-story__floating-card" aria-hidden="true">
+        <span class="auth-story__floating-badge">Selección REGALIA</span>
+        <strong>Detalles únicos, creados cerca de ti</strong>
+        <small>Trujillo · proveedores locales</small>
+      </div>
+    </section>
+
+    <main class="auth-panel">
+      <div class="auth-panel__inner">
+        <div class="auth-tabs" role="tablist" aria-label="Acceso a REGALIA">
           <button
-            class="auth-tabs__button"
             type="button"
             role="tab"
             [class.auth-tabs__button--active]="mode() === 'login'"
             [attr.aria-selected]="mode() === 'login'"
             (click)="setMode('login')"
           >
-            Ingresar
+            Iniciar sesión
           </button>
           <button
-            class="auth-tabs__button"
             type="button"
             role="tab"
             [class.auth-tabs__button--active]="mode() === 'registro'"
             [attr.aria-selected]="mode() === 'registro'"
             (click)="setMode('registro')"
           >
-            Registrarme
+            Crear cuenta
           </button>
         </div>
 
+        @if (sellerIntent()) {
+          <aside class="auth-seller-note">
+            <span aria-hidden="true">✦</span>
+            <p><strong>¿Quieres vender en REGALIA?</strong> Primero crea tu cuenta personal. Luego completarás la solicitud y verificación de proveedor.</p>
+          </aside>
+        }
+
         @if (mode() === 'login') {
           <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
-            <div class="auth-form__head">
-              <span class="auth-form__eyebrow">Cuenta existente</span>
-              <h2 class="auth-form__title">Ingresa a tu cuenta</h2>
+            <header class="auth-form__header">
+              <span>Bienvenido de nuevo</span>
+              <h2>Ingresa a tu cuenta</h2>
+              <p>Tu espacio se abrirá automáticamente según los permisos de tu cuenta.</p>
+            </header>
+
+            <div class="auth-field">
+              <label for="login-email">Correo electrónico</label>
+              <div class="auth-field__control">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 7l8 6 8-6"/></svg>
+                <input
+                  id="login-email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="nombre@correo.com"
+                  formControlName="email"
+                >
+              </div>
+              @if (hasLoginError('email')) {
+                <small class="auth-field__error">Ingresa un correo electrónico válido.</small>
+              }
             </div>
 
-            <label class="auth-field" for="login-email">
-              <span class="auth-field__label">Correo electronico</span>
-              <input id="login-email" class="auth-field__control" type="email" autocomplete="email" formControlName="email">
-            </label>
-            @if (hasLoginError('email')) {
-              <p class="auth-field__error">Ingresa un correo valido.</p>
-            }
-
-            <label class="auth-field" for="login-password">
-              <span class="auth-field__label">Contrasena</span>
-              <input id="login-password" class="auth-field__control" type="password" autocomplete="current-password" formControlName="password">
-            </label>
-            @if (hasLoginError('password')) {
-              <p class="auth-field__error">La contrasena debe tener al menos 6 caracteres.</p>
-            }
-
-            <label class="auth-field" for="login-role">
-              <span class="auth-field__label">Entrar como</span>
-              <select id="login-role" class="auth-field__control" formControlName="role">
-                @for (role of roleOptions; track role) {
-                  <option [value]="role">{{ role }}</option>
-                }
-              </select>
-            </label>
-
-            <div class="auth-form__options">
-              <label class="auth-check">
-                <input type="checkbox" formControlName="remember">
-                <span>Recordar sesion</span>
-              </label>
-              <a routerLink="/registro">Crear cuenta</a>
+            <div class="auth-field">
+              <div class="auth-field__label-row">
+                <label for="login-password">Contraseña</label>
+                <a href="#" (click)="$event.preventDefault()">¿Olvidaste tu contraseña?</a>
+              </div>
+              <div class="auth-field__control">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5z"/></svg>
+                <input
+                  id="login-password"
+                  [type]="showLoginPassword() ? 'text' : 'password'"
+                  autocomplete="current-password"
+                  placeholder="Tu contraseña"
+                  formControlName="password"
+                >
+                <button type="button" class="auth-field__toggle" (click)="toggleLoginPassword()">
+                  {{ showLoginPassword() ? 'Ocultar' : 'Ver' }}
+                </button>
+              </div>
+              @if (hasLoginError('password')) {
+                <small class="auth-field__error">La contraseña debe tener al menos 8 caracteres.</small>
+              }
             </div>
 
-            <button class="auth-form__button" type="submit">Ingresar</button>
+            <label class="auth-check">
+              <input type="checkbox" formControlName="remember">
+              <span>Recordar mi sesión en este dispositivo</span>
+            </label>
 
-            @if (submitted()) {
-              <p class="auth-form__success">Formulario validado. Listo para conectar con autenticacion backend.</p>
+            @if (message()) {
+              <div class="auth-message" [class.auth-message--success]="messageType() === 'success'" role="alert">
+                {{ message() }}
+              </div>
             }
+
+            <button class="auth-submit" type="submit" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <span class="auth-submit__spinner" aria-hidden="true"></span>
+                Ingresando...
+              } @else {
+                Ingresar a REGALIA
+              }
+            </button>
+
+            <p class="auth-form__switch">
+              ¿Aún no tienes cuenta?
+              <button type="button" (click)="setMode('registro')">Créala gratis</button>
+            </p>
           </form>
         } @else {
           <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
-            <div class="auth-form__head">
-              <span class="auth-form__eyebrow">Nueva cuenta</span>
-              <h2 class="auth-form__title">Completa tus datos</h2>
-            </div>
-
-            <label class="auth-field" for="register-name">
-              <span class="auth-field__label">Nombre completo</span>
-              <input id="register-name" class="auth-field__control" type="text" autocomplete="name" formControlName="fullName">
-            </label>
-            @if (hasRegisterError('fullName')) {
-              <p class="auth-field__error">Escribe al menos 3 caracteres.</p>
-            }
+            <header class="auth-form__header">
+              <span>Cuenta personal</span>
+              <h2>Crea tu cuenta</h2>
+              <p>Todos empiezan como clientes. Los perfiles de proveedor pasan por una solicitud independiente.</p>
+            </header>
 
             <div class="auth-form__grid">
-              <label class="auth-field" for="register-email">
-                <span class="auth-field__label">Correo electronico</span>
-                <input id="register-email" class="auth-field__control" type="email" autocomplete="email" formControlName="email">
-              </label>
+              <div class="auth-field">
+                <label for="register-first-name">Nombres</label>
+                <div class="auth-field__control">
+                  <input id="register-first-name" type="text" autocomplete="given-name" placeholder="Tus nombres" formControlName="firstName">
+                </div>
+                @if (hasRegisterError('firstName')) {
+                  <small class="auth-field__error">Ingresa al menos 2 caracteres.</small>
+                }
+              </div>
 
-              <label class="auth-field" for="register-phone">
-                <span class="auth-field__label">Telefono</span>
-                <input id="register-phone" class="auth-field__control" type="tel" autocomplete="tel" formControlName="phone">
-              </label>
+              <div class="auth-field">
+                <label for="register-last-name">Apellidos</label>
+                <div class="auth-field__control">
+                  <input id="register-last-name" type="text" autocomplete="family-name" placeholder="Tus apellidos" formControlName="lastName">
+                </div>
+                @if (hasRegisterError('lastName')) {
+                  <small class="auth-field__error">Ingresa al menos 2 caracteres.</small>
+                }
+              </div>
             </div>
-            @if (hasRegisterError('email') || hasRegisterError('phone')) {
-              <p class="auth-field__error">Revisa correo y telefono antes de continuar.</p>
-            }
+
+            <div class="auth-field">
+              <label for="register-email">Correo electrónico</label>
+              <div class="auth-field__control">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 7l8 6 8-6"/></svg>
+                <input id="register-email" type="email" autocomplete="email" placeholder="nombre@correo.com" formControlName="email">
+              </div>
+              @if (hasRegisterError('email')) {
+                <small class="auth-field__error">Ingresa un correo electrónico válido.</small>
+              }
+            </div>
+
+            <div class="auth-field">
+              <label for="register-phone">Teléfono <span>(opcional)</span></label>
+              <div class="auth-field__control auth-field__control--phone">
+                <span class="auth-field__prefix">+51</span>
+                <input id="register-phone" type="tel" autocomplete="tel" placeholder="999 999 999" formControlName="phone">
+              </div>
+              @if (hasRegisterError('phone')) {
+                <small class="auth-field__error">Ingresa un número de teléfono válido.</small>
+              }
+            </div>
 
             <div class="auth-form__grid">
-              <label class="auth-field" for="register-password">
-                <span class="auth-field__label">Contrasena</span>
-                <input id="register-password" class="auth-field__control" type="password" autocomplete="new-password" formControlName="password">
-              </label>
+              <div class="auth-field">
+                <label for="register-password">Contraseña</label>
+                <div class="auth-field__control">
+                  <input
+                    id="register-password"
+                    [type]="showRegisterPassword() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    placeholder="Mínimo 8 caracteres"
+                    formControlName="password"
+                  >
+                  <button type="button" class="auth-field__toggle" (click)="toggleRegisterPassword()">
+                    {{ showRegisterPassword() ? 'Ocultar' : 'Ver' }}
+                  </button>
+                </div>
+              </div>
 
-              <label class="auth-field" for="register-role">
-                <span class="auth-field__label">Rol</span>
-                <select id="register-role" class="auth-field__control" formControlName="role">
-                  @for (role of roleOptions; track role) {
-                    <option [value]="role">{{ role }}</option>
-                  }
-                </select>
-              </label>
+              <div class="auth-field">
+                <label for="register-confirm-password">Confirmar</label>
+                <div class="auth-field__control">
+                  <input
+                    id="register-confirm-password"
+                    [type]="showConfirmPassword() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    placeholder="Repite la contraseña"
+                    formControlName="confirmPassword"
+                  >
+                  <button type="button" class="auth-field__toggle" (click)="toggleConfirmPassword()">
+                    {{ showConfirmPassword() ? 'Ocultar' : 'Ver' }}
+                  </button>
+                </div>
+              </div>
             </div>
+
             @if (hasRegisterError('password')) {
-              <p class="auth-field__error">La contrasena debe tener al menos 6 caracteres.</p>
+              <small class="auth-field__error">Usa 8 caracteres e incluye mayúscula, minúscula y número.</small>
+            }
+            @if (hasPasswordMismatch()) {
+              <small class="auth-field__error">Las contraseñas no coinciden.</small>
             }
 
             <label class="auth-check auth-check--terms">
               <input type="checkbox" formControlName="terms">
-              <span>Acepto el uso de mis datos para gestionar solicitudes y reservas.</span>
+              <span>Acepto los términos de uso y la política de privacidad de REGALIA.</span>
             </label>
             @if (hasRegisterError('terms')) {
-              <p class="auth-field__error">Debes aceptar las condiciones para registrarte.</p>
+              <small class="auth-field__error">Debes aceptar las condiciones para continuar.</small>
             }
 
-            <button class="auth-form__button" type="submit">Crear cuenta</button>
-
-            @if (submitted()) {
-              <p class="auth-form__success">Registro validado. Listo para conectar con usuarios y roles del backend.</p>
+            @if (message()) {
+              <div class="auth-message" [class.auth-message--success]="messageType() === 'success'" role="alert">
+                {{ message() }}
+              </div>
             }
+
+            <button class="auth-submit" type="submit" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <span class="auth-submit__spinner" aria-hidden="true"></span>
+                Creando cuenta...
+              } @else {
+                Crear mi cuenta
+              }
+            </button>
+
+            <a class="auth-seller-link" [routerLink]="['/registro']" [queryParams]="{ origen: 'proveedor' }">
+              <span aria-hidden="true">✦</span>
+              Quiero vender mis productos o servicios
+            </a>
+
+            <p class="auth-form__switch">
+              ¿Ya tienes una cuenta?
+              <button type="button" (click)="setMode('login')">Inicia sesión</button>
+            </p>
           </form>
         }
-      </aside>
-    </div>
+      </div>
+
+      <p class="auth-panel__legal">Al continuar, aceptas que REGALIA gestione tus datos de acuerdo con su política de privacidad.</p>
+    </main>
   </div>
 </section>

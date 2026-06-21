@@ -1,9 +1,13 @@
-<!-- Navegación de alta gama compartida por las vistas públicas de REGALIA -->
 <nav class="regalia-navbar" aria-label="Navegación principal">
   <div class="container regalia-navbar__inner">
-    <a class="regalia-navbar__brand" routerLink="/" (click)="closeMenu()" aria-label="REGALIA inicio">
+    <a
+      class="regalia-navbar__brand"
+      routerLink="/"
+      (click)="closeMenu()"
+      aria-label="REGALIA inicio"
+    >
       <span class="regalia-navbar__brand-media" aria-hidden="true">
-        <img class="regalia-navbar__brand-image" src="/images/r_regalia.png" alt="">
+        <img class="regalia-navbar__brand-image" src="/images/r_regalia.png" alt="" />
       </span>
     </a>
 
@@ -27,7 +31,6 @@
       [class.regalia-navbar__menu--open]="isMenuOpen()"
     >
       <div class="regalia-navbar__links">
-        <!-- Navegacion publica original de REGALIA. -->
         @for (item of navItems; track item.route) {
           <a
             class="regalia-navbar__link"
@@ -39,39 +42,46 @@
             {{ item.label }}
           </a>
         }
-
-        @if (isLoggedIn()) {
-          <!-- Accesos dinamicos segun rol: cliente, proveedor o administrador. -->
-          @for (item of roleNavItems(); track item.route) {
-            <a
-              class="regalia-navbar__link"
-              routerLinkActive="regalia-navbar__link--active"
-              [routerLink]="item.route"
-              (click)="closeMenu()"
-            >
-              {{ item.label }}
-            </a>
-          }
-        }
       </div>
 
-      @if (isLoggedIn()) {
-        <!-- Resumen de sesion mock visible despues de login/registro. -->
-        <div class="regalia-navbar__session">
-          <strong>{{ currentUser()?.fullName }}</strong>
-          <span>{{ currentUser()?.role }}</span>
-        </div>
-        <button class="regalia-navbar__login" type="button" (click)="logout()">Salir</button>
-      } @else {
-        <a class="regalia-navbar__login" routerLink="/login" routerLinkActive="regalia-navbar__login--active" (click)="closeMenu()">
-          Ingresar
+      <div class="regalia-navbar__actions">
+        <a class="regalia-navbar__cart" routerLink="/carrito" (click)="closeMenu()" aria-label="Ver carrito">
+          <span aria-hidden="true">🛍️</span>
+          Carrito
+          @if (cartTotalItems() > 0) {
+            <strong>{{ cartTotalItems() }}</strong>
+          }
         </a>
-      }
 
-      <a class="regalia-navbar__cta" routerLink="/pedir-con-ia" (click)="closeMenu()">
-        <span aria-hidden="true">✦</span>
-        Crear solicitud
-      </a>
+        @if (isLoggedIn()) {
+          <div class="regalia-navbar__session">
+            <strong>{{ currentUser()?.fullName }}</strong>
+            <span>{{ currentUser()?.role }}</span>
+          </div>
+          <a
+            class="regalia-navbar__workspace"
+            [routerLink]="workspaceRoute()"
+            (click)="closeMenu()"
+          >
+            Mi espacio
+          </a>
+          <button class="regalia-navbar__logout" type="button" (click)="logout()">Salir</button>
+        } @else {
+          <a
+            class="regalia-navbar__login"
+            routerLink="/login"
+            routerLinkActive="regalia-navbar__login--active"
+            (click)="closeMenu()"
+          >
+            Ingresar
+          </a>
+        }
+
+        <a class="regalia-navbar__cta" routerLink="/pedir-con-ia" (click)="closeMenu()">
+          <span aria-hidden="true">✦</span>
+          Crear solicitud
+        </a>
+      </div>
     </div>
   </div>
 </nav>

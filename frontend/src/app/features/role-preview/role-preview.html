@@ -1,0 +1,34 @@
+<section class="preview-page">
+  <a class="preview-page__brand" routerLink="/" aria-label="Volver al inicio de REGALIA">
+    <img src="/images/r_regalia.png" alt="REGALIA" />
+  </a>
+
+  <div class="preview-page__content">
+    <header class="preview-header">
+      <span class="preview-header__eyebrow">Laboratorio de interfaces · Solo desarrollo</span>
+      <h1>Revisa cada experiencia antes de conectarla a datos reales.</h1>
+      <p>
+        Estas vistas reutilizan los componentes finales del frontend. Los valores de proveedor y
+        administrador están marcados como demostración y no modifican la sesión ni la base de datos.
+      </p>
+    </header>
+
+    <div class="preview-grid">
+      @for (preview of previews; track preview.route) {
+        <article class="preview-card">
+          <span class="preview-card__role">{{ preview.role }}</span>
+          <h2>{{ preview.title }}</h2>
+          <p>{{ preview.description }}</p>
+
+          <ul>
+            @for (highlight of preview.highlights; track highlight) {
+              <li>{{ highlight }}</li>
+            }
+          </ul>
+
+          <a [routerLink]="preview.route">Abrir vista {{ preview.role.toLowerCase() }}</a>
+        </article>
+      }
+    </div>
+  </div>
+</section>

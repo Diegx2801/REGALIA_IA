@@ -3,12 +3,20 @@
     <header class="catalog-header">
       <div class="catalog-header__copy">
         <span class="catalog-header__eyebrow">Catálogo REGALIA</span>
-        <h1 class="catalog-header__title">Proveedores locales listos para pedidos personalizados.</h1>
-        <p class="catalog-header__text">
-          Explora perfiles con disponibilidad, precios referenciales, reputación y estilos para reservar sin perder tiempo.
+        <h1>Productos fijos y proveedores locales para regalos personalizados.</h1>
+        <p>
+          Compra productos con precio definido desde el carrito o usa el flujo de IA para cotizar algo completamente personalizado.
         </p>
       </div>
-      <strong class="catalog-header__count">{{ filteredProviders().length }} proveedores</strong>
+      <div class="catalog-header__actions">
+        <a class="catalog-header__cart" routerLink="/carrito">
+          Carrito
+          @if (cartTotalItems() > 0) {
+            <span>{{ cartTotalItems() }}</span>
+          }
+        </a>
+        <a class="catalog-header__quote" routerLink="/pedir-con-ia">Cotizar con IA</a>
+      </div>
     </header>
 
     <nav class="category-strip" aria-label="Filtro rápido por categoría">
@@ -34,7 +42,7 @@
 
           <label class="filter-field" for="search">
             <span class="filter-field__label">Buscar</span>
-            <input id="search" class="filter-field__control" type="search" placeholder="flores, elegante, desayuno..." formControlName="search">
+            <input id="search" class="filter-field__control" type="search" placeholder="flores, torta, box, taza..." formControlName="search">
           </label>
 
           <label class="filter-field" for="category">
@@ -56,7 +64,7 @@
           </label>
 
           <label class="filter-field" for="maxPrice">
-            <span class="filter-field__label">Precio desde hasta S/ {{ filtersForm.controls.maxPrice.value }}</span>
+            <span class="filter-field__label">Precio hasta S/ {{ filtersForm.controls.maxPrice.value }}</span>
             <input id="maxPrice" class="filter-field__range" type="range" min="20" max="700" step="10" formControlName="maxPrice">
           </label>
 
@@ -67,31 +75,98 @@
         </form>
       </aside>
 
-      <main class="provider-grid" aria-label="Proveedores disponibles">
-        @for (provider of filteredProviders(); track trackProvider($index, provider)) {
-          <article class="provider-card" [class.provider-card--selected]="selectedProvider().id === provider.id">
-            <button type="button" class="provider-card__main" (click)="selectProvider(provider)">
-              <span class="provider-card__badge">{{ provider.featured ? 'Destacado' : 'Verificado' }}</span>
-              <span class="provider-card__category">{{ provider.category }}</span>
-              <h2 class="provider-card__title">{{ provider.businessName }}</h2>
-              <p class="provider-card__text">{{ provider.description }}</p>
-              <span class="provider-card__tags">
-                @for (style of provider.styles; track trackText($index, style)) {
-                  <span>{{ style }}</span>
-                }
-              </span>
-            </button>
-            <div class="provider-card__footer">
-              <span>{{ provider.district }} · {{ provider.distanceKm }} km</span>
-              <strong>S/ {{ provider.priceFrom }} - {{ provider.priceTo }}</strong>
+      <main class="catalog-results" aria-label="Resultados del catálogo">
+        <section class="catalog-section">
+          <div class="catalog-section__head">
+            <div>
+              <span>Precios fijos</span>
+              <h2>Productos listos para agregar al carrito</h2>
             </div>
-          </article>
-        } @empty {
-          <div class="empty-state">
-            <h2 class="empty-state__title">No hay proveedores con esos filtros</h2>
-            <p class="empty-state__text">Ajusta categoría, ocasión o presupuesto para mostrar nuevas opciones.</p>
+            <strong>{{ filteredProducts().length }} productos</strong>
           </div>
-        }
+
+          <div class="product-grid">
+            @for (product of filteredProducts(); track trackProduct($index, product)) {
+              <article class="product-card">
+                <a
+                  class="product-card__media"
+                  [routerLink]="['/producto', product.id]"
+                  [style.background-image]="'url(' + product.imageUrl + ')'"
+                  [style.background-position]="product.imagePosition"
+                  aria-label="Ver detalle de {{ product.title }}"
+                >
+                  <span>{{ product.badges[0] }}</span>
+                </a>
+
+                <div class="product-card__body">
+                  <span class="product-card__category">{{ product.providerCategory }}</span>
+                  <h3><a [routerLink]="['/producto', product.id]">{{ product.title }}</a></h3>
+                  <p>{{ product.shortDescription }}</p>
+
+                  <div class="product-card__meta">
+                    <span>{{ product.provider }}</span>
+                    <span>{{ product.deliveryTime }}</span>
+                  </div>
+
+                  <div class="product-card__footer">
+                    <div>
+                      <strong>S/ {{ product.price }}</strong>
+                      @if (product.originalPrice) {
+                        <small>S/ {{ product.originalPrice }}</small>
+                      }
+                    </div>
+                    <button type="button" (click)="addProductToCart(product)">
+                      {{ addedProductId() === product.id ? 'Agregado' : 'Agregar' }}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            } @empty {
+              <div class="empty-state product-grid__empty">
+                <h2 class="empty-state__title">No hay productos fijos con esos filtros</h2>
+                <p class="empty-state__text">Prueba otro presupuesto o crea una solicitud personalizada con IA.</p>
+                <a routerLink="/pedir-con-ia">Cotizar con IA</a>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="catalog-section catalog-section--providers">
+          <div class="catalog-section__head">
+            <div>
+              <span>Proveedores recomendados</span>
+              <h2>Perfiles para pedidos personalizados</h2>
+            </div>
+            <strong>{{ filteredProviders().length }} proveedores</strong>
+          </div>
+
+          <div class="provider-grid">
+            @for (provider of filteredProviders(); track trackProvider($index, provider)) {
+              <article class="provider-card" [class.provider-card--selected]="selectedProvider().id === provider.id">
+                <button type="button" class="provider-card__main" (click)="selectProvider(provider)">
+                  <span class="provider-card__badge">{{ provider.featured ? 'Destacado' : 'Verificado' }}</span>
+                  <span class="provider-card__category">{{ provider.category }}</span>
+                  <h3 class="provider-card__title">{{ provider.businessName }}</h3>
+                  <p class="provider-card__text">{{ provider.description }}</p>
+                  <span class="provider-card__tags">
+                    @for (style of provider.styles; track trackText($index, style)) {
+                      <span>{{ style }}</span>
+                    }
+                  </span>
+                </button>
+                <div class="provider-card__footer">
+                  <span>{{ provider.district }} · {{ provider.distanceKm }} km</span>
+                  <strong>S/ {{ provider.priceFrom }} - {{ provider.priceTo }}</strong>
+                </div>
+              </article>
+            } @empty {
+              <div class="empty-state">
+                <h2 class="empty-state__title">No hay proveedores con esos filtros</h2>
+                <p class="empty-state__text">Ajusta categoría, ocasión o presupuesto para mostrar nuevas opciones.</p>
+              </div>
+            }
+          </div>
+        </section>
       </main>
 
       <aside class="provider-detail">

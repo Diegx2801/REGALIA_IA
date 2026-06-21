@@ -2,23 +2,42 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthSessionService, UserRole } from '../services/auth/auth-session.service';
 
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (_route, state) => {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
 
-  // Protege vistas privadas mientras usamos sesion mock en localStorage.
-  return authSession.isLoggedIn() || router.createUrlTree(['/login']);
+  return authSession.isLoggedIn()
+    ? true
+    : router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
-export const roleGuard: CanActivateFn = (route) => {
+export const guestGuard: CanActivateFn = () => {
+  const authSession = inject(AuthSessionService);
+  const router = inject(Router);
+
+  return authSession.isLoggedIn() ? router.createUrlTree([authSession.homeForCurrentUser()]) : true;
+};
+
+export const roleGuard: CanActivateFn = (route, state) => {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
   const roles = (route.data['roles'] ?? []) as UserRole[];
 
-  // Primero exige sesion; luego valida que el rol tenga permiso para la ruta.
   if (!authSession.isLoggedIn()) {
-    return router.createUrlTree(['/login']);
+    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
   }
 
-  return authSession.canAccess(roles) || router.createUrlTree(['/dashboard']);
+  return authSession.canAccess(roles)
+    ? true
+    : router.createUrlTree(['/acceso-denegado'], { queryParams: { desde: state.url } });
+};
+
+export const roleRedirectGuard: CanActivateFn = (route) => {
+  const authSession = inject(AuthSessionService);
+  const router = inject(Router);
+  const redirects = (route.data['redirects'] ?? {}) as Partial<Record<UserRole, string>>;
+  const role = authSession.role();
+  const destination = (role ? redirects[role] : null) ?? authSession.homeForCurrentUser();
+
+  return router.createUrlTree([destination]);
 };

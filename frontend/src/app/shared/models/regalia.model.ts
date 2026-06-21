@@ -48,6 +48,44 @@ export interface FeaturedProduct {
   verified: boolean;
 }
 
+export interface FixedPriceProduct {
+  id: number;
+  title: string;
+  provider: string;
+  providerId: number;
+  providerCategory: RegaliaCategory;
+  occasion: RegaliaOccasion;
+  price: number;
+  originalPrice?: number;
+  rating: number;
+  reviews: number;
+  imageUrl: string;
+  imagePosition: string;
+  verified: boolean;
+  badges: string[];
+  shortDescription: string;
+  description: string;
+  includes: string[];
+  deliveryTime: string;
+  stockStatus: string;
+  personalization: string;
+  maxQuantity: number;
+}
+
+export interface CartItem {
+  product: FixedPriceProduct;
+  quantity: number;
+}
+
+export interface CartSummary {
+  subtotal: number;
+  reservation: number;
+  platformCommission: number;
+  providerAdvance: number;
+  remainingToPay: number;
+  totalItems: number;
+}
+
 export interface RegaliaProvider {
   id: number;
   businessName: string;
