@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 /**
  * Controlador REST público para consultar productos visibles
  * dentro del marketplace de REGALIA.
@@ -20,6 +21,15 @@ import org.springframework.web.bind.annotation.*;
 public class ProductoController {
 
     private final ProductoConsultaService productoConsultaService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ProductoPublicoResponse>>> listarProductosPublicos() {
+        List<ProductoPublicoResponse> productos = productoConsultaService.listarProductosPublicos();
+
+        return ResponseEntity.ok(
+                ApiResponse.success(productos)
+        );
+    }
 
     @GetMapping("/{idProducto}")
     public ResponseEntity<ApiResponse<ProductoPublicoResponse>> obtenerProductoPublicoPorId(

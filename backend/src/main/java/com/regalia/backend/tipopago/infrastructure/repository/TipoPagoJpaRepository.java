@@ -15,9 +15,7 @@ public interface TipoPagoJpaRepository extends JpaRepository<TipoPagoEntity, Lon
 
     Optional<TipoPagoEntity> findByIdTipoPagoAndEstadoTrue(Long idTipoPago);
 
-    Optional<TipoPagoEntity> findByIdTipoPagoAndEstadoFalse(Long idTipoPago);
-
-    boolean existsByNombreIgnoreCase(String nombre);
+    Optional<TipoPagoEntity> findByCodigoAndEstadoTrue(String codigo);
 
     boolean existsByNombreIgnoreCaseAndIdTipoPagoNot(String nombre, Long idTipoPago);
 }

@@ -23,6 +23,9 @@ public class TipoPagoEntity {
     @Column(name = "id_tipo_pago")
     private Long idTipoPago;
 
+    @Column(name = "codigo", nullable = false, unique = true, length = 50, updatable = false)
+    private String codigo;
+
     @Column(name = "nombre", nullable = false, length = 100, unique = true)
     private String nombre;
 
@@ -43,7 +46,9 @@ public class TipoPagoEntity {
      */
     @PrePersist
     public void prePersist() {
-        this.fechaCreacion = LocalDateTime.now();
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
+        }
 
         if (this.estado == null) {
             this.estado = true;

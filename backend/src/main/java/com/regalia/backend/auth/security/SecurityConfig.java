@@ -74,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tiendas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tiendas/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tiendas/*/productos").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/productos/*").permitAll()
 
                         /*
@@ -130,6 +131,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
 
                         /*
+                        * Conversión / perfil vendedor:
+                        * Un usuario autenticado puede crear o consultar su perfil vendedor.
+                        * No exigimos rol VENDEDOR aquí porque este endpoint sirve justamente
+                        * para que un CLIENTE pueda convertirse en VENDEDOR.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").authenticated()
+
+                        /*
+                        * Panel del vendedor:
+                        * Protege todos los endpoints anidados del vendedor, incluyendo:
+                        * - GET /api/vendedores/me/pedidos
+                        * - GET /api/vendedores/me/tiendas/{idTienda}/pedidos
+                        * - GET /api/vendedores/me/pedidos/{idPedido}
+                        */
+                        .requestMatchers("/api/vendedores/**").hasRole("VENDEDOR")
+
+                        /*
                          * Administración de vendedores:
                          * Solo ADMIN puede consultar la lista de vendedores
                          * y el detalle administrativo de un vendedor.
@@ -167,11 +186,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasRole("ADMIN")
 
                         /*
-                         * Tipos de pago:
-                         * Catálogo interno del sistema para diferenciar el concepto
-                         * del pago dentro del flujo de pedido: SEÑA y RESTANTE.
-                         * Su administración y consulta directa queda reservada para ADMIN.
-                         */
+                        * Tipos de pago:
+                        * Catálogo interno del sistema para diferenciar el concepto
+                        * del pago dentro del flujo de pedido: SEÑA, RESTANTE, PAGO COMPLETO
+                        * y otros tipos futuros.
+                        * Su administración y consulta directa queda reservada para ADMIN.
+                        */
                         .requestMatchers(HttpMethod.GET, "/api/tipos-pago").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/tipos-pago").hasRole("ADMIN")
@@ -219,6 +239,29 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/tipos-producto/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/tipos-producto/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/tipos-producto/**").hasRole("ADMIN")
+
+                        /*
+                        * Panel administrativo:
+                        * Todas las rutas bajo /api/admin pertenecen al contexto administrativo.
+                        * Solo ADMIN puede acceder a estos endpoints.
+                        */
+                        .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
+
+                        /*
+                        * Pedidos:
+                        * El carrito vive en frontend/localStorage.
+                        * El pedido solo se crea cuando el cliente autenticado confirma
+                        * un pago inicial válido: SEÑA o PAGO COMPLETO.
+                        * Los pagos posteriores se registran sobre pedidos existentes.
+                        */
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").hasRole("CLIENTE")
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/pagos").hasRole("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos").hasRole("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos/**").hasRole("CLIENTE")
 
                         /*
                          * Cualquier otra ruta requiere al menos autenticación.
