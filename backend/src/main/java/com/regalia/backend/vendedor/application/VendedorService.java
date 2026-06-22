@@ -4,6 +4,7 @@ import com.regalia.backend.rol.infrastructure.entity.RolEntity;
 import com.regalia.backend.rol.infrastructure.repository.RolJpaRepository;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
+import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.tienda.infrastructure.repository.TiendaJpaRepository;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
@@ -30,6 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VendedorService {
 
+    private static final String ROL_ADMIN = "ADMIN";
     private static final String ROL_VENDEDOR = "VENDEDOR";
     private static final String ESTADO_VERIFICADO = "VERIFICADO";
     private static final String CATEGORIA_IDENTIDAD_PERSONAL = "IDENTIDAD_PERSONAL";
@@ -46,6 +48,7 @@ public class VendedorService {
     public VendedorResponse crearMiPerfilVendedor(String correoUsuario) {
         UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
 
+        validarQueNoSeaAdmin(usuario.getIdUsuario());
         validarQueNoTengaVendedorActivo(usuario.getIdUsuario());
 
         VendedorEntity vendedor = new VendedorEntity();
@@ -114,6 +117,15 @@ public class VendedorService {
     private void validarQueNoTengaVendedorActivo(Long idUsuario) {
         if (vendedorRepository.existsByUsuarioIdUsuarioAndEstadoTrue(idUsuario)) {
             throw new RecursoDuplicadoException("El usuario ya tiene un perfil vendedor activo");
+        }
+    }
+
+    private void validarQueNoSeaAdmin(Long idUsuario) {
+        boolean tieneRolAdminActivo = usuarioRolRepository
+                .existsByUsuarioIdUsuarioAndRolNombreIgnoreCaseAndEstadoTrue(idUsuario, ROL_ADMIN);
+
+        if (tieneRolAdminActivo) {
+            throw new ReglaNegocioException("Una cuenta administrativa no puede convertirse en vendedor");
         }
     }
 

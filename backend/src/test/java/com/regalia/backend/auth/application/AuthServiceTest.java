@@ -1,5 +1,6 @@
 package com.regalia.backend.auth.application;
 
+import com.regalia.backend.auditoria.application.AuditoriaEventoService;
 import com.regalia.backend.auth.api.dto.LoginRequest;
 import com.regalia.backend.auth.api.dto.LoginResponse;
 import com.regalia.backend.auth.security.AuthContext;
@@ -45,6 +46,12 @@ class AuthServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private LoginAttemptLimiter loginAttemptLimiter;
+
+    @Mock
+    private AuditoriaEventoService auditoriaEventoService;
+
     private AuthService authService;
 
     @BeforeEach
@@ -53,7 +60,9 @@ class AuthServiceTest {
                 usuarioRepository,
                 usuarioRolRepository,
                 passwordEncoder,
-                jwtService
+                jwtService,
+                loginAttemptLimiter,
+                auditoriaEventoService
         );
     }
 
@@ -67,13 +76,14 @@ class AuthServiceTest {
                 .thenReturn(List.of(usuarioRol("CLIENTE")));
         when(jwtService.generarToken(usuario.getIdUsuario(), usuario.getCorreo(), roles, AuthContext.PUBLIC))
                 .thenReturn("token-publico");
-        when(jwtService.obtenerExpirationMinutes()).thenReturn(60L);
+        when(jwtService.obtenerExpirationMinutes(AuthContext.PUBLIC)).thenReturn(240L);
 
         LoginResponse response = authService.loginPublico(new LoginRequest(CORREO, PASSWORD));
 
         assertThat(response.token()).isEqualTo("token-publico");
         assertThat(response.roles()).containsExactly("CLIENTE");
         assertThat(response.authContext()).isEqualTo(AuthContext.PUBLIC.name());
+        assertThat(response.expiraEnMinutos()).isEqualTo(240L);
     }
 
     @Test
@@ -105,13 +115,14 @@ class AuthServiceTest {
                 .thenReturn(List.of(usuarioRol("ADMIN")));
         when(jwtService.generarToken(usuario.getIdUsuario(), usuario.getCorreo(), roles, AuthContext.ADMIN))
                 .thenReturn("token-admin");
-        when(jwtService.obtenerExpirationMinutes()).thenReturn(60L);
+        when(jwtService.obtenerExpirationMinutes(AuthContext.ADMIN)).thenReturn(30L);
 
         LoginResponse response = authService.loginAdmin(new LoginRequest(CORREO, PASSWORD));
 
         assertThat(response.token()).isEqualTo("token-admin");
         assertThat(response.roles()).containsExactly("ADMIN");
         assertThat(response.authContext()).isEqualTo(AuthContext.ADMIN.name());
+        assertThat(response.expiraEnMinutos()).isEqualTo(30L);
     }
 
     @Test

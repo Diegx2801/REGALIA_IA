@@ -64,4 +64,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ex.getMessage()));
     }
+
+    @ExceptionHandler(DemasiadosIntentosLoginException.class)
+    public ResponseEntity<ApiResponse<Void>> manejarDemasiadosIntentosLogin(DemasiadosIntentosLoginException ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
 }

@@ -1,6 +1,7 @@
 package com.regalia.backend.auth.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.regalia.backend.shared.config.SecurityHeadersProperties;
 import com.regalia.backend.shared.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 
@@ -38,11 +41,39 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ObjectMapper objectMapper;
+    private final SecurityHeadersProperties securityHeadersProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
+
+                .cors(cors -> {})
+
+                .headers(headers -> {
+                    if (StringUtils.hasText(securityHeadersProperties.getReferrerPolicy())) {
+                        headers.addHeaderWriter(new StaticHeadersWriter(
+                                "Referrer-Policy",
+                                securityHeadersProperties.getReferrerPolicy()
+                        ));
+                    }
+
+                    if (StringUtils.hasText(securityHeadersProperties.getPermissionsPolicy())) {
+                        headers.addHeaderWriter(new StaticHeadersWriter(
+                                "Permissions-Policy",
+                                securityHeadersProperties.getPermissionsPolicy()
+                        ));
+                    }
+
+                    if (securityHeadersProperties.isHstsEnabled()) {
+                        headers.httpStrictTransportSecurity(hsts -> hsts
+                                .maxAgeInSeconds(securityHeadersProperties.getHstsMaxAgeSeconds())
+                                .includeSubDomains(securityHeadersProperties.isHstsIncludeSubdomains())
+                        );
+                    } else {
+                        headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+                    }
+                })
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
