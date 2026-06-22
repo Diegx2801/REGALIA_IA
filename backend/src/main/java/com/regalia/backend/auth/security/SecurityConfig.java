@@ -8,12 +8,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Arrays;
 
 /**
  * Configuración principal de seguridad para la API REST.
@@ -23,6 +29,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
+    private static final String ROLE_CLIENTE = "ROLE_CLIENTE";
+    private static final String ROLE_VENDEDOR = "ROLE_VENDEDOR";
+    private static final String AUTH_CONTEXT_ADMIN = "AUTH_CONTEXT_ADMIN";
+    private static final String AUTH_CONTEXT_PUBLIC = "AUTH_CONTEXT_PUBLIC";
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ObjectMapper objectMapper;
@@ -60,217 +72,159 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         /*
-                         * Autenticación y registro:
-                         * Login y registro inicial de usuarios no requieren token JWT.
+                         * Autenticación:
+                         * El login público no emite tokens administrativos.
+                         * El login administrativo solo acepta cuentas con rol ADMIN exclusivo.
                          */
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admin/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 
                         /*
-                         * Marketplace público:
-                         * Rutas abiertas para visitantes y clientes.
-                         * Solo exponen tiendas activas/no rechazadas y productos activos/visibles.
+                         * Marketplace público.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/tiendas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tiendas/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tiendas/*/productos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/productos/*").permitAll()
-
-                        /*
-                         * Perfil propio:
-                         * Cualquier usuario autenticado puede consultar y actualizar su propio perfil.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").authenticated()
-
-                        /*
-                         * Documentos del usuario autenticado:
-                         * Cualquier usuario autenticado puede registrar y consultar
-                         * sus documentos enviados para verificación.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").authenticated()
-
-                        /*
-                         * Solicitudes de verificación de documentos:
-                         * Solo ADMIN puede consultar, verificar, observar o rechazar
-                         * documentos enviados por usuarios.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios-documentos/**").hasRole("ADMIN")
-
-                        /*
-                         * Perfil vendedor del usuario autenticado:
-                         * Cualquier usuario autenticado puede convertirse en vendedor
-                         * y consultar su perfil vendedor.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").authenticated()
-
-                        /*
-                         * Gestión de tiendas del vendedor autenticado:
-                         * Rutas privadas del panel del vendedor.
-                         */
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/tiendas/*").authenticated()
-
-                        /*
-                         * Gestión de productos del vendedor autenticado:
-                         * Rutas privadas y anidadas bajo la tienda del vendedor.
-                         */
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas/*/productos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*/productos").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/vendedores/me/tiendas/*/productos/*").authenticated()
-
-                        /*
-                        * Conversión / perfil vendedor:
-                        * Un usuario autenticado puede crear o consultar su perfil vendedor.
-                        * No exigimos rol VENDEDOR aquí porque este endpoint sirve justamente
-                        * para que un CLIENTE pueda convertirse en VENDEDOR.
-                        */
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").authenticated()
-
-                        /*
-                        * Panel del vendedor:
-                        * Protege todos los endpoints anidados del vendedor, incluyendo:
-                        * - GET /api/vendedores/me/pedidos
-                        * - GET /api/vendedores/me/tiendas/{idTienda}/pedidos
-                        * - GET /api/vendedores/me/pedidos/{idPedido}
-                        */
-                        .requestMatchers("/api/vendedores/**").hasRole("VENDEDOR")
-
-                        /*
-                         * Administración de vendedores:
-                         * Solo ADMIN puede consultar la lista de vendedores
-                         * y el detalle administrativo de un vendedor.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/*").hasRole("ADMIN")
-
-                        /*
-                         * Rubros de tienda:
-                         * Consultar es público, porque permite filtrar tiendas y productos
-                         * sin necesidad de iniciar sesión.
-                         * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
-                         */
                         .requestMatchers(HttpMethod.GET, "/api/rubros").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/rubros/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/rubros").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/rubros/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/rubros/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/rubros/**").hasRole("ADMIN")
-
-                        /*
-                         * Roles:
-                         * Información interna del sistema. Solo ADMIN puede consultarla.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/roles").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/roles/**").hasRole("ADMIN")
-
-                        /*
-                         * Usuarios:
-                         * Operaciones administrativas sobre usuarios.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasRole("ADMIN")
-
-                        /*
-                        * Tipos de pago:
-                        * Catálogo interno del sistema para diferenciar el concepto
-                        * del pago dentro del flujo de pedido: SEÑA, RESTANTE, PAGO COMPLETO
-                        * y otros tipos futuros.
-                        * Su administración y consulta directa queda reservada para ADMIN.
-                        */
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-pago").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-pago/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-pago/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-pago/**").hasRole("ADMIN")
-
-                        /*
-                         * Tipos de documento:
-                         * Los usuarios autenticados pueden consultarlos para registrar
-                         * documentos de identidad o fiscales.
-                         * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-documento").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-documento/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-documento/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-documento/**").hasRole("ADMIN")
-
-                        /*
-                        * Tipos de entrega:
-                        * Catálogo usado para que el cliente seleccione cómo se coordinará
-                        * la entrega del pedido. La consulta es pública porque puede mostrarse
-                        * durante la exploración o creación del pedido.
-                        * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
-                        */
                         .requestMatchers(HttpMethod.GET, "/api/tipos-entrega").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tipos-entrega/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-entrega").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-entrega/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-entrega/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-entrega/**").hasRole("ADMIN")
-
-                        /*
-                        * Tipos de producto:
-                        * Catálogo usado para clasificar productos dentro del marketplace.
-                        * La consulta es pública porque puede usarse para filtros públicos
-                        * y para cargar opciones en el panel del vendedor.
-                        * Crear, actualizar, desactivar y reactivar solo puede hacerlo ADMIN.
-                        */
                         .requestMatchers(HttpMethod.GET, "/api/tipos-producto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tipos-producto/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-producto").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-producto/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-producto/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-producto/**").hasRole("ADMIN")
 
                         /*
-                        * Panel administrativo:
-                        * Todas las rutas bajo /api/admin pertenecen al contexto administrativo.
-                        * Solo ADMIN puede acceder a estos endpoints.
-                        */
-                        .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
-
-                        /*
-                        * Pedidos:
-                        * El carrito vive en frontend/localStorage.
-                        * El pedido solo se crea cuando el cliente autenticado confirma
-                        * un pago inicial válido: SEÑA o PAGO COMPLETO.
-                        * Los pagos posteriores se registran sobre pedidos existentes.
-                        */
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").hasRole("CLIENTE")
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/pagos").hasRole("CLIENTE")
-                        .requestMatchers(HttpMethod.GET, "/api/pedidos").hasRole("CLIENTE")
-                        .requestMatchers(HttpMethod.GET, "/api/pedidos/**").hasRole("CLIENTE")
-
-                        /*
-                         * Cualquier otra ruta requiere al menos autenticación.
+                         * Contexto público autenticado: cliente/vendedor.
+                         * Un token ADMIN no debe entrar a estas rutas.
                          */
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").access(publicAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").access(publicAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento").access(publicAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").access(publicAccess())
+
+                        /*
+                         * Conversión / perfil vendedor:
+                         * Un usuario autenticado en contexto público puede crear o consultar
+                         * su perfil vendedor. Los endpoints anidados pertenecen al panel
+                         * vendedor y requieren rol VENDEDOR.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").access(publicAccess())
+                        .requestMatchers("/api/vendedores/me/**").access(vendedorAccess())
+
+                        /*
+                         * Administración fuera del prefijo /api/admin por compatibilidad
+                         * con rutas ya existentes orientadas al recurso.
+                         */
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos").access(adminAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios-documentos/**").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores").access(adminAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/*").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.POST, "/api/rubros").access(adminAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/rubros/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.DELETE, "/api/rubros/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.PATCH, "/api/rubros/**").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.GET, "/api/roles").access(adminAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/roles/**").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios").access(adminAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago").access(adminAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-pago").access(adminAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-pago/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-pago/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-pago/**").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-documento").access(adminAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-documento/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-documento/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-documento/**").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-entrega").access(adminAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-entrega/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-entrega/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-entrega/**").access(adminAccess())
+
+                        .requestMatchers(HttpMethod.POST, "/api/tipos-producto").access(adminAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/tipos-producto/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-producto/**").access(adminAccess())
+                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-producto/**").access(adminAccess())
+
+                        /*
+                         * Panel administrativo.
+                         * Requiere rol ADMIN y token emitido desde el contexto ADMIN.
+                         */
+                        .requestMatchers("/api/admin/**").access(adminAccess())
+
+                        /*
+                         * Pedidos del cliente autenticado.
+                         */
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").access(clienteAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/pagos").access(clienteAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos").access(clienteAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos/**").access(clienteAccess())
+
+                        /*
+                         * Catch-all del vendedor: rutas no específicas bajo /api/vendedores.
+                         */
+                        .requestMatchers("/api/vendedores/**").access(vendedorAccess())
+
+                        /*
+                         * Cualquier otra ruta autenticada pertenece al contexto público.
+                         */
+                        .anyRequest().access(publicAccess())
                 )
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .build();
+    }
+
+    private static AuthorizationManager<RequestAuthorizationContext> adminAccess() {
+        return requireAuthorities(ROLE_ADMIN, AUTH_CONTEXT_ADMIN);
+    }
+
+    private static AuthorizationManager<RequestAuthorizationContext> clienteAccess() {
+        return requireAuthorities(ROLE_CLIENTE, AUTH_CONTEXT_PUBLIC);
+    }
+
+    private static AuthorizationManager<RequestAuthorizationContext> vendedorAccess() {
+        return requireAuthorities(ROLE_VENDEDOR, AUTH_CONTEXT_PUBLIC);
+    }
+
+    private static AuthorizationManager<RequestAuthorizationContext> publicAccess() {
+        return requireAuthorities(AUTH_CONTEXT_PUBLIC);
+    }
+
+    private static AuthorizationManager<RequestAuthorizationContext> requireAuthorities(String... requiredAuthorities) {
+        return (authenticationSupplier, context) -> {
+            Authentication authentication = authenticationSupplier.get();
+
+            boolean granted = authentication != null
+                    && authentication.isAuthenticated()
+                    && Arrays.stream(requiredAuthorities)
+                    .allMatch(requiredAuthority -> hasAuthority(authentication, requiredAuthority));
+
+            return new AuthorizationDecision(granted);
+        };
+    }
+
+    private static boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
     }
 }

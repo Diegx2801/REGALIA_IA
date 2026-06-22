@@ -21,7 +21,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = authService.login(request);
+        LoginResponse response = authService.loginPublico(request);
 
         return ResponseEntity.ok(
                 ApiResponse.success(response, "Inicio de sesión correcto")
