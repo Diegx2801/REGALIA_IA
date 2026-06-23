@@ -26,7 +26,8 @@
   --color-success-soft: rgba(47, 123, 98, 0.12);
   --color-alert-soft: rgba(179, 58, 77, 0.11);
 
-  --font-base: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-base:
+    'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: var(--font-base);
   --font-heading: var(--font-base);
 
@@ -68,7 +69,9 @@
   --color-text-muted: var(--color-muted);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 html {
   min-height: 100%;
@@ -79,8 +82,7 @@ body {
   --bs-body-font-family: var(--font-base);
   background:
     radial-gradient(circle at 8% 10%, rgba(214, 168, 62, 0.13), transparent 18rem),
-    radial-gradient(circle at 88% 4%, rgba(90, 36, 64, 0.08), transparent 20rem),
-    var(--color-bg);
+    radial-gradient(circle at 88% 4%, rgba(90, 36, 64, 0.08), transparent 20rem), var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-base);
   line-height: 1.55;
@@ -91,8 +93,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6,
-.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display-1,
+.display-2,
+.display-3,
+.display-4,
+.display-5,
+.display-6 {
   color: var(--color-text);
   font-family: var(--font-base);
   font-weight: 850;
@@ -101,14 +113,36 @@ h1, h2, h3, h4, h5, h6,
   text-wrap: balance;
 }
 
-p { margin-top: 0; }
-a { color: inherit; }
-img { display: block; max-width: 100%; }
-button, input, select, textarea { font: inherit; }
-a, button { touch-action: manipulation; }
-button { cursor: pointer; }
+p {
+  margin-top: 0;
+}
+a {
+  color: inherit;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+a,
+button {
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+}
 
-button, [role='button'], a, input, select, textarea {
+button,
+[role='button'],
+a,
+input,
+select,
+textarea {
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast),
@@ -133,7 +167,6 @@ app-root {
   flex-direction: column;
   min-height: 100vh;
 }
-
 
 /* Ajustes de Bootstrap para que respete la identidad de REGALIA.
    Importamos grid/utilities/reboot, no todo el CSS de Bootstrap, para evitar peso innecesario. */
@@ -202,7 +235,29 @@ app-root {
   width: 100%;
 }
 
-.mb-0 { margin-bottom: 0 !important; }
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+/* Anchos de pagina compartidos: Bootstrap arma la grilla y REGALIA fija el marco visual. */
+.rg-page {
+  padding-block: clamp(1.5rem, 4vw, 4rem);
+}
+
+.rg-page__container {
+  margin-inline: auto;
+  max-width: 1180px;
+  padding-inline: clamp(1rem, 3vw, 1.5rem);
+  width: 100%;
+}
+
+.rg-page__container--wide {
+  max-width: 1320px;
+}
+
+.rg-page__container--narrow {
+  max-width: 920px;
+}
 
 .sr-only {
   height: 1px;
@@ -225,8 +280,9 @@ app-root {
 
 .rg-page-shell {
   margin-inline: auto;
-  max-width: 92rem;
+  max-width: 1320px;
   padding: clamp(1rem, 3vw, 2.4rem);
+  width: 100%;
 }
 
 .rg-page-header {
@@ -311,10 +367,22 @@ app-root {
   padding: 0.38rem 0.62rem;
 }
 
-.rg-badge--gold { background: var(--color-accent-soft); color: #6f5010; }
-.rg-badge--success { background: var(--color-success-soft); color: var(--color-success); }
-.rg-badge--danger { background: var(--color-alert-soft); color: var(--color-alert); }
-.rg-badge--neutral { background: var(--color-primary-soft); color: var(--color-primary); }
+.rg-badge--gold {
+  background: var(--color-accent-soft);
+  color: #6f5010;
+}
+.rg-badge--success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.rg-badge--danger {
+  background: var(--color-alert-soft);
+  color: var(--color-alert);
+}
+.rg-badge--neutral {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
 
 .rg-field-control {
   background: #fff;
@@ -357,14 +425,10 @@ app-root {
   width: 3rem;
 }
 
-/* Provider application extended styles. Prefixed classes avoid leakage outside the feature. */
-.review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.review-grid article{border:1px solid #e5dce0;border-radius:1rem;padding:1rem}.review-grid h3{font-size:.9rem;margin:.3rem 0}.review-grid p{color:var(--color-muted);display:-webkit-box;font-size:.72rem;line-height:1.5;min-height:2.2rem;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical}.review-grid button{background:transparent;border:0;color:var(--color-primary);font-size:.72rem;font-weight:850;padding:0;cursor:pointer}.consent-panel{display:grid;gap:.75rem;padding-top:0}.consent-panel label{display:flex;gap:.65rem;align-items:flex-start;font-size:.76rem;line-height:1.45}.consent-panel input{accent-color:var(--color-primary);margin-top:.15rem}.submission-note{margin:0 1.6rem 1.4rem;background:#fff8e6}.validation-summary{margin:0 1.6rem 1rem;background:#fff0f2;border:1px solid #f1c1ca;border-radius:.75rem;color:#9f2941;font-size:.75rem;font-weight:750;padding:.75rem}.onboarding-card__footer{display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid #eee6e1;padding:1rem 1.6rem}.onboarding-card__footer>div{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}.save-message{color:#397052;font-size:.7rem;font-weight:750}.application-status,.submitted-summary,.review-note{max-width:88rem;margin:0 auto 1rem}.application-status{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1.4rem}.application-status__icon{display:grid;place-items:center;width:3.4rem;height:3.4rem;border-radius:50%;background:#f5edf7;color:var(--color-primary);font-size:1.25rem;font-weight:900}.application-status__copy h2{font-family:var(--font-heading);font-size:1.45rem;margin:.25rem 0}.application-status__copy p{color:var(--color-muted);font-size:.78rem;margin:0}.application-status__meta{display:grid;gap:.2rem;text-align:right}.application-status__meta small{color:var(--color-muted);font-size:.66rem}.application-status__meta strong{font-size:.74rem}.application-status__action{background:var(--color-primary);border:0;border-radius:.75rem;color:#fff;font-weight:850;padding:.75rem 1rem;cursor:pointer}.review-note{background:#fff8e8;border-color:#efdb9c;padding:1rem 1.2rem}.review-note span{color:#805b07;font-size:.7rem;font-weight:900;text-transform:uppercase}.review-note p{font-size:.8rem;line-height:1.6;margin:.4rem 0 0}.submitted-summary{padding:1.35rem}.submitted-summary__heading{display:flex;justify-content:space-between;gap:1rem;align-items:center}.submitted-summary__heading h2{font-family:var(--font-heading);margin:.25rem 0}.submitted-summary__badge{background:#f4eef6;border-radius:999px;color:var(--color-primary);font-size:.7rem;font-weight:850;padding:.45rem .7rem}.submitted-summary__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin:1rem 0}.submitted-summary__grid>div{background:#faf7f4;border-radius:.75rem;padding:.8rem}.submitted-summary__grid small,.submitted-summary__grid strong{display:block}.submitted-summary__grid small{color:var(--color-muted);font-size:.65rem}.submitted-summary__grid strong{font-size:.78rem;margin-top:.2rem}.submitted-summary__categories{display:flex;flex-wrap:wrap;gap:.4rem}.submitted-summary__categories span{background:#f3edf5;border-radius:999px;color:var(--color-primary);font-size:.68rem;font-weight:750;padding:.4rem .6rem}@media(max-width:1050px){.provider-onboarding__hero{grid-template-columns:1fr}.onboarding-layout{grid-template-columns:1fr}.onboarding-steps{position:static}.onboarding-steps nav{grid-template-columns:repeat(5,1fr)}.onboarding-steps nav button{align-items:center;justify-content:center}.onboarding-steps nav button>span:last-child small{display:none}.onboarding-steps__help{display:none}}@media(max-width:760px){.provider-onboarding{padding:1rem}.provider-onboarding__hero h1{font-size:2.15rem}.onboarding-steps nav{grid-template-columns:repeat(5,auto);overflow-x:auto}.onboarding-steps nav button>span:last-child{display:none}.form-grid,.choice-grid,.choice-grid--two,.review-grid,.submitted-summary__grid{grid-template-columns:1fr}.onboarding-card__header,.onboarding-card__footer,.application-status,.submitted-summary__heading{align-items:flex-start;flex-direction:column}.application-status{display:flex}.application-status__meta{text-align:left}.form-section,.review-grid,.consent-panel{padding:1.15rem}.submission-note{margin:0 1.15rem 1rem}.onboarding-card__footer{display:flex}.onboarding-card__footer>div{width:100%}.button--primary{width:100%}}
-
-/* Admin provider applications responsive styles. Prefixed classes avoid leakage outside the feature. */
-@media(max-width:1100px){.applications-workspace{grid-template-columns:1fr}.application-detail{position:fixed;inset:5rem 1rem 1rem auto;width:min(31rem,calc(100vw - 2rem));z-index:70;box-shadow:0 25px 70px rgba(25,13,30,.3);transform:translateX(110%);transition:transform .2s}.application-detail--open{transform:translateX(0)}}@media(max-width:760px){.rg-page-header{align-items:flex-start;flex-direction:column}.applications-header{align-items:flex-start;flex-direction:column}.applications-header__notice{max-width:none}.applications-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.applications-toolbar{align-items:flex-start;flex-direction:column}.applications-toolbar>span{display:none}.application-detail{inset:4.7rem .5rem .5rem;width:calc(100vw - 1rem)}.application-card__topline{align-items:flex-start;flex-direction:column}.detail-section--summary{grid-template-columns:1fr}.application-detail__actions .button{flex:1}.applications-page{padding:.8rem}}
-
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
