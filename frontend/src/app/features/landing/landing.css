@@ -9,7 +9,12 @@
 }
 
 .landing-hero {
-  padding: 1.35rem 0 1.2rem;
+  padding: clamp(0.75rem, 1.4vw, 1.25rem) 0 1.2rem;
+}
+
+.landing-hero .container {
+  max-width: min(100%, 1440px);
+  padding-inline: clamp(0.75rem, 2vw, 1.25rem);
 }
 
 .landing-hero__frame {
@@ -17,31 +22,32 @@
     linear-gradient(90deg, rgba(255, 247, 239, 0.98) 0%, rgba(255, 247, 239, 0.82) 44%, rgba(255, 247, 239, 0.1) 70%),
     url('/images/regalia-hero-gift.png') center right / cover no-repeat;
   border: 1px solid rgba(234, 216, 201, 0.95);
-  border-radius: 18px;
+  border-radius: clamp(14px, 1.2vw, 22px);
   box-shadow: var(--shadow-soft);
-  min-height: 25.8rem;
-  overflow: visible;
+  min-height: clamp(27rem, 43vw, 36rem);
+  overflow: hidden;
   position: relative;
 }
 
 .landing-hero__content {
-  max-width: 56rem;
-  padding: 3rem 2.6rem 2rem;
+  max-width: min(52rem, 62vw);
+  padding: clamp(2rem, 4vw, 4.25rem) clamp(1.25rem, 4vw, 3.25rem) clamp(1.4rem, 3vw, 2.4rem);
 }
 
 .landing-hero__title {
   color: var(--color-text);
-  font-size: clamp(2.7rem, 5.3vw, 5rem);
+  font-size: clamp(2.45rem, 4.9vw, 4.9rem);
+  line-height: 1.06;
   margin: 0 0 0.85rem;
-  max-width: 50rem;
+  max-width: 48rem;
 }
 
 .landing-hero__subtitle {
   color: var(--color-muted);
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
   line-height: 1.8;
   margin-bottom: 1.45rem;
-  max-width: 44rem;
+  max-width: 40rem;
 }
 
 
@@ -52,7 +58,7 @@
 .occasion-strip {
   display: grid;
   gap: 0.9rem;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   margin-top: 1.25rem;
 }
 
@@ -146,7 +152,7 @@
 .section-heading__text {
   color: var(--color-muted);
   font-size: 1rem;
-  max-width: 44rem;
+  max-width: 40rem;
 }
 
 .featured-products {
@@ -421,6 +427,7 @@
   }
 
   .landing-hero__content {
+    max-width: 100%;
     padding: 2rem;
   }
 
@@ -431,7 +438,7 @@
   }
 
   .occasion-strip {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -446,7 +453,11 @@
   }
 
   .landing-hero__content {
-    padding: 1.2rem;
+    padding: 1.15rem;
+  }
+
+  .landing-hero__title {
+    font-size: clamp(2rem, 11vw, 3.1rem);
   }
 
   .landing-hero__subtitle {
