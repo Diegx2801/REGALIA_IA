@@ -1,7 +1,7 @@
 <div class="landing-page">
   <!-- Sección principal con filtros de búsqueda del mercado local -->
   <section id="inicio" class="landing-hero">
-    <div class="container">
+    <div class="container rg-page__container rg-page__container--retail landing-hero__container">
       <div class="landing-hero__frame">
         <div class="landing-hero__content">
           <h1 class="landing-hero__title">
@@ -35,7 +35,7 @@
 
   <!-- Productos destacados usados para validar el flujo de reserva del MVP -->
   <section class="landing-section">
-    <div class="container landing-market">
+    <div class="container rg-page__container rg-page__container--retail landing-market">
       <main class="landing-market__main">
         <div class="section-heading">
           <span class="section-heading__eyebrow">Destacados para ti</span>
@@ -99,7 +99,7 @@
   </section>
 
   <section id="modelo" class="business-model">
-    <div class="container business-model__grid">
+    <div class="container rg-page__container rg-page__container--retail business-model__grid">
       <div class="section-heading">
         <span class="section-heading__eyebrow">Modelo de negocio</span>
         <h2 class="section-heading__title">REGALIA conecta clientes con emprendedores locales.</h2>
@@ -139,7 +139,7 @@
   </section>
 
   <section class="provider-cta-band">
-    <div class="container provider-cta">
+    <div class="container rg-page__container rg-page__container--retail provider-cta">
       <div class="provider-cta__art" aria-hidden="true"></div>
       <div class="provider-cta__copy">
         <span class="provider-cta__eyebrow">¿Tienes un emprendimiento?</span>
@@ -148,7 +148,10 @@
       <p class="provider-cta__text">
         Publica tus productos, llega a más clientes y haz crecer tu marca con nosotros.
       </p>
-      <a class="provider-cta__button" [routerLink]="sellerRoute()" [queryParams]="sellerQueryParams()"
+      <a
+        class="provider-cta__button"
+        [routerLink]="sellerRoute()"
+        [queryParams]="sellerQueryParams()"
         >Quiero vender en REGALIA →</a
       >
     </div>

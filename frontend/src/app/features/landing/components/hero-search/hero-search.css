@@ -4,9 +4,8 @@
    ========================================================================== */
 :host {
   display: block;
-  max-width: min(100%, 60rem);
+  max-width: min(100%, 68rem);
 }
-
 
 .hero-search {
   align-items: end;
@@ -16,7 +15,7 @@
   box-shadow: 0 18px 40px rgba(38, 32, 51, 0.14);
   display: grid;
   gap: 0.65rem;
-  grid-template-columns: repeat(4, minmax(7.5rem, 1fr)) minmax(9.5rem, auto);
+  grid-template-columns: repeat(4, minmax(8.5rem, 1fr)) minmax(10.5rem, auto);
   max-width: 100%;
   padding: 0.75rem;
 }

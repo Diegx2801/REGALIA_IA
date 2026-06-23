@@ -1,5 +1,5 @@
 <section class="dashboard-page">
-  <div class="dashboard-container">
+  <div class="dashboard-container rg-page__container rg-page__container--wide">
     <header class="dashboard-heading">
       <div>
         <span class="dashboard-heading__eyebrow">{{ view().eyebrow }}</span>
@@ -76,7 +76,9 @@
                   <strong>{{ activity.title }}</strong>
                   <small>{{ activity.meta }}</small>
                 </div>
-                <span class="activity-item__status" [attr.data-tone]="activity.tone">{{ activity.status }}</span>
+                <span class="activity-item__status" [attr.data-tone]="activity.tone">{{
+                  activity.status
+                }}</span>
               </article>
             }
           </div>

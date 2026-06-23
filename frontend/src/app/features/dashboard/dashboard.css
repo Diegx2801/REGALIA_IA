@@ -12,7 +12,8 @@
 
 .dashboard-container {
   margin: 0 auto;
-  max-width: 92rem;
+  max-width: 1320px;
+  width: 100%;
 }
 
 .dashboard-heading {
@@ -300,8 +301,12 @@
   width: 0.65rem;
 }
 
-.activity-item__marker[data-tone='success'] { background: var(--color-success); }
-.activity-item__marker[data-tone='warning'] { background: var(--color-warning); }
+.activity-item__marker[data-tone='success'] {
+  background: var(--color-success);
+}
+.activity-item__marker[data-tone='warning'] {
+  background: var(--color-warning);
+}
 
 .activity-item div {
   display: grid;
@@ -328,8 +333,14 @@
   padding: 0.35rem 0.55rem;
 }
 
-.activity-item__status[data-tone='success'] { background: var(--color-success-soft); color: var(--color-success); }
-.activity-item__status[data-tone='warning'] { background: var(--color-accent-soft); color: var(--color-warning); }
+.activity-item__status[data-tone='success'] {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.activity-item__status[data-tone='warning'] {
+  background: var(--color-accent-soft);
+  color: var(--color-warning);
+}
 
 .empty-state {
   align-items: flex-start;
@@ -414,23 +425,46 @@
 }
 
 @media (max-width: 1199.98px) {
-  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard-flow { grid-template-columns: 1fr; }
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-flow {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 991.98px) {
-  .dashboard-grid { grid-template-columns: 1fr; }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 767.98px) {
-  .dashboard-page { padding-inline: 1rem; }
-  .dashboard-hero { grid-template-columns: 1fr; min-height: auto; }
-  .dashboard-hero__signature { display: none; }
+  .dashboard-page {
+    padding-inline: 1rem;
+  }
+  .dashboard-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .dashboard-hero__signature {
+    display: none;
+  }
 }
 
 @media (max-width: 575.98px) {
-  .metric-grid { grid-template-columns: 1fr; }
-  .activity-item { grid-template-columns: auto minmax(0, 1fr); }
-  .activity-item__status { grid-column: 2; justify-self: start; }
-  .dashboard-heading { align-items: flex-start; flex-direction: column; }
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+  .activity-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .activity-item__status {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

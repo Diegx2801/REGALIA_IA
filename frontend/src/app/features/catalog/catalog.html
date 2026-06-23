@@ -1,11 +1,12 @@
 <section class="catalog-page">
-  <div class="container catalog-page__container">
+  <div class="container rg-page__container rg-page__container--wide catalog-page__container">
     <header class="catalog-header">
       <div class="catalog-header__copy">
         <span class="catalog-header__eyebrow">Catálogo REGALIA</span>
         <h1>Productos fijos y proveedores locales para regalos personalizados.</h1>
         <p>
-          Compra productos con precio definido desde el carrito o usa el flujo de IA para cotizar algo completamente personalizado.
+          Compra productos con precio definido desde el carrito o usa el flujo de IA para cotizar
+          algo completamente personalizado.
         </p>
       </div>
       <div class="catalog-header__actions">
@@ -34,15 +35,28 @@
 
     <div class="catalog-layout">
       <aside class="catalog-filters">
-        <form class="catalog-filters__form" [formGroup]="filtersForm" (change)="onFiltersChanged()" (input)="onFiltersChanged()">
+        <form
+          class="catalog-filters__form"
+          [formGroup]="filtersForm"
+          (change)="onFiltersChanged()"
+          (input)="onFiltersChanged()"
+        >
           <div class="catalog-filters__head">
             <h2 class="catalog-filters__title">Filtros</h2>
-            <button class="catalog-filters__clear" type="button" (click)="resetFilters()">Limpiar</button>
+            <button class="catalog-filters__clear" type="button" (click)="resetFilters()">
+              Limpiar
+            </button>
           </div>
 
           <label class="filter-field" for="search">
             <span class="filter-field__label">Buscar</span>
-            <input id="search" class="filter-field__control" type="search" placeholder="flores, torta, box, taza..." formControlName="search">
+            <input
+              id="search"
+              class="filter-field__control"
+              type="search"
+              placeholder="flores, torta, box, taza..."
+              formControlName="search"
+            />
           </label>
 
           <label class="filter-field" for="category">
@@ -64,12 +78,22 @@
           </label>
 
           <label class="filter-field" for="maxPrice">
-            <span class="filter-field__label">Precio hasta S/ {{ filtersForm.controls.maxPrice.value }}</span>
-            <input id="maxPrice" class="filter-field__range" type="range" min="20" max="700" step="10" formControlName="maxPrice">
+            <span class="filter-field__label"
+              >Precio hasta S/ {{ filtersForm.controls.maxPrice.value }}</span
+            >
+            <input
+              id="maxPrice"
+              class="filter-field__range"
+              type="range"
+              min="20"
+              max="700"
+              step="10"
+              formControlName="maxPrice"
+            />
           </label>
 
           <label class="catalog-filters__check">
-            <input type="checkbox" formControlName="availableOnly">
+            <input type="checkbox" formControlName="availableOnly" />
             <span>Solo disponibles</span>
           </label>
         </form>
@@ -100,7 +124,9 @@
 
                 <div class="product-card__body">
                   <span class="product-card__category">{{ product.providerCategory }}</span>
-                  <h3><a [routerLink]="['/producto', product.id]">{{ product.title }}</a></h3>
+                  <h3>
+                    <a [routerLink]="['/producto', product.id]">{{ product.title }}</a>
+                  </h3>
                   <p>{{ product.shortDescription }}</p>
 
                   <div class="product-card__meta">
@@ -124,7 +150,9 @@
             } @empty {
               <div class="empty-state product-grid__empty">
                 <h2 class="empty-state__title">No hay productos fijos con esos filtros</h2>
-                <p class="empty-state__text">Prueba otro presupuesto o crea una solicitud personalizada con IA.</p>
+                <p class="empty-state__text">
+                  Prueba otro presupuesto o crea una solicitud personalizada con IA.
+                </p>
                 <a routerLink="/pedir-con-ia">Cotizar con IA</a>
               </div>
             }
@@ -142,9 +170,18 @@
 
           <div class="provider-grid">
             @for (provider of filteredProviders(); track trackProvider($index, provider)) {
-              <article class="provider-card" [class.provider-card--selected]="selectedProvider().id === provider.id">
-                <button type="button" class="provider-card__main" (click)="selectProvider(provider)">
-                  <span class="provider-card__badge">{{ provider.featured ? 'Destacado' : 'Verificado' }}</span>
+              <article
+                class="provider-card"
+                [class.provider-card--selected]="selectedProvider().id === provider.id"
+              >
+                <button
+                  type="button"
+                  class="provider-card__main"
+                  (click)="selectProvider(provider)"
+                >
+                  <span class="provider-card__badge">{{
+                    provider.featured ? 'Destacado' : 'Verificado'
+                  }}</span>
                   <span class="provider-card__category">{{ provider.category }}</span>
                   <h3 class="provider-card__title">{{ provider.businessName }}</h3>
                   <p class="provider-card__text">{{ provider.description }}</p>
@@ -162,7 +199,9 @@
             } @empty {
               <div class="empty-state">
                 <h2 class="empty-state__title">No hay proveedores con esos filtros</h2>
-                <p class="empty-state__text">Ajusta categoría, ocasión o presupuesto para mostrar nuevas opciones.</p>
+                <p class="empty-state__text">
+                  Ajusta categoría, ocasión o presupuesto para mostrar nuevas opciones.
+                </p>
               </div>
             }
           </div>
@@ -183,10 +222,18 @@
           <section class="detail-block">
             <h3 class="detail-block__title">Datos para matching</h3>
             <div class="detail-list">
-              <div class="detail-list__row"><span>Entrega</span><strong>{{ provider.deliveryTime }}</strong></div>
-              <div class="detail-list__row"><span>Disponibilidad</span><strong>{{ provider.availability }}</strong></div>
-              <div class="detail-list__row"><span>WhatsApp</span><strong>{{ provider.whatsapp }}</strong></div>
-              <div class="detail-list__row"><span>Pagos</span><strong>{{ provider.paymentMethods.join(', ') }}</strong></div>
+              <div class="detail-list__row">
+                <span>Entrega</span><strong>{{ provider.deliveryTime }}</strong>
+              </div>
+              <div class="detail-list__row">
+                <span>Disponibilidad</span><strong>{{ provider.availability }}</strong>
+              </div>
+              <div class="detail-list__row">
+                <span>WhatsApp</span><strong>{{ provider.whatsapp }}</strong>
+              </div>
+              <div class="detail-list__row">
+                <span>Pagos</span><strong>{{ provider.paymentMethods.join(', ') }}</strong>
+              </div>
             </div>
           </section>
 

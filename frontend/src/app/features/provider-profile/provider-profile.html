@@ -1,10 +1,15 @@
 ﻿<section class="provider-profile-page">
-  <div class="container provider-profile-page__container">
+  <div
+    class="container rg-page__container rg-page__container--wide provider-profile-page__container"
+  >
     <header class="provider-profile-header">
       <span class="provider-profile-header__eyebrow">Perfil proveedor</span>
-      <h1 class="provider-profile-header__title">Gestiona tu negocio y catalogo visible en REGALIA.</h1>
+      <h1 class="provider-profile-header__title">
+        Gestiona tu negocio y catalogo visible en REGALIA.
+      </h1>
       <p class="provider-profile-header__text">
-        MantÃ©n datos, disponibilidad y productos actualizados para mejorar la compatibilidad con solicitudes.
+        MantÃ©n datos, disponibilidad y productos actualizados para mejorar la compatibilidad con
+        solicitudes.
       </p>
     </header>
 
@@ -18,44 +23,81 @@
         <div class="profile-form__grid">
           <label class="profile-field" for="businessName">
             <span class="profile-field__label">Negocio</span>
-            <input id="businessName" class="profile-field__control" type="text" formControlName="businessName">
+            <input
+              id="businessName"
+              class="profile-field__control"
+              type="text"
+              formControlName="businessName"
+            />
           </label>
 
           <label class="profile-field" for="ownerName">
             <span class="profile-field__label">Responsable</span>
-            <input id="ownerName" class="profile-field__control" type="text" formControlName="ownerName">
+            <input
+              id="ownerName"
+              class="profile-field__control"
+              type="text"
+              formControlName="ownerName"
+            />
           </label>
 
           <label class="profile-field" for="district">
             <span class="profile-field__label">Distrito</span>
-            <input id="district" class="profile-field__control" type="text" formControlName="district">
+            <input
+              id="district"
+              class="profile-field__control"
+              type="text"
+              formControlName="district"
+            />
           </label>
 
           <label class="profile-field" for="whatsapp">
             <span class="profile-field__label">WhatsApp</span>
-            <input id="whatsapp" class="profile-field__control" type="tel" formControlName="whatsapp">
+            <input
+              id="whatsapp"
+              class="profile-field__control"
+              type="tel"
+              formControlName="whatsapp"
+            />
           </label>
 
           <label class="profile-field" for="availability">
             <span class="profile-field__label">Disponibilidad</span>
-            <input id="availability" class="profile-field__control" type="text" formControlName="availability">
+            <input
+              id="availability"
+              class="profile-field__control"
+              type="text"
+              formControlName="availability"
+            />
           </label>
 
           <label class="profile-field" for="deliveryTime">
             <span class="profile-field__label">Tiempo de entrega</span>
-            <input id="deliveryTime" class="profile-field__control" type="text" formControlName="deliveryTime">
+            <input
+              id="deliveryTime"
+              class="profile-field__control"
+              type="text"
+              formControlName="deliveryTime"
+            />
           </label>
         </div>
 
         <label class="profile-field" for="description">
           <span class="profile-field__label">Descripcion</span>
-          <textarea id="description" class="profile-field__control" rows="4" formControlName="description"></textarea>
+          <textarea
+            id="description"
+            class="profile-field__control"
+            rows="4"
+            formControlName="description"
+          ></textarea>
         </label>
 
         <button class="profile-form__button" type="submit">Guardar cambios</button>
 
         @if (saved()) {
-          <p class="profile-form__success">Perfil actualizado localmente. Listo para conectar a backend.</p>
+          <p class="profile-form__success">
+            Perfil actualizado localmente. Listo para conectar a backend.
+          </p>
         }
       </form>
 
@@ -86,14 +128,20 @@
           <span class="product-form__eyebrow">Publicar producto</span>
           <h2 class="product-form__title">Sube lo que quieres vender</h2>
           <p class="product-form__text">
-            Registra nombre, precio, categoria, estado e imagen referencial para mostrarlo en tu catalogo.
+            Registra nombre, precio, categoria, estado e imagen referencial para mostrarlo en tu
+            catalogo.
           </p>
         </div>
 
         <div class="product-form__grid">
           <label class="profile-field" for="productName">
             <span class="profile-field__label">Nombre del producto</span>
-            <input id="productName" class="profile-field__control" type="text" formControlName="name">
+            <input
+              id="productName"
+              class="profile-field__control"
+              type="text"
+              formControlName="name"
+            />
           </label>
           @if (hasProductError('name')) {
             <p class="profile-field__error">Ingresa un nombre de al menos 3 caracteres.</p>
@@ -112,7 +160,13 @@
 
           <label class="profile-field" for="productPrice">
             <span class="profile-field__label">Precio desde</span>
-            <input id="productPrice" class="profile-field__control" type="number" min="1" formControlName="price">
+            <input
+              id="productPrice"
+              class="profile-field__control"
+              type="number"
+              min="1"
+              formControlName="price"
+            />
           </label>
           @if (hasProductError('price')) {
             <p class="profile-field__error">El precio debe ser mayor a cero.</p>
@@ -129,12 +183,23 @@
 
         <label class="profile-field" for="productImage">
           <span class="profile-field__label">Imagen referencial</span>
-          <input id="productImage" class="profile-field__control" type="file" accept="image/*" (change)="onImageSelected($event)">
+          <input
+            id="productImage"
+            class="profile-field__control"
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+          />
         </label>
 
         <label class="profile-field" for="productDescription">
           <span class="profile-field__label">Descripcion comercial</span>
-          <textarea id="productDescription" class="profile-field__control" rows="3" formControlName="description"></textarea>
+          <textarea
+            id="productDescription"
+            class="profile-field__control"
+            rows="3"
+            formControlName="description"
+          ></textarea>
         </label>
         @if (hasProductError('description')) {
           <p class="profile-field__error">Describe el producto con al menos 10 caracteres.</p>
@@ -142,7 +207,7 @@
 
         @if (imagePreview()) {
           <figure class="product-preview">
-            <img [src]="imagePreview()" alt="Vista previa del producto">
+            <img [src]="imagePreview()" alt="Vista previa del producto" />
             <figcaption>{{ productForm.controls.imageName.value }}</figcaption>
           </figure>
         }
@@ -152,12 +217,20 @@
             {{ editingProductId() ? 'Guardar producto' : 'Publicar producto' }}
           </button>
           @if (editingProductId()) {
-            <button class="product-form__button product-form__button--ghost" type="button" (click)="resetProductForm()">Cancelar edicion</button>
+            <button
+              class="product-form__button product-form__button--ghost"
+              type="button"
+              (click)="resetProductForm()"
+            >
+              Cancelar edicion
+            </button>
           }
         </div>
 
         @if (productSaved()) {
-          <p class="profile-form__success">Producto agregado localmente al catalogo del proveedor.</p>
+          <p class="profile-form__success">
+            Producto agregado localmente al catalogo del proveedor.
+          </p>
         }
       </form>
     </section>
@@ -172,7 +245,7 @@
       <div class="provider-catalog__grid">
         @for (item of catalogItems(); track trackCatalog($index, item)) {
           <article class="catalog-item">
-            <img class="catalog-item__image" [src]="item.imagePreview" [alt]="item.name">
+            <img class="catalog-item__image" [src]="item.imagePreview" [alt]="item.name" />
             <span class="catalog-item__status">{{ item.status }}</span>
             <strong>{{ item.name }}</strong>
             <small>{{ item.category }} · Desde S/ {{ item.price }}</small>

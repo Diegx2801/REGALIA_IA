@@ -255,6 +255,10 @@ app-root {
   max-width: 1320px;
 }
 
+.rg-page__container--retail {
+  max-width: 1600px;
+}
+
 .rg-page__container--narrow {
   max-width: 920px;
 }
@@ -276,6 +280,224 @@ app-root {
   border: 1px solid rgba(234, 219, 208, 0.9);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
+}
+
+/* Formularios largos REGALIA: patron compartido para onboarding y futuras pantallas guiadas. */
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-field {
+  margin-bottom: 1.15rem;
+}
+
+.form-field label,
+.choice-fieldset legend {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 850;
+  margin-bottom: 0.45rem;
+}
+
+.form-field label span,
+.choice-fieldset legend span {
+  color: #b43f55;
+}
+
+.form-field label small {
+  color: var(--color-muted);
+  font-weight: 600;
+  margin-left: 0.35rem;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  background: #fff;
+  border: 1px solid #dcd1d6;
+  border-radius: 0.75rem;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.86rem;
+  outline: none;
+  padding: 0.78rem 0.9rem;
+  transition:
+    border 0.18s,
+    box-shadow 0.18s;
+  width: 100%;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(91, 46, 109, 0.09);
+}
+
+.form-field textarea {
+  resize: vertical;
+}
+
+.form-field--wide {
+  width: 100%;
+}
+
+.field-error {
+  color: #ae334c;
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.35rem;
+}
+
+.field-meta {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.field-meta > small:last-child {
+  color: var(--color-muted);
+  font-size: 0.67rem;
+  margin-left: auto;
+}
+
+.choice-fieldset {
+  border: 0;
+  margin: 0 0 1.35rem;
+  padding: 0;
+}
+
+.choice-fieldset > p {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  margin: -0.2rem 0 0.7rem;
+}
+
+.choice-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.choice-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.choice-card {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #ded3d8;
+  border-radius: 0.75rem;
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.74rem;
+  font-weight: 750;
+  gap: 0.55rem;
+  min-height: 3.15rem;
+  padding: 0.65rem;
+  text-align: left;
+}
+
+.choice-card span {
+  background: #f1ebef;
+  border-radius: 50%;
+  color: var(--color-primary);
+  display: grid;
+  flex: 0 0 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+}
+
+.choice-card--selected {
+  background: #f7f0f8;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.choice-card--selected span {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.currency-input {
+  border: 1px solid #dcd1d6;
+  border-radius: 0.75rem;
+  display: flex;
+  overflow: hidden;
+}
+
+.currency-input span {
+  background: #f7f3f0;
+  color: var(--color-muted);
+  display: grid;
+  padding: 0 0.8rem;
+  place-items: center;
+}
+
+.currency-input input {
+  border: 0;
+  border-radius: 0;
+}
+
+.toggle-field {
+  align-items: center;
+  background: #faf7f4;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.toggle-field > input {
+  opacity: 0;
+  position: absolute;
+}
+
+.toggle-field > span {
+  background: #cfc5ca;
+  border-radius: 999px;
+  flex: 0 0 2.4rem;
+  height: 1.35rem;
+  position: relative;
+}
+
+.toggle-field > span::after {
+  background: #fff;
+  border-radius: 50%;
+  content: '';
+  height: 0.98rem;
+  left: 0.2rem;
+  position: absolute;
+  top: 0.18rem;
+  transition: 0.2s;
+  width: 0.98rem;
+}
+
+.toggle-field > input:checked + span {
+  background: var(--color-primary);
+}
+
+.toggle-field > input:checked + span::after {
+  transform: translateX(1rem);
+}
+
+.toggle-field strong,
+.toggle-field small {
+  display: block;
+}
+
+.toggle-field strong {
+  font-size: 0.78rem;
+}
+
+.toggle-field small {
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  margin-top: 0.15rem;
 }
 
 .rg-page-shell {

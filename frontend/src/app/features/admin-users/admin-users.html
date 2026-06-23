@@ -1,18 +1,24 @@
 <section class="admin-users-page">
-  <div class="container admin-users-page__container">
+  <div class="container rg-page__container rg-page__container--wide admin-users-page__container">
     <!-- Vista administrativa mock para validar filtrado de roles sin backend. -->
     <header class="admin-users-header">
       <span class="admin-users-header__eyebrow">Administracion</span>
       <h1 class="admin-users-header__title">Usuarios y roles de REGALIA.</h1>
       <p class="admin-users-header__text">
-        Vista frontend para controlar clientes, proveedores y administradores antes de conectar la gestion real.
+        Vista frontend para controlar clientes, proveedores y administradores antes de conectar la
+        gestion real.
       </p>
     </header>
 
     <div class="admin-users-toolbar">
       <label class="admin-users-filter" for="roleFilter">
         <span class="admin-users-filter__label">Filtrar por rol</span>
-        <select id="roleFilter" class="admin-users-filter__control" [formControl]="roleFilter" (change)="onFilterChanged()">
+        <select
+          id="roleFilter"
+          class="admin-users-filter__control"
+          [formControl]="roleFilter"
+          (change)="onFilterChanged()"
+        >
           <option value="Todos">Todos</option>
           <option value="Cliente">Cliente</option>
           <option value="Proveedor">Proveedor</option>

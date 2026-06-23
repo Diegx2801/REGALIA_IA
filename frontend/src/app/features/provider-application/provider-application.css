@@ -10,7 +10,7 @@
   grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.65fr);
   gap: 2rem;
   align-items: end;
-  max-width: 88rem;
+  max-width: 1320px;
   margin: 0 auto 1.6rem;
 }
 .provider-onboarding__back {
@@ -77,7 +77,7 @@
   display: grid;
   grid-template-columns: 18rem minmax(0, 1fr);
   gap: 1.35rem;
-  max-width: 88rem;
+  max-width: 1320px;
   margin: 0 auto;
 }
 .onboarding-steps,
@@ -233,74 +233,6 @@
 .submission-note {
   padding: 1.6rem;
 }
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-.form-field {
-  margin-bottom: 1.15rem;
-}
-.form-field label,
-.choice-fieldset legend {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 850;
-  margin-bottom: 0.45rem;
-}
-.form-field label span,
-.choice-fieldset legend span {
-  color: #b43f55;
-}
-.form-field label small {
-  color: var(--color-muted);
-  font-weight: 600;
-  margin-left: 0.35rem;
-}
-.form-field input,
-.form-field select,
-.form-field textarea {
-  width: 100%;
-  border: 1px solid #dcd1d6;
-  border-radius: 0.75rem;
-  background: #fff;
-  color: var(--color-text);
-  font: inherit;
-  font-size: 0.86rem;
-  padding: 0.78rem 0.9rem;
-  outline: none;
-  transition:
-    border 0.18s,
-    box-shadow 0.18s;
-}
-.form-field input:focus,
-.form-field select:focus,
-.form-field textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(91, 46, 109, 0.09);
-}
-.form-field textarea {
-  resize: vertical;
-}
-.form-field--wide {
-  width: 100%;
-}
-.field-error {
-  display: block;
-  color: #ae334c;
-  font-size: 0.7rem;
-  margin-top: 0.35rem;
-}
-.field-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-.field-meta > small:last-child {
-  color: var(--color-muted);
-  font-size: 0.67rem;
-  margin-left: auto;
-}
 .privacy-note,
 .portfolio-tip,
 .submission-note {
@@ -318,123 +250,6 @@
   font-size: 0.74rem;
   line-height: 1.55;
   margin: 0;
-}
-.choice-fieldset {
-  border: 0;
-  padding: 0;
-  margin: 0 0 1.35rem;
-}
-.choice-fieldset > p {
-  color: var(--color-muted);
-  font-size: 0.72rem;
-  margin: -0.2rem 0 0.7rem;
-}
-.choice-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.55rem;
-}
-.choice-grid--two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.choice-card {
-  display: flex;
-  gap: 0.55rem;
-  align-items: center;
-  min-height: 3.15rem;
-  background: #fff;
-  border: 1px solid #ded3d8;
-  border-radius: 0.75rem;
-  color: var(--color-text);
-  font-size: 0.74rem;
-  font-weight: 750;
-  text-align: left;
-  padding: 0.65rem;
-  cursor: pointer;
-}
-.choice-card span {
-  display: grid;
-  place-items: center;
-  flex: 0 0 1.35rem;
-  height: 1.35rem;
-  border-radius: 50%;
-  background: #f1ebef;
-  color: var(--color-primary);
-}
-.choice-card--selected {
-  background: #f7f0f8;
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-.choice-card--selected span {
-  background: var(--color-primary);
-  color: #fff;
-}
-.currency-input {
-  display: flex;
-  border: 1px solid #dcd1d6;
-  border-radius: 0.75rem;
-  overflow: hidden;
-}
-.currency-input span {
-  display: grid;
-  place-items: center;
-  background: #f7f3f0;
-  color: var(--color-muted);
-  padding: 0 0.8rem;
-}
-.currency-input input {
-  border: 0;
-  border-radius: 0;
-}
-.toggle-field {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: #faf7f4;
-  border-radius: 0.85rem;
-  padding: 1rem;
-  cursor: pointer;
-}
-.toggle-field > input {
-  position: absolute;
-  opacity: 0;
-}
-.toggle-field > span {
-  position: relative;
-  flex: 0 0 2.4rem;
-  height: 1.35rem;
-  background: #cfc5ca;
-  border-radius: 999px;
-}
-.toggle-field > span:after {
-  content: '';
-  position: absolute;
-  top: 0.18rem;
-  left: 0.2rem;
-  width: 0.98rem;
-  height: 0.98rem;
-  background: #fff;
-  border-radius: 50%;
-  transition: 0.2s;
-}
-.toggle-field > input:checked + span {
-  background: var(--color-primary);
-}
-.toggle-field > input:checked + span:after {
-  transform: translateX(1rem);
-}
-.toggle-field strong,
-.toggle-field small {
-  display: block;
-}
-.toggle-field strong {
-  font-size: 0.78rem;
-}
-.toggle-field small {
-  color: var(--color-muted);
-  font-size: 0.68rem;
-  margin-top: 0.15rem;
 }
 .portfolio-tip strong {
   font-size: 0.78rem;
@@ -540,7 +355,7 @@
 .submitted-summary,
 .review-note {
   margin: 0 auto 1rem;
-  max-width: 88rem;
+  max-width: 1320px;
 }
 
 .application-status {

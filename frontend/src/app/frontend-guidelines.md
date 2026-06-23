@@ -14,8 +14,10 @@ Estas reglas mantienen uniforme el frontend Angular sin tocar backend.
 - Usar utilidades REGALIA para ancho de pagina:
   - `.rg-page__container` para paginas publicas y comerciales.
   - `.rg-page__container--wide` para dashboards, paneles y vistas administrativas.
+  - `.rg-page__container--retail` para portadas o vitrinas que necesitan aprovechar mas ancho visual, con comportamiento cercano a retail.
   - `.rg-page__container--narrow` para formularios y pantallas enfocadas.
 - Evitar crear nuevos `max-width` arbitrarios si una utilidad REGALIA ya cubre el caso.
+- Si una pantalla no puede usar `container` por su estructura interna, mantener el mismo criterio con `max-width: 1320px` y `margin-inline: auto`.
 
 ## CSS y BEM
 

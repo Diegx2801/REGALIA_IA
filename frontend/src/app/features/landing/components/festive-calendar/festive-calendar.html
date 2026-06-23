@@ -1,11 +1,13 @@
 <section class="festive-calendar-section" aria-labelledby="festive-calendar-title">
-  <div class="container">
+  <div class="container rg-page__container rg-page__container--retail">
     <div class="festive-calendar">
       <!-- Panel izquierdo: detalle vivo de la fecha o campana seleccionada. -->
       <aside class="festive-calendar__summary">
         <div class="festive-calendar__hero">
           <span class="festive-calendar__eyebrow">Calendario comercial</span>
-          <span class="festive-calendar__status">{{ eventFor(selectedDay()) ? 'Campana activa' : 'Fecha libre' }}</span>
+          <span class="festive-calendar__status">{{
+            eventFor(selectedDay()) ? 'Campana activa' : 'Fecha libre'
+          }}</span>
           <h2 id="festive-calendar-title" class="festive-calendar__title">
             {{ selectedDate().title }}
             <span>{{ selectedDate().day }} {{ selectedDate().month }}</span>

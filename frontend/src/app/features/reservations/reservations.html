@@ -1,5 +1,5 @@
 <section class="reservations-page">
-  <div class="container reservations-page__container">
+  <div class="container rg-page__container rg-page__container--wide reservations-page__container">
     <!-- Calendario reutilizado para cliente, proveedor y admin con textos por rol. -->
     @if (pageCopy(); as copy) {
       <header class="reservations-header">
@@ -13,7 +13,13 @@
     <div class="calendar-toolbar">
       <label class="calendar-field" for="reservation-date">
         <span class="calendar-field__label">Fecha</span>
-        <input id="reservation-date" class="calendar-field__control" type="date" [formControl]="selectedDate" (change)="onDateChanged()">
+        <input
+          id="reservation-date"
+          class="calendar-field__control"
+          type="date"
+          [formControl]="selectedDate"
+          (change)="onDateChanged()"
+        />
       </label>
 
       <nav class="calendar-strip" aria-label="Seleccion rapida por fecha">
@@ -38,7 +44,9 @@
             <div class="reservation-card__main">
               <span class="reservation-card__category">{{ order.category }}</span>
               <h2 class="reservation-card__title">{{ order.occasion }}</h2>
-              <p class="reservation-card__text">{{ order.clientName }} · {{ order.providerName }}</p>
+              <p class="reservation-card__text">
+                {{ order.clientName }} · {{ order.providerName }}
+              </p>
             </div>
             <div class="reservation-card__meta">
               <strong>{{ order.scheduledTime }}</strong>
@@ -49,7 +57,9 @@
         } @empty {
           <article class="empty-calendar">
             <h2 class="empty-calendar__title">No hay reservas para esta fecha</h2>
-            <p class="empty-calendar__text">Selecciona otro dia del calendario o crea una nueva solicitud.</p>
+            <p class="empty-calendar__text">
+              Selecciona otro dia del calendario o crea una nueva solicitud.
+            </p>
           </article>
         }
       </main>

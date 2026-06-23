@@ -8,7 +8,7 @@
 }
 
 .festive-calendar-section {
-  padding: 1.1rem 0 1.4rem;
+  padding: 1.1rem 0 1.6rem;
 }
 
 .festive-calendar {
@@ -17,16 +17,15 @@
   border-radius: 16px;
   box-shadow: var(--shadow-soft);
   display: grid;
-  grid-template-columns: minmax(18rem, 0.42fr) minmax(0, 0.58fr);
-  min-height: 24rem;
+  grid-template-columns: minmax(22rem, 0.36fr) minmax(0, 0.64fr);
+  min-height: 26rem;
   overflow: hidden;
 }
 
 .festive-calendar__summary {
   background:
     radial-gradient(circle at 90% 12%, rgba(246, 196, 83, 0.22), transparent 7rem),
-    linear-gradient(145deg, rgba(91, 46, 109, 0.94), rgba(91, 46, 109, 0.82)),
-    var(--color-primary);
+    linear-gradient(145deg, rgba(91, 46, 109, 0.94), rgba(91, 46, 109, 0.82)), var(--color-primary);
   color: #ffffff;
   display: grid;
   gap: 1.2rem;
@@ -173,7 +172,7 @@
 .festive-calendar__month {
   display: grid;
   gap: 1rem;
-  padding: 1.35rem 1.5rem;
+  padding: clamp(1.35rem, 2vw, 1.8rem);
 }
 
 .festive-calendar__top {

@@ -1,12 +1,12 @@
 <section class="cart-page">
-  <div class="container cart-page__container">
+  <div class="container rg-page__container cart-page__container">
     <header class="cart-hero row g-4 align-items-center">
       <div class="col-12 col-lg-8">
         <span class="cart-hero__eyebrow">Carrito REGALIA</span>
         <h1>Reserva productos con precio fijo sin mezclarlo con cotizaciones personalizadas.</h1>
         <p>
-          Este carrito es para regalos listos para reservar. Si necesitas algo único o todavía no tienes claro qué pedir,
-          usa el apartado de solicitud con IA.
+          Este carrito es para regalos listos para reservar. Si necesitas algo único o todavía no
+          tienes claro qué pedir, usa el apartado de solicitud con IA.
         </p>
       </div>
       <div class="col-12 col-lg-4 cart-hero__media">
@@ -24,7 +24,13 @@
                 <span>Productos seleccionados</span>
                 <strong>{{ summary().totalItems }} item(s)</strong>
               </div>
-              <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" (click)="clear()">Vaciar carrito</button>
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm rounded-pill"
+                (click)="clear()"
+              >
+                Vaciar carrito
+              </button>
             </div>
 
             <div class="d-grid gap-3">
@@ -58,7 +64,9 @@
 
                     <div class="cart-item__actions">
                       <div class="quantity-control" aria-label="Cantidad">
-                        <button type="button" (click)="decrease(item.product.id, item.quantity)">−</button>
+                        <button type="button" (click)="decrease(item.product.id, item.quantity)">
+                          −
+                        </button>
                         <input
                           type="number"
                           min="1"
@@ -66,9 +74,17 @@
                           [value]="item.quantity"
                           (change)="updateQuantity(item.product.id, $any($event.target).value)"
                         />
-                        <button type="button" (click)="increase(item.product.id, item.quantity)">+</button>
+                        <button type="button" (click)="increase(item.product.id, item.quantity)">
+                          +
+                        </button>
                       </div>
-                      <button class="cart-item__remove" type="button" (click)="remove(item.product.id)">Quitar</button>
+                      <button
+                        class="cart-item__remove"
+                        type="button"
+                        (click)="remove(item.product.id)"
+                      >
+                        Quitar
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -84,24 +100,45 @@
             <p>{{ deliveryNote() }}</p>
 
             <div class="cart-summary__rows">
-              <div><span>Subtotal</span><strong>S/ {{ summary().subtotal }}</strong></div>
-              <div><span>Reserva inicial 20%</span><strong>S/ {{ summary().reservation }}</strong></div>
-              <div><span>Comisión estimada REGALIA</span><strong>S/ {{ summary().platformCommission }}</strong></div>
-              <div><span>Adelanto al proveedor</span><strong>S/ {{ summary().providerAdvance }}</strong></div>
-              <div class="cart-summary__total"><span>Saldo al recibir</span><strong>S/ {{ summary().remainingToPay }}</strong></div>
+              <div>
+                <span>Subtotal</span><strong>S/ {{ summary().subtotal }}</strong>
+              </div>
+              <div>
+                <span>Reserva inicial 20%</span><strong>S/ {{ summary().reservation }}</strong>
+              </div>
+              <div>
+                <span>Comisión estimada REGALIA</span
+                ><strong>S/ {{ summary().platformCommission }}</strong>
+              </div>
+              <div>
+                <span>Adelanto al proveedor</span
+                ><strong>S/ {{ summary().providerAdvance }}</strong>
+              </div>
+              <div class="cart-summary__total">
+                <span>Saldo al recibir</span><strong>S/ {{ summary().remainingToPay }}</strong>
+              </div>
             </div>
 
             @if (checkoutMode() === 'sent') {
               <div class="cart-summary__success">
                 <strong>Reserva preparada</strong>
-                <span>En el MVP esta acción queda simulada. Cuando conectemos pagos, aquí se generará la reserva real.</span>
+                <span
+                  >En el MVP esta acción queda simulada. Cuando conectemos pagos, aquí se generará
+                  la reserva real.</span
+                >
               </div>
             }
 
-            <button class="btn btn-primary rounded-pill w-100" type="button" (click)="confirmReservation()">
+            <button
+              class="btn btn-primary rounded-pill w-100"
+              type="button"
+              (click)="confirmReservation()"
+            >
               Preparar reserva
             </button>
-            <a class="btn btn-outline-primary rounded-pill w-100 mt-2" routerLink="/catalogo">Seguir explorando</a>
+            <a class="btn btn-outline-primary rounded-pill w-100 mt-2" routerLink="/catalogo"
+              >Seguir explorando</a
+            >
           </section>
         </aside>
       </div>
@@ -109,10 +146,15 @@
       <section class="cart-empty card border-0 shadow-sm">
         <img src="/images/regalia-cart-logo.png" alt="Carrito REGALIA" />
         <h2>Tu carrito está vacío</h2>
-        <p>Agrega productos con precio fijo desde el catálogo o crea una solicitud personalizada con IA.</p>
+        <p>
+          Agrega productos con precio fijo desde el catálogo o crea una solicitud personalizada con
+          IA.
+        </p>
         <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
           <a class="btn btn-primary rounded-pill px-4" routerLink="/catalogo">Ver catálogo</a>
-          <a class="btn btn-outline-primary rounded-pill px-4" routerLink="/pedir-con-ia">Cotizar con IA</a>
+          <a class="btn btn-outline-primary rounded-pill px-4" routerLink="/pedir-con-ia"
+            >Cotizar con IA</a
+          >
         </div>
       </section>
     }

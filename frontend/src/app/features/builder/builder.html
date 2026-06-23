@@ -1,8 +1,10 @@
 <section class="builder-page">
-  <div class="container builder-page__container">
+  <div class="container rg-page__container rg-page__container--wide builder-page__container">
     <header class="builder-header">
       <span class="builder-header__eyebrow">Pedir con IA</span>
-      <h1 class="builder-header__title">Describe tu regalo ideal. REGALIA encuentra proveedores compatibles.</h1>
+      <h1 class="builder-header__title">
+        Describe tu regalo ideal. REGALIA encuentra proveedores compatibles.
+      </h1>
       <p class="builder-header__text">
         Necesidad del cliente → interpretación IA → ranking de proveedores → reserva con seña.
       </p>
@@ -27,7 +29,12 @@
 
         <label class="form-field" for="need">
           <span class="form-field__label">Descripción libre</span>
-          <textarea id="need" class="form-field__control" rows="5" formControlName="need"></textarea>
+          <textarea
+            id="need"
+            class="form-field__control"
+            rows="5"
+            formControlName="need"
+          ></textarea>
         </label>
         @if (requestForm.controls.need.invalid && requestForm.controls.need.touched) {
           <p class="form-field__error">Describe la necesidad con más detalle.</p>
@@ -45,27 +52,39 @@
 
           <label class="form-field" for="budget">
             <span class="form-field__label">Presupuesto</span>
-            <input id="budget" class="form-field__control" type="number" min="20" max="2000" formControlName="budget">
+            <input
+              id="budget"
+              class="form-field__control"
+              type="number"
+              min="20"
+              max="2000"
+              formControlName="budget"
+            />
           </label>
 
           <label class="form-field" for="style">
             <span class="form-field__label">Estilo</span>
-            <input id="style" class="form-field__control" type="text" formControlName="style">
+            <input id="style" class="form-field__control" type="text" formControlName="style" />
           </label>
 
           <label class="form-field" for="deliveryDate">
             <span class="form-field__label">Fecha de entrega</span>
-            <input id="deliveryDate" class="form-field__control" type="text" formControlName="deliveryDate">
+            <input
+              id="deliveryDate"
+              class="form-field__control"
+              type="text"
+              formControlName="deliveryDate"
+            />
           </label>
         </div>
 
         <label class="form-field" for="district">
           <span class="form-field__label">Zona de entrega</span>
-          <input id="district" class="form-field__control" type="text" formControlName="district">
+          <input id="district" class="form-field__control" type="text" formControlName="district" />
         </label>
 
         <label class="request-panel__check">
-          <input type="checkbox" formControlName="urgent">
+          <input type="checkbox" formControlName="urgent" />
           <span>Necesito una opción express</span>
         </label>
 
@@ -87,17 +106,26 @@
         }
 
         <section class="recommendation-list" aria-label="Ranking de proveedores compatibles">
-          @for (recommendation of recommendations(); track trackRecommendation($index, recommendation)) {
+          @for (
+            recommendation of recommendations();
+            track trackRecommendation($index, recommendation)
+          ) {
             <button
               class="recommendation-card"
               type="button"
-              [class.recommendation-card--selected]="selectedRecommendation()?.provider?.id === recommendation.provider.id"
+              [class.recommendation-card--selected]="
+                selectedRecommendation()?.provider?.id === recommendation.provider.id
+              "
               (click)="selectRecommendation(recommendation)"
             >
               <span class="recommendation-card__score">{{ recommendation.score }}%</span>
               <span class="recommendation-card__content">
-                <span class="recommendation-card__category">{{ recommendation.provider.category }}</span>
-                <strong class="recommendation-card__title">{{ recommendation.provider.businessName }}</strong>
+                <span class="recommendation-card__category">{{
+                  recommendation.provider.category
+                }}</span>
+                <strong class="recommendation-card__title">{{
+                  recommendation.provider.businessName
+                }}</strong>
                 <span class="recommendation-card__reason">{{ recommendation.reason }}</span>
                 <span class="recommendation-card__tags">
                   @for (style of recommendation.provider.styles; track trackText($index, style)) {
@@ -128,10 +156,21 @@
 
           <section class="reservation-box">
             <h3 class="reservation-box__title">Reserva inteligente</h3>
-            <div class="reservation-box__row"><span>Pedido estimado</span><strong>S/ {{ selected.reservation.estimatedOrder }}</strong></div>
-            <div class="reservation-box__row"><span>Seña cliente</span><strong>S/ {{ selected.reservation.reservation }}</strong></div>
-            <div class="reservation-box__row"><span>Comisión REGALIA</span><strong>S/ {{ selected.reservation.platformCommission }}</strong></div>
-            <div class="reservation-box__row"><span>Proveedor recibe</span><strong>S/ {{ selected.reservation.providerCredit }}</strong></div>
+            <div class="reservation-box__row">
+              <span>Pedido estimado</span
+              ><strong>S/ {{ selected.reservation.estimatedOrder }}</strong>
+            </div>
+            <div class="reservation-box__row">
+              <span>Seña cliente</span><strong>S/ {{ selected.reservation.reservation }}</strong>
+            </div>
+            <div class="reservation-box__row">
+              <span>Comisión REGALIA</span
+              ><strong>S/ {{ selected.reservation.platformCommission }}</strong>
+            </div>
+            <div class="reservation-box__row">
+              <span>Proveedor recibe</span
+              ><strong>S/ {{ selected.reservation.providerCredit }}</strong>
+            </div>
           </section>
 
           <button class="reservation-panel__button" type="button">Confirmar reserva</button>

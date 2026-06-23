@@ -1,15 +1,22 @@
 <section class="manual-page">
-  <div class="container manual-page__container">
+  <div class="container rg-page__container rg-page__container--wide manual-page__container">
     <header class="manual-header">
       <span class="manual-header__eyebrow">Constructor manual</span>
       <h1 class="manual-header__title">Arma una solicitud precisa sin usar IA.</h1>
       <p class="manual-header__text">
-        Selecciona ocasión, presupuesto, estilo y zona para generar una reserva clara con proveedores compatibles.
+        Selecciona ocasión, presupuesto, estilo y zona para generar una reserva clara con
+        proveedores compatibles.
       </p>
     </header>
 
     <div class="manual-layout">
-      <form class="manual-form" [formGroup]="manualForm" (change)="onFormChanged()" (input)="onFormChanged()" (ngSubmit)="confirmManualRequest()">
+      <form
+        class="manual-form"
+        [formGroup]="manualForm"
+        (change)="onFormChanged()"
+        (input)="onFormChanged()"
+        (ngSubmit)="confirmManualRequest()"
+      >
         <div class="manual-form__head">
           <span class="manual-form__eyebrow">Datos de la solicitud</span>
           <h2 class="manual-form__title">Preferencias del regalo</h2>
@@ -36,28 +43,55 @@
 
           <label class="manual-field" for="manual-budget">
             <span class="manual-field__label">Presupuesto</span>
-            <input id="manual-budget" class="manual-field__control" type="number" min="20" max="2000" formControlName="budget">
+            <input
+              id="manual-budget"
+              class="manual-field__control"
+              type="number"
+              min="20"
+              max="2000"
+              formControlName="budget"
+            />
           </label>
 
           <label class="manual-field" for="manual-style">
             <span class="manual-field__label">Estilo</span>
-            <input id="manual-style" class="manual-field__control" type="text" formControlName="style">
+            <input
+              id="manual-style"
+              class="manual-field__control"
+              type="text"
+              formControlName="style"
+            />
           </label>
 
           <label class="manual-field" for="manual-date">
             <span class="manual-field__label">Fecha</span>
-            <input id="manual-date" class="manual-field__control" type="text" formControlName="deliveryDate">
+            <input
+              id="manual-date"
+              class="manual-field__control"
+              type="text"
+              formControlName="deliveryDate"
+            />
           </label>
 
           <label class="manual-field" for="manual-district">
             <span class="manual-field__label">Distrito</span>
-            <input id="manual-district" class="manual-field__control" type="text" formControlName="district">
+            <input
+              id="manual-district"
+              class="manual-field__control"
+              type="text"
+              formControlName="district"
+            />
           </label>
         </div>
 
         <label class="manual-field" for="manual-details">
           <span class="manual-field__label">Comentarios adicionales</span>
-          <textarea id="manual-details" class="manual-field__control" rows="4" formControlName="details"></textarea>
+          <textarea
+            id="manual-details"
+            class="manual-field__control"
+            rows="4"
+            formControlName="details"
+          ></textarea>
         </label>
 
         <button class="manual-form__button" type="submit">Generar solicitud manual</button>
@@ -66,7 +100,9 @@
       <main class="manual-providers" aria-label="Proveedores compatibles">
         <div class="manual-providers__head">
           <span class="manual-providers__eyebrow">Compatibles</span>
-          <h2 class="manual-providers__title">{{ compatibleProviders().length }} opciones sugeridas</h2>
+          <h2 class="manual-providers__title">
+            {{ compatibleProviders().length }} opciones sugeridas
+          </h2>
         </div>
 
         @for (provider of compatibleProviders(); track trackProvider($index, provider)) {
@@ -80,7 +116,9 @@
             <span class="manual-provider-card__body">
               <span class="manual-provider-card__category">{{ provider.category }}</span>
               <strong class="manual-provider-card__title">{{ provider.businessName }}</strong>
-              <small class="manual-provider-card__text">{{ provider.availability }} · {{ provider.deliveryTime }}</small>
+              <small class="manual-provider-card__text"
+                >{{ provider.availability }} · {{ provider.deliveryTime }}</small
+              >
               <span class="manual-provider-card__tags">
                 @for (style of provider.styles; track trackText($index, style)) {
                   <span>{{ style }}</span>
@@ -92,7 +130,9 @@
         } @empty {
           <article class="manual-empty">
             <h2 class="manual-empty__title">Aún no hay compatibilidad exacta</h2>
-            <p class="manual-empty__text">Sube el presupuesto o cambia categoría para ampliar las opciones.</p>
+            <p class="manual-empty__text">
+              Sube el presupuesto o cambia categoría para ampliar las opciones.
+            </p>
           </article>
         }
       </main>
@@ -118,14 +158,26 @@
 
         <section class="manual-breakdown">
           <h3 class="manual-breakdown__title">Reserva estimada</h3>
-          <div class="manual-breakdown__row"><span>Total pedido</span><strong>S/ {{ reservationBreakdown().estimatedOrder }}</strong></div>
-          <div class="manual-breakdown__row"><span>Seña</span><strong>S/ {{ reservationBreakdown().reservation }}</strong></div>
-          <div class="manual-breakdown__row"><span>Comisión REGALIA</span><strong>S/ {{ reservationBreakdown().platformCommission }}</strong></div>
-          <div class="manual-breakdown__row"><span>Proveedor recibe</span><strong>S/ {{ reservationBreakdown().providerCredit }}</strong></div>
+          <div class="manual-breakdown__row">
+            <span>Total pedido</span><strong>S/ {{ reservationBreakdown().estimatedOrder }}</strong>
+          </div>
+          <div class="manual-breakdown__row">
+            <span>Seña</span><strong>S/ {{ reservationBreakdown().reservation }}</strong>
+          </div>
+          <div class="manual-breakdown__row">
+            <span>Comisión REGALIA</span
+            ><strong>S/ {{ reservationBreakdown().platformCommission }}</strong>
+          </div>
+          <div class="manual-breakdown__row">
+            <span>Proveedor recibe</span
+            ><strong>S/ {{ reservationBreakdown().providerCredit }}</strong>
+          </div>
         </section>
 
         @if (submitted()) {
-          <p class="manual-summary__success">Solicitud manual lista para enviar a proveedores compatibles.</p>
+          <p class="manual-summary__success">
+            Solicitud manual lista para enviar a proveedores compatibles.
+          </p>
         }
       </aside>
     </div>

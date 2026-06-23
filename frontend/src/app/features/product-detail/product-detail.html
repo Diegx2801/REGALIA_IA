@@ -1,5 +1,5 @@
 <section class="product-page">
-  <div class="container product-page__container">
+  <div class="container rg-page__container product-page__container">
     @if (product; as product) {
       <a class="product-page__back" routerLink="/catalogo">← Volver al catálogo</a>
 
@@ -14,7 +14,9 @@
         </div>
 
         <div class="product-detail-card__content">
-          <span class="product-detail-card__eyebrow">{{ product.providerCategory }} · {{ product.provider }}</span>
+          <span class="product-detail-card__eyebrow"
+            >{{ product.providerCategory }} · {{ product.provider }}</span
+          >
           <h1>{{ product.title }}</h1>
           <p>{{ product.description }}</p>
 

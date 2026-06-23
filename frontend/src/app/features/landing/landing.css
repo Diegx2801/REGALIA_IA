@@ -12,34 +12,40 @@
   padding: clamp(0.75rem, 1.4vw, 1.25rem) 0 1.2rem;
 }
 
-.landing-hero .container {
-  max-width: min(100%, 1440px);
-  padding-inline: clamp(0.75rem, 2vw, 1.25rem);
+.landing-hero__container {
+  display: grid;
+  gap: 1.15rem;
 }
 
 .landing-hero__frame {
   background:
-    linear-gradient(90deg, rgba(255, 247, 239, 0.98) 0%, rgba(255, 247, 239, 0.82) 44%, rgba(255, 247, 239, 0.1) 70%),
+    linear-gradient(
+      90deg,
+      rgba(255, 247, 239, 0.99) 0%,
+      rgba(255, 247, 239, 0.84) 40%,
+      rgba(255, 247, 239, 0.06) 72%
+    ),
     url('/images/regalia-hero-gift.png') center right / cover no-repeat;
   border: 1px solid rgba(234, 216, 201, 0.95);
   border-radius: clamp(14px, 1.2vw, 22px);
   box-shadow: var(--shadow-soft);
+  min-width: 0;
   min-height: clamp(27rem, 43vw, 36rem);
   overflow: hidden;
   position: relative;
 }
 
 .landing-hero__content {
-  max-width: min(52rem, 62vw);
-  padding: clamp(2rem, 4vw, 4.25rem) clamp(1.25rem, 4vw, 3.25rem) clamp(1.4rem, 3vw, 2.4rem);
+  max-width: min(64rem, 68vw);
+  padding: clamp(2rem, 4vw, 4.35rem) clamp(1.25rem, 4vw, 3.6rem) clamp(1.4rem, 3vw, 2.5rem);
 }
 
 .landing-hero__title {
   color: var(--color-text);
-  font-size: clamp(2.45rem, 4.9vw, 4.9rem);
+  font-size: clamp(2.7rem, 5vw, 5.4rem);
   line-height: 1.06;
   margin: 0 0 0.85rem;
-  max-width: 48rem;
+  max-width: 54rem;
 }
 
 .landing-hero__subtitle {
@@ -47,9 +53,8 @@
   font-size: clamp(1rem, 1.35vw, 1.2rem);
   line-height: 1.8;
   margin-bottom: 1.45rem;
-  max-width: 40rem;
+  max-width: 48rem;
 }
-
 
 /* ==========================================================================
    Accesos por Ocasión
@@ -57,9 +62,10 @@
    ========================================================================== */
 .occasion-strip {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.8rem;
   grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-  margin-top: 1.25rem;
+  margin-top: 0;
+  min-width: 0;
 }
 
 .occasion-strip__item {
@@ -130,7 +136,8 @@
   align-items: start;
   display: grid;
   gap: 1.4rem;
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 25rem);
+  min-width: 0;
 }
 
 .section-heading {
@@ -167,7 +174,9 @@
   border-radius: 14px;
   box-shadow: var(--shadow-soft);
   overflow: hidden;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .product-card:hover {
@@ -422,7 +431,12 @@
 @media (max-width: 991.98px) {
   .landing-hero__frame {
     background:
-      linear-gradient(180deg, rgba(255, 247, 239, 0.98) 0%, rgba(255, 247, 239, 0.78) 60%, rgba(255, 247, 239, 0.1) 100%),
+      linear-gradient(
+        180deg,
+        rgba(255, 247, 239, 0.98) 0%,
+        rgba(255, 247, 239, 0.78) 60%,
+        rgba(255, 247, 239, 0.1) 100%
+      ),
       url('/images/regalia-hero-gift.png') center bottom / cover no-repeat;
   }
 

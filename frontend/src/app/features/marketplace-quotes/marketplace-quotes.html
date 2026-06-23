@@ -1,5 +1,5 @@
 <section class="quotes-page">
-  <div class="container quotes-page__container">
+  <div class="container rg-page__container rg-page__container--wide quotes-page__container">
     <header class="quotes-header">
       <span class="quotes-header__eyebrow">Panel operativo</span>
       <h1 class="quotes-header__title">Solicitudes, reservas, estados y comisiones de REGALIA.</h1>
@@ -42,11 +42,16 @@
         @if (selectedOrder(); as order) {
           <span class="order-detail__eyebrow">Pedido seleccionado</span>
           <h2 class="order-detail__title">#{{ order.id }} · {{ order.occasion }}</h2>
-          <p class="order-detail__text">{{ order.clientName }} eligió a {{ order.providerName }} para {{ order.category }}.</p>
+          <p class="order-detail__text">
+            {{ order.clientName }} eligió a {{ order.providerName }} para {{ order.category }}.
+          </p>
 
           <div class="status-flow" aria-label="Estado del pedido">
             @for (status of statuses; track trackStatus($index, status)) {
-              <span class="status-flow__step" [class.status-flow__step--active]="order.status === status">
+              <span
+                class="status-flow__step"
+                [class.status-flow__step--active]="order.status === status"
+              >
                 {{ status }}
               </span>
             }
@@ -54,13 +59,25 @@
 
           <section class="commission-box">
             <h3 class="commission-box__title">Reserva y comisión</h3>
-            <div class="commission-box__row"><span>Total pedido</span><strong>S/ {{ selectedBreakdown().estimatedOrder }}</strong></div>
-            <div class="commission-box__row"><span>Seña cliente</span><strong>S/ {{ selectedBreakdown().reservation }}</strong></div>
-            <div class="commission-box__row"><span>Comisión REGALIA</span><strong>S/ {{ selectedBreakdown().platformCommission }}</strong></div>
-            <div class="commission-box__row"><span>Proveedor recibe</span><strong>S/ {{ selectedBreakdown().providerCredit }}</strong></div>
+            <div class="commission-box__row">
+              <span>Total pedido</span><strong>S/ {{ selectedBreakdown().estimatedOrder }}</strong>
+            </div>
+            <div class="commission-box__row">
+              <span>Seña cliente</span><strong>S/ {{ selectedBreakdown().reservation }}</strong>
+            </div>
+            <div class="commission-box__row">
+              <span>Comisión REGALIA</span
+              ><strong>S/ {{ selectedBreakdown().platformCommission }}</strong>
+            </div>
+            <div class="commission-box__row">
+              <span>Proveedor recibe</span
+              ><strong>S/ {{ selectedBreakdown().providerCredit }}</strong>
+            </div>
           </section>
 
-          <button class="order-detail__button" type="button" (click)="advanceSelectedOrderStatus()">Actualizar estado</button>
+          <button class="order-detail__button" type="button" (click)="advanceSelectedOrderStatus()">
+            Actualizar estado
+          </button>
         }
       </aside>
     </div>
