@@ -283,8 +283,17 @@
   gap: 0.42rem;
   justify-content: center;
   min-height: 3.05rem;
-  padding: 0.7rem 0.9rem;
+  padding: 0.55rem 0.85rem;
   text-decoration: none;
+}
+
+
+.regalia-navbar__cart-logo {
+  display: block;
+  filter: drop-shadow(0 6px 10px rgba(90, 36, 64, 0.18));
+  height: 2.05rem;
+  object-fit: contain;
+  width: 2.05rem;
 }
 
 .regalia-navbar__cart strong {

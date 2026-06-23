@@ -1,7 +1,8 @@
 /* ==========================================================================
    REGALIA Design System
    Base visual compartida para todo el frontend Angular.
-   No depende de Bootstrap ni de configuraciones locales.
+   Bootstrap se usa como base responsive instalada por npm; REGALIA mantiene
+   una identidad visual propia encima de sus utilidades y grilla.
    ========================================================================== */
 :root {
   --color-primary: #5a2440;
@@ -25,9 +26,17 @@
   --color-success-soft: rgba(47, 123, 98, 0.12);
   --color-alert-soft: rgba(179, 58, 77, 0.11);
 
-  --font-base: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --font-heading: var(--font-display);
+  --font-base: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-base);
+  --font-heading: var(--font-base);
+
+  --bs-body-font-family: var(--font-base);
+  --bs-body-bg: var(--color-bg);
+  --bs-body-color: var(--color-text);
+  --bs-primary: var(--color-primary);
+  --bs-secondary: var(--color-secondary);
+  --bs-border-radius: var(--radius-sm);
+  --bs-border-radius-lg: var(--radius-lg);
 
   --radius-xs: 0.55rem;
   --radius-sm: 0.8rem;
@@ -67,6 +76,7 @@ html {
 }
 
 body {
+  --bs-body-font-family: var(--font-base);
   background:
     radial-gradient(circle at 8% 10%, rgba(214, 168, 62, 0.13), transparent 18rem),
     radial-gradient(circle at 88% 4%, rgba(90, 36, 64, 0.08), transparent 20rem),
@@ -84,9 +94,10 @@ body {
 h1, h2, h3, h4, h5, h6,
 .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
   color: var(--color-text);
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.05;
+  font-family: var(--font-base);
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
   text-wrap: balance;
 }
 
@@ -123,7 +134,67 @@ app-root {
   min-height: 100vh;
 }
 
-/* Reemplazo mínimo de utilidades antes provistas por Bootstrap CDN. */
+
+/* Ajustes de Bootstrap para que respete la identidad de REGALIA.
+   Importamos grid/utilities/reboot, no todo el CSS de Bootstrap, para evitar peso innecesario. */
+.btn {
+  align-items: center;
+  border: 1px solid transparent;
+  display: inline-flex;
+  font-family: var(--font-base);
+  font-weight: 850;
+  justify-content: center;
+  line-height: 1.2;
+  min-height: 2.75rem;
+  padding: 0.72rem 1rem;
+  text-decoration: none;
+}
+
+.btn-sm {
+  font-size: 0.82rem;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.85rem;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--color-primary);
+  --bs-btn-border-color: var(--color-primary);
+  --bs-btn-hover-bg: var(--color-primary-700);
+  --bs-btn-hover-border-color: var(--color-primary-700);
+  --bs-btn-active-bg: var(--color-primary-700);
+  --bs-btn-active-border-color: var(--color-primary-700);
+  --bs-btn-color: #ffffff;
+  --bs-btn-hover-color: #ffffff;
+  font-weight: 850;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--color-primary);
+  --bs-btn-border-color: rgba(90, 36, 64, 0.28);
+  --bs-btn-hover-bg: var(--color-primary);
+  --bs-btn-hover-border-color: var(--color-primary);
+  --bs-btn-hover-color: #ffffff;
+  font-weight: 850;
+}
+
+.card {
+  --bs-card-border-color: rgba(234, 219, 208, 0.95);
+  --bs-card-border-radius: var(--radius-lg);
+  --bs-card-bg: rgba(255, 255, 255, 0.9);
+}
+
+.form-control,
+.form-select {
+  border-color: rgba(90, 36, 64, 0.18);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.25rem rgba(90, 36, 64, 0.11);
+}
+
+/* Complementos de layout sobre Bootstrap para mantener medidas REGALIA. */
 .container {
   margin-inline: auto;
   max-width: 1180px;

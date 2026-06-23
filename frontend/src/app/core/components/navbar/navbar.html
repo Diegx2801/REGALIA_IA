@@ -46,8 +46,8 @@
 
       <div class="regalia-navbar__actions">
         <a class="regalia-navbar__cart" routerLink="/carrito" (click)="closeMenu()" aria-label="Ver carrito">
-          <span aria-hidden="true">🛍️</span>
-          Carrito
+          <img class="regalia-navbar__cart-logo" src="/images/regalia-cart-logo.png" alt="" aria-hidden="true" />
+          <span>Carrito</span>
           @if (cartTotalItems() > 0) {
             <strong>{{ cartTotalItems() }}</strong>
           }
