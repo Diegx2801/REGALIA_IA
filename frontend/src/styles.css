@@ -1,8 +1,8 @@
 /* ==========================================================================
    REGALIA Design System
    Base visual compartida para todo el frontend Angular.
-   Bootstrap se usa como base responsive instalada por npm; REGALIA mantiene
-   una identidad visual propia encima de sus utilidades y grilla.
+   Bootstrap aporta reboot, grilla y utilidades; REGALIA define encima su
+   identidad visual, tokens y componentes BEM especificos.
    ========================================================================== */
 :root {
   --color-primary: #5a2440;
@@ -51,6 +51,7 @@
   --shadow-lift: 0 28px 70px rgba(42, 25, 38, 0.14);
   --shadow-focus: 0 0 0 4px rgba(214, 168, 62, 0.24);
   --transition-fast: 180ms ease;
+  --brand-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
 
   /* Alias compatibles con componentes existentes durante refactorizaciones. */
   --color-plum: var(--color-primary);
@@ -135,6 +136,10 @@ button {
 }
 button {
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 button,
@@ -540,8 +545,11 @@ app-root {
 
 .rg-button:disabled,
 .button:disabled {
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+  color: var(--color-muted);
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 1;
 }
 
 .rg-button--primary,

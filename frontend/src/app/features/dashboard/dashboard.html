@@ -1,5 +1,5 @@
 <section class="dashboard-page">
-  <div class="dashboard-container rg-page__container rg-page__container--wide">
+  <div class="dashboard-container rg-page__container rg-page__container--retail">
     <header class="dashboard-heading">
       <div>
         <span class="dashboard-heading__eyebrow">{{ view().eyebrow }}</span>
@@ -10,15 +10,43 @@
       }
     </header>
 
+    <section class="metric-grid row g-3" aria-label="Indicadores principales">
+      @for (metric of view().metrics; track metric.label) {
+        <article class="metric-card col-6 col-xl-3">
+          <span>{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+          <small>{{ metric.hint }}</small>
+          @if (metric.trend) {
+            <em>{{ metric.trend }}</em>
+          }
+        </article>
+      }
+    </section>
+
+    <section class="dashboard-workbench row g-3" aria-label="Prioridades del espacio privado">
+      <article class="dashboard-workbench__item dashboard-workbench__item--primary col-12 col-xl-6">
+        <span>Próximo paso</span>
+        <strong>{{ view().primaryLabel }}</strong>
+        <p>{{ view().text }}</p>
+        <a [routerLink]="actionRoute(view().primaryRoute)">Continuar</a>
+      </article>
+      <article class="dashboard-workbench__item col-12 col-md-6 col-xl-3">
+        <span>Hoy</span>
+        <strong>{{ todayLabel }}</strong>
+        <p>Revisa reservas, solicitudes y acciones pendientes sin salir de tu espacio.</p>
+      </article>
+      <article class="dashboard-workbench__item col-12 col-md-6 col-xl-3">
+        <span>Rol activo</span>
+        <strong>{{ role() }}</strong>
+        <p>Las opciones visibles se ajustan a los permisos de esta sesión.</p>
+      </article>
+    </section>
+
     <section class="dashboard-hero" [attr.data-role]="role()">
       <div class="dashboard-hero__copy">
         <span class="dashboard-hero__tag">REGALIA Workspace</span>
         <h1>{{ view().title }}</h1>
         <p>{{ view().text }}</p>
-        <div class="dashboard-hero__actions">
-          <a [routerLink]="actionRoute(view().primaryRoute)">{{ view().primaryLabel }}</a>
-          <span>Panel conectado a tu rol: {{ role() }}</span>
-        </div>
       </div>
       <div class="dashboard-hero__signature" aria-hidden="true">
         <span>R</span>
@@ -44,21 +72,8 @@
       </article>
     </section>
 
-    <section class="metric-grid" aria-label="Indicadores principales">
-      @for (metric of view().metrics; track metric.label) {
-        <article class="metric-card">
-          <span>{{ metric.label }}</span>
-          <strong>{{ metric.value }}</strong>
-          <small>{{ metric.hint }}</small>
-          @if (metric.trend) {
-            <em>{{ metric.trend }}</em>
-          }
-        </article>
-      }
-    </section>
-
-    <div class="dashboard-grid">
-      <section class="dashboard-panel dashboard-panel--activity">
+    <div class="dashboard-grid row g-3 g-xl-4 align-items-start">
+      <section class="dashboard-panel dashboard-panel--activity col-12 col-xl-8">
         <header class="dashboard-panel__header">
           <div>
             <span>Seguimiento</span>
@@ -92,7 +107,7 @@
         }
       </section>
 
-      <aside class="dashboard-panel dashboard-panel--actions">
+      <aside class="dashboard-panel dashboard-panel--actions col-12 col-xl-4">
         <header class="dashboard-panel__header">
           <div>
             <span>Accesos directos</span>

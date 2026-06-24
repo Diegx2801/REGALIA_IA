@@ -16,7 +16,7 @@ export class CartComponent {
   readonly items = this.cartService.items;
   readonly summary = this.cartService.summary;
   readonly hasItems = this.cartService.hasItems;
-  readonly checkoutMode = signal<'review' | 'sent'>('review');
+  readonly checkoutMode = signal<'cart' | 'confirmation' | 'sent'>('cart');
   readonly deliveryNote = computed(() =>
     this.items().length === 1
       ? 'El proveedor confirmará personalización, hora y dirección antes de preparar el pedido.'
@@ -24,28 +24,36 @@ export class CartComponent {
   );
 
   updateQuantity(productId: number, value: string): void {
-    this.checkoutMode.set('review');
+    this.checkoutMode.set('cart');
     this.cartService.updateQuantity(productId, Number(value));
   }
 
   increase(productId: number, currentQuantity: number): void {
-    this.checkoutMode.set('review');
+    this.checkoutMode.set('cart');
     this.cartService.updateQuantity(productId, currentQuantity + 1);
   }
 
   decrease(productId: number, currentQuantity: number): void {
-    this.checkoutMode.set('review');
+    this.checkoutMode.set('cart');
     this.cartService.updateQuantity(productId, currentQuantity - 1);
   }
 
   remove(productId: number): void {
-    this.checkoutMode.set('review');
+    this.checkoutMode.set('cart');
     this.cartService.removeProduct(productId);
   }
 
   clear(): void {
-    this.checkoutMode.set('review');
+    this.checkoutMode.set('cart');
     this.cartService.clearCart();
+  }
+
+  reviewReservation(): void {
+    this.checkoutMode.set('confirmation');
+  }
+
+  backToCart(): void {
+    this.checkoutMode.set('cart');
   }
 
   confirmReservation(): void {

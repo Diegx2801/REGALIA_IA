@@ -1,5 +1,5 @@
 <section class="cart-page">
-  <div class="container rg-page__container cart-page__container">
+  <div class="container rg-page__container rg-page__container--retail cart-page__container">
     <header class="cart-hero row g-4 align-items-center">
       <div class="col-12 col-lg-8">
         <span class="cart-hero__eyebrow">Carrito REGALIA</span>
@@ -16,8 +16,26 @@
     </header>
 
     @if (hasItems()) {
-      <div class="row g-4 align-items-start">
-        <main class="col-12 col-xl-8" aria-label="Productos del carrito">
+      <nav class="checkout-steps" aria-label="Progreso de reserva">
+        <span class="checkout-steps__item checkout-steps__item--active">Carrito</span>
+        <span
+          class="checkout-steps__item"
+          [class.checkout-steps__item--active]="
+            checkoutMode() === 'confirmation' || checkoutMode() === 'sent'
+          "
+        >
+          Confirmación
+        </span>
+        <span
+          class="checkout-steps__item"
+          [class.checkout-steps__item--active]="checkoutMode() === 'sent'"
+        >
+          Reserva preparada
+        </span>
+      </nav>
+
+      <div class="row g-3 g-xxl-4 align-items-start">
+        <main class="col-12 col-xl-8 col-xxl-9" aria-label="Productos del carrito">
           <section class="cart-list card border-0 shadow-sm">
             <div class="cart-list__head">
               <div>
@@ -93,11 +111,22 @@
           </section>
         </main>
 
-        <aside class="col-12 col-xl-4" aria-label="Resumen del carrito">
+        <aside class="col-12 col-xl-4 col-xxl-3" aria-label="Resumen del carrito">
           <section class="cart-summary card border-0 shadow-sm">
             <span class="cart-summary__eyebrow">Resumen de reserva</span>
             <h2>Confirmación segura</h2>
             <p>{{ deliveryNote() }}</p>
+
+            @if (checkoutMode() === 'confirmation') {
+              <section class="cart-confirmation" aria-label="Condiciones de reserva">
+                <strong>Antes de preparar tu reserva</strong>
+                <ul>
+                  <li>REGALIA separa el pedido con una seña inicial del 20%.</li>
+                  <li>El proveedor confirma personalización, horario y disponibilidad.</li>
+                  <li>El saldo se paga al recibir, según coordinación final.</li>
+                </ul>
+              </section>
+            }
 
             <div class="cart-summary__rows">
               <div>
@@ -129,13 +158,36 @@
               </div>
             }
 
-            <button
-              class="btn btn-primary rounded-pill w-100"
-              type="button"
-              (click)="confirmReservation()"
-            >
-              Preparar reserva
-            </button>
+            @if (checkoutMode() === 'cart') {
+              <button
+                class="btn btn-primary rounded-pill w-100"
+                type="button"
+                (click)="reviewReservation()"
+              >
+                Revisar condiciones
+              </button>
+            }
+            @if (checkoutMode() === 'confirmation') {
+              <button
+                class="btn btn-primary rounded-pill w-100"
+                type="button"
+                (click)="confirmReservation()"
+              >
+                Preparar reserva
+              </button>
+              <button
+                class="btn btn-outline-primary rounded-pill w-100 mt-2"
+                type="button"
+                (click)="backToCart()"
+              >
+                Volver al carrito
+              </button>
+            }
+            @if (checkoutMode() === 'sent') {
+              <a class="btn btn-primary rounded-pill w-100" routerLink="/cliente/reservas"
+                >Ver mis reservas</a
+              >
+            }
             <a class="btn btn-outline-primary rounded-pill w-100 mt-2" routerLink="/catalogo"
               >Seguir explorando</a
             >

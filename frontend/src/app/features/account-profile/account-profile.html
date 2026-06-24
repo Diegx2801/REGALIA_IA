@@ -1,4 +1,4 @@
-<section class="profile-page rg-page__container rg-page__container--narrow">
+<section class="profile-page rg-page__container rg-page__container--wide">
   <header class="profile-header">
     <div>
       <span class="profile-header__eyebrow">Cuenta personal</span>
@@ -16,8 +16,8 @@
       <span class="profile-loading__line"></span>
     </div>
   } @else {
-    <div class="profile-layout">
-      <aside class="profile-summary">
+    <div class="profile-layout row g-3 g-xl-4 align-items-start">
+      <aside class="profile-summary col-12 col-xl-4">
         <span class="profile-summary__avatar" aria-hidden="true">{{ initials() }}</span>
         <span class="profile-summary__eyebrow">Perfil REGALIA</span>
         <h2>{{ profile()?.nombres }} {{ profile()?.apellidos }}</h2>
@@ -40,7 +40,7 @@
         </dl>
       </aside>
 
-      <main class="profile-card">
+      <main class="profile-card col-12 col-xl-8">
         <div class="profile-card__heading">
           <div>
             <span>Información personal</span>
@@ -62,8 +62,8 @@
         }
 
         <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-          <div class="profile-form__grid">
-            <label class="profile-field">
+          <div class="profile-form__grid row g-3">
+            <label class="profile-field col-12 col-md-6">
               <span>Nombres</span>
               <input type="text" formControlName="nombres" autocomplete="given-name" />
               @if (hasError('nombres')) {
@@ -71,7 +71,7 @@
               }
             </label>
 
-            <label class="profile-field">
+            <label class="profile-field col-12 col-md-6">
               <span>Apellidos</span>
               <input type="text" formControlName="apellidos" autocomplete="family-name" />
               @if (hasError('apellidos')) {
@@ -108,6 +108,24 @@
             </button>
           </footer>
         </form>
+
+        <section class="profile-ops row g-3" aria-label="Preferencias de cuenta">
+          <article class="profile-ops__card col-12 col-lg-4">
+            <span>Contacto</span>
+            <strong>Canal principal</strong>
+            <p>Usaremos tu correo y teléfono para coordinar reservas, pagos de seña y entregas.</p>
+          </article>
+          <article class="profile-ops__card col-12 col-lg-4">
+            <span>Dirección</span>
+            <strong>Pendiente de configurar</strong>
+            <p>La dirección principal se conectará cuando el módulo de entregas esté disponible.</p>
+          </article>
+          <article class="profile-ops__card col-12 col-lg-4">
+            <span>Seguridad</span>
+            <strong>Sesión protegida</strong>
+            <p>El acceso se mantiene con sesión autenticada y permisos por rol.</p>
+          </article>
+        </section>
       </main>
     </div>
   }

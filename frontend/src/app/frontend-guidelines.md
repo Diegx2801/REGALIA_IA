@@ -18,6 +18,7 @@ Estas reglas mantienen uniforme el frontend Angular sin tocar backend.
   - `.rg-page__container--narrow` para formularios y pantallas enfocadas.
 - Evitar crear nuevos `max-width` arbitrarios si una utilidad REGALIA ya cubre el caso.
 - Si una pantalla no puede usar `container` por su estructura interna, mantener el mismo criterio con `max-width: 1320px` y `margin-inline: auto`.
+- En catalogos con filtros laterales y detalle fijo, usar el ancho retail antes de reducir demasiado las cards.
 
 ## CSS y BEM
 

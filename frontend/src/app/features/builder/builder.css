@@ -4,18 +4,17 @@
    ========================================================================== */
 .builder-page {
   background:
-    radial-gradient(circle at 86% 10%, rgba(246, 196, 83, 0.16), transparent 18rem),
-    var(--color-bg);
+    radial-gradient(circle at 86% 10%, rgba(246, 196, 83, 0.16), transparent 18rem), var(--color-bg);
   min-height: 100vh;
 }
 
 .builder-page__container {
-  padding-bottom: 3rem;
-  padding-top: 2rem;
+  padding-bottom: 2.75rem;
+  padding-top: 1.75rem;
 }
 
 .builder-header {
-  max-width: 66rem;
+  max-width: 78rem;
 }
 
 .builder-header__eyebrow,
@@ -30,7 +29,7 @@
 }
 
 .builder-header__title {
-  font-size: clamp(2.35rem, 4vw, 4rem);
+  font-size: clamp(2.15rem, 3vw, 3.55rem);
   margin: 0.45rem 0 0.75rem;
 }
 
@@ -44,9 +43,9 @@
 
 .builder-flow {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.85rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 1.3rem 0;
+  margin: 1.2rem 0 1.35rem;
 }
 
 .builder-flow__step {
@@ -55,15 +54,13 @@
   border-radius: 12px;
   color: var(--color-text);
   font-weight: 900;
-  padding: 0.75rem 0.9rem;
+  padding: 0.7rem 0.9rem;
   text-align: center;
 }
 
 .builder-layout {
-  align-items: start;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(18rem, 25rem) 1fr minmax(18rem, 24rem);
+  margin-inline: 0;
+  row-gap: 1rem;
 }
 
 .request-panel,
@@ -78,7 +75,7 @@
 
 .request-panel,
 .reservation-panel {
-  padding: 1.1rem;
+  padding: 1rem;
   position: sticky;
   top: 7rem;
 }
@@ -86,14 +83,14 @@
 .request-panel__head {
   align-items: start;
   display: flex;
-  gap: 0.75rem;
+  gap: 0.7rem;
   justify-content: space-between;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.8rem;
 }
 
 .request-panel__title,
 .reservation-panel__title {
-  font-size: 1.3rem;
+  font-size: 1.18rem;
   margin: 0.22rem 0 0;
 }
 
@@ -109,10 +106,45 @@
   padding: 0.34rem 0.62rem;
 }
 
+.request-step {
+  border-top: 1px solid rgba(234, 216, 201, 0.75);
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  padding-top: 0.85rem;
+}
+
+.request-step + .request-step {
+  margin-top: 0.85rem;
+}
+
+.request-step__number {
+  align-items: center;
+  background: var(--color-primary);
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 900;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.request-step__body {
+  min-width: 0;
+}
+
+.request-step__title {
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 0.58rem;
+}
+
 .form-field {
   display: grid;
-  gap: 0.36rem;
-  margin-bottom: 0.8rem;
+  gap: 0.32rem;
+  margin-bottom: 0.65rem;
 }
 
 .form-field__label {
@@ -123,10 +155,10 @@
 .form-field__control {
   background: #ffffff;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--color-text);
-  min-height: 2.75rem;
-  padding: 0.62rem 0.72rem;
+  min-height: 2.6rem;
+  padding: 0.58rem 0.68rem;
   width: 100%;
 }
 
@@ -143,7 +175,7 @@ textarea.form-field__control {
 
 .request-panel__grid {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.68rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -153,7 +185,7 @@ textarea.form-field__control {
   display: flex;
   font-weight: 800;
   gap: 0.55rem;
-  margin: 0.2rem 0 0.9rem;
+  margin: 0.1rem 0 0.75rem;
 }
 
 .request-panel__button,
@@ -173,18 +205,33 @@ textarea.form-field__control {
   transform: translateY(-2px);
 }
 
+.request-panel__feedback {
+  background: rgba(91, 46, 109, 0.08);
+  border: 1px solid rgba(91, 46, 109, 0.16);
+  border-radius: 12px;
+  color: var(--color-primary);
+  font-size: 0.86rem;
+  font-weight: 900;
+  margin: 0.7rem 0 0;
+  padding: 0.68rem 0.8rem;
+}
+
 .recommendation-zone,
 .recommendation-list {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.9rem;
+}
+
+.recommendation-zone:focus {
+  outline: 0;
 }
 
 .interpretation-card {
   align-items: center;
   display: grid;
-  gap: 0.9rem;
-  grid-template-columns: 9rem 1fr auto;
-  padding: 1rem;
+  gap: 0.8rem;
+  grid-template-columns: 8.4rem 1fr auto;
+  padding: 0.9rem;
 }
 
 .interpretation-card__title {
@@ -201,9 +248,9 @@ textarea.form-field__control {
   align-items: start;
   color: inherit;
   display: grid;
-  gap: 1rem;
-  grid-template-columns: 4.2rem 1fr 7rem;
-  padding: 1rem;
+  gap: 0.8rem;
+  grid-template-columns: 3.6rem minmax(0, 1fr) 6.5rem;
+  padding: 0.88rem;
   text-align: left;
 }
 
@@ -221,9 +268,9 @@ textarea.form-field__control {
   color: #ffffff;
   display: flex;
   font-weight: 900;
-  height: 3.2rem;
+  height: 3rem;
   justify-content: center;
-  width: 3.2rem;
+  width: 3rem;
 }
 
 .recommendation-card__content,
@@ -234,15 +281,23 @@ textarea.form-field__control {
 
 .recommendation-card__title {
   color: var(--color-text);
-  font-size: 1.12rem;
+  font-size: 1.05rem;
+}
+
+.recommendation-card__reason {
+  display: -webkit-box;
+  line-clamp: 2;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .recommendation-card__tags,
 .provider-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.35rem;
+  gap: 0.38rem;
+  margin-top: 0.3rem;
 }
 
 .recommendation-card__meta {
@@ -262,8 +317,8 @@ textarea.form-field__control {
   background: #ffffff;
   border: 1px solid rgba(234, 216, 201, 0.72);
   border-radius: 12px;
-  margin-top: 1rem;
-  padding: 0.9rem;
+  margin-top: 0.9rem;
+  padding: 0.85rem;
 }
 
 .reservation-box__title {
@@ -278,7 +333,7 @@ textarea.form-field__control {
   display: flex;
   gap: 0.8rem;
   justify-content: space-between;
-  padding: 0.46rem 0;
+  padding: 0.42rem 0;
 }
 
 .reservation-box__row:last-child {
@@ -287,6 +342,75 @@ textarea.form-field__control {
 
 .reservation-box__row span {
   color: var(--color-muted);
+}
+
+.reservation-confirmation {
+  background: rgba(46, 125, 104, 0.08);
+  border: 1px solid rgba(46, 125, 104, 0.18);
+  border-radius: 14px;
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+  padding: 0.85rem;
+}
+
+.reservation-confirmation__status {
+  color: var(--color-success);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.reservation-confirmation p {
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.reservation-confirmation__actions {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 1fr;
+}
+
+.reservation-confirmation__actions a,
+.reservation-confirmation__actions button {
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 2.55rem;
+  padding: 0.58rem 0.8rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.reservation-confirmation__actions a {
+  background: var(--color-success);
+  color: #ffffff;
+}
+
+.reservation-confirmation__actions button {
+  background: #ffffff;
+  border: 1px solid rgba(46, 125, 104, 0.2);
+  color: var(--color-success);
+}
+
+/* En desktop amplio, el ranking se reparte en dos columnas para reducir scroll. */
+@media (min-width: 1500px) {
+  .recommendation-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recommendation-card {
+    grid-template-columns: 3.4rem minmax(0, 1fr);
+  }
+
+  .recommendation-card__meta {
+    border-top: 1px solid rgba(234, 216, 201, 0.75);
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr auto;
+    padding-top: 0.65rem;
+    text-align: left;
+  }
 }
 
 @media (max-width: 1199.98px) {
@@ -302,7 +426,6 @@ textarea.form-field__control {
 
 @media (max-width: 767.98px) {
   .builder-flow,
-  .request-panel__grid,
   .interpretation-card,
   .recommendation-card {
     grid-template-columns: 1fr;
@@ -310,5 +433,58 @@ textarea.form-field__control {
 
   .recommendation-card__meta {
     text-align: left;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .builder-page__container {
+    padding-top: 1rem;
+  }
+
+  .builder-header__title {
+    font-size: 1.85rem;
+  }
+
+  .builder-flow {
+    display: none;
+  }
+
+  .request-panel,
+  .reservation-panel {
+    padding: 0.85rem;
+  }
+
+  .request-step {
+    gap: 0.55rem;
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    padding-top: 0.68rem;
+  }
+
+  .request-step + .request-step {
+    margin-top: 0.68rem;
+  }
+
+  .request-step__number {
+    font-size: 0.68rem;
+    height: 1.75rem;
+    width: 1.75rem;
+  }
+
+  .request-panel__grid {
+    gap: 0.55rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-field {
+    margin-bottom: 0.55rem;
+  }
+
+  textarea.form-field__control {
+    min-height: 6.4rem;
+  }
+
+  .form-field__control {
+    min-height: 2.45rem;
+    padding: 0.5rem 0.58rem;
   }
 }
