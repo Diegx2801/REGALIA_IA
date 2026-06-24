@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, roleGuard, roleRedirectGuard } from './core/guards/auth.guard';
+import {
+  adminGuestGuard,
+  authGuard,
+  guestGuard,
+  roleGuard,
+  roleRedirectGuard,
+} from './core/guards/auth.guard';
 import { devPreviewGuard } from './core/guards/dev-preview.guard';
 
 export const routes: Routes = [
@@ -13,6 +19,14 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/auth').then((m) => m.AuthComponent),
   },
+
+  {
+    path: 'admin/login',
+    canActivate: [adminGuestGuard],
+    loadComponent: () =>
+      import('./features/admin-login/admin-login').then((m) => m.AdminLoginComponent),
+  },
+
   {
     path: 'vista-previa',
     canActivate: [devPreviewGuard],
@@ -72,10 +86,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/access-denied/access-denied').then((m) => m.AccessDeniedComponent),
   },
+
   {
     path: 'cliente',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Cliente'] },
+    data: {
+      roles: ['Cliente'],
+      authContext: 'PUBLIC',
+    },
     loadComponent: () =>
       import('./core/layouts/workspace-layout/workspace-layout').then(
         (m) => m.WorkspaceLayoutComponent,
@@ -120,10 +138,14 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
     ],
   },
+
   {
     path: 'proveedor',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Proveedor'] },
+    data: {
+      roles: ['Proveedor'],
+      authContext: 'PUBLIC',
+    },
     loadComponent: () =>
       import('./core/layouts/workspace-layout/workspace-layout').then(
         (m) => m.WorkspaceLayoutComponent,
@@ -163,10 +185,14 @@ export const routes: Routes = [
       { path: '', redirectTo: 'resumen', pathMatch: 'full' },
     ],
   },
+
   {
     path: 'admin',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Administrador'] },
+    data: {
+      roles: ['Administrador'],
+      authContext: 'ADMIN',
+    },
     loadComponent: () =>
       import('./core/layouts/workspace-layout/workspace-layout').then(
         (m) => m.WorkspaceLayoutComponent,
@@ -211,6 +237,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'resumen', pathMatch: 'full' },
     ],
   },
+
   {
     path: 'dashboard',
     canActivate: [authGuard, roleRedirectGuard],
@@ -259,7 +286,9 @@ export const routes: Routes = [
     },
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
   },
+
   { path: 'marketplace-quotes', redirectTo: 'panel', pathMatch: 'full' },
+
   {
     path: '',
     loadComponent: () =>
@@ -305,5 +334,6 @@ export const routes: Routes = [
       { path: 'manual-builder', redirectTo: 'manual', pathMatch: 'full' },
     ],
   },
+
   { path: '**', redirectTo: '' },
 ];

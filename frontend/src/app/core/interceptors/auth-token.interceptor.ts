@@ -1,4 +1,4 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 
 interface StoredSession {
   token: string;
@@ -6,8 +6,30 @@ interface StoredSession {
   expiresAt: number;
 }
 
+interface PublicEndpoint {
+  method: string;
+  url: string;
+}
+
 const SESSION_STORAGE_KEY = 'regalia_session';
-const PUBLIC_ENDPOINTS = ['/api/auth/login'];
+
+const PUBLIC_ENDPOINTS: PublicEndpoint[] = [
+  { method: 'POST', url: '/api/auth/login' },
+  { method: 'POST', url: '/api/admin/auth/login' },
+  { method: 'POST', url: '/api/usuarios' },
+];
+
+function normalizedUrl(url: string): string {
+  return url.split('?')[0];
+}
+
+function isPublicEndpoint(request: HttpRequest<unknown>): boolean {
+  const url = normalizedUrl(request.url);
+
+  return PUBLIC_ENDPOINTS.some(
+    (endpoint) => request.method === endpoint.method && url === endpoint.url,
+  );
+}
 
 function readStoredSession(): StoredSession | null {
   const rawSession =
@@ -34,9 +56,8 @@ function readStoredSession(): StoredSession | null {
 
 export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
   const isApiRequest = request.url.startsWith('/api');
-  const isPublicEndpoint = PUBLIC_ENDPOINTS.some((endpoint) => request.url.startsWith(endpoint));
 
-  if (!isApiRequest || isPublicEndpoint || request.headers.has('Authorization')) {
+  if (!isApiRequest || isPublicEndpoint(request) || request.headers.has('Authorization')) {
     return next(request);
   }
 
