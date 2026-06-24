@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
  */
 public record TipoPagoResponse(
         Long idTipoPago,
+        String codigo,
         String nombre,
         String descripcion,
         Boolean estado,

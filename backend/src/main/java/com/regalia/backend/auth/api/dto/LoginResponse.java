@@ -11,6 +11,7 @@ public record LoginResponse(
         Long idUsuario,
         String correo,
         List<String> roles,
+        String authContext,
         Long expiraEnMinutos
 ) {
 }

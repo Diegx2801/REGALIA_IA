@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO de entrada para crear o actualizar un tipo de pago.
+ * DTO de entrada para actualizar datos visibles de un tipo de pago.
  */
 public record TipoPagoRequest(
 

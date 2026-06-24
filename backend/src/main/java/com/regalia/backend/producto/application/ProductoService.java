@@ -108,7 +108,7 @@ public class ProductoService {
 
         productoMapper.actualizarEntity(producto, request, tipoProducto);
 
-        ProductoEntity productoActualizado = productoJpaRepository.save(producto);
+        ProductoEntity productoActualizado = productoJpaRepository.saveAndFlush(producto);        
 
         reemplazarImagenes(productoActualizado, request.imagenes());
 

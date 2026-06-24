@@ -13,9 +13,13 @@ public interface RubroJpaRepository extends JpaRepository<RubroEntity, Long> {
 
     List<RubroEntity> findByEstadoTrueOrderByIdRubroAsc();
 
+    List<RubroEntity> findAllByOrderByIdRubroAsc();
+
     List<RubroEntity> findByIdRubroInAndEstadoTrue(List<Long> idsRubros);
 
     Optional<RubroEntity> findByIdRubroAndEstadoTrue(Long idRubro);
+
+    Optional<RubroEntity> findByIdRubroAndEstadoFalse(Long idRubro);
 
     boolean existsByNombreIgnoreCase(String nombre);
 

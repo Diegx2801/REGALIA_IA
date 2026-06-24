@@ -14,4 +14,6 @@ public interface UsuarioRolJpaRepository extends JpaRepository<UsuarioRolEntity,
     List<UsuarioRolEntity> findByUsuarioIdUsuarioAndEstadoTrue(Long idUsuario);
 
     boolean existsByUsuarioIdUsuarioAndRolIdRolAndEstadoTrue(Long idUsuario, Long idRol);
+
+    boolean existsByUsuarioIdUsuarioAndRolNombreIgnoreCaseAndEstadoTrue(Long idUsuario, String nombreRol);
 }

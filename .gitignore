@@ -26,3 +26,9 @@ replay_pid*
 # Backend - Java/Maven
 backend/target/
 target/
+
+# Backend local environment secrets
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/src/main/resources/application-local.properties

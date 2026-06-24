@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -37,8 +36,26 @@ public class TipoDocumentoService {
     }
 
     @Transactional(readOnly = true)
+    public List<TipoDocumentoResponse> listarTiposDocumentoAdministracion() {
+        return tipoDocumentoRepository.findAllByOrderByIdTipoDocumentoAsc()
+                .stream()
+                .map(tipoDocumentoMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public TipoDocumentoResponse buscarPorId(Long id) {
         TipoDocumentoEntity tipoDocumento = obtenerEntidadActivaPorId(id);
+
+        return tipoDocumentoMapper.toResponse(tipoDocumento);
+    }
+
+    @Transactional(readOnly = true)
+    public TipoDocumentoResponse buscarTipoDocumentoAdministracionPorId(Long id) {
+        TipoDocumentoEntity tipoDocumento = tipoDocumentoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de documento solicitado"
+                ));
 
         return tipoDocumentoMapper.toResponse(tipoDocumento);
     }
@@ -66,9 +83,8 @@ public class TipoDocumentoService {
         CategoriaDocumentoEntity categoriaDocumento = obtenerCategoriaDocumentoActivaPorId(request.idCategoriaDocumento());
 
         tipoDocumentoMapper.updateEntity(tipoDocumento, request, categoriaDocumento);
-        tipoDocumento.setFechaActualizacion(LocalDateTime.now());
 
-        TipoDocumentoEntity tipoDocumentoActualizado = tipoDocumentoRepository.save(tipoDocumento);
+        TipoDocumentoEntity tipoDocumentoActualizado = tipoDocumentoRepository.saveAndFlush(tipoDocumento);
 
         return tipoDocumentoMapper.toResponse(tipoDocumentoActualizado);
     }
@@ -78,35 +94,37 @@ public class TipoDocumentoService {
         TipoDocumentoEntity tipoDocumento = obtenerEntidadActivaPorId(id);
 
         tipoDocumento.setEstado(false);
-        tipoDocumento.setFechaActualizacion(LocalDateTime.now());
 
         tipoDocumentoRepository.save(tipoDocumento);
     }
 
     @Transactional
     public TipoDocumentoResponse reactivar(Long id) {
-        TipoDocumentoEntity tipoDocumento = tipoDocumentoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tipo de documento con ID: " + id));
+        TipoDocumentoEntity tipoDocumento = tipoDocumentoRepository.findByIdTipoDocumentoAndEstadoFalse(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de documento inactivo solicitado"
+                ));
 
-        if (!tipoDocumento.getEstado()) {
-            tipoDocumento.setEstado(true);
-            tipoDocumento.setFechaActualizacion(LocalDateTime.now());
-            tipoDocumentoRepository.save(tipoDocumento);
-        }
+        tipoDocumento.setEstado(true);
 
-        return tipoDocumentoMapper.toResponse(tipoDocumento);
+        TipoDocumentoEntity tipoDocumentoReactivado = tipoDocumentoRepository.saveAndFlush(tipoDocumento);
+
+        return tipoDocumentoMapper.toResponse(tipoDocumentoReactivado);
     }
 
     private TipoDocumentoEntity obtenerEntidadActivaPorId(Long id) {
-        return tipoDocumentoRepository.findById(id)
-                .filter(TipoDocumentoEntity::getEstado)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tipo de documento con ID: " + id));
+        return tipoDocumentoRepository.findByIdTipoDocumentoAndEstadoTrue(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de documento solicitado"
+                ));
     }
 
     private CategoriaDocumentoEntity obtenerCategoriaDocumentoActivaPorId(Long idCategoriaDocumento) {
         return categoriaDocumentoRepository.findById(idCategoriaDocumento)
                 .filter(CategoriaDocumentoEntity::getEstado)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la categoría de documento con ID: " + idCategoriaDocumento));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró la categoría de documento con ID: " + idCategoriaDocumento
+                ));
     }
 
     private void validarLongitudes(Integer longitudMinima, Integer longitudMaxima) {

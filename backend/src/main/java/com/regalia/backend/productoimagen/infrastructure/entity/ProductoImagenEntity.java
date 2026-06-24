@@ -46,6 +46,9 @@ public class ProductoImagenEntity {
         this.estado = true;
     }
 
+    /**
+     * Asigna valores iniciales antes de insertar el registro.
+     */
     @PrePersist
     public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();

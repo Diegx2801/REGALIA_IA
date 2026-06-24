@@ -55,6 +55,14 @@ public class ProductoConsultaService {
         return construirProductoPublicoResponse(producto);
     }
 
+        @Transactional(readOnly = true)
+        public List<ProductoPublicoResponse> listarProductosPublicos() {
+        return productoJpaRepository.findProductosPublicosMarketplace()
+                .stream()
+                .map(this::construirProductoPublicoResponse)
+                .toList();
+        }
+
     private TiendaEntity obtenerTiendaPublicaActiva(Long idTienda) {
         return tiendaJpaRepository
                 .findByIdTiendaAndEstadoTrueAndEstadoRevisionNot(

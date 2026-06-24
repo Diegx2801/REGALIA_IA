@@ -11,11 +11,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Servicio de aplicación para gestionar tipos de pago.
+ * Servicio de aplicación para consultar y administrar datos visibles
+ * de tipos de pago.
+ *
+ * Los codigos de tipo de pago son controlados por migraciones porque
+ * afectan lógica interna del flujo de pedidos.
  */
 @Service
 @RequiredArgsConstructor
@@ -33,71 +36,57 @@ public class TipoPagoService {
     }
 
     @Transactional(readOnly = true)
+    public List<TipoPagoResponse> listarTiposPagoAdministracion() {
+        return tipoPagoRepository.findAllByOrderByIdTipoPagoAsc()
+                .stream()
+                .map(tipoPagoMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public TipoPagoResponse buscarPorId(Long id) {
         TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
 
         return tipoPagoMapper.toResponse(tipoPago);
     }
 
-    @Transactional
-    public TipoPagoResponse crear(TipoPagoRequest request) {
-        String nombreNormalizado = request.nombre().trim();
-
-        if (tipoPagoRepository.existsByNombreIgnoreCase(nombreNormalizado)) {
-            throw new RecursoDuplicadoException("Ya existe un tipo de pago con ese nombre");
-        }
-
-        TipoPagoEntity tipoPago = tipoPagoMapper.toEntity(request);
-        TipoPagoEntity tipoPagoGuardado = tipoPagoRepository.save(tipoPago);
-
-        return tipoPagoMapper.toResponse(tipoPagoGuardado);
-    }
-
-    @Transactional
-    public TipoPagoResponse actualizar(Long id, TipoPagoRequest request) {
-        TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
-
-        String nombreNormalizado = request.nombre().trim();
-
-        if (tipoPagoRepository.existsByNombreIgnoreCaseAndIdTipoPagoNot(nombreNormalizado, id)) {
-            throw new RecursoDuplicadoException("Ya existe otro tipo de pago con ese nombre");
-        }
-
-        tipoPagoMapper.updateEntity(tipoPago, request);
-        tipoPago.setFechaActualizacion(LocalDateTime.now());
-
-        TipoPagoEntity tipoPagoActualizado = tipoPagoRepository.save(tipoPago);
-
-        return tipoPagoMapper.toResponse(tipoPagoActualizado);
-    }
-
-    @Transactional
-    public void desactivar(Long id) {
-        TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
-
-        tipoPago.setEstado(false);
-        tipoPago.setFechaActualizacion(LocalDateTime.now());
-
-        tipoPagoRepository.save(tipoPago);
-    }
-
-    @Transactional
-    public TipoPagoResponse reactivar(Long id) {
+    @Transactional(readOnly = true)
+    public TipoPagoResponse buscarTipoPagoAdministracionPorId(Long id) {
         TipoPagoEntity tipoPago = tipoPagoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tipo de pago con ID: " + id));
-
-        if (!tipoPago.getEstado()) {
-            tipoPago.setEstado(true);
-            tipoPago.setFechaActualizacion(LocalDateTime.now());
-            tipoPagoRepository.save(tipoPago);
-        }
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de pago solicitado"
+                ));
 
         return tipoPagoMapper.toResponse(tipoPago);
     }
 
+    @Transactional
+    public TipoPagoResponse actualizarDatosVisibles(Long id, TipoPagoRequest request) {
+        TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
+
+        String nombreNormalizado = request.nombre().trim();
+
+        validarNombreDisponibleParaActualizar(nombreNormalizado, id);
+
+        tipoPagoMapper.updateEntity(tipoPago, request);
+
+        TipoPagoEntity tipoPagoActualizado = tipoPagoRepository.saveAndFlush(tipoPago);
+
+        return tipoPagoMapper.toResponse(tipoPagoActualizado);
+    }
+
     private TipoPagoEntity obtenerEntidadActivaPorId(Long id) {
-        return tipoPagoRepository.findById(id)
-                .filter(TipoPagoEntity::getEstado)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tipo de pago con ID: " + id));
+        return tipoPagoRepository.findByIdTipoPagoAndEstadoTrue(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de pago solicitado"
+                ));
+    }
+
+    private void validarNombreDisponibleParaActualizar(String nombre, Long idTipoPago) {
+        if (tipoPagoRepository.existsByNombreIgnoreCaseAndIdTipoPagoNot(nombre, idTipoPago)) {
+            throw new RecursoDuplicadoException(
+                    "Ya existe otro tipo de pago con ese nombre"
+            );
+        }
     }
 }

@@ -53,6 +53,9 @@ public class TiendaEntity {
     @JoinColumn(name = "id_documento_fiscal")
     private UsuarioDocumentoEntity documentoFiscal;
 
+    /**
+     * Asigna valores iniciales antes de insertar el registro.
+     */
     @PrePersist
     public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
@@ -66,6 +69,9 @@ public class TiendaEntity {
         }
     }
 
+    /**
+     * Actualiza la fecha de modificación antes de guardar cambios.
+     */
     @PreUpdate
     public void preUpdate() {
         this.fechaActualizacion = LocalDateTime.now();
