@@ -4,6 +4,7 @@ import com.regalia.backend.rubro.infrastructure.entity.RubroEntity;
 import com.regalia.backend.rubro.infrastructure.repository.RubroJpaRepository;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
+import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.tienda.api.dto.TiendaRequest;
 import com.regalia.backend.tienda.api.dto.TiendaResponse;
 import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
@@ -34,6 +35,11 @@ import java.util.stream.Collectors;
 public class TiendaService {
 
     private static final int LIMITE_TIENDAS_PLAN_ACTUAL = 1;
+
+    private static final String ESTADO_REVISION_PENDIENTE = "PENDIENTE";
+    private static final String ESTADO_REVISION_APROBADA = "APROBADA";
+    private static final String ESTADO_REVISION_OBSERVADA = "OBSERVADA";
+    private static final String ESTADO_REVISION_RECHAZADA = "RECHAZADA";
 
     private static final String ESTADO_DOCUMENTO_VERIFICADO = "VERIFICADO";
     private static final String CATEGORIA_FISCAL = "FISCAL";
@@ -75,11 +81,32 @@ public class TiendaService {
     }
 
     @Transactional(readOnly = true)
+    public List<TiendaResponse> listarTiendasAdministracion(String estadoRevision) {
+        String estadoNormalizado = normalizarEstadoRevisionOpcional(estadoRevision);
+
+        List<TiendaEntity> tiendas = estadoNormalizado == null
+                ? tiendaRepository.findTiendasAdministracion()
+                : tiendaRepository.findTiendasAdministracionPorEstado(estadoNormalizado);
+
+        return tiendas
+                .stream()
+                .map(this::construirResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public TiendaResponse obtenerMiTiendaPorId(String correoUsuario, Long idTienda) {
         VendedorEntity vendedor = obtenerVendedorActivoPorCorreo(correoUsuario);
         TiendaEntity tienda = obtenerTiendaActivaPorId(idTienda);
 
         validarPropiedadTienda(tienda, vendedor.getIdVendedor());
+
+        return construirResponse(tienda);
+    }
+
+    @Transactional(readOnly = true)
+    public TiendaResponse obtenerTiendaAdministracionPorId(Long idTienda) {
+        TiendaEntity tienda = obtenerTiendaActivaPorId(idTienda);
 
         return construirResponse(tienda);
     }
@@ -108,6 +135,42 @@ public class TiendaService {
     }
 
     @Transactional
+    public TiendaResponse marcarTiendaPendiente(Long idTienda) {
+        return cambiarEstadoRevisionAdministracion(
+                idTienda,
+                ESTADO_REVISION_PENDIENTE,
+                "La tienda ya se encuentra pendiente de revisión"
+        );
+    }
+
+    @Transactional
+    public TiendaResponse aprobarTienda(Long idTienda) {
+        return cambiarEstadoRevisionAdministracion(
+                idTienda,
+                ESTADO_REVISION_APROBADA,
+                "La tienda ya se encuentra aprobada"
+        );
+    }
+
+    @Transactional
+    public TiendaResponse observarTienda(Long idTienda) {
+        return cambiarEstadoRevisionAdministracion(
+                idTienda,
+                ESTADO_REVISION_OBSERVADA,
+                "La tienda ya se encuentra observada"
+        );
+    }
+
+    @Transactional
+    public TiendaResponse rechazarTienda(Long idTienda) {
+        return cambiarEstadoRevisionAdministracion(
+                idTienda,
+                ESTADO_REVISION_RECHAZADA,
+                "La tienda ya se encuentra rechazada"
+        );
+    }
+
+    @Transactional
     public void eliminarTienda(String correoUsuario, Long idTienda) {
         VendedorEntity vendedor = obtenerVendedorActivoPorCorreo(correoUsuario);
         TiendaEntity tienda = obtenerTiendaActivaPorId(idTienda);
@@ -122,6 +185,24 @@ public class TiendaService {
         relaciones.forEach(relacion -> relacion.setEstado(false));
 
         tiendaRubroRepository.saveAll(relaciones);
+    }
+
+    private TiendaResponse cambiarEstadoRevisionAdministracion(
+            Long idTienda,
+            String nuevoEstado,
+            String mensajeEstadoActual
+    ) {
+        TiendaEntity tienda = obtenerTiendaActivaPorId(idTienda);
+
+        if (nuevoEstado.equalsIgnoreCase(tienda.getEstadoRevision())) {
+            throw new ReglaNegocioException(mensajeEstadoActual);
+        }
+
+        tienda.setEstadoRevision(nuevoEstado);
+
+        TiendaEntity tiendaActualizada = tiendaRepository.saveAndFlush(tienda);
+
+        return construirResponse(tiendaActualizada);
     }
 
     private VendedorEntity obtenerVendedorActivoPorCorreo(String correoUsuario) {
@@ -152,6 +233,23 @@ public class TiendaService {
                     "No se encontró la tienda solicitada para el vendedor autenticado"
             );
         }
+    }
+
+    private String normalizarEstadoRevisionOpcional(String estadoRevision) {
+        if (estadoRevision == null || estadoRevision.isBlank()) {
+            return null;
+        }
+
+        String estadoNormalizado = estadoRevision.trim().toUpperCase();
+
+        if (!ESTADO_REVISION_PENDIENTE.equals(estadoNormalizado)
+                && !ESTADO_REVISION_APROBADA.equals(estadoNormalizado)
+                && !ESTADO_REVISION_OBSERVADA.equals(estadoNormalizado)
+                && !ESTADO_REVISION_RECHAZADA.equals(estadoNormalizado)) {
+            throw new ReglaNegocioException("El estado de revisión indicado no es válido");
+        }
+
+        return estadoNormalizado;
     }
 
     private UsuarioDocumentoEntity obtenerDocumentoFiscalValidoSiExiste(Long idDocumentoFiscal, Long idUsuario) {

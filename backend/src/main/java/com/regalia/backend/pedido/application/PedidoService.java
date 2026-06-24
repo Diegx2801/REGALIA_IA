@@ -58,13 +58,7 @@ public class PedidoService {
     private static final String CODIGO_TIPO_PAGO_COMPLETO = "PAGO_COMPLETO";
     private static final String CODIGO_TIPO_PAGO_RESTANTE = "RESTANTE";
 
-    /*
-    * En el MVP solo se bloquean tiendas rechazadas.
-    * Las tiendas pendientes u observadas siguen visibles/comprables
-    * para reducir fricción de entrada a pequeños vendedores.
-    */
-
-    private static final String ESTADO_REVISION_RECHAZADA = "RECHAZADA";
+    private static final String ESTADO_REVISION_APROBADA = "APROBADA";
 
     private static final BigDecimal CIEN = new BigDecimal("100.00");
 
@@ -347,8 +341,8 @@ public class PedidoService {
     }
 
     private void validarTiendaDisponibleParaCompra(TiendaEntity tienda) {
-        if (tienda.getEstadoRevision() != null
-                && ESTADO_REVISION_RECHAZADA.equalsIgnoreCase(tienda.getEstadoRevision())) {
+        if (tienda.getEstadoRevision() == null
+                || !ESTADO_REVISION_APROBADA.equalsIgnoreCase(tienda.getEstadoRevision())) {
             throw new RecursoNoEncontradoException(
                     "No se encontró la tienda solicitada"
             );

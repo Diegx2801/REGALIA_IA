@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TiendaConsultaService {
 
-    private static final String ESTADO_REVISION_RECHAZADA = "RECHAZADA";
+    private static final String ESTADO_REVISION_APROBADA = "APROBADA";
     private static final String ESTADO_DOCUMENTO_VERIFICADO = "VERIFICADO";
     private static final String CATEGORIA_FISCAL = "FISCAL";
 
@@ -35,7 +35,7 @@ public class TiendaConsultaService {
     @Transactional(readOnly = true)
     public List<TiendaPublicaResponse> listarTiendasPublicas() {
         return tiendaJpaRepository
-                .findByEstadoTrueAndEstadoRevisionNotOrderByIdTiendaAsc(ESTADO_REVISION_RECHAZADA)
+                .findTiendasPublicas(ESTADO_REVISION_APROBADA)
                 .stream()
                 .map(this::construirTiendaPublicaResponse)
                 .toList();
@@ -44,9 +44,9 @@ public class TiendaConsultaService {
     @Transactional(readOnly = true)
     public TiendaPublicaDetalleResponse obtenerTiendaPublicaPorId(Long idTienda) {
         TiendaEntity tienda = tiendaJpaRepository
-                .findByIdTiendaAndEstadoTrueAndEstadoRevisionNot(
+                .findTiendaPublicaById(
                         idTienda,
-                        ESTADO_REVISION_RECHAZADA
+                        ESTADO_REVISION_APROBADA
                 )
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No se encontró la tienda solicitada"

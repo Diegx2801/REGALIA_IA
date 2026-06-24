@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductoConsultaService {
 
-    private static final String ESTADO_REVISION_RECHAZADA = "RECHAZADA";
+    private static final String ESTADO_REVISION_APROBADA = "APROBADA";
 
     private final ProductoJpaRepository productoJpaRepository;
     private final ProductoImagenJpaRepository productoImagenJpaRepository;
@@ -55,19 +55,19 @@ public class ProductoConsultaService {
         return construirProductoPublicoResponse(producto);
     }
 
-        @Transactional(readOnly = true)
-        public List<ProductoPublicoResponse> listarProductosPublicos() {
-        return productoJpaRepository.findProductosPublicosMarketplace()
+    @Transactional(readOnly = true)
+    public List<ProductoPublicoResponse> listarProductosPublicos() {
+        return productoJpaRepository.findProductosPublicosMarketplace(ESTADO_REVISION_APROBADA)
                 .stream()
                 .map(this::construirProductoPublicoResponse)
                 .toList();
-        }
+    }
 
     private TiendaEntity obtenerTiendaPublicaActiva(Long idTienda) {
         return tiendaJpaRepository
-                .findByIdTiendaAndEstadoTrueAndEstadoRevisionNot(
+                .findTiendaPublicaById(
                         idTienda,
-                        ESTADO_REVISION_RECHAZADA
+                        ESTADO_REVISION_APROBADA
                 )
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No se encontró la tienda solicitada"
@@ -79,7 +79,7 @@ public class ProductoConsultaService {
 
         if (tienda == null
                 || !Boolean.TRUE.equals(tienda.getEstado())
-                || ESTADO_REVISION_RECHAZADA.equalsIgnoreCase(tienda.getEstadoRevision())) {
+                || !ESTADO_REVISION_APROBADA.equalsIgnoreCase(tienda.getEstadoRevision())) {
             throw new RecursoNoEncontradoException(
                     "No se encontró el producto solicitado"
             );

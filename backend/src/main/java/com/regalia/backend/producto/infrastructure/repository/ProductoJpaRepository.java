@@ -42,10 +42,10 @@ public interface ProductoJpaRepository extends JpaRepository<ProductoEntity, Lon
             WHERE p.estado = true
             AND p.visibleEnTienda = true
             AND t.estado = true
-            AND t.estadoRevision <> 'RECHAZADA'
+            AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
             ORDER BY p.idProducto ASC
             """)
-    List<ProductoEntity> findProductosPublicosMarketplace();
+    List<ProductoEntity> findProductosPublicosMarketplace(@Param("estadoRevision") String estadoRevision);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

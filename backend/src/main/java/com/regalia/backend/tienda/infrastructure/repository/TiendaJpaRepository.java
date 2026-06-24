@@ -15,11 +15,45 @@ public interface TiendaJpaRepository extends JpaRepository<TiendaEntity, Long> {
 
     List<TiendaEntity> findByVendedorIdVendedorAndEstadoTrueOrderByIdTiendaAsc(Long idVendedor);
 
-    List<TiendaEntity> findByEstadoTrueAndEstadoRevisionNotOrderByIdTiendaAsc(String estadoRevision);
+    @Query("""
+            SELECT t
+            FROM TiendaEntity t
+            WHERE t.estado = true
+            ORDER BY t.idTienda ASC
+            """)
+    List<TiendaEntity> findTiendasAdministracion();
+
+    @Query("""
+            SELECT t
+            FROM TiendaEntity t
+            WHERE t.estado = true
+              AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
+            ORDER BY t.idTienda ASC
+            """)
+    List<TiendaEntity> findTiendasAdministracionPorEstado(@Param("estadoRevision") String estadoRevision);
+
+    @Query("""
+            SELECT t
+            FROM TiendaEntity t
+            WHERE t.estado = true
+              AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
+            ORDER BY t.idTienda ASC
+            """)
+    List<TiendaEntity> findTiendasPublicas(@Param("estadoRevision") String estadoRevision);
 
     Optional<TiendaEntity> findByIdTiendaAndEstadoTrue(Long idTienda);
 
-    Optional<TiendaEntity> findByIdTiendaAndEstadoTrueAndEstadoRevisionNot(Long idTienda, String estadoRevision);
+    @Query("""
+            SELECT t
+            FROM TiendaEntity t
+            WHERE t.idTienda = :idTienda
+              AND t.estado = true
+              AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
+            """)
+    Optional<TiendaEntity> findTiendaPublicaById(
+            @Param("idTienda") Long idTienda,
+            @Param("estadoRevision") String estadoRevision
+    );
 
     long countByVendedorIdVendedorAndEstadoTrue(Long idVendedor);
 
