@@ -1,234 +1,555 @@
 <section class="builder-page">
   <div class="container rg-page__container rg-page__container--retail builder-page__container">
-    <header class="builder-header">
-      <span class="builder-header__eyebrow">Pedir con IA</span>
-      <h1 class="builder-header__title">
-        Describe tu regalo ideal. REGALIA encuentra proveedores compatibles.
-      </h1>
-      <p class="builder-header__text">
-        Necesidad del cliente → interpretación IA → ranking de proveedores → reserva con seña.
-      </p>
-    </header>
+    <header class="builder-hero">
+      <span class="builder-hero__eyebrow">Pedir con IA</span>
 
-    <div class="builder-flow" aria-label="Flujo simulado">
-      <span class="builder-flow__step">Necesidad</span>
-      <span class="builder-flow__step">Interpretación IA</span>
-      <span class="builder-flow__step">Ranking</span>
-      <span class="builder-flow__step">Reserva</span>
-    </div>
-
-    <div class="builder-layout row g-3 g-xl-4 align-items-start">
-      <form
-        class="request-panel col-12 col-xl-3"
-        [formGroup]="requestForm"
-        (ngSubmit)="generateMatches()"
-      >
-        <div class="request-panel__head">
-          <div>
-            <span class="request-panel__eyebrow">Solicitud del cliente</span>
-            <h2 class="request-panel__title">Cuéntanos qué necesitas</h2>
-          </div>
-          <strong class="request-panel__tag">Asistente REGALIA</strong>
+      <div class="builder-hero__content">
+        <div>
+          <h1 class="builder-hero__title">Describe tu regalo ideal</h1>
+          <p class="builder-hero__text">
+            Cuéntanos qué necesitas y REGALIA entenderá tu solicitud paso a paso.
+          </p>
         </div>
 
-        <section class="request-step">
-          <span class="request-step__number">01</span>
-          <div class="request-step__body">
-            <strong class="request-step__title">Necesidad</strong>
-            <label class="form-field" for="need">
-              <span class="form-field__label">Descripción libre</span>
-              <textarea
-                id="need"
-                class="form-field__control"
-                rows="4"
-                formControlName="need"
-              ></textarea>
-            </label>
-            @if (requestForm.controls.need.invalid && requestForm.controls.need.touched) {
-              <p class="form-field__error">Describe la necesidad con más detalle.</p>
+        <div class="builder-hero__badge" aria-hidden="true">
+          ✨ Asistente REGALIA
+        </div>
+      </div>
+    </header>
+
+    <nav class="builder-stepper" aria-label="Progreso de la solicitud">
+      @for (step of steps; track trackStep($index, step); let index = $index) {
+        <button
+          class="builder-stepper__item"
+          type="button"
+          [class.builder-stepper__item--active]="isStepActive(step.phase)"
+          [class.builder-stepper__item--completed]="isStepCompleted(step.phase)"
+          [disabled]="!canOpenPhase(step.phase)"
+          (click)="goToPhase(step.phase)"
+        >
+          <span class="builder-stepper__number">
+            @if (isStepCompleted(step.phase)) {
+              ✓
+            } @else {
+              {{ index + 1 }}
             }
-          </div>
-        </section>
+          </span>
 
-        <section class="request-step">
-          <span class="request-step__number">02</span>
-          <div class="request-step__body">
-            <strong class="request-step__title">Presupuesto y ocasión</strong>
-            <div class="request-panel__grid">
-              <label class="form-field" for="occasion">
-                <span class="form-field__label">Ocasión</span>
-                <select id="occasion" class="form-field__control" formControlName="occasion">
-                  @for (occasion of occasions; track occasion) {
-                    <option [value]="occasion">{{ occasion }}</option>
-                  }
-                </select>
-              </label>
-
-              <label class="form-field" for="budget">
-                <span class="form-field__label">Presupuesto</span>
-                <input
-                  id="budget"
-                  class="form-field__control"
-                  type="number"
-                  min="20"
-                  max="2000"
-                  formControlName="budget"
-                />
-              </label>
-            </div>
-          </div>
-        </section>
-
-        <section class="request-step">
-          <span class="request-step__number">03</span>
-          <div class="request-step__body">
-            <strong class="request-step__title">Entrega y preferencias</strong>
-            <div class="request-panel__grid">
-              <label class="form-field" for="style">
-                <span class="form-field__label">Estilo</span>
-                <input id="style" class="form-field__control" type="text" formControlName="style" />
-              </label>
-
-              <label class="form-field" for="deliveryDate">
-                <span class="form-field__label">Fecha de entrega</span>
-                <input
-                  id="deliveryDate"
-                  class="form-field__control"
-                  type="text"
-                  formControlName="deliveryDate"
-                />
-              </label>
-            </div>
-
-            <label class="form-field" for="district">
-              <span class="form-field__label">Zona de entrega</span>
-              <input
-                id="district"
-                class="form-field__control"
-                type="text"
-                formControlName="district"
-              />
-            </label>
-
-            <label class="request-panel__check">
-              <input type="checkbox" formControlName="urgent" />
-              <span>Necesito una opción express</span>
-            </label>
-          </div>
-        </section>
-
-        <button class="request-panel__button" type="submit">
-          {{ searchFeedback() ? 'Actualizar búsqueda' : 'Encontrar proveedores' }}
+          <span class="builder-stepper__copy">
+            <strong>{{ step.label }}</strong>
+            <small>{{ step.description }}</small>
+          </span>
         </button>
-        @if (searchFeedback(); as feedback) {
-          <p class="request-panel__feedback" aria-live="polite">{{ feedback }}</p>
-        }
-      </form>
+      }
+    </nav>
 
-      <main #resultsRegion class="recommendation-zone col-12 col-xl-6" tabindex="-1">
-        @if (interpretedSummary(); as summary) {
-          <section class="interpretation-card">
-            <span class="interpretation-card__eyebrow">Interpretación IA</span>
-            <div class="interpretation-card__body">
-              <strong class="interpretation-card__title">{{ summary.category }}</strong>
-              <small class="interpretation-card__text">
-                {{ summary.occasion }} · {{ summary.style }} · urgencia {{ summary.urgency }}
-              </small>
-            </div>
-            <em class="interpretation-card__pill">{{ summary.budgetFit }}</em>
-          </section>
-        }
+    <div class="builder-shell">
+      @switch (currentPhase()) {
+        @case ('need') {
+          <section class="builder-phase builder-phase--need" aria-labelledby="need-title">
+            <form class="builder-card builder-card--form" [formGroup]="requestForm">
+              <div class="builder-card__header">
+                <div>
+                  <span class="builder-card__eyebrow">Fase 1 de 4</span>
+                  <h2 id="need-title" class="builder-card__title">
+                    Asistente de búsqueda inteligente
+                  </h2>
+                  <p class="builder-card__text">
+                    Describe el regalo que tienes en mente. Mientras más detalles agregues, mejores
+                    serán las recomendaciones.
+                  </p>
+                </div>
 
-        <section class="recommendation-list" aria-label="Ranking de proveedores compatibles">
-          @for (
-            recommendation of recommendations();
-            track trackRecommendation($index, recommendation)
-          ) {
-            <button
-              class="recommendation-card"
-              type="button"
-              [class.recommendation-card--selected]="
-                selectedRecommendation()?.provider?.id === recommendation.provider.id
-              "
-              (click)="selectRecommendation(recommendation)"
-            >
-              <span class="recommendation-card__score">{{ recommendation.score }}%</span>
-              <span class="recommendation-card__content">
-                <span class="recommendation-card__category">{{
-                  recommendation.provider.category
-                }}</span>
-                <strong class="recommendation-card__title">{{
-                  recommendation.provider.businessName
-                }}</strong>
-                <span class="recommendation-card__reason">{{ recommendation.reason }}</span>
-                <span class="recommendation-card__tags">
-                  @for (style of recommendation.provider.styles; track trackText($index, style)) {
-                    <span>{{ style }}</span>
-                  }
+                <span class="builder-card__pill">Solo tomará un minuto</span>
+              </div>
+
+              <label class="builder-field builder-field--textarea" for="need">
+                <span class="builder-field__top">
+                  <strong>¿Qué regalo tienes en mente?</strong>
+                  <small>{{ needLength() }}/800</small>
                 </span>
-              </span>
-              <span class="recommendation-card__meta">
-                <strong>S/ {{ recommendation.reservation.estimatedOrder }}</strong>
-                <small>Seña S/ {{ recommendation.reservation.reservation }}</small>
-              </span>
-            </button>
-          }
-        </section>
-      </main>
 
-      <aside class="reservation-panel col-12 col-xl-3">
-        @if (selectedRecommendation(); as selected) {
-          <span class="reservation-panel__eyebrow">Proveedor recomendado</span>
-          <h2 class="reservation-panel__title">{{ selected.provider.businessName }}</h2>
-          <p class="reservation-panel__text">{{ selected.provider.description }}</p>
+                <textarea
+                  id="need"
+                  class="builder-field__control"
+                  rows="6"
+                  formControlName="need"
+                  placeholder="Ejemplo: Quiero un regalo elegante para graduación, con una torta personalizada, flores y entrega el sábado. Presupuesto aproximado S/120."
+                ></textarea>
+              </label>
 
-          <div class="provider-facts">
-            <span>{{ selected.provider.district }}</span>
-            <span>{{ selected.provider.deliveryTime }}</span>
-            <span>★ {{ selected.provider.rating }} · {{ selected.provider.reviews }} reseñas</span>
-          </div>
+              @if (requestForm.controls.need.invalid && requestForm.controls.need.touched) {
+                <p class="builder-field__error">
+                  Describe tu necesidad con al menos 12 caracteres.
+                </p>
+              }
 
-          <section class="reservation-box">
-            <h3 class="reservation-box__title">Reserva inteligente</h3>
-            <div class="reservation-box__row">
-              <span>Pedido estimado</span
-              ><strong>S/ {{ selected.reservation.estimatedOrder }}</strong>
-            </div>
-            <div class="reservation-box__row">
-              <span>Seña cliente</span><strong>S/ {{ selected.reservation.reservation }}</strong>
-            </div>
-            <div class="reservation-box__row">
-              <span>Comisión REGALIA</span
-              ><strong>S/ {{ selected.reservation.platformCommission }}</strong>
-            </div>
-            <div class="reservation-box__row">
-              <span>Proveedor recibe</span
-              ><strong>S/ {{ selected.reservation.providerCredit }}</strong>
-            </div>
-          </section>
+              <div class="builder-suggestions" aria-label="Sugerencias rápidas">
+                <span class="builder-suggestions__label">Sugerencias rápidas</span>
 
-          @if (confirmedRecommendation()?.provider?.id === selected.provider.id) {
-            <section class="reservation-confirmation" aria-live="polite">
-              <span class="reservation-confirmation__status">Reserva preparada</span>
-              <strong>S/ {{ selected.reservation.reservation }} de seña simulada</strong>
-              <p>
-                El siguiente paso es revisar tus reservas para coordinar fecha, proveedor y estado
-                del pedido.
+                <div class="builder-suggestions__list">
+                  @for (
+                    suggestion of quickSuggestions;
+                    track trackSuggestion($index, suggestion)
+                  ) {
+                    <button
+                      class="builder-chip"
+                      type="button"
+                      (click)="applySuggestion(suggestion)"
+                    >
+                      <span aria-hidden="true">{{ suggestion.icon }}</span>
+                      {{ suggestion.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="builder-form-grid">
+                <label class="builder-field" for="occasion">
+                  <span class="builder-field__label">Ocasión</span>
+                  <select id="occasion" class="builder-field__control" formControlName="occasion">
+                    @for (occasion of occasions; track occasion) {
+                      <option [value]="occasion">{{ occasion }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="builder-field" for="budget">
+                  <span class="builder-field__label">Presupuesto</span>
+                  <input
+                    id="budget"
+                    class="builder-field__control"
+                    type="number"
+                    min="20"
+                    max="2000"
+                    formControlName="budget"
+                  />
+                </label>
+
+                <label class="builder-field" for="style">
+                  <span class="builder-field__label">Estilo</span>
+                  <input
+                    id="style"
+                    class="builder-field__control"
+                    type="text"
+                    formControlName="style"
+                    placeholder="Ej: elegante, romántico, minimalista"
+                  />
+                </label>
+
+                <label class="builder-field" for="deliveryDate">
+                  <span class="builder-field__label">Fecha de entrega</span>
+                  <input
+                    id="deliveryDate"
+                    class="builder-field__control"
+                    type="text"
+                    formControlName="deliveryDate"
+                    placeholder="Ej: sábado, mañana, 25/06"
+                  />
+                </label>
+
+                <label class="builder-field builder-field--wide" for="district">
+                  <span class="builder-field__label">Zona de entrega</span>
+                  <input
+                    id="district"
+                    class="builder-field__control"
+                    type="text"
+                    formControlName="district"
+                    placeholder="Ej: Trujillo, Víctor Larco, El Porvenir"
+                  />
+                </label>
+
+                <label class="builder-check">
+                  <input type="checkbox" formControlName="urgent" />
+                  <span>Necesito una opción express</span>
+                </label>
+              </div>
+
+              <aside class="builder-tip">
+                <span class="builder-tip__icon" aria-hidden="true">💡</span>
+                <div>
+                  <strong>Consejo REGALIA</strong>
+                  <p>
+                    Incluye detalles como gustos, colores, personalidad de la persona o el mensaje
+                    que quieres transmitir.
+                  </p>
+                </div>
+              </aside>
+
+              @if (searchFeedback(); as feedback) {
+                <p class="builder-feedback" aria-live="polite">{{ feedback }}</p>
+              }
+
+              <button class="builder-primary-action" type="button" (click)="continueToInterpretation()">
+                Continuar a interpretación IA
+                <span aria-hidden="true">→</span>
+              </button>
+            </form>
+
+            <aside class="builder-card builder-preview" aria-label="Vista previa de tu solicitud">
+              <div class="builder-card__header builder-card__header--compact">
+                <div>
+                  <span class="builder-card__eyebrow">Vista previa</span>
+                  <h2 class="builder-card__title">Tu solicitud hasta ahora</h2>
+                </div>
+              </div>
+
+              <dl class="builder-summary-list">
+                <div>
+                  <dt>Descripción</dt>
+                  <dd>{{ requestPreview().description || 'Aún no agregada' }}</dd>
+                </div>
+
+                <div>
+                  <dt>Ocasión</dt>
+                  <dd>{{ requestPreview().occasion || 'No seleccionada' }}</dd>
+                </div>
+
+                <div>
+                  <dt>Presupuesto</dt>
+                  <dd>S/ {{ requestPreview().budget }}</dd>
+                </div>
+
+                <div>
+                  <dt>Estilo</dt>
+                  <dd>{{ requestPreview().style || 'No seleccionado' }}</dd>
+                </div>
+
+                <div>
+                  <dt>Fecha de entrega</dt>
+                  <dd>{{ requestPreview().deliveryDate || 'No seleccionada' }}</dd>
+                </div>
+
+                <div>
+                  <dt>Zona de entrega</dt>
+                  <dd>{{ requestPreview().district || 'No ingresada' }}</dd>
+                </div>
+              </dl>
+
+              <div class="builder-preview__image">
+                <img src="/images/regalia-hero-gift.png" alt="Regalo REGALIA" />
+              </div>
+
+              <p class="builder-preview__safe">
+                Tu información se usa solo para encontrar recomendaciones compatibles.
               </p>
-              <div class="reservation-confirmation__actions">
-                <a routerLink="/cliente/reservas">Ver mis reservas</a>
-                <button type="button" (click)="clearPreparedReservation()">
-                  Ajustar selección
+            </aside>
+          </section>
+        }
+
+        @case ('interpretation') {
+          <section class="builder-phase builder-phase--interpretation">
+            <article class="builder-card builder-card--centered">
+              <div class="builder-card__header">
+                <div>
+                  <span class="builder-card__eyebrow">Fase 2 de 4</span>
+                  <h2 class="builder-card__title">Interpretación IA</h2>
+                  <p class="builder-card__text">
+                    REGALIA analizó tu necesidad y organizó los criterios principales para buscar
+                    proveedores compatibles.
+                  </p>
+                </div>
+
+                @if (interpretedSummary(); as summary) {
+                  <span class="builder-card__pill builder-card__pill--success">
+                    {{ summary.budgetFit }}
+                  </span>
+                }
+              </div>
+
+              @if (interpretedSummary(); as summary) {
+                <div class="builder-interpretation-grid">
+                  <article>
+                    <span>Categoría detectada</span>
+                    <strong>{{ summary.category }}</strong>
+                  </article>
+
+                  <article>
+                    <span>Ocasión</span>
+                    <strong>{{ summary.occasion }}</strong>
+                  </article>
+
+                  <article>
+                    <span>Estilo</span>
+                    <strong>{{ summary.style }}</strong>
+                  </article>
+
+                  <article>
+                    <span>Urgencia</span>
+                    <strong>{{ summary.urgency }}</strong>
+                  </article>
+                </div>
+              }
+
+              <aside class="builder-tip builder-tip--soft">
+                <span class="builder-tip__icon" aria-hidden="true">✨</span>
+                <div>
+                  <strong>¿Qué hará REGALIA ahora?</strong>
+                  <p>
+                    Comparará proveedores por categoría, estilo, presupuesto, reputación y
+                    disponibilidad.
+                  </p>
+                </div>
+              </aside>
+
+              <div class="builder-phase-actions">
+                <button class="builder-secondary-action" type="button" (click)="goToPhase('need')">
+                  Editar necesidad
+                </button>
+
+                <button
+                  class="builder-primary-action builder-primary-action--inline"
+                  type="button"
+                  (click)="continueToRecommendations()"
+                >
+                  Ver recomendaciones
+                  <span aria-hidden="true">→</span>
                 </button>
               </div>
-            </section>
-          } @else {
-            <button class="reservation-panel__button" type="button" (click)="prepareReservation()">
-              Preparar reserva
-            </button>
-          }
+            </article>
+          </section>
         }
-      </aside>
+
+        @case ('recommendations') {
+          <section
+            #resultsRegion
+            class="builder-phase builder-phase--recommendations"
+            tabindex="-1"
+            aria-labelledby="recommendations-title"
+          >
+            <div class="builder-results-layout">
+              <main class="builder-card builder-results">
+                <div class="builder-card__header">
+                  <div>
+                    <span class="builder-card__eyebrow">Fase 3 de 4</span>
+                    <h2 id="recommendations-title" class="builder-card__title">
+                      Recomendador de productos
+                    </h2>
+                    <p class="builder-card__text">
+                      Estos proveedores son los más compatibles con tu solicitud.
+                    </p>
+                  </div>
+
+                  <span class="builder-card__pill">
+                    {{ recommendations().length }} opciones
+                  </span>
+                </div>
+
+                <div class="builder-recommendation-list">
+                  @for (
+                    recommendation of recommendations();
+                    track trackRecommendation($index, recommendation)
+                  ) {
+                    <button
+                      class="builder-recommendation-card"
+                      type="button"
+                      [class.builder-recommendation-card--selected]="
+                        selectedRecommendation()?.provider?.id === recommendation.provider.id
+                      "
+                      (click)="selectRecommendation(recommendation)"
+                    >
+                      <span class="builder-recommendation-card__score">
+                        {{ recommendation.score }}%
+                        <small>match</small>
+                      </span>
+
+                      <span class="builder-recommendation-card__body">
+                        <span class="builder-recommendation-card__category">
+                          {{ recommendation.provider.category }}
+                        </span>
+
+                        <strong class="builder-recommendation-card__title">
+                          {{ recommendation.provider.businessName }}
+                        </strong>
+
+                        <span class="builder-recommendation-card__reason">
+                          {{ recommendation.reason }}
+                        </span>
+
+                        <span class="builder-recommendation-card__tags">
+                          @for (
+                            style of recommendation.provider.styles;
+                            track trackText($index, style)
+                          ) {
+                            <span>{{ style }}</span>
+                          }
+                        </span>
+                      </span>
+
+                      <span class="builder-recommendation-card__meta">
+                        <small>Total estimado</small>
+                        <strong>S/ {{ recommendation.reservation.estimatedOrder }}</strong>
+                        <small>Seña S/ {{ recommendation.reservation.reservation }}</small>
+                      </span>
+
+                      <span class="builder-recommendation-card__arrow" aria-hidden="true">›</span>
+                    </button>
+                  }
+                </div>
+
+                @if (recommendations().length === 0) {
+                  <div class="builder-empty">
+                    <strong>No encontramos recomendaciones todavía.</strong>
+                    <p>Regresa a la fase de necesidad y ajusta tu búsqueda.</p>
+                  </div>
+                }
+              </main>
+
+              <aside class="builder-card builder-provider-summary">
+                @if (selectedRecommendation(); as selected) {
+                  <span class="builder-card__eyebrow">Proveedor recomendado</span>
+
+                  <h3 class="builder-provider-summary__title">
+                    {{ selected.provider.businessName }}
+                  </h3>
+
+                  <p class="builder-provider-summary__text">
+                    {{ selected.provider.description }}
+                  </p>
+
+                  <div class="builder-provider-facts">
+                    @for (fact of selectedProviderFacts(); track trackText($index, fact)) {
+                      <span>{{ fact }}</span>
+                    }
+                  </div>
+
+                  <section class="builder-mini-reservation">
+                    <div>
+                      <span>Pedido estimado</span>
+                      <strong>S/ {{ selected.reservation.estimatedOrder }}</strong>
+                    </div>
+
+                    <div>
+                      <span>Seña cliente</span>
+                      <strong>S/ {{ selected.reservation.reservation }}</strong>
+                    </div>
+
+                    <div>
+                      <span>Comisión REGALIA</span>
+                      <strong>S/ {{ selected.reservation.platformCommission }}</strong>
+                    </div>
+                  </section>
+
+                  <button
+                    class="builder-primary-action"
+                    type="button"
+                    (click)="continueToReservation()"
+                  >
+                    Preparar reserva
+                    <span aria-hidden="true">→</span>
+                  </button>
+                }
+              </aside>
+            </div>
+          </section>
+        }
+
+        @case ('reservation') {
+          <section class="builder-phase builder-phase--reservation">
+            <article class="builder-card builder-card--centered">
+              @if (selectedRecommendation(); as selected) {
+                <div class="builder-card__header">
+                  <div>
+                    <span class="builder-card__eyebrow">Fase 4 de 4</span>
+                    <h2 class="builder-card__title">Reserva inteligente</h2>
+                    <p class="builder-card__text">
+                      Revisa el resumen antes de preparar la reserva con el proveedor recomendado.
+                    </p>
+                  </div>
+
+                  <span class="builder-card__pill">Pago seguro</span>
+                </div>
+
+                <div class="builder-reservation-layout">
+                  <section class="builder-provider-final">
+                    <span>Proveedor seleccionado</span>
+                    <h3>{{ selected.provider.businessName }}</h3>
+                    <p>{{ selected.provider.description }}</p>
+
+                    <div class="builder-provider-facts">
+                      @for (fact of selectedProviderFacts(); track trackText($index, fact)) {
+                        <span>{{ fact }}</span>
+                      }
+                    </div>
+                  </section>
+
+                  <section class="builder-reservation-box">
+                    <div>
+                      <span>Pedido estimado</span>
+                      <strong>S/ {{ selected.reservation.estimatedOrder }}</strong>
+                    </div>
+
+                    <div>
+                      <span>Seña cliente</span>
+                      <strong>S/ {{ selected.reservation.reservation }}</strong>
+                    </div>
+
+                    <div>
+                      <span>Comisión REGALIA</span>
+                      <strong>S/ {{ selected.reservation.platformCommission }}</strong>
+                    </div>
+
+                    <div class="builder-reservation-box__total">
+                      <span>Proveedor recibe</span>
+                      <strong>S/ {{ selected.reservation.providerCredit }}</strong>
+                    </div>
+                  </section>
+                </div>
+
+                @if (confirmedRecommendation()?.provider?.id === selected.provider.id) {
+                  <section class="builder-confirmation" aria-live="polite">
+                    <span>Reserva preparada</span>
+                    <strong>
+                      Tu solicitud quedó lista para coordinar con
+                      {{ selected.provider.businessName }}.
+                    </strong>
+                    <p>
+                      Esta versión prepara la reserva de forma visual. El siguiente paso del proyecto
+                      será conectarlo con pedidos reales del backend.
+                    </p>
+                  </section>
+
+                  <div class="builder-phase-actions">
+                    <a class="builder-secondary-action" routerLink="/cliente/reservas">
+                      Ver mis reservas
+                    </a>
+
+                    <button
+                      class="builder-primary-action builder-primary-action--inline"
+                      type="button"
+                      (click)="resetFlow()"
+                    >
+                      Nueva búsqueda
+                    </button>
+                  </div>
+                } @else {
+                  <div class="builder-phase-actions">
+                    <button
+                      class="builder-secondary-action"
+                      type="button"
+                      (click)="goToPhase('recommendations')"
+                    >
+                      Cambiar proveedor
+                    </button>
+
+                    <button
+                      class="builder-primary-action builder-primary-action--inline"
+                      type="button"
+                      (click)="prepareReservation()"
+                    >
+                      Confirmar preparación
+                    </button>
+                  </div>
+                }
+              }
+            </article>
+          </section>
+        }
+      }
     </div>
+
+    <footer class="builder-footer-progress">
+      <span>Paso {{ phaseIndexText(currentPhase()) }} de 4</span>
+    </footer>
   </div>
 </section>
