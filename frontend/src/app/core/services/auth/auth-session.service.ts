@@ -4,6 +4,9 @@ import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 
 export type UserRole = 'Cliente' | 'Proveedor' | 'Administrador';
 export type BackendRole = 'CLIENTE' | 'VENDEDOR' | 'ADMIN';
+export type AuthContext = 'PUBLIC' | 'ADMIN';
+
+type LoginEndpoint = '/auth/login' | '/admin/auth/login';
 
 export interface ApiResponse<T> {
   status: 'success' | 'fail' | 'error';
@@ -22,6 +25,7 @@ interface LoginResponse {
   idUsuario: number;
   correo: string;
   roles: BackendRole[];
+  authContext: AuthContext;
   expiraEnMinutos: number;
 }
 
@@ -53,6 +57,7 @@ export interface SessionUser {
   token: string;
   tokenType: string;
   expiresAt: number;
+  authContext: AuthContext;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -63,24 +68,20 @@ export class AuthSessionService {
   private readonly userSignal = signal<SessionUser | null>(this.restoreSession());
 
   readonly currentUser = this.userSignal.asReadonly();
+
   readonly isLoggedIn = computed(() => {
     const session = this.currentUser();
     return session !== null && session.expiresAt > Date.now();
   });
+
   readonly role = computed(() => this.currentUser()?.role ?? null);
 
   login(request: LoginRequest, remember: boolean): Observable<SessionUser> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/auth/login`, request).pipe(
-      map((response) => this.toSession(response.data)),
-      tap((session) => this.persistSession(session, remember)),
-      switchMap((session) =>
-        this.http.get<ApiResponse<UserResponse>>(`${this.apiUrl}/usuarios/me`).pipe(
-          map(({ data }) => this.withIdentity(session, data.nombres, data.apellidos)),
-          tap((enrichedSession) => this.persistSession(enrichedSession, remember)),
-          catchError(() => of(session)),
-        ),
-      ),
-    );
+    return this.loginWithContext('/auth/login', request, remember, 'PUBLIC');
+  }
+
+  loginAdmin(request: LoginRequest, remember: boolean): Observable<SessionUser> {
+    return this.loginWithContext('/admin/auth/login', request, remember, 'ADMIN');
   }
 
   register(request: RegisterRequest, remember = true): Observable<SessionUser> {
@@ -113,18 +114,63 @@ export class AuthSessionService {
   }
 
   homeForCurrentUser(): string {
-    const role = this.role();
-    if (role === 'Administrador') return '/admin/resumen';
-    if (role === 'Proveedor') return '/proveedor/resumen';
+    const session = this.currentUser();
+
+    if (session?.authContext === 'ADMIN' && session.roles.includes('Administrador')) {
+      return '/admin/resumen';
+    }
+
+    if (session?.roles.includes('Proveedor')) {
+      return '/proveedor/resumen';
+    }
+
     return '/cliente/inicio';
   }
 
-  canAccess(roles: UserRole[]): boolean {
-    const userRoles = this.currentUser()?.roles ?? [];
-    return roles.some((role) => userRoles.includes(role));
+  canAccess(roles: UserRole[], requiredContext?: AuthContext): boolean {
+    const session = this.currentUser();
+
+    if (!session) return false;
+
+    if (requiredContext && session.authContext !== requiredContext) {
+      return false;
+    }
+
+    return roles.some((role) => session.roles.includes(role));
   }
 
-  private toSession(response: LoginResponse): SessionUser {
+  hasAuthContext(requiredContext: AuthContext): boolean {
+    return this.currentUser()?.authContext === requiredContext;
+  }
+
+  private loginWithContext(
+    endpoint: LoginEndpoint,
+    request: LoginRequest,
+    remember: boolean,
+    expectedContext: AuthContext,
+  ): Observable<SessionUser> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}${endpoint}`, request).pipe(
+      map((response) => this.toSession(response.data, expectedContext)),
+      tap((session) => this.persistSession(session, remember)),
+      switchMap((session) => {
+        if (session.authContext === 'ADMIN') {
+          return of(session);
+        }
+
+        return this.http.get<ApiResponse<UserResponse>>(`${this.apiUrl}/usuarios/me`).pipe(
+          map(({ data }) => this.withIdentity(session, data.nombres, data.apellidos)),
+          tap((enrichedSession) => this.persistSession(enrichedSession, remember)),
+          catchError(() => of(session)),
+        );
+      }),
+    );
+  }
+
+  private toSession(response: LoginResponse, expectedContext: AuthContext): SessionUser {
+    if (response.authContext !== expectedContext) {
+      throw new Error('El contexto de autenticación recibido no coincide con el esperado.');
+    }
+
     const roles = response.roles.map((role) => this.toUserRole(role));
     const role = this.resolvePrimaryRole(roles);
 
@@ -137,11 +183,13 @@ export class AuthSessionService {
       token: response.token,
       tokenType: response.tipo,
       expiresAt: Date.now() + response.expiraEnMinutos * 60_000,
+      authContext: response.authContext,
     };
   }
 
   private withIdentity(session: SessionUser, nombres: string, apellidos: string): SessionUser {
     const fullName = `${nombres} ${apellidos}`.trim();
+
     return {
       ...session,
       fullName: fullName || session.fullName,
@@ -156,6 +204,7 @@ export class AuthSessionService {
 
     const storage = remember ? localStorage : sessionStorage;
     storage.setItem(this.storageKey, serializedSession);
+
     this.userSignal.set(user);
   }
 
@@ -167,11 +216,13 @@ export class AuthSessionService {
 
     try {
       const session = JSON.parse(rawSession) as SessionUser;
-      if (session.expiresAt <= Date.now()) {
+
+      if (!session.token || !session.authContext || session.expiresAt <= Date.now()) {
         localStorage.removeItem(this.storageKey);
         sessionStorage.removeItem(this.storageKey);
         return null;
       }
+
       return session;
     } catch {
       localStorage.removeItem(this.storageKey);
