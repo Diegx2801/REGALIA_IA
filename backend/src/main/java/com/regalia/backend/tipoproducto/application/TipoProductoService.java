@@ -32,8 +32,26 @@ public class TipoProductoService {
     }
 
     @Transactional(readOnly = true)
+    public List<TipoProductoResponse> listarTiposProductoAdministracion() {
+        return tipoProductoJpaRepository.findAllByOrderByNombreAsc()
+                .stream()
+                .map(tipoProductoMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public TipoProductoResponse obtenerTipoProductoPorId(Long idTipoProducto) {
         TipoProductoEntity tipoProducto = obtenerTipoProductoActivo(idTipoProducto);
+
+        return tipoProductoMapper.toResponse(tipoProducto);
+    }
+
+    @Transactional(readOnly = true)
+    public TipoProductoResponse obtenerTipoProductoAdministracionPorId(Long idTipoProducto) {
+        TipoProductoEntity tipoProducto = tipoProductoJpaRepository.findById(idTipoProducto)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de producto solicitado"
+                ));
 
         return tipoProductoMapper.toResponse(tipoProducto);
     }

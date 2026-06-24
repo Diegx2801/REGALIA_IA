@@ -149,52 +149,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/vendedores/me/**").access(vendedorAccess())
 
                         /*
-                         * Administración fuera del prefijo /api/admin por compatibilidad
-                         * con rutas ya existentes orientadas al recurso.
-                         */
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos").access(adminAccess())
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios-documentos/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios-documentos/**").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores").access(adminAccess())
-                        .requestMatchers(HttpMethod.GET, "/api/vendedores/*").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.POST, "/api/rubros").access(adminAccess())
-                        .requestMatchers(HttpMethod.PUT, "/api/rubros/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.DELETE, "/api/rubros/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.PATCH, "/api/rubros/**").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.GET, "/api/roles").access(adminAccess())
-                        .requestMatchers(HttpMethod.GET, "/api/roles/**").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios").access(adminAccess())
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago").access(adminAccess())
-                        .requestMatchers(HttpMethod.GET, "/api/tipos-pago/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-pago").access(adminAccess())
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-pago/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-pago/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-pago/**").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-documento").access(adminAccess())
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-documento/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-documento/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-documento/**").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-entrega").access(adminAccess())
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-entrega/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-entrega/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-entrega/**").access(adminAccess())
-
-                        .requestMatchers(HttpMethod.POST, "/api/tipos-producto").access(adminAccess())
-                        .requestMatchers(HttpMethod.PUT, "/api/tipos-producto/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.DELETE, "/api/tipos-producto/**").access(adminAccess())
-                        .requestMatchers(HttpMethod.PATCH, "/api/tipos-producto/**").access(adminAccess())
-
-                        /*
                          * Panel administrativo.
                          * Requiere rol ADMIN y token emitido desde el contexto ADMIN.
                          */

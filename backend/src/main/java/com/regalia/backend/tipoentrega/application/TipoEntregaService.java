@@ -32,8 +32,26 @@ public class TipoEntregaService {
     }
 
     @Transactional(readOnly = true)
+    public List<TipoEntregaResponse> listarTiposEntregaAdministracion() {
+        return tipoEntregaJpaRepository.findAllByOrderByNombreAsc()
+                .stream()
+                .map(tipoEntregaMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public TipoEntregaResponse obtenerTipoEntregaPorId(Long idTipoEntrega) {
         TipoEntregaEntity tipoEntrega = obtenerTipoEntregaActivo(idTipoEntrega);
+
+        return tipoEntregaMapper.toResponse(tipoEntrega);
+    }
+
+    @Transactional(readOnly = true)
+    public TipoEntregaResponse obtenerTipoEntregaAdministracionPorId(Long idTipoEntrega) {
+        TipoEntregaEntity tipoEntrega = tipoEntregaJpaRepository.findById(idTipoEntrega)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de entrega solicitado"
+                ));
 
         return tipoEntregaMapper.toResponse(tipoEntrega);
     }

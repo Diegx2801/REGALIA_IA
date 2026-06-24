@@ -25,8 +25,8 @@ public class AdminTipoPagoController {
     private final TipoPagoService tipoPagoService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TipoPagoResponse>>> listarActivos() {
-        List<TipoPagoResponse> tiposPago = tipoPagoService.listarActivos();
+    public ResponseEntity<ApiResponse<List<TipoPagoResponse>>> listarTiposPagoAdministracion() {
+        List<TipoPagoResponse> tiposPago = tipoPagoService.listarTiposPagoAdministracion();
 
         return ResponseEntity.ok(
                 ApiResponse.success(tiposPago)
@@ -34,8 +34,8 @@ public class AdminTipoPagoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TipoPagoResponse>> buscarPorId(@PathVariable Long id) {
-        TipoPagoResponse tipoPago = tipoPagoService.buscarPorId(id);
+    public ResponseEntity<ApiResponse<TipoPagoResponse>> buscarTipoPagoAdministracionPorId(@PathVariable Long id) {
+        TipoPagoResponse tipoPago = tipoPagoService.buscarTipoPagoAdministracionPorId(id);
 
         return ResponseEntity.ok(
                 ApiResponse.success(tipoPago)

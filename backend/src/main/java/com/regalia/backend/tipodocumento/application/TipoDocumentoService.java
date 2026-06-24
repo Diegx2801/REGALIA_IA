@@ -36,8 +36,26 @@ public class TipoDocumentoService {
     }
 
     @Transactional(readOnly = true)
+    public List<TipoDocumentoResponse> listarTiposDocumentoAdministracion() {
+        return tipoDocumentoRepository.findAllByOrderByIdTipoDocumentoAsc()
+                .stream()
+                .map(tipoDocumentoMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public TipoDocumentoResponse buscarPorId(Long id) {
         TipoDocumentoEntity tipoDocumento = obtenerEntidadActivaPorId(id);
+
+        return tipoDocumentoMapper.toResponse(tipoDocumento);
+    }
+
+    @Transactional(readOnly = true)
+    public TipoDocumentoResponse buscarTipoDocumentoAdministracionPorId(Long id) {
+        TipoDocumentoEntity tipoDocumento = tipoDocumentoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de documento solicitado"
+                ));
 
         return tipoDocumentoMapper.toResponse(tipoDocumento);
     }

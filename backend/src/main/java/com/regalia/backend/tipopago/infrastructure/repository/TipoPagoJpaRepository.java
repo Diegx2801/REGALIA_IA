@@ -13,6 +13,8 @@ public interface TipoPagoJpaRepository extends JpaRepository<TipoPagoEntity, Lon
 
     List<TipoPagoEntity> findByEstadoTrueOrderByIdTipoPagoAsc();
 
+    List<TipoPagoEntity> findAllByOrderByIdTipoPagoAsc();
+
     Optional<TipoPagoEntity> findByIdTipoPagoAndEstadoTrue(Long idTipoPago);
 
     Optional<TipoPagoEntity> findByCodigoAndEstadoTrue(String codigo);

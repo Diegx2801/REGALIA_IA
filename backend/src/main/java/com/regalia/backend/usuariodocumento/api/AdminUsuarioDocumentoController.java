@@ -12,11 +12,9 @@ import java.util.List;
 /**
  * Controlador REST administrativo para revisar solicitudes de verificación de documentos.
  *
- * Aunque el controlador es administrativo, la ruta se mantiene orientada al recurso:
- * /api/usuarios-documentos
  */
 @RestController
-@RequestMapping("/api/usuarios-documentos")
+@RequestMapping("/api/admin/usuarios-documentos")
 @RequiredArgsConstructor
 public class AdminUsuarioDocumentoController {
 

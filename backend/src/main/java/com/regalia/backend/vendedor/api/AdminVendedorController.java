@@ -13,7 +13,7 @@ import java.util.List;
  * Controlador REST administrativo para consultar vendedores.
  */
 @RestController
-@RequestMapping("/api/vendedores")
+@RequestMapping("/api/admin/vendedores")
 @RequiredArgsConstructor
 public class AdminVendedorController {
 

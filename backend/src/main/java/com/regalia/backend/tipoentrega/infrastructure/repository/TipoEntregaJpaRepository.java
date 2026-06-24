@@ -10,6 +10,8 @@ public interface TipoEntregaJpaRepository extends JpaRepository<TipoEntregaEntit
 
     List<TipoEntregaEntity> findByEstadoTrueOrderByNombreAsc();
 
+    List<TipoEntregaEntity> findAllByOrderByNombreAsc();
+
     Optional<TipoEntregaEntity> findByIdTipoEntregaAndEstadoTrue(Long idTipoEntrega);
 
     Optional<TipoEntregaEntity> findByIdTipoEntregaAndEstadoFalse(Long idTipoEntrega);

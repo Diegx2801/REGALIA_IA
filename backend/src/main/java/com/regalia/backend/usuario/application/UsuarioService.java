@@ -4,6 +4,7 @@ import com.regalia.backend.rol.application.RolService;
 import com.regalia.backend.rol.infrastructure.entity.RolEntity;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
+import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.usuario.api.dto.UsuarioActualizarRequest;
 import com.regalia.backend.usuario.api.dto.UsuarioRequest;
 import com.regalia.backend.usuario.api.dto.UsuarioResponse;
@@ -26,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UsuarioService {
 
+    private static final String ROL_ADMIN = "ADMIN";
     private static final String ROL_CLIENTE = "CLIENTE";
 
     private final UsuarioJpaRepository usuarioRepository;
@@ -43,8 +45,25 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
+    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion() {
+        return usuarioRepository.findActivosSinRolOrderByIdUsuarioAsc(ROL_ADMIN)
+                .stream()
+                .map(usuarioMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public UsuarioResponse buscarPorId(Long id) {
         UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
+
+        return usuarioMapper.toResponse(usuario);
+    }
+
+    @Transactional(readOnly = true)
+    public UsuarioResponse buscarUsuarioGestionableAdministracionPorId(Long id) {
+        UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
+
+        validarUsuarioNoAdministrador(usuario.getIdUsuario());
 
         return usuarioMapper.toResponse(usuario);
     }
@@ -87,6 +106,17 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    @Transactional
+    public void desactivarUsuarioGestionableAdministracion(Long id) {
+        UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
+
+        validarUsuarioNoAdministrador(usuario.getIdUsuario());
+
+        usuario.setEstado(false);
+
+        usuarioRepository.save(usuario);
+    }
+
     @Transactional(readOnly = true)
     public UsuarioResponse buscarPerfilAutenticado(String correo) {
         UsuarioEntity usuario = obtenerEntidadActivaPorCorreo(correo);
@@ -117,6 +147,12 @@ public class UsuarioService {
         if (!yaTieneRolCliente) {
             UsuarioRolEntity usuarioRol = new UsuarioRolEntity(usuario, rolCliente);
             usuarioRolRepository.save(usuarioRol);
+        }
+    }
+
+    private void validarUsuarioNoAdministrador(Long idUsuario) {
+        if (usuarioRolRepository.existsByUsuarioIdUsuarioAndRolNombreIgnoreCaseAndEstadoTrue(idUsuario, ROL_ADMIN)) {
+            throw new ReglaNegocioException("Las cuentas administrativas no se gestionan desde este módulo");
         }
     }
 

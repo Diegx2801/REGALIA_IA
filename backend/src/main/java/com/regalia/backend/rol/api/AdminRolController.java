@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controlador REST para exponer operaciones de consulta de roles.
+ * Controlador REST administrativo para consultar roles del sistema.
  */
 @RestController
-@RequestMapping("/api/roles")
+@RequestMapping("/api/admin/roles")
 @RequiredArgsConstructor
-public class RolController {
+public class AdminRolController {
 
     private final RolService rolService;
 

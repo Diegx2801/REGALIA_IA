@@ -10,6 +10,8 @@ public interface TipoProductoJpaRepository extends JpaRepository<TipoProductoEnt
 
     List<TipoProductoEntity> findByEstadoTrueOrderByNombreAsc();
 
+    List<TipoProductoEntity> findAllByOrderByNombreAsc();
+
     Optional<TipoProductoEntity> findByIdTipoProductoAndEstadoTrue(Long idTipoProducto);
 
     Optional<TipoProductoEntity> findByIdTipoProductoAndEstadoFalse(Long idTipoProducto);

@@ -36,8 +36,26 @@ public class TipoPagoService {
     }
 
     @Transactional(readOnly = true)
+    public List<TipoPagoResponse> listarTiposPagoAdministracion() {
+        return tipoPagoRepository.findAllByOrderByIdTipoPagoAsc()
+                .stream()
+                .map(tipoPagoMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public TipoPagoResponse buscarPorId(Long id) {
         TipoPagoEntity tipoPago = obtenerEntidadActivaPorId(id);
+
+        return tipoPagoMapper.toResponse(tipoPago);
+    }
+
+    @Transactional(readOnly = true)
+    public TipoPagoResponse buscarTipoPagoAdministracionPorId(Long id) {
+        TipoPagoEntity tipoPago = tipoPagoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el tipo de pago solicitado"
+                ));
 
         return tipoPagoMapper.toResponse(tipoPago);
     }

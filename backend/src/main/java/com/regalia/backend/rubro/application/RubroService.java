@@ -32,8 +32,26 @@ public class RubroService {
     }
 
     @Transactional(readOnly = true)
+    public List<RubroResponse> listarRubrosAdministracion() {
+        return rubroRepository.findAllByOrderByIdRubroAsc()
+                .stream()
+                .map(rubroMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public RubroResponse obtenerRubroActivoPorId(Long idRubro) {
         RubroEntity rubro = obtenerEntidadActivaPorId(idRubro);
+
+        return rubroMapper.toResponse(rubro);
+    }
+
+    @Transactional(readOnly = true)
+    public RubroResponse obtenerRubroAdministracionPorId(Long idRubro) {
+        RubroEntity rubro = rubroRepository.findById(idRubro)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el rubro solicitado"
+                ));
 
         return rubroMapper.toResponse(rubro);
     }
