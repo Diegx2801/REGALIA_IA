@@ -1,7 +1,19 @@
 <section class="product-page">
   <div class="container rg-page__container product-page__container">
-    @if (product; as product) {
+    @if (detailLoadState() === 'loading') {
+      <section class="product-status" role="status">
+        <span class="product-status__eyebrow">Catálogo REGALIA</span>
+        <h1>Cargando producto...</h1>
+        <p>Estamos sincronizando el detalle con el marketplace.</p>
+      </section>
+    } @else if (product(); as product) {
       <a class="product-page__back" routerLink="/catalogo">← Volver al catálogo</a>
+
+      @if (detailLoadState() === 'fallback') {
+        <div class="product-detail-alert product-detail-alert--warning" role="status">
+          No pudimos sincronizar el detalle real. Mostramos la última información disponible.
+        </div>
+      }
 
       <article class="product-detail-card">
         <div
@@ -83,7 +95,7 @@
         </div>
 
         <div class="related-products__grid">
-          @for (item of relatedProducts; track trackProduct($index, item)) {
+          @for (item of relatedProducts(); track trackProduct($index, item)) {
             <article>
               <strong>{{ item.title }}</strong>
               <span>{{ item.provider }}</span>
@@ -94,6 +106,12 @@
             </article>
           }
         </div>
+      </section>
+    } @else if (detailLoadState() === 'error') {
+      <section class="product-not-found">
+        <h1>No pudimos cargar el producto</h1>
+        <p>El backend no respondió correctamente. Intenta nuevamente en unos minutos.</p>
+        <a routerLink="/catalogo">Volver al catálogo</a>
       </section>
     } @else {
       <section class="product-not-found">

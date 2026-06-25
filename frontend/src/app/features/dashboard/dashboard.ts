@@ -5,7 +5,8 @@ import {
   PREVIEW_ROUTES,
   WorkspaceIdentity,
 } from '../../core/config/workspace-preview.config';
-import { AuthSessionService, UserRole } from '../../core/services/auth/auth-session.service';
+import { AuthSessionService } from '../../core/services/auth/auth-session.service';
+import { UserRole } from '../../core/services/auth/auth-session.model';
 
 interface DashboardMetric {
   label: string;

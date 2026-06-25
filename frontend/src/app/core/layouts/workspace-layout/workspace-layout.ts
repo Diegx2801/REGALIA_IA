@@ -5,7 +5,8 @@ import {
   PREVIEW_ROUTES,
   WorkspaceIdentity,
 } from '../../config/workspace-preview.config';
-import { AuthSessionService, UserRole } from '../../services/auth/auth-session.service';
+import { AuthSessionService } from '../../services/auth/auth-session.service';
+import { UserRole } from '../../services/auth/auth-session.model';
 
 interface WorkspaceNavItem {
   label: string;

@@ -1,22 +1,17 @@
 import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
-
-interface StoredSession {
-  token: string;
-  tokenType?: string;
-  expiresAt: number;
-}
+import { inject } from '@angular/core';
+import { API_ENDPOINTS, isApiRequestUrl } from '../config/api.config';
+import { AuthStorageService } from '../services/auth/auth-storage.service';
 
 interface PublicEndpoint {
   method: string;
   url: string;
 }
 
-const SESSION_STORAGE_KEY = 'regalia_session';
-
 const PUBLIC_ENDPOINTS: PublicEndpoint[] = [
-  { method: 'POST', url: '/api/auth/login' },
-  { method: 'POST', url: '/api/admin/auth/login' },
-  { method: 'POST', url: '/api/usuarios' },
+  { method: 'POST', url: API_ENDPOINTS.auth.login },
+  { method: 'POST', url: API_ENDPOINTS.auth.adminLogin },
+  { method: 'POST', url: API_ENDPOINTS.auth.register },
 ];
 
 function normalizedUrl(url: string): string {
@@ -31,37 +26,16 @@ function isPublicEndpoint(request: HttpRequest<unknown>): boolean {
   );
 }
 
-function readStoredSession(): StoredSession | null {
-  const rawSession =
-    localStorage.getItem(SESSION_STORAGE_KEY) ?? sessionStorage.getItem(SESSION_STORAGE_KEY);
-
-  if (!rawSession) return null;
-
-  try {
-    const session = JSON.parse(rawSession) as StoredSession;
-
-    if (!session.token || session.expiresAt <= Date.now()) {
-      localStorage.removeItem(SESSION_STORAGE_KEY);
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-      return null;
-    }
-
-    return session;
-  } catch {
-    localStorage.removeItem(SESSION_STORAGE_KEY);
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    return null;
-  }
-}
-
 export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
-  const isApiRequest = request.url.startsWith('/api');
-
-  if (!isApiRequest || isPublicEndpoint(request) || request.headers.has('Authorization')) {
+  if (
+    !isApiRequestUrl(request.url) ||
+    isPublicEndpoint(request) ||
+    request.headers.has('Authorization')
+  ) {
     return next(request);
   }
 
-  const session = readStoredSession();
+  const session = inject(AuthStorageService).read();
   if (!session) return next(request);
 
   return next(

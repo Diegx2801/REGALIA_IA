@@ -1,4 +1,4 @@
-import { UserRole } from '../services/auth/auth-session.service';
+import { UserRole } from '../services/auth/auth-session.model';
 
 export interface WorkspaceIdentity {
   fullName: string;

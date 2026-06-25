@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CartService } from '../../core/services/cart/cart.service';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
+import { RegaliaPublicCatalogApiService } from '../../core/services/data-access/regalia/services/regalia-public-catalog-api.service';
 import {
   FixedPriceProduct,
   ProviderFilter,
@@ -12,6 +14,9 @@ import {
   RegaliaProvider,
 } from '../../shared/models/regalia.model';
 
+type CatalogSortOption = 'recommended' | 'priceAsc' | 'priceDesc' | 'ratingDesc';
+type CatalogLoadState = 'loading' | 'ready' | 'fallback';
+
 @Component({
   selector: 'app-catalog',
   standalone: true,
@@ -19,17 +24,34 @@ import {
   templateUrl: './catalog.html',
   styleUrl: './catalog.css',
 })
-export class CatalogComponent {
+export class CatalogComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly regaliaService = inject(RegaliaService);
+  private readonly publicCatalogApiService = inject(RegaliaPublicCatalogApiService);
   private readonly cartService = inject(CartService);
 
-  readonly categories: Array<RegaliaCategory | 'Todas'> = ['Todas', ...this.regaliaService.getCategories()];
-  readonly occasions: Array<RegaliaOccasion | 'Todas'> = ['Todas', ...this.regaliaService.getOccasions()];
+  readonly categories: Array<RegaliaCategory | 'Todas'> = [
+    'Todas',
+    ...this.regaliaService.getCategories(),
+  ];
+  readonly occasions: Array<RegaliaOccasion | 'Todas'> = [
+    'Todas',
+    ...this.regaliaService.getOccasions(),
+  ];
   readonly providers = signal(this.regaliaService.getProviders());
-  readonly selectedProvider = signal<RegaliaProvider>(this.providers()[0]);
+  readonly products = signal<FixedPriceProduct[]>([]);
+  readonly catalogLoadState = signal<CatalogLoadState>('loading');
   readonly addedProductId = signal<number | null>(null);
   readonly cartTotalItems = this.cartService.totalItems;
+  readonly sortControl = new FormControl<CatalogSortOption>('recommended', { nonNullable: true });
+  readonly sortOptions: Array<{ value: CatalogSortOption; label: string }> = [
+    { value: 'recommended', label: 'Recomendados' },
+    { value: 'priceAsc', label: 'Menor precio' },
+    { value: 'priceDesc', label: 'Mayor precio' },
+    { value: 'ratingDesc', label: 'Mejor valorados' },
+  ];
   private readonly filtersVersion = signal(0);
+  private readonly sortVersion = signal(0);
 
   readonly filtersForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
@@ -44,21 +66,51 @@ export class CatalogComponent {
     return this.filtersForm.getRawValue();
   });
 
-  readonly filteredProducts = computed(() => this.regaliaService.filterFixedPriceProducts(this.currentFilters()));
-  readonly filteredProviders = computed(() => this.regaliaService.filterProviders(this.currentFilters()));
+  readonly filteredProducts = computed(() =>
+    this.regaliaService.filterFixedPriceProducts(this.currentFilters(), this.products()),
+  );
+  readonly filteredProviders = computed(() =>
+    this.regaliaService.filterProviders(this.currentFilters()),
+  );
+  readonly sortedProducts = computed(() => {
+    this.sortVersion();
+    return this.sortProducts(this.filteredProducts(), this.sortControl.value);
+  });
+  readonly activeFilterLabels = computed(() => {
+    const filters = this.currentFilters();
+    const labels: string[] = [];
 
-  /**
-   * Mantiene sincronizadas las píldoras de categoría y el selector del formulario,
-   * conservando el detalle del proveedor seleccionado cuando sigue visible.
-   */
+    if (filters.search.trim().length > 0) labels.push(`"${filters.search.trim()}"`);
+    if (filters.category !== 'Todas') labels.push(filters.category);
+    if (filters.occasion !== 'Todas') labels.push(filters.occasion);
+    if (filters.maxPrice < 700) labels.push(`Hasta S/ ${filters.maxPrice}`);
+    if (filters.availableOnly) labels.push('Disponibles para reservar');
+
+    return labels;
+  });
+
+  ngOnInit(): void {
+    this.publicCatalogApiService
+      .getPublicProducts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (products) => {
+          this.products.set(products);
+          this.regaliaService.setRuntimeFixedPriceProducts(products);
+          this.catalogLoadState.set('ready');
+        },
+        error: () => {
+          const fallbackProducts = this.regaliaService.getFixedPriceProducts();
+          this.products.set(fallbackProducts);
+          this.regaliaService.setRuntimeFixedPriceProducts(fallbackProducts);
+          this.catalogLoadState.set('fallback');
+        },
+      });
+  }
+
   applyCategory(category: RegaliaCategory | 'Todas'): void {
     this.filtersForm.controls.category.setValue(category);
     this.refreshFilters();
-    this.ensureSelectedProviderIsVisible();
-  }
-
-  selectProvider(provider: RegaliaProvider): void {
-    this.selectedProvider.set(provider);
   }
 
   addProductToCart(product: FixedPriceProduct): void {
@@ -76,12 +128,14 @@ export class CatalogComponent {
     });
     this.addedProductId.set(null);
     this.refreshFilters();
-    this.selectedProvider.set(this.providers()[0]);
   }
 
   onFiltersChanged(): void {
     this.refreshFilters();
-    this.ensureSelectedProviderIsVisible();
+  }
+
+  onSortChanged(): void {
+    this.sortVersion.update((value) => value + 1);
   }
 
   trackProvider(_: number, provider: RegaliaProvider): number {
@@ -96,16 +150,28 @@ export class CatalogComponent {
     return value;
   }
 
-  private ensureSelectedProviderIsVisible(): void {
-    const selected = this.selectedProvider();
-    const visible = this.filteredProviders();
-
-    if (!visible.some((provider) => provider.id === selected.id)) {
-      this.selectedProvider.set(visible[0] ?? this.providers()[0]);
-    }
-  }
-
   private refreshFilters(): void {
     this.filtersVersion.update((value) => value + 1);
+  }
+
+  private sortProducts(
+    products: FixedPriceProduct[],
+    sortBy: CatalogSortOption,
+  ): FixedPriceProduct[] {
+    const sortedProducts = [...products];
+
+    if (sortBy === 'priceAsc') {
+      return sortedProducts.sort((a, b) => a.price - b.price);
+    }
+
+    if (sortBy === 'priceDesc') {
+      return sortedProducts.sort((a, b) => b.price - a.price);
+    }
+
+    if (sortBy === 'ratingDesc') {
+      return sortedProducts.sort((a, b) => b.rating - a.rating);
+    }
+
+    return sortedProducts;
   }
 }
