@@ -1,25 +1,54 @@
 <section class="catalog-page">
-  <div class="container rg-page__container rg-page__container--retail catalog-page__container">
-    <header class="catalog-header">
-      <div class="catalog-header__copy">
-        <span class="catalog-header__eyebrow">Catálogo REGALIA</span>
-        <h1>Productos fijos y proveedores locales para regalos personalizados.</h1>
-        <p>
-          Compra productos con precio definido desde el carrito o usa el flujo de IA para cotizar
-          algo completamente personalizado.
-        </p>
-      </div>
-      <div class="catalog-header__actions">
-        <a class="catalog-header__cart" routerLink="/carrito">
-          Carrito
-          @if (cartTotalItems() > 0) {
-            <span>{{ cartTotalItems() }}</span>
-          }
-        </a>
-        <a class="catalog-header__quote" routerLink="/pedir-con-ia">Cotizar con IA</a>
-      </div>
-    </header>
+  <div class="catalog-hero">
+    <div class="container rg-page__container rg-page__container--retail catalog-hero__container">
+      <div class="catalog-hero__content">
+        <nav class="catalog-breadcrumb" aria-label="Ruta de navegación">
+          <a routerLink="/">Inicio</a>
+          <span aria-hidden="true">/</span>
+          <span>Catálogo REGALIA</span>
+        </nav>
 
+        <span class="catalog-hero__eyebrow">Catálogo REGALIA</span>
+        <h1 class="catalog-hero__title">Regalos personalizados</h1>
+        <p class="catalog-hero__text">
+          Encuentra detalles únicos cerca de ti, compra productos listos para reservar o cotiza algo
+          completamente personalizado con proveedores locales.
+        </p>
+
+        <label class="catalog-search" for="catalogSearch">
+          <span class="catalog-search__icon" aria-hidden="true">⌕</span>
+          <input
+            id="catalogSearch"
+            class="catalog-search__control"
+            type="search"
+            placeholder="Buscar flores, tortas, boxes, tazas..."
+            [formControl]="filtersForm.controls.search"
+            (input)="onFiltersChanged()"
+          />
+          <a class="catalog-search__action" routerLink="/pedir-con-ia">Cotizar con IA</a>
+        </label>
+      </div>
+
+      <div class="catalog-hero__visual" aria-label="Regalos personalizados destacados">
+        <div class="catalog-hero__visual-card">
+          <span>Selección REGALIA</span>
+          <strong>Detalles únicos, creados cerca de ti</strong>
+        </div>
+        <div class="catalog-hero__summary" aria-label="Resumen del catálogo">
+          <div>
+            <strong>{{ sortedProducts().length }}</strong>
+            <span>productos</span>
+          </div>
+          <div>
+            <strong>{{ filteredProviders().length }}</strong>
+            <span>proveedores</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container rg-page__container rg-page__container--retail catalog-page__container">
     <nav class="category-strip" aria-label="Filtro rápido por categoría">
       @for (category of categories; track category) {
         <button
@@ -34,7 +63,7 @@
     </nav>
 
     <div class="catalog-layout">
-      <aside class="catalog-filters">
+      <aside class="catalog-filters" aria-label="Filtros del catálogo">
         <form
           class="catalog-filters__form"
           [formGroup]="filtersForm"
@@ -42,7 +71,10 @@
           (input)="onFiltersChanged()"
         >
           <div class="catalog-filters__head">
-            <h2 class="catalog-filters__title">Filtros</h2>
+            <div>
+              <span class="catalog-filters__eyebrow">Explorar</span>
+              <h2 class="catalog-filters__title">Filtros</h2>
+            </div>
             <button class="catalog-filters__clear" type="button" (click)="resetFilters()">
               Limpiar
             </button>
@@ -78,9 +110,10 @@
           </label>
 
           <label class="filter-field" for="maxPrice">
-            <span class="filter-field__label"
-              >Precio hasta S/ {{ filtersForm.controls.maxPrice.value }}</span
-            >
+            <span class="filter-field__label">
+              Precio máximo
+              <strong>S/ {{ filtersForm.controls.maxPrice.value }}</strong>
+            </span>
             <input
               id="maxPrice"
               class="filter-field__range"
@@ -94,103 +127,140 @@
 
           <label class="catalog-filters__check">
             <input type="checkbox" formControlName="availableOnly" />
-            <span>Solo disponibles</span>
+            <span>Disponibles para reservar</span>
           </label>
         </form>
       </aside>
 
       <main class="catalog-results" aria-label="Resultados del catálogo">
         <section class="catalog-section">
-          <div class="catalog-section__head">
-            <div>
-              <span>Precios fijos</span>
-              <h2>Productos listos para agregar al carrito</h2>
+          <div class="catalog-toolbar">
+            <div class="catalog-toolbar__summary">
+              <span>Productos listos</span>
+              <h2>{{ sortedProducts().length }} resultados para regalar</h2>
             </div>
-            <strong>{{ filteredProducts().length }} productos</strong>
+
+            <label class="catalog-sort" for="sortProducts">
+              <span>Ordenar</span>
+              <select
+                id="sortProducts"
+                class="catalog-sort__control"
+                [formControl]="sortControl"
+                (change)="onSortChanged()"
+              >
+                @for (option of sortOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </label>
           </div>
 
-          <div class="product-grid">
-            @for (product of filteredProducts(); track trackProduct($index, product)) {
-              <article class="product-card">
-                <a
-                  class="product-card__media"
-                  [routerLink]="['/producto', product.id]"
-                  [style.background-image]="'url(' + product.imageUrl + ')'"
-                  [style.background-position]="product.imagePosition"
-                  aria-label="Ver detalle de {{ product.title }}"
-                >
-                  <span>{{ product.badges[0] }}</span>
-                </a>
+          @if (activeFilterLabels().length > 0) {
+            <div class="active-filters" aria-label="Filtros activos">
+              @for (filter of activeFilterLabels(); track filter) {
+                <span class="active-filters__chip">{{ filter }}</span>
+              }
+            </div>
+          }
 
-                <div class="product-card__body">
-                  <span class="product-card__category">{{ product.providerCategory }}</span>
-                  <h3>
-                    <a [routerLink]="['/producto', product.id]">{{ product.title }}</a>
-                  </h3>
-                  <p>{{ product.shortDescription }}</p>
+          @if (catalogLoadState() === 'fallback') {
+            <div class="catalog-status catalog-status--warning" role="status">
+              No pudimos sincronizar el catálogo real. Mostramos productos de referencia mientras el
+              backend vuelve a estar disponible.
+            </div>
+          }
 
-                  <div class="product-card__meta">
-                    <span>{{ product.provider }}</span>
-                    <span>{{ product.deliveryTime }}</span>
-                  </div>
+          @if (catalogLoadState() === 'loading') {
+            <div class="catalog-status" role="status">Cargando productos del marketplace...</div>
+          } @else {
+            <div class="product-grid">
+              @for (product of sortedProducts(); track trackProduct($index, product)) {
+                <article class="product-card">
+                  <a
+                    class="product-card__media"
+                    [routerLink]="['/producto', product.id]"
+                    [style.background-image]="'url(' + product.imageUrl + ')'"
+                    [style.background-position]="product.imagePosition"
+                    aria-label="Ver detalle de {{ product.title }}"
+                  >
+                    <span class="product-card__badge">{{ product.badges[0] }}</span>
+                  </a>
 
-                  <div class="product-card__footer">
-                    <div>
-                      <strong>S/ {{ product.price }}</strong>
-                      @if (product.originalPrice) {
-                        <small>S/ {{ product.originalPrice }}</small>
-                      }
+                  <div class="product-card__body">
+                    <div class="product-card__topline">
+                      <span class="product-card__category">{{ product.providerCategory }}</span>
+                      <span class="product-card__rating">★ {{ product.rating }}</span>
                     </div>
-                    <button type="button" (click)="addProductToCart(product)">
-                      {{ addedProductId() === product.id ? 'Agregado' : 'Agregar' }}
-                    </button>
+
+                    <h3 class="product-card__title">
+                      <a [routerLink]="['/producto', product.id]">{{ product.title }}</a>
+                    </h3>
+
+                    <p class="product-card__description">{{ product.shortDescription }}</p>
+
+                    <div class="product-card__meta">
+                      <span>{{ product.provider }}</span>
+                      <span>{{ product.deliveryTime }}</span>
+                    </div>
+
+                    <div class="product-card__footer">
+                      <div class="product-card__price">
+                        <strong>S/ {{ product.price }}</strong>
+                        @if (product.originalPrice) {
+                          <small>S/ {{ product.originalPrice }}</small>
+                        }
+                      </div>
+                      <button
+                        class="product-card__button"
+                        type="button"
+                        (click)="addProductToCart(product)"
+                      >
+                        {{ addedProductId() === product.id ? 'Agregado' : 'Agregar' }}
+                      </button>
+                    </div>
                   </div>
+                </article>
+              } @empty {
+                <div class="empty-state product-grid__empty">
+                  <h2 class="empty-state__title">No hay productos con esos filtros</h2>
+                  <p class="empty-state__text">
+                    Prueba otro presupuesto, cambia la categoría o crea una solicitud personalizada.
+                  </p>
+                  <a routerLink="/pedir-con-ia">Cotizar con IA</a>
                 </div>
-              </article>
-            } @empty {
-              <div class="empty-state product-grid__empty">
-                <h2 class="empty-state__title">No hay productos fijos con esos filtros</h2>
-                <p class="empty-state__text">
-                  Prueba otro presupuesto o crea una solicitud personalizada con IA.
-                </p>
-                <a routerLink="/pedir-con-ia">Cotizar con IA</a>
-              </div>
-            }
-          </div>
+              }
+            </div>
+          }
         </section>
 
         <section class="catalog-section catalog-section--providers">
-          <div class="catalog-section__head">
-            <div>
-              <span>Proveedores recomendados</span>
-              <h2>Perfiles para pedidos personalizados</h2>
+          <div class="catalog-toolbar catalog-toolbar--compact">
+            <div class="catalog-toolbar__summary">
+              <span>Proveedores locales</span>
+              <h2>{{ filteredProviders().length }} perfiles compatibles</h2>
             </div>
-            <strong>{{ filteredProviders().length }} proveedores</strong>
+            <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
           </div>
 
           <div class="provider-grid">
             @for (provider of filteredProviders(); track trackProvider($index, provider)) {
-              <article
-                class="provider-card"
-                [class.provider-card--selected]="selectedProvider().id === provider.id"
-              >
-                <button
-                  type="button"
-                  class="provider-card__main"
-                  (click)="selectProvider(provider)"
-                >
+              <article class="provider-card">
+                <div class="provider-card__head">
                   <span class="provider-card__badge">{{
                     provider.featured ? 'Destacado' : 'Verificado'
                   }}</span>
-                  <span class="provider-card__category">{{ provider.category }}</span>
-                  <h3 class="provider-card__title">{{ provider.businessName }}</h3>
-                  <p class="provider-card__text">{{ provider.description }}</p>
-                  <span class="provider-card__tags">
-                    @for (style of provider.styles; track trackText($index, style)) {
-                      <span>{{ style }}</span>
-                    }
-                  </span>
-                </button>
+                  <span class="provider-card__rating">★ {{ provider.rating }}</span>
+                </div>
+                <span class="provider-card__category">{{ provider.category }}</span>
+                <h3 class="provider-card__title">{{ provider.businessName }}</h3>
+                <p class="provider-card__text">{{ provider.description }}</p>
+
+                <div class="provider-card__tags">
+                  @for (style of provider.styles; track trackText($index, style)) {
+                    <span>{{ style }}</span>
+                  }
+                </div>
+
                 <div class="provider-card__footer">
                   <span>{{ provider.district }} · {{ provider.distanceKm }} km</span>
                   <strong>S/ {{ provider.priceFrom }} - {{ provider.priceTo }}</strong>
@@ -207,48 +277,6 @@
           </div>
         </section>
       </main>
-
-      <aside class="provider-detail">
-        @if (selectedProvider(); as provider) {
-          <span class="provider-detail__eyebrow">{{ provider.category }}</span>
-          <h2 class="provider-detail__title">{{ provider.businessName }}</h2>
-          <p class="provider-detail__text">{{ provider.description }}</p>
-
-          <div class="provider-detail__score">
-            <strong>{{ provider.rating }}</strong>
-            <span>{{ provider.reviews }} reseñas · reputación {{ provider.reputation }}%</span>
-          </div>
-
-          <section class="detail-block">
-            <h3 class="detail-block__title">Datos para matching</h3>
-            <div class="detail-list">
-              <div class="detail-list__row">
-                <span>Entrega</span><strong>{{ provider.deliveryTime }}</strong>
-              </div>
-              <div class="detail-list__row">
-                <span>Disponibilidad</span><strong>{{ provider.availability }}</strong>
-              </div>
-              <div class="detail-list__row">
-                <span>WhatsApp</span><strong>{{ provider.whatsapp }}</strong>
-              </div>
-              <div class="detail-list__row">
-                <span>Pagos</span><strong>{{ provider.paymentMethods.join(', ') }}</strong>
-              </div>
-            </div>
-          </section>
-
-          <section class="detail-block">
-            <h3 class="detail-block__title">Portafolio</h3>
-            <div class="portfolio-list">
-              @for (item of provider.portfolio; track trackText($index, item)) {
-                <span>{{ item }}</span>
-              }
-            </div>
-          </section>
-
-          <a class="provider-detail__button" routerLink="/pedir-con-ia">Usar en solicitud</a>
-        }
-      </aside>
     </div>
   </div>
 </section>

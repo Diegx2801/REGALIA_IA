@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthContext, AuthSessionService, UserRole } from '../services/auth/auth-session.service';
+import { AuthSessionService } from '../services/auth/auth-session.service';
+import { AuthContext, UserRole } from '../services/auth/auth-session.model';
 
 function loginRouteFor(url: string): string {
   return url.startsWith('/admin') ? '/admin/login' : '/login';

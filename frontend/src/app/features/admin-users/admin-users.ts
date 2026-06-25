@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { UserRole } from '../../core/services/auth/auth-session.service';
+import { UserRole } from '../../core/services/auth/auth-session.model';
 
 // Fila visible en la administracion mock de usuarios y roles.
 interface AdminUserRow {

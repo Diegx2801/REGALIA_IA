@@ -1,71 +1,27 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
+import { API_ENDPOINTS } from '../../config/api.config';
+import { ApiResponse } from '../../../shared/models/api-response.model';
+import { AuthStorageService } from './auth-storage.service';
+import {
+  AuthContext,
+  BackendRole,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  SessionUser,
+  UserResponse,
+  UserRole,
+} from './auth-session.model';
 
-export type UserRole = 'Cliente' | 'Proveedor' | 'Administrador';
-export type BackendRole = 'CLIENTE' | 'VENDEDOR' | 'ADMIN';
-export type AuthContext = 'PUBLIC' | 'ADMIN';
-
-type LoginEndpoint = '/auth/login' | '/admin/auth/login';
-
-export interface ApiResponse<T> {
-  status: 'success' | 'fail' | 'error';
-  data: T;
-  message: string | null;
-}
-
-export interface LoginRequest {
-  correo: string;
-  contrasena: string;
-}
-
-interface LoginResponse {
-  token: string;
-  tipo: string;
-  idUsuario: number;
-  correo: string;
-  roles: BackendRole[];
-  authContext: AuthContext;
-  expiraEnMinutos: number;
-}
-
-export interface RegisterRequest {
-  nombres: string;
-  apellidos: string;
-  correo: string;
-  telefono: string;
-  contrasena: string;
-}
-
-export interface UserResponse {
-  idUsuario: number;
-  nombres: string;
-  apellidos: string;
-  correo: string;
-  telefono: string | null;
-  estado: boolean;
-  fechaCreacion?: string;
-  fechaActualizacion?: string | null;
-}
-
-export interface SessionUser {
-  id: number;
-  fullName: string;
-  email: string;
-  role: UserRole;
-  roles: UserRole[];
-  token: string;
-  tokenType: string;
-  expiresAt: number;
-  authContext: AuthContext;
-}
+type LoginEndpoint = typeof API_ENDPOINTS.auth.login | typeof API_ENDPOINTS.auth.adminLogin;
 
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api';
-  private readonly storageKey = 'regalia_session';
-  private readonly userSignal = signal<SessionUser | null>(this.restoreSession());
+  private readonly authStorage = inject(AuthStorageService);
+  private readonly userSignal = signal<SessionUser | null>(this.authStorage.read());
 
   readonly currentUser = this.userSignal.asReadonly();
 
@@ -77,15 +33,15 @@ export class AuthSessionService {
   readonly role = computed(() => this.currentUser()?.role ?? null);
 
   login(request: LoginRequest, remember: boolean): Observable<SessionUser> {
-    return this.loginWithContext('/auth/login', request, remember, 'PUBLIC');
+    return this.loginWithContext(API_ENDPOINTS.auth.login, request, remember, 'PUBLIC');
   }
 
   loginAdmin(request: LoginRequest, remember: boolean): Observable<SessionUser> {
-    return this.loginWithContext('/admin/auth/login', request, remember, 'ADMIN');
+    return this.loginWithContext(API_ENDPOINTS.auth.adminLogin, request, remember, 'ADMIN');
   }
 
   register(request: RegisterRequest, remember = true): Observable<SessionUser> {
-    return this.http.post<ApiResponse<UserResponse>>(`${this.apiUrl}/usuarios`, request).pipe(
+    return this.http.post<ApiResponse<UserResponse>>(API_ENDPOINTS.auth.register, request).pipe(
       switchMap(() =>
         this.login(
           {
@@ -103,14 +59,13 @@ export class AuthSessionService {
     if (!current) return;
 
     const updated = this.withIdentity(current, nombres, apellidos);
-    const remember = localStorage.getItem(this.storageKey) !== null;
+    const remember = this.authStorage.isPersistent();
     this.persistSession(updated, remember);
   }
 
   logout(): void {
     this.userSignal.set(null);
-    localStorage.removeItem(this.storageKey);
-    sessionStorage.removeItem(this.storageKey);
+    this.authStorage.clear();
   }
 
   homeForCurrentUser(): string {
@@ -149,7 +104,7 @@ export class AuthSessionService {
     remember: boolean,
     expectedContext: AuthContext,
   ): Observable<SessionUser> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}${endpoint}`, request).pipe(
+    return this.http.post<ApiResponse<LoginResponse>>(endpoint, request).pipe(
       map((response) => this.toSession(response.data, expectedContext)),
       tap((session) => this.persistSession(session, remember)),
       switchMap((session) => {
@@ -157,7 +112,7 @@ export class AuthSessionService {
           return of(session);
         }
 
-        return this.http.get<ApiResponse<UserResponse>>(`${this.apiUrl}/usuarios/me`).pipe(
+        return this.http.get<ApiResponse<UserResponse>>(API_ENDPOINTS.users.me).pipe(
           map(({ data }) => this.withIdentity(session, data.nombres, data.apellidos)),
           tap((enrichedSession) => this.persistSession(enrichedSession, remember)),
           catchError(() => of(session)),
@@ -197,38 +152,8 @@ export class AuthSessionService {
   }
 
   private persistSession(user: SessionUser, remember: boolean): void {
-    const serializedSession = JSON.stringify(user);
-
-    localStorage.removeItem(this.storageKey);
-    sessionStorage.removeItem(this.storageKey);
-
-    const storage = remember ? localStorage : sessionStorage;
-    storage.setItem(this.storageKey, serializedSession);
-
+    this.authStorage.save(user, remember);
     this.userSignal.set(user);
-  }
-
-  private restoreSession(): SessionUser | null {
-    const rawSession =
-      localStorage.getItem(this.storageKey) ?? sessionStorage.getItem(this.storageKey);
-
-    if (!rawSession) return null;
-
-    try {
-      const session = JSON.parse(rawSession) as SessionUser;
-
-      if (!session.token || !session.authContext || session.expiresAt <= Date.now()) {
-        localStorage.removeItem(this.storageKey);
-        sessionStorage.removeItem(this.storageKey);
-        return null;
-      }
-
-      return session;
-    } catch {
-      localStorage.removeItem(this.storageKey);
-      sessionStorage.removeItem(this.storageKey);
-      return null;
-    }
   }
 
   private toUserRole(role: BackendRole): UserRole {
