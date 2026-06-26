@@ -19,15 +19,18 @@ describe('BuilderComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should generate provider matches', () => {
+  it('should generate product recommendations', () => {
     component.generateMatches();
 
     expect(component.recommendations().length).toBeGreaterThan(0);
+    expect(component.recommendations()[0].producto).toBeTruthy();
   });
 
   it('should render the default match flow', () => {
+    component.generateMatches();
+    component.goToPhase('recommendations');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Dulce Detalle Trujillo');
+    expect(fixture.nativeElement.textContent).toContain('Mini torta personalizada');
   });
 });
