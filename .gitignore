@@ -32,3 +32,4 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 backend/src/main/resources/application-local.properties
+AGENTS.md

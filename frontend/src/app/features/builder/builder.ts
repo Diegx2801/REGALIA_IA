@@ -2,34 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
-import { MatchRecommendation, RegaliaRequest } from '../../shared/models/regalia.model';
-
-type BuilderPhase = 'need' | 'interpretation' | 'recommendations' | 'reservation';
-
-interface BuilderStep {
-  phase: BuilderPhase;
-  label: string;
-  description: string;
-}
-
-interface QuickSuggestion {
-  label: string;
-  icon: string;
-  need: string;
-  occasion: RegaliaRequest['occasion'];
-  style: string;
-}
-
-interface RequestPreview {
-  description: string;
-  occasion: string;
-  budget: number;
-  style: string;
-  deliveryDate: string;
-  district: string;
-  urgent: boolean;
-}
+import { RegaliaRequest } from '../../shared/models/regalia.model';
+import {
+  FaseBuilder,
+  PasoBuilder,
+  RecomendacionProductoBuilder,
+  SugerenciaRapidaBuilder,
+  VistaPreviaSolicitudBuilder,
+} from './models/builder.model';
+import { BuilderFlowService } from './services/builder-flow.service';
 
 @Component({
   selector: 'app-builder',
@@ -39,19 +20,19 @@ interface RequestPreview {
   styleUrl: './builder.css',
 })
 export class BuilderComponent {
-  private readonly regaliaService = inject(RegaliaService);
+  private readonly flujoBuilder = inject(BuilderFlowService);
 
   @ViewChild('resultsRegion') private readonly resultsRegion?: ElementRef<HTMLElement>;
 
-  readonly occasions = this.regaliaService.getOccasions();
+  readonly occasions = this.flujoBuilder.obtenerOcasiones();
 
-  readonly currentPhase = signal<BuilderPhase>('need');
-  readonly recommendations = signal<MatchRecommendation[]>([]);
-  readonly selectedRecommendation = signal<MatchRecommendation | null>(null);
-  readonly confirmedRecommendation = signal<MatchRecommendation | null>(null);
+  readonly currentPhase = signal<FaseBuilder>('need');
+  readonly recommendations = signal<RecomendacionProductoBuilder[]>([]);
+  readonly selectedRecommendation = signal<RecomendacionProductoBuilder | null>(null);
+  readonly confirmedRecommendation = signal<RecomendacionProductoBuilder | null>(null);
   readonly searchFeedback = signal<string | null>(null);
 
-  readonly steps: BuilderStep[] = [
+  readonly steps: PasoBuilder[] = [
     {
       phase: 'need',
       label: 'Necesidad',
@@ -65,7 +46,7 @@ export class BuilderComponent {
     {
       phase: 'recommendations',
       label: 'Recomendaciones',
-      description: 'Proveedores ideales para ti',
+      description: 'Productos ideales para ti',
     },
     {
       phase: 'reservation',
@@ -74,45 +55,45 @@ export class BuilderComponent {
     },
   ];
 
-  readonly quickSuggestions: QuickSuggestion[] = [
+  readonly quickSuggestions: SugerenciaRapidaBuilder[] = [
     {
       label: 'Cumpleaños',
-      icon: '🎂',
+      imageUrl: '/images/cumpleanios1.PNG',
       occasion: 'Cumpleaños',
       style: 'alegre',
       need: 'Busco un regalo especial para cumpleaños, personalizado, bonito y dentro de mi presupuesto.',
     },
     {
       label: 'Aniversario',
-      icon: '💗',
+      imageUrl: '/images/aniversario.PNG',
       occasion: 'Aniversario',
       style: 'romántico',
       need: 'Quiero un regalo romántico para aniversario, elegante y con algún detalle personalizado.',
     },
     {
       label: 'Graduación',
-      icon: '🎓',
+      imageUrl: '/images/graduacion.PNG',
       occasion: 'Graduación',
       style: 'elegante',
       need: 'Necesito una torta elegante para graduación, presupuesto S/120, entrega sábado.',
     },
     {
       label: 'Flores',
-      icon: '🌸',
+      imageUrl: '/images/flores.PNG',
       occasion: 'Aniversario',
       style: 'romántico',
       need: 'Busco flores bonitas para una sorpresa, con presentación elegante y entrega coordinada.',
     },
     {
       label: 'Box personalizado',
-      icon: '🎁',
+      imageUrl: '/images/boxpersonalizado.PNG',
       occasion: 'Cumpleaños',
       style: 'personalizado',
       need: 'Quiero un box personalizado con detalles dulces, tarjeta y presentación premium.',
     },
     {
       label: 'Torta',
-      icon: '🍰',
+      imageUrl: '/images/torta2.PNG',
       occasion: 'Cumpleaños',
       style: 'elegante',
       need: 'Necesito una torta personalizada, bonita y con entrega para una celebración especial.',
@@ -151,12 +132,12 @@ export class BuilderComponent {
   });
 
   readonly interpretedSummary = computed(
-    () => this.selectedRecommendation()?.interpretedNeed ?? null,
+    () => this.selectedRecommendation()?.interpretacion ?? null,
   );
 
   readonly needLength = computed(() => this.requestForm.controls.need.value.length);
 
-  readonly requestPreview = computed<RequestPreview>(() => {
+  readonly requestPreview = computed<VistaPreviaSolicitudBuilder>(() => {
     const formValue = this.requestForm.getRawValue();
 
     return {
@@ -177,14 +158,18 @@ export class BuilderComponent {
       return [];
     }
 
+    const proveedor = selected.proveedor;
+
     return [
-      selected.provider.district,
-      selected.provider.deliveryTime,
-      `★ ${selected.provider.rating} · ${selected.provider.reviews} reseñas`,
+      selected.producto.deliveryTime,
+      selected.producto.stockStatus,
+      proveedor
+        ? `★ ${proveedor.rating} · ${proveedor.reviews} reseñas`
+        : `★ ${selected.producto.rating} · ${selected.producto.reviews} reseñas`,
     ];
   });
 
-  applySuggestion(suggestion: QuickSuggestion): void {
+  applySuggestion(suggestion: SugerenciaRapidaBuilder): void {
     this.requestForm.patchValue({
       need: suggestion.need,
       occasion: suggestion.occasion,
@@ -226,7 +211,7 @@ export class BuilderComponent {
     this.currentPhase.set('reservation');
   }
 
-  goToPhase(phase: BuilderPhase): void {
+  goToPhase(phase: FaseBuilder): void {
     if (!this.canOpenPhase(phase)) {
       return;
     }
@@ -234,15 +219,15 @@ export class BuilderComponent {
     this.currentPhase.set(phase);
   }
 
-  isStepActive(phase: BuilderPhase): boolean {
+  isStepActive(phase: FaseBuilder): boolean {
     return this.currentPhase() === phase;
   }
 
-  isStepCompleted(phase: BuilderPhase): boolean {
+  isStepCompleted(phase: FaseBuilder): boolean {
     return this.phaseIndex(phase) < this.phaseIndex(this.currentPhase());
   }
 
-  canOpenPhase(phase: BuilderPhase): boolean {
+  canOpenPhase(phase: FaseBuilder): boolean {
     if (phase === 'need') {
       return true;
     }
@@ -258,7 +243,7 @@ export class BuilderComponent {
     return this.selectedRecommendation() !== null;
   }
 
-  phaseIndexText(phase: BuilderPhase): number {
+  phaseIndexText(phase: FaseBuilder): number {
     return this.phaseIndex(phase) + 1;
   }
 
@@ -267,24 +252,20 @@ export class BuilderComponent {
       return;
     }
 
-    const matches = this.regaliaService.matchRequest(this.requestForm.getRawValue());
+    const result = this.flujoBuilder.obtenerRecomendaciones(this.requestForm.getRawValue());
+    const matches = result.recomendaciones;
 
     this.recommendations.set(matches);
     this.selectedRecommendation.set(matches[0] ?? null);
     this.confirmedRecommendation.set(null);
-
-    this.searchFeedback.set(
-      matches.length > 0
-        ? `${matches.length} proveedores compatibles encontrados.`
-        : 'No encontramos proveedores compatibles con esos filtros.',
-    );
+    this.searchFeedback.set(result.mensaje);
 
     if (shouldFocusResults) {
       this.focusResults();
     }
   }
 
-  selectRecommendation(recommendation: MatchRecommendation): void {
+  selectRecommendation(recommendation: RecomendacionProductoBuilder): void {
     this.selectedRecommendation.set(recommendation);
     this.confirmedRecommendation.set(null);
   }
@@ -313,19 +294,19 @@ export class BuilderComponent {
     this.searchFeedback.set(null);
   }
 
-  trackStep(_: number, step: BuilderStep): BuilderPhase {
+  trackStep(_: number, step: PasoBuilder): FaseBuilder {
     return step.phase;
   }
 
-  trackRecommendation(_: number, recommendation: MatchRecommendation): number {
-    return recommendation.provider.id;
+  trackRecommendation(_: number, recommendation: RecomendacionProductoBuilder): number {
+    return recommendation.producto.id;
   }
 
   trackText(_: number, value: string): string {
     return value;
   }
 
-  trackSuggestion(_: number, suggestion: QuickSuggestion): string {
+  trackSuggestion(_: number, suggestion: SugerenciaRapidaBuilder): string {
     return suggestion.label;
   }
 
@@ -346,7 +327,7 @@ export class BuilderComponent {
     });
   }
 
-  private phaseIndex(phase: BuilderPhase): number {
+  private phaseIndex(phase: FaseBuilder): number {
     return this.steps.findIndex((step) => step.phase === phase);
   }
 }
