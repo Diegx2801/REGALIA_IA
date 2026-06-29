@@ -12,10 +12,10 @@ export const PREVIEW_IDENTITIES: Record<UserRole, WorkspaceIdentity> = {
     email: 'cliente.demo@regalia.pe',
     role: 'Cliente',
   },
-  Proveedor: {
+  Vendedor: {
     fullName: 'Camila Rojas',
-    email: 'proveedor.demo@regalia.pe',
-    role: 'Proveedor',
+    email: 'vendedor.demo@regalia.pe',
+    role: 'Vendedor',
   },
   Administrador: {
     fullName: 'Lucía Fernández',
@@ -26,6 +26,6 @@ export const PREVIEW_IDENTITIES: Record<UserRole, WorkspaceIdentity> = {
 
 export const PREVIEW_ROUTES: Record<UserRole, string> = {
   Cliente: '/vista-previa/cliente',
-  Proveedor: '/vista-previa/proveedor',
+  Vendedor: '/vista-previa/vendedor',
   Administrador: '/vista-previa/admin',
 };

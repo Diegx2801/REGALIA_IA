@@ -246,7 +246,7 @@
                   <h2 class="builder-card__title">Interpretación IA</h2>
                   <p class="builder-card__text">
                     REGALIA analizó tu necesidad y organizó los criterios principales para buscar
-                    proveedores compatibles.
+                    vendedores compatibles.
                   </p>
                 </div>
 
@@ -286,7 +286,7 @@
                 <div>
                   <strong>¿Qué hará REGALIA ahora?</strong>
                   <p>
-                    Comparará proveedores por categoría, estilo, presupuesto, reputación y
+                    Comparará vendedores por categoría, estilo, presupuesto, reputación y
                     disponibilidad.
                   </p>
                 </div>
@@ -326,7 +326,7 @@
                       Recomendador de productos
                     </h2>
                     <p class="builder-card__text">
-                      Estos proveedores son los más compatibles con tu solicitud.
+                      Estos vendedores son los más compatibles con tu solicitud.
                     </p>
                   </div>
 
@@ -397,7 +397,7 @@
 
               <aside class="builder-card builder-provider-summary">
                 @if (selectedRecommendation(); as selected) {
-                  <span class="builder-card__eyebrow">Proveedor recomendado</span>
+                  <span class="builder-card__eyebrow">Vendedor recomendado</span>
 
                   <h3 class="builder-provider-summary__title">
                     {{ selected.provider.businessName }}
@@ -453,7 +453,7 @@
                     <span class="builder-card__eyebrow">Fase 4 de 4</span>
                     <h2 class="builder-card__title">Reserva inteligente</h2>
                     <p class="builder-card__text">
-                      Revisa el resumen antes de preparar la reserva con el proveedor recomendado.
+                      Revisa el resumen antes de preparar la reserva con el vendedor recomendado.
                     </p>
                   </div>
 
@@ -462,7 +462,7 @@
 
                 <div class="builder-reservation-layout">
                   <section class="builder-provider-final">
-                    <span>Proveedor seleccionado</span>
+                    <span>Vendedor seleccionado</span>
                     <h3>{{ selected.provider.businessName }}</h3>
                     <p>{{ selected.provider.description }}</p>
 
@@ -490,7 +490,7 @@
                     </div>
 
                     <div class="builder-reservation-box__total">
-                      <span>Proveedor recibe</span>
+                      <span>Vendedor recibe</span>
                       <strong>S/ {{ selected.reservation.providerCredit }}</strong>
                     </div>
                   </section>
@@ -529,7 +529,7 @@
                       type="button"
                       (click)="goToPhase('recommendations')"
                     >
-                      Cambiar proveedor
+                      Cambiar vendedor
                     </button>
 
                     <button

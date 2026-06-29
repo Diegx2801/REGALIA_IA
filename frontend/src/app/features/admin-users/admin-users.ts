@@ -27,8 +27,8 @@ export class AdminUsersComponent {
   // Usuarios mock para validar UI de administracion antes de conectar endpoints reales.
   readonly users: AdminUserRow[] = [
     { id: 1, name: 'Andrea Mendoza', email: 'andrea@regalia.pe', role: 'Cliente', status: 'Activo', lastAccess: 'Hoy' },
-    { id: 2, name: 'Floralia Studio', email: 'ventas@floralia.pe', role: 'Proveedor', status: 'Activo', lastAccess: 'Ayer' },
-    { id: 3, name: 'Dulce Detalle', email: 'contacto@dulcedetalle.pe', role: 'Proveedor', status: 'Pendiente', lastAccess: 'Hace 2 dias' },
+    { id: 2, name: 'Floralia Studio', email: 'ventas@floralia.pe', role: 'Vendedor', status: 'Activo', lastAccess: 'Ayer' },
+    { id: 3, name: 'Dulce Detalle', email: 'contacto@dulcedetalle.pe', role: 'Vendedor', status: 'Pendiente', lastAccess: 'Hace 2 dias' },
     { id: 4, name: 'Operaciones REGALIA', email: 'admin@regalia.pe', role: 'Administrador', status: 'Activo', lastAccess: 'Hoy' },
   ];
 

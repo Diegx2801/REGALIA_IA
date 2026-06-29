@@ -9,7 +9,7 @@ export class RegaliaPricingService {
    * Regla actual del MVP:
    * - El cliente paga el 10% del total estimado del pedido como reserva.
    * - REGALIA retiene el 30% de esa reserva como comision de plataforma.
-   * - El monto restante se asigna al proveedor como adelanto.
+   * - El monto restante se asigna al vendedor como adelanto.
    */
   calculateReservationBreakdown(totalAmount: number): ReservationBreakdown {
     const estimatedOrder = this.roundMoney(Math.max(totalAmount, 0));

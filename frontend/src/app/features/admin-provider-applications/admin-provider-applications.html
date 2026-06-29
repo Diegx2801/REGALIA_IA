@@ -2,7 +2,7 @@
   <header class="applications-header">
     <div>
       <span class="applications-header__eyebrow">Confianza y calidad</span>
-      <h1>Solicitudes de proveedores</h1>
+      <h1>Solicitudes de vendedores</h1>
       <p>Evalúa la propuesta, capacidad operativa y señales de confianza antes de habilitar un negocio.</p>
     </div>
     <div class="applications-header__notice">
@@ -110,7 +110,7 @@
           </section>
 
           <section class="detail-section">
-            <label for="review-note">Observaciones para el proveedor</label>
+            <label for="review-note">Observaciones para el vendedor</label>
             <textarea id="review-note" rows="4" maxlength="500" [formControl]="noteControl" placeholder="Describe cambios requeridos o el motivo de la decisión."></textarea>
             <small>{{ noteControl.value.length }}/500</small>
             @if (actionMessage()) { <p class="action-message">{{ actionMessage() }}</p> }

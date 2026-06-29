@@ -72,7 +72,7 @@ export class DashboardComponent {
 
   readonly view = computed<DashboardView>(() => {
     const role = this.role();
-    if (role === 'Proveedor') return this.providerView();
+    if (role === 'Vendedor') return this.providerView();
     if (role === 'Administrador') return this.adminView();
     return this.clientView();
   });
@@ -86,7 +86,7 @@ export class DashboardComponent {
     return {
       eyebrow: 'Panel cliente',
       title: `Hola, ${this.firstName()}. Encuentra un detalle que se sienta realmente personal.`,
-      text: 'Explora proveedores locales, publica una necesidad y compara propuestas con total claridad antes de reservar.',
+      text: 'Explora vendedores locales, publica una necesidad y compara propuestas con total claridad antes de reservar.',
       primaryLabel: 'Crear una solicitud',
       primaryRoute: '/cliente/solicitud',
       metrics: [
@@ -98,7 +98,7 @@ export class DashboardComponent {
         {
           label: 'Cotizaciones recibidas',
           value: demo ? '2' : '0',
-          hint: demo ? 'Listas para comparar' : 'Aparecerán cuando un proveedor responda',
+          hint: demo ? 'Listas para comparar' : 'Aparecerán cuando un vendedor responda',
         },
         {
           label: 'Reservas confirmadas',
@@ -108,14 +108,14 @@ export class DashboardComponent {
         {
           label: 'Favoritos',
           value: demo ? '3' : '0',
-          hint: demo ? 'Proveedores guardados' : 'Guarda opciones para compararlas luego',
+          hint: demo ? 'Vendedores guardados' : 'Guarda opciones para compararlas luego',
         },
       ],
       actions: [
-        { label: 'Explorar regalos', hint: 'Catálogo y proveedores verificados', route: '/cliente/explorar', icon: '◇' },
+        { label: 'Explorar regalos', hint: 'Catálogo y vendedores verificados', route: '/cliente/explorar', icon: '◇' },
         { label: 'Pedir con IA', hint: 'Describe lo que necesitas en tus palabras', route: '/cliente/solicitud', icon: '✦' },
         { label: 'Ver mis reservas', hint: 'Fechas, estados y seguimiento', route: '/cliente/reservas', icon: '◫' },
-        { label: 'Vender en REGALIA', hint: 'Postula tu negocio y crea tu perfil comercial', route: '/cliente/solicitud-proveedor', icon: '✧' },
+        { label: 'Vender en REGALIA', hint: 'Postula tu negocio y crea tu perfil comercial', route: '/cliente/solicitud-vendedor', icon: '✧' },
       ],
       activityTitle: 'Actividad reciente',
       activityDescription: 'Solo se muestran acciones vinculadas a tu cuenta.',
@@ -123,7 +123,7 @@ export class DashboardComponent {
         ? [
             {
               title: 'Regalo de graduación elegante',
-              meta: '2 proveedores enviaron una propuesta',
+              meta: '2 vendedores enviaron una propuesta',
               status: 'Comparar',
               tone: 'warning',
             },
@@ -136,18 +136,18 @@ export class DashboardComponent {
           ]
         : [],
       emptyTitle: 'Tu espacio está listo',
-      emptyText: 'Empieza creando una solicitud o guardando un proveedor. No mostraremos actividad ficticia en tu cuenta.',
+      emptyText: 'Empieza creando una solicitud o guardando un vendedor. No mostraremos actividad ficticia en tu cuenta.',
     };
   }
 
   private providerView(): DashboardView {
     const demo = this.isPreview;
     return {
-      eyebrow: 'Panel proveedor',
+      eyebrow: 'Panel vendedor',
       title: `Buenos días, ${this.firstName()}. Convierte nuevas solicitudes en experiencias memorables.`,
       text: 'Prioriza oportunidades compatibles, organiza entregas y mantén la reputación de tu negocio en un solo lugar.',
       primaryLabel: 'Revisar solicitudes',
-      primaryRoute: '/proveedor/pedidos',
+      primaryRoute: '/vendedor/pedidos',
       metrics: [
         { label: 'Solicitudes nuevas', value: demo ? '4' : '0', hint: demo ? '2 con alta compatibilidad' : 'Sin solicitudes nuevas' },
         { label: 'Pedidos en proceso', value: demo ? '6' : '0', hint: demo ? '3 entregas esta semana' : 'Sin pedidos activos' },
@@ -155,9 +155,9 @@ export class DashboardComponent {
         { label: 'Reputación', value: demo ? '4.9' : '—', hint: demo ? '96 reseñas verificadas' : 'Se calculará con reseñas reales' },
       ],
       actions: [
-        { label: 'Gestionar pedidos', hint: 'Cotiza, acepta y actualiza estados', route: '/proveedor/pedidos', icon: '◇' },
-        { label: 'Organizar calendario', hint: 'Entregas, cupos y disponibilidad', route: '/proveedor/calendario', icon: '◫' },
-        { label: 'Mejorar mi perfil', hint: 'Catálogo, portafolio y zonas', route: '/proveedor/perfil', icon: '▦' },
+        { label: 'Gestionar pedidos', hint: 'Cotiza, acepta y actualiza estados', route: '/vendedor/pedidos', icon: '◇' },
+        { label: 'Organizar calendario', hint: 'Entregas, cupos y disponibilidad', route: '/vendedor/calendario', icon: '◫' },
+        { label: 'Mejorar mi perfil', hint: 'Catálogo, portafolio y zonas', route: '/vendedor/perfil', icon: '▦' },
       ],
       activityTitle: 'Oportunidades prioritarias',
       activityDescription: 'Ordenadas por compatibilidad, urgencia y fecha de entrega.',
@@ -178,26 +178,26 @@ export class DashboardComponent {
     return {
       eyebrow: 'Panel administrador',
       title: 'Una vista ejecutiva para cuidar la operación y la confianza de REGALIA.',
-      text: 'Supervisa crecimiento, proveedores, reservas y alertas sin perder de vista la experiencia de clientes y emprendedores.',
+      text: 'Supervisa crecimiento, vendedores, reservas y alertas sin perder de vista la experiencia de clientes y emprendedores.',
       primaryLabel: 'Abrir operación',
       primaryRoute: '/admin/operacion',
       metrics: [
         { label: 'Usuarios activos', value: demo ? '128' : '0', hint: demo ? '+12 este mes' : 'Pendiente de endpoint estadístico' },
-        { label: 'Proveedores verificados', value: demo ? '24' : '0', hint: demo ? '5 solicitudes en revisión' : 'Pendiente del módulo de verificación' },
+        { label: 'Vendedores verificados', value: demo ? '24' : '0', hint: demo ? '5 solicitudes en revisión' : 'Pendiente del módulo de verificación' },
         { label: 'Pedidos abiertos', value: demo ? '18' : '0', hint: demo ? '3 requieren seguimiento' : 'Sin datos operativos conectados' },
         { label: 'Comisión estimada', value: demo ? 'S/ 1,840' : 'S/ 0', hint: demo ? 'Periodo actual' : 'Pendiente del módulo de pagos' },
       ],
       actions: [
         { label: 'Supervisar operación', hint: 'Pedidos, reservas y comisiones', route: '/admin/operacion', icon: '◇' },
         { label: 'Gestionar usuarios', hint: 'Cuentas, estados y permisos', route: '/admin/usuarios', icon: '◎' },
-        { label: 'Validar proveedores', hint: 'Revisión, observaciones y aprobación', route: '/admin/solicitudes-proveedor', icon: '✧' },
+        { label: 'Validar vendedores', hint: 'Revisión, observaciones y aprobación', route: '/admin/solicitudes-vendedores', icon: '✧' },
         { label: 'Revisar calendario', hint: 'Demanda y fechas críticas', route: '/admin/calendario', icon: '◫' },
       ],
       activityTitle: 'Alertas que requieren atención',
       activityDescription: 'Priorizadas por impacto en confianza, entrega y seguridad.',
       activities: demo
         ? [
-            { title: '5 proveedores esperan verificación', meta: 'Documentación completa para revisión', status: 'Revisar', tone: 'warning' },
+            { title: '5 vendedores esperan verificación', meta: 'Documentación completa para revisión', status: 'Revisar', tone: 'warning' },
             { title: '3 pedidos próximos a vencer', meta: 'Entrega dentro de las siguientes 24 horas', status: 'Seguimiento', tone: 'warning' },
             { title: 'Disponibilidad de la plataforma', meta: 'Servicios principales operativos', status: 'Estable', tone: 'success' },
           ]

@@ -12,7 +12,7 @@
         <h1 class="catalog-hero__title">Regalos personalizados</h1>
         <p class="catalog-hero__text">
           Encuentra detalles únicos cerca de ti, compra productos listos para reservar o cotiza algo
-          completamente personalizado con proveedores locales.
+          completamente personalizado con vendedores locales.
         </p>
 
         <label class="catalog-search" for="catalogSearch">
@@ -41,7 +41,7 @@
           </div>
           <div>
             <strong>{{ filteredProviders().length }}</strong>
-            <span>proveedores</span>
+            <span>vendedores</span>
           </div>
         </div>
       </div>
@@ -236,7 +236,7 @@
         <section class="catalog-section catalog-section--providers">
           <div class="catalog-toolbar catalog-toolbar--compact">
             <div class="catalog-toolbar__summary">
-              <span>Proveedores locales</span>
+              <span>Vendedores locales</span>
               <h2>{{ filteredProviders().length }} perfiles compatibles</h2>
             </div>
             <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
@@ -268,7 +268,7 @@
               </article>
             } @empty {
               <div class="empty-state">
-                <h2 class="empty-state__title">No hay proveedores con esos filtros</h2>
+                <h2 class="empty-state__title">No hay vendedores con esos filtros</h2>
                 <p class="empty-state__text">
                   Ajusta categoría, ocasión o presupuesto para mostrar nuevas opciones.
                 </p>

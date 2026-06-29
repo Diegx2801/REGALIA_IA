@@ -23,10 +23,10 @@ export class LandingComponent implements AfterViewInit {
   readonly occasionShortcuts: OccasionShortcut[] = this.regaliaService.getOccasionShortcuts();
   readonly featuredProducts: FeaturedProduct[] = this.regaliaService.getFeaturedProducts();
   readonly sellerRoute = computed(() =>
-    this.authSession.role() === 'Cliente' ? '/cliente/solicitud-proveedor' : '/registro',
+    this.authSession.role() === 'Cliente' ? '/cliente/solicitud-vendedor' : '/registro',
   );
   readonly sellerQueryParams = computed(() =>
-    this.authSession.role() === 'Cliente' ? null : { origen: 'proveedor' },
+    this.authSession.role() === 'Cliente' ? null : { origen: 'vendedor' },
   );
 
   ngAfterViewInit(): void {

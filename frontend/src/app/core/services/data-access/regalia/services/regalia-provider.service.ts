@@ -15,7 +15,7 @@ export class RegaliaProviderService {
   }
 
   /**
-   * Filtra perfiles de proveedores para el catalogo usando texto normalizado,
+   * Filtra perfiles de vendedores para el catalogo usando texto normalizado,
    * evitando que las tildes generen fallos inesperados en la busqueda.
    */
   filterProviders(filters: ProviderFilter): RegaliaProvider[] {
@@ -42,7 +42,7 @@ export class RegaliaProviderService {
   }
 
   /**
-   * Devuelve proveedores compatibles para el constructor manual de solicitudes
+   * Devuelve vendedores compatibles para el constructor manual de solicitudes
    * sin usar el paso simulado de interpretacion IA.
    */
   findCompatibleProviders(

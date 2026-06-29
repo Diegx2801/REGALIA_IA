@@ -50,9 +50,9 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'vista-previa/proveedor',
+    path: 'vista-previa/vendedor',
     canActivate: [devPreviewGuard],
-    data: { previewRole: 'Proveedor' },
+    data: { previewRole: 'Vendedor' },
     loadComponent: () =>
       import('./core/layouts/workspace-layout/workspace-layout').then(
         (m) => m.WorkspaceLayoutComponent,
@@ -122,7 +122,7 @@ export const routes: Routes = [
           import('./features/reservations/reservations').then((m) => m.ReservationsComponent),
       },
       {
-        path: 'solicitud-proveedor',
+        path: 'solicitud-vendedor',
         loadComponent: () =>
           import('./features/provider-application/provider-application').then(
             (m) => m.ProviderApplicationComponent,
@@ -140,10 +140,10 @@ export const routes: Routes = [
   },
 
   {
-    path: 'proveedor',
+    path: 'vendedor',
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['Proveedor'],
+      roles: ['Vendedor'],
       authContext: 'PUBLIC',
     },
     loadComponent: () =>
@@ -216,7 +216,7 @@ export const routes: Routes = [
           import('./features/admin-users/admin-users').then((m) => m.AdminUsersComponent),
       },
       {
-        path: 'solicitudes-proveedor',
+        path: 'solicitudes-vendedores',
         loadComponent: () =>
           import('./features/admin-provider-applications/admin-provider-applications').then(
             (m) => m.AdminProviderApplicationsComponent,
@@ -244,7 +244,7 @@ export const routes: Routes = [
     data: {
       redirects: {
         Cliente: '/cliente/inicio',
-        Proveedor: '/proveedor/resumen',
+        Vendedor: '/vendedor/resumen',
         Administrador: '/admin/resumen',
       },
     },
@@ -256,7 +256,7 @@ export const routes: Routes = [
     data: {
       redirects: {
         Cliente: '/cliente/inicio',
-        Proveedor: '/proveedor/pedidos',
+        Vendedor: '/vendedor/pedidos',
         Administrador: '/admin/operacion',
       },
     },
@@ -268,25 +268,24 @@ export const routes: Routes = [
     data: {
       redirects: {
         Cliente: '/cliente/reservas',
-        Proveedor: '/proveedor/calendario',
+        Vendedor: '/vendedor/calendario',
         Administrador: '/admin/calendario',
       },
     },
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
   },
   {
-    path: 'perfil-proveedor',
+    path: 'perfil-vendedor',
     canActivate: [authGuard, roleRedirectGuard],
     data: {
       redirects: {
         Cliente: '/cliente/inicio',
-        Proveedor: '/proveedor/perfil',
+        Vendedor: '/vendedor/perfil',
         Administrador: '/admin/resumen',
       },
     },
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
   },
-
   { path: 'marketplace-quotes', redirectTo: 'panel', pathMatch: 'full' },
 
   {
@@ -316,7 +315,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/cart/cart').then((m) => m.CartComponent),
       },
       {
-        path: 'proveedores',
+        path: 'vendedores',
         loadComponent: () => import('./features/catalog/catalog').then((m) => m.CatalogComponent),
       },
       {

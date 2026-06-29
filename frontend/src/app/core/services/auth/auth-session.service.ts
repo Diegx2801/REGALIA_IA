@@ -78,8 +78,8 @@ export class AuthSessionService {
       return '/admin/resumen';
     }
 
-    if (session?.roles.includes('Proveedor')) {
-      return '/proveedor/resumen';
+    if (session?.roles.includes('Vendedor')) {
+      return '/vendedor/resumen';
     }
 
     return '/cliente/inicio';
@@ -183,13 +183,13 @@ export class AuthSessionService {
 
   private toUserRole(role: BackendRole): UserRole {
     if (role === 'ADMIN') return 'Administrador';
-    if (role === 'VENDEDOR') return 'Proveedor';
+    if (role === 'VENDEDOR') return 'Vendedor';
     return 'Cliente';
   }
 
   private resolvePrimaryRole(roles: UserRole[]): UserRole {
     if (roles.includes('Administrador')) return 'Administrador';
-    if (roles.includes('Proveedor')) return 'Proveedor';
+    if (roles.includes('Vendedor')) return 'Vendedor';
     return 'Cliente';
   }
 

@@ -26,10 +26,10 @@ export class RolePreviewComponent {
       highlights: ['Resumen personal', 'Solicitudes con IA', 'Reservas y seguimiento'],
     },
     {
-      role: 'Proveedor',
+      role: 'Vendedor',
       title: 'Centro de trabajo para emprendedores',
       description: 'Solicitudes compatibles, agenda, catálogo y salud comercial del negocio.',
-      route: '/vista-previa/proveedor',
+      route: '/vista-previa/vendedor',
       highlights: ['Pedidos y cotizaciones', 'Agenda de entregas', 'Perfil comercial'],
     },
     {

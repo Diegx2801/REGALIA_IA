@@ -30,7 +30,7 @@ export class NavbarComponent {
     { label: 'Inicio', route: '/' },
     { label: 'Pedir con IA', route: '/pedir-con-ia' },
     { label: 'Catálogo', route: '/catalogo' },
-    { label: 'Proveedores', route: '/proveedores' },
+    { label: 'Vendedores', route: '/vendedores' },
     { label: 'Cómo funciona', route: '/modelo' },
   ];
 

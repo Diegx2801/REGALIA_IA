@@ -31,7 +31,7 @@ export class RegaliaPublicCatalogApiService {
 
   private toProduct(product: PublicProductApiDto): FixedPriceProduct {
     const productName = product.nombre?.trim() || 'Producto REGALIA';
-    const providerName = product.nombreTienda?.trim() || 'Proveedor REGALIA';
+    const providerName = product.nombreTienda?.trim() || 'Vendedor REGALIA';
     const productType = product.tipoProducto?.trim() || 'Producto listo';
     const category = this.mapCategory(productType);
     const description =
@@ -55,11 +55,11 @@ export class RegaliaPublicCatalogApiService {
       shortDescription: description,
       description,
       includes: [
-        'Producto publicado por proveedor local',
+        'Producto publicado por vendedor local',
         'Coordinacion directa desde REGALIA',
         'Reserva segun disponibilidad del vendedor',
       ],
-      deliveryTime: 'Coordinar con proveedor',
+      deliveryTime: 'Coordinar con vendedor',
       stockStatus: stock > 0 ? `Disponible (${stock})` : 'Agotado',
       personalization: 'Personalizacion segun coordinacion',
       maxQuantity: Math.max(1, Math.min(stock || 1, 10)),

@@ -65,7 +65,7 @@ export class BuilderComponent {
     {
       phase: 'recommendations',
       label: 'Recomendaciones',
-      description: 'Proveedores ideales para ti',
+      description: 'Vendedores ideales para ti',
     },
     {
       phase: 'reservation',
@@ -275,8 +275,8 @@ export class BuilderComponent {
 
     this.searchFeedback.set(
       matches.length > 0
-        ? `${matches.length} proveedores compatibles encontrados.`
-        : 'No encontramos proveedores compatibles con esos filtros.',
+        ? `${matches.length} vendedores compatibles encontrados.`
+        : 'No encontramos vendedores compatibles con esos filtros.',
     );
 
     if (shouldFocusResults) {

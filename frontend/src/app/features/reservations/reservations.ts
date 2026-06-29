@@ -75,9 +75,9 @@ export class ReservationsComponent {
   readonly pageCopy = computed(() => {
     const role = this.role();
 
-    if (role === 'Proveedor') {
+    if (role === 'Vendedor') {
       return {
-        eyebrow: 'Calendario proveedor',
+        eyebrow: 'Calendario vendedor',
         title: 'Pedidos recibidos organizados por fecha.',
         text: 'Selecciona un dia para revisar entregas, estados y senas asociadas a tus pedidos.',
       };
@@ -87,14 +87,14 @@ export class ReservationsComponent {
       return {
         eyebrow: 'Calendario operativo',
         title: 'Reservas y entregas visibles por fecha.',
-        text: 'Controla pedidos activos, proveedores asignados y avance operativo por dia.',
+        text: 'Controla pedidos activos, vendedores asignados y avance operativo por dia.',
       };
     }
 
     return {
       eyebrow: 'Mis reservas',
       title: 'Tus pedidos y entregas en calendario.',
-      text: 'Consulta por fecha el estado de tus reservas y los proveedores seleccionados.',
+      text: 'Consulta por fecha el estado de tus reservas y los vendedores seleccionados.',
     };
   });
 
