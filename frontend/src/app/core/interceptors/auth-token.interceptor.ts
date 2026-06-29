@@ -2,6 +2,7 @@ import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { API_ENDPOINTS, isApiRequestUrl } from '../config/api.config';
 import { AuthStorageService } from '../services/auth/auth-storage.service';
+import { AuthContext } from '../services/auth/auth-session.model';
 
 interface PublicEndpoint {
   method: string;
@@ -26,6 +27,10 @@ function isPublicEndpoint(request: HttpRequest<unknown>): boolean {
   );
 }
 
+function authContextForApiUrl(url: string): AuthContext {
+  return normalizedUrl(url).startsWith('/api/admin') ? 'ADMIN' : 'PUBLIC';
+}
+
 export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
   if (
     !isApiRequestUrl(request.url) ||
@@ -35,7 +40,7 @@ export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
     return next(request);
   }
 
-  const session = inject(AuthStorageService).read();
+  const session = inject(AuthStorageService).read(authContextForApiUrl(request.url));
   if (!session) return next(request);
 
   return next(

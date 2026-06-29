@@ -14,6 +14,14 @@ export const API_ENDPOINTS = {
     productById: (id: number) => `${API_BASE_PATH}/productos/${id}`,
     stores: `${API_BASE_PATH}/tiendas`,
   },
+  orders: {
+    initialPaymentOptions: `${API_BASE_PATH}/pedidos/opciones/pago-inicial`,
+    confirm: `${API_BASE_PATH}/pedidos/confirmar`,
+    mine: `${API_BASE_PATH}/pedidos`,
+  },
+  deliveryTypes: {
+    list: `${API_BASE_PATH}/tipos-entrega`,
+  },
 } as const;
 
 export function isApiRequestUrl(url: string): boolean {

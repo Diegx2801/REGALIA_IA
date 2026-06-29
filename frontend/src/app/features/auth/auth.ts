@@ -150,6 +150,7 @@ export class AuthComponent {
     }
 
     const { firstName, lastName, email, phone, password } = this.registerForm.getRawValue();
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     this.isSubmitting.set(true);
 
     this.authSession
@@ -165,7 +166,7 @@ export class AuthComponent {
         next: () => {
           this.messageType.set('success');
           this.message.set('Tu cuenta fue creada correctamente. Estamos preparando tu experiencia.');
-          setTimeout(() => void this.router.navigateByUrl(this.postAuthDestination(null)), 700);
+          setTimeout(() => void this.router.navigateByUrl(this.postAuthDestination(returnUrl)), 700);
         },
         error: (error) => this.showError(this.readApiMessage(error, 'No pudimos crear tu cuenta. Inténtalo nuevamente.')),
       });
