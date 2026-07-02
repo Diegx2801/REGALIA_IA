@@ -70,7 +70,7 @@
   position: relative;
 }
 
-.dashboard-hero[data-role='Proveedor'] {
+.dashboard-hero[data-role='Vendedor'] {
   background:
     radial-gradient(circle at 86% 10%, rgba(214, 168, 62, 0.2), transparent 17rem),
     linear-gradient(125deg, #1f3d35 0%, #3f7569 100%);

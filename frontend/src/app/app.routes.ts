@@ -203,11 +203,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
       },
+      { path: 'operacion', redirectTo: 'pedidos', pathMatch: 'full' },
+      { path: 'solicitudes-vendedores', redirectTo: 'tiendas', pathMatch: 'full' },
+      { path: 'calendario', redirectTo: 'pedidos', pathMatch: 'full' },
       {
-        path: 'operacion',
+        path: 'pedidos',
         loadComponent: () =>
           import('./features/marketplace-quotes/marketplace-quotes').then(
             (m) => m.MarketplaceQuotesComponent,
+          ),
+      },
+      {
+        path: 'tiendas',
+        loadComponent: () =>
+          import('./features/admin-stores/admin-stores').then((m) => m.AdminStoresComponent),
+      },
+      {
+        path: 'vendedores',
+        data: { adminModule: 'sellers' },
+        loadComponent: () =>
+          import('./features/admin-module-placeholder/admin-module-placeholder').then(
+            (m) => m.AdminModulePlaceholderComponent,
           ),
       },
       {
@@ -216,16 +232,12 @@ export const routes: Routes = [
           import('./features/admin-users/admin-users').then((m) => m.AdminUsersComponent),
       },
       {
-        path: 'solicitudes-vendedores',
+        path: 'catalogos',
+        data: { adminModule: 'catalogs' },
         loadComponent: () =>
-          import('./features/admin-provider-applications/admin-provider-applications').then(
-            (m) => m.AdminProviderApplicationsComponent,
+          import('./features/admin-module-placeholder/admin-module-placeholder').then(
+            (m) => m.AdminModulePlaceholderComponent,
           ),
-      },
-      {
-        path: 'calendario',
-        loadComponent: () =>
-          import('./features/reservations/reservations').then((m) => m.ReservationsComponent),
       },
       {
         path: 'perfil',
@@ -257,7 +269,7 @@ export const routes: Routes = [
       redirects: {
         Cliente: '/cliente/inicio',
         Vendedor: '/vendedor/pedidos',
-        Administrador: '/admin/operacion',
+        Administrador: '/admin/pedidos',
       },
     },
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
@@ -269,7 +281,7 @@ export const routes: Routes = [
       redirects: {
         Cliente: '/cliente/reservas',
         Vendedor: '/vendedor/calendario',
-        Administrador: '/admin/calendario',
+        Administrador: '/admin/pedidos',
       },
     },
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),

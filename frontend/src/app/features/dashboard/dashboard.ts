@@ -72,7 +72,7 @@ export class DashboardComponent {
 
   readonly view = computed<DashboardView>(() => {
     const role = this.role();
-    if (role === 'Vendedor') return this.providerView();
+    if (role === 'Vendedor') return this.sellerView();
     if (role === 'Administrador') return this.adminView();
     return this.clientView();
   });
@@ -140,7 +140,7 @@ export class DashboardComponent {
     };
   }
 
-  private providerView(): DashboardView {
+  private sellerView(): DashboardView {
     const demo = this.isPreview;
     return {
       eyebrow: 'Panel vendedor',
@@ -178,32 +178,33 @@ export class DashboardComponent {
     return {
       eyebrow: 'Panel administrador',
       title: 'Una vista ejecutiva para cuidar la operación y la confianza de REGALIA.',
-      text: 'Supervisa crecimiento, vendedores, reservas y alertas sin perder de vista la experiencia de clientes y emprendedores.',
-      primaryLabel: 'Abrir operación',
-      primaryRoute: '/admin/operacion',
+      text: 'Supervisa pedidos, tiendas, vendedores y usuarios sin mezclar responsabilidades del portal público.',
+      primaryLabel: 'Revisar tiendas',
+      primaryRoute: '/admin/tiendas',
       metrics: [
-        { label: 'Usuarios activos', value: demo ? '128' : '0', hint: demo ? '+12 este mes' : 'Pendiente de endpoint estadístico' },
-        { label: 'Vendedores verificados', value: demo ? '24' : '0', hint: demo ? '5 solicitudes en revisión' : 'Pendiente del módulo de verificación' },
-        { label: 'Pedidos abiertos', value: demo ? '18' : '0', hint: demo ? '3 requieren seguimiento' : 'Sin datos operativos conectados' },
-        { label: 'Comisión estimada', value: demo ? 'S/ 1,840' : 'S/ 0', hint: demo ? 'Periodo actual' : 'Pendiente del módulo de pagos' },
+        { label: 'Tiendas pendientes', value: demo ? '5' : '0', hint: demo ? 'Esperan revisión administrativa' : 'Pendiente de conectar /api/admin/tiendas' },
+        { label: 'Pedidos activos', value: demo ? '18' : '0', hint: demo ? '3 requieren seguimiento' : 'Pendiente de conectar /api/admin/pedidos' },
+        { label: 'Vendedores', value: demo ? '24' : '0', hint: demo ? 'Perfiles comerciales activos' : 'Pendiente de conectar /api/admin/vendedores' },
+        { label: 'Usuarios gestionables', value: demo ? '128' : '0', hint: demo ? '+12 este mes' : 'Pendiente de conectar /api/admin/usuarios' },
       ],
       actions: [
-        { label: 'Supervisar operación', hint: 'Pedidos, reservas y comisiones', route: '/admin/operacion', icon: '◇' },
-        { label: 'Gestionar usuarios', hint: 'Cuentas, estados y permisos', route: '/admin/usuarios', icon: '◎' },
-        { label: 'Validar vendedores', hint: 'Revisión, observaciones y aprobación', route: '/admin/solicitudes-vendedores', icon: '✧' },
-        { label: 'Revisar calendario', hint: 'Demanda y fechas críticas', route: '/admin/calendario', icon: '◫' },
+        { label: 'Revisar tiendas', hint: 'Aprobar, observar o rechazar visibilidad', route: '/admin/tiendas', icon: 'T' },
+        { label: 'Supervisar pedidos', hint: 'Reservas, estados y comisiones', route: '/admin/pedidos', icon: 'P' },
+        { label: 'Gestionar vendedores', hint: 'Perfiles comerciales y tiendas asociadas', route: '/admin/vendedores', icon: 'V' },
+        { label: 'Gestionar usuarios', hint: 'Cuentas no administrativas', route: '/admin/usuarios', icon: 'U' },
+        { label: 'Administrar catálogos', hint: 'Rubros y mantenedores del sistema', route: '/admin/catalogos', icon: 'C' },
       ],
       activityTitle: 'Alertas que requieren atención',
       activityDescription: 'Priorizadas por impacto en confianza, entrega y seguridad.',
       activities: demo
         ? [
-            { title: '5 vendedores esperan verificación', meta: 'Documentación completa para revisión', status: 'Revisar', tone: 'warning' },
+            { title: '5 tiendas esperan revisión', meta: 'Cambios de estado disponibles desde el módulo Tiendas', status: 'Revisar', tone: 'warning' },
             { title: '3 pedidos próximos a vencer', meta: 'Entrega dentro de las siguientes 24 horas', status: 'Seguimiento', tone: 'warning' },
             { title: 'Disponibilidad de la plataforma', meta: 'Servicios principales operativos', status: 'Estable', tone: 'success' },
           ]
         : [],
-      emptyTitle: 'Los módulos operativos aún no están conectados',
-      emptyText: 'La interfaz está preparada. Los indicadores permanecerán en cero hasta que existan endpoints reales en el backend.',
+      emptyTitle: 'Centro administrativo preparado',
+      emptyText: 'El menú ya sigue la separación real de la API. Los indicadores se conectarán por módulo para evitar datos simulados en decisiones operativas.',
     };
   }
 }

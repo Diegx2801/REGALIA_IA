@@ -22,6 +22,14 @@ export const API_ENDPOINTS = {
   deliveryTypes: {
     list: `${API_BASE_PATH}/tipos-entrega`,
   },
+  admin: {
+    stores: `${API_BASE_PATH}/admin/tiendas`,
+    storeById: (id: number) => `${API_BASE_PATH}/admin/tiendas/${id}`,
+    markStorePending: (id: number) => `${API_BASE_PATH}/admin/tiendas/${id}/pendiente`,
+    approveStore: (id: number) => `${API_BASE_PATH}/admin/tiendas/${id}/aprobar`,
+    observeStore: (id: number) => `${API_BASE_PATH}/admin/tiendas/${id}/observar`,
+    rejectStore: (id: number) => `${API_BASE_PATH}/admin/tiendas/${id}/rechazar`,
+  },
 } as const;
 
 export function isApiRequestUrl(url: string): boolean {

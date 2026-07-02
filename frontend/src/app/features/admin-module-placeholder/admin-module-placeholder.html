@@ -1,0 +1,45 @@
+<section class="admin-module">
+  <div class="admin-module__container rg-page__container rg-page__container--wide">
+    <header class="admin-module__hero">
+      <div>
+        <span class="admin-module__eyebrow">{{ module().eyebrow }}</span>
+        <h1>{{ module().title }}</h1>
+        <p>{{ module().description }}</p>
+      </div>
+
+      <a [routerLink]="module().primaryRoute">{{ module().primaryLabel }}</a>
+    </header>
+
+    <div class="admin-module__grid">
+      <article class="admin-module__panel">
+        <span class="admin-module__eyebrow">Base disponible</span>
+        <h2>Endpoints backend</h2>
+        <p>
+          Este modulo ya tiene una ruta administrativa reservada. La conexion visual se hara por
+          bloque para evitar mezclar mocks con operacion real.
+        </p>
+
+        <ul class="admin-module__endpoint-list">
+          @for (endpoint of module().endpoints; track endpoint) {
+            <li>{{ endpoint }}</li>
+          }
+        </ul>
+      </article>
+
+      <article class="admin-module__panel">
+        <span class="admin-module__eyebrow">Siguiente fase</span>
+        <h2>Implementacion pendiente</h2>
+        <p>
+          La pantalla queda preparada sin datos ficticios. Asi el admin no toma decisiones sobre
+          informacion simulada.
+        </p>
+
+        <ol class="admin-module__step-list">
+          @for (step of module().nextSteps; track step) {
+            <li>{{ step }}</li>
+          }
+        </ol>
+      </article>
+    </div>
+  </div>
+</section>

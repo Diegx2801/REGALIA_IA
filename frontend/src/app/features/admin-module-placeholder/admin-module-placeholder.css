@@ -1,0 +1,130 @@
+:host {
+  display: block;
+}
+
+.admin-module {
+  background:
+    radial-gradient(circle at 88% 4%, rgba(214, 168, 62, 0.14), transparent 19rem),
+    linear-gradient(180deg, #fbf6f1 0%, #f7efe8 100%);
+  min-height: calc(100dvh - 5rem);
+  padding: clamp(1rem, 2vw, 1.6rem) clamp(1rem, 2vw, 2rem) 3rem;
+}
+
+.admin-module__container {
+  display: grid;
+  gap: 1rem;
+  margin: 0 auto;
+  max-width: 1400px;
+}
+
+.admin-module__hero,
+.admin-module__panel {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(234, 219, 208, 0.92);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-module__hero {
+  align-items: center;
+  border-radius: 20px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: clamp(1rem, 2vw, 1.4rem);
+}
+
+.admin-module__eyebrow {
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.admin-module__hero h1,
+.admin-module__panel h2 {
+  color: var(--color-text);
+  margin: 0.25rem 0 0.35rem;
+}
+
+.admin-module__hero h1 {
+  font-size: clamp(1.7rem, 2.4vw, 2.4rem);
+}
+
+.admin-module__hero p,
+.admin-module__panel p {
+  color: var(--color-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.admin-module__hero a {
+  align-items: center;
+  background: var(--brand-gradient);
+  border-radius: var(--radius-pill);
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 2.7rem;
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+}
+
+.admin-module__grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.admin-module__panel {
+  border-radius: 18px;
+  display: grid;
+  gap: 0.8rem;
+  padding: clamp(1rem, 2vw, 1.25rem);
+}
+
+.admin-module__endpoint-list,
+.admin-module__step-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-module__endpoint-list {
+  list-style: none;
+}
+
+.admin-module__endpoint-list li,
+.admin-module__step-list li {
+  background: #fbf6f1;
+  border: 1px solid rgba(234, 219, 208, 0.92);
+  border-radius: 14px;
+  color: var(--color-text);
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 0.75rem 0.85rem;
+}
+
+.admin-module__endpoint-list li {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.admin-module__step-list {
+  list-style-position: inside;
+}
+
+@media (max-width: 991.98px) {
+  .admin-module__hero,
+  .admin-module__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-module__hero {
+    align-items: flex-start;
+    display: grid;
+  }
+}

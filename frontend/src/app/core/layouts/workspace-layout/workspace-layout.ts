@@ -55,12 +55,12 @@ const WORKSPACE_CONFIG: Record<UserRole, WorkspaceConfig> = {
     title: 'Centro de control',
     description: 'Supervisa usuarios, operación y confianza de la plataforma.',
     navItems: [
-      { label: 'Resumen', description: 'Indicadores generales', route: '/admin/resumen', icon: '⌂', exact: true },
-      { label: 'Operación', description: 'Pedidos y comisiones', route: '/admin/operacion', icon: '◇' },
-      { label: 'Usuarios', description: 'Cuentas y permisos', route: '/admin/usuarios', icon: '◎' },
-      { label: 'Solicitudes', description: 'Validación de vendedores', route: '/admin/solicitudes-vendedores', icon: '✧' },
-      { label: 'Calendario', description: 'Reservas de la plataforma', route: '/admin/calendario', icon: '◫' },
-      { label: 'Mi perfil', description: 'Datos personales', route: '/admin/perfil', icon: '◎' },
+      { label: 'Resumen', description: 'Prioridades generales', route: '/admin/resumen', icon: 'R', exact: true },
+      { label: 'Pedidos', description: 'Reservas y comisiones', route: '/admin/pedidos', icon: 'P' },
+      { label: 'Tiendas', description: 'Revisión y visibilidad', route: '/admin/tiendas', icon: 'T' },
+      { label: 'Vendedores', description: 'Perfiles comerciales', route: '/admin/vendedores', icon: 'V' },
+      { label: 'Usuarios', description: 'Cuentas gestionables', route: '/admin/usuarios', icon: 'U' },
+      { label: 'Catálogos', description: 'Mantenedores del sistema', route: '/admin/catalogos', icon: 'C' },
     ],
   },
 };
