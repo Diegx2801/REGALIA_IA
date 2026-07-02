@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthSessionService } from '../../../../core/services/auth/auth-session.service';
 
@@ -36,10 +36,10 @@ export class FestiveCalendarComponent {
       monthIndex: 2,
       day: '14',
       month: 'FEB',
-      title: 'San Valentin',
-      hint: 'Flores y detalles romanticos',
+      title: 'San Valentín',
+      hint: 'Flores y detalles románticos',
       route: '/catalogo',
-      products: ['Ramos premium', 'Box romantico', 'Torta mini'],
+      products: ['Ramos premium', 'Box romántico', 'Torta mini'],
       featured: true,
     },
     {
@@ -47,7 +47,7 @@ export class FestiveCalendarComponent {
       monthIndex: 3,
       day: '08',
       month: 'MAR',
-      title: 'Dia de la Mujer',
+      title: 'Día de la Mujer',
       hint: 'Regalos corporativos y flores',
       route: '/catalogo',
       products: ['Flores sobrias', 'Tarjetas personalizadas', 'Packs corporativos'],
@@ -57,18 +57,18 @@ export class FestiveCalendarComponent {
       monthIndex: 5,
       day: '2do',
       month: 'MAY',
-      title: 'Dia de la Madre',
+      title: 'Día de la Madre',
       hint: 'Boxes, tortas y desayunos',
       route: '/catalogo',
-      products: ['Desayuno sorpresa', 'Box mama', 'Arreglo floral'],
+      products: ['Desayuno sorpresa', 'Box mamá', 'Arreglo floral'],
     },
     {
       value: 15,
       monthIndex: 6,
       day: '3er',
       month: 'JUN',
-      title: 'Dia del Padre',
-      hint: 'Sublimados y packs utiles',
+      title: 'Día del Padre',
+      hint: 'Sublimados y packs útiles',
       route: '/catalogo',
       products: ['Taza personalizada', 'Pack parrillero', 'Organizador'],
     },
@@ -78,9 +78,9 @@ export class FestiveCalendarComponent {
       day: '31',
       month: 'OCT',
       title: 'Halloween',
-      hint: 'Dulces y decoracion',
+      hint: 'Dulces y decoración',
       route: '/catalogo',
-      products: ['Cupcakes tematicos', 'Decoracion mini', 'Dulces sorpresa'],
+      products: ['Cupcakes temáticos', 'Decoracion mini', 'Dulces sorpresa'],
     },
     {
       value: 25,
@@ -90,7 +90,7 @@ export class FestiveCalendarComponent {
       title: 'Navidad',
       hint: 'Canastas y regalos familiares',
       route: '/catalogo',
-      products: ['Canasta navidena', 'Box familiar', 'Regalo corporativo'],
+      products: ['Canasta navideña', 'Box familiar', 'Regalo corporativo'],
     },
   ];
   readonly months: CalendarMonth[] = [
@@ -107,8 +107,8 @@ export class FestiveCalendarComponent {
     { label: 'Nov', value: 11 },
     { label: 'Dic', value: 12 },
   ];
-  readonly weekdays = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
-  // Estado interactivo del calendario: mes y dia seleccionados por el usuario.
+  readonly weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  // Estado interactivo del calendario: mes y día seleccionados por el usuario.
   readonly selectedMonth = signal(this.festiveDates[0].monthIndex);
   readonly selectedDay = signal(this.festiveDates[0].value);
   readonly days = computed(() =>
@@ -121,24 +121,24 @@ export class FestiveCalendarComponent {
         monthIndex: this.selectedMonth(),
         day: String(this.selectedDay()).padStart(2, '0'),
         month: this.monthLabel(this.selectedMonth()).toUpperCase(),
-        title: 'Dia disponible',
-        hint: 'Selecciona una fecha marcada para ver la campana comercial sugerida.',
+        title: 'Día disponible',
+        hint: 'Selecciona una fecha marcada para ver la campaña comercial sugerida.',
         route: '/catalogo',
         products: ['Producto destacado', 'Detalle personalizado', 'Reserva anticipada'],
       },
   );
-  // El CTA cambia segun rol: proveedor prepara catalogo; visitante se registra.
+  // El CTA cambia segun rol: proveedor prepara catálogo; visitante se registra.
   readonly prepareRoute = computed(() =>
     this.authSession.role() === 'Proveedor' ? '/proveedor/perfil' : '/registro',
   );
 
   selectDay(day: number): void {
-    // Permite seleccionar cualquier dia de la grilla, tenga o no campana.
+    // Permite seleccionar cualquier día de la grilla, tenga o no campaña.
     this.selectedDay.set(day);
   }
 
   selectDate(date: FestiveDate): void {
-    // Al elegir una campana, sincroniza tambien el mes activo.
+    // Al elegir una campaña, sincroniza también el mes activo.
     this.selectedMonth.set(date.monthIndex);
     this.selectedDay.set(date.value);
   }
@@ -189,3 +189,4 @@ export class FestiveCalendarComponent {
     return this.months.find((month) => month.value === monthValue)?.label ?? 'Mes';
   }
 }
+

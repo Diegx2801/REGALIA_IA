@@ -3,7 +3,7 @@ import { Component, computed, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { UserRole } from '../../core/services/auth/auth-session.model';
 
-// Fila visible en la administracion mock de usuarios y roles.
+// Fila visible en la administración simulada de usuarios y roles.
 interface AdminUserRow {
   id: number;
   name: string;
@@ -24,7 +24,7 @@ export class AdminUsersComponent {
   readonly roleFilter = new FormControl<UserRole | 'Todos'>('Todos', { nonNullable: true });
   private readonly filterVersion = signal(0);
 
-  // Usuarios mock para validar UI de administracion antes de conectar endpoints reales.
+  // Usuarios simulados para validar la interfaz de administración antes de conectar endpoints reales.
   readonly users: AdminUserRow[] = [
     { id: 1, name: 'Andrea Mendoza', email: 'andrea@regalia.pe', role: 'Cliente', status: 'Activo', lastAccess: 'Hoy' },
     { id: 2, name: 'Floralia Studio', email: 'ventas@floralia.pe', role: 'Proveedor', status: 'Activo', lastAccess: 'Ayer' },

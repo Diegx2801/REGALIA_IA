@@ -1,4 +1,4 @@
-# REGALIA Frontend Guidelines
+# Guía del Frontend de REGALIA
 
 Estas reglas mantienen uniforme el frontend Angular sin tocar backend.
 
@@ -11,14 +11,14 @@ Estas reglas mantienen uniforme el frontend Angular sin tocar backend.
 ## Layout y ancho
 
 - Usar Bootstrap para grilla y espaciado base: `container`, `row`, `col-*`, `g-*`, `d-flex`, `align-items-*`, `justify-content-*`.
-- Usar utilidades REGALIA para ancho de pagina:
-  - `.rg-page__container` para paginas publicas y comerciales.
+- Usar utilidades REGALIA para ancho de página:
+  - `.rg-page__container` para páginas públicas y comerciales.
   - `.rg-page__container--wide` para dashboards, paneles y vistas administrativas.
-  - `.rg-page__container--retail` para portadas o vitrinas que necesitan aprovechar mas ancho visual, con comportamiento cercano a retail.
+  - `.rg-page__container--retail` para portadas o vitrinas que necesitan aprovechar más ancho visual, con comportamiento cercano a una vitrina comercial.
   - `.rg-page__container--narrow` para formularios y pantallas enfocadas.
 - Evitar crear nuevos `max-width` arbitrarios si una utilidad REGALIA ya cubre el caso.
 - Si una pantalla no puede usar `container` por su estructura interna, mantener el mismo criterio con `max-width: 1320px` y `margin-inline: auto`.
-- En catalogos con filtros laterales y detalle fijo, usar el ancho retail antes de reducir demasiado las cards.
+- En catálogos con filtros laterales y detalle fijo, usar el ancho de vitrina antes de reducir demasiado las tarjetas.
 
 ## CSS y BEM
 
@@ -26,7 +26,7 @@ Estas reglas mantienen uniforme el frontend Angular sin tocar backend.
 - Bootstrap resuelve estructura; BEM resuelve identidad visual, estados y detalles del componente.
 - `src/styles.css` debe quedarse para tokens, resets, overrides de Bootstrap y utilidades realmente compartidas.
 - Los estilos de una pantalla deben vivir en el CSS de esa feature, no en el global.
-- El budget de estilos por componente avisa desde `10kB` y falla desde `14kB`; si una feature se acerca al limite, dividir layout, reutilizar utilidades globales o simplificar reglas antes de seguir creciendo.
+- El presupuesto de estilos por componente avisa desde `10kB` y falla desde `14kB`; si una funcionalidad se acerca al límite, dividir el layout, reutilizar utilidades globales o simplificar reglas antes de seguir creciendo.
 
 ## Breakpoints
 
@@ -37,10 +37,10 @@ Preferir cortes compatibles con Bootstrap:
 - `767.98px`
 - `575.98px`
 
-Si una pantalla necesita un corte propio, documentar por que existe.
+Si una pantalla necesita un corte propio, documentar por qué existe.
 
 ## Comentarios
 
-- Comentar intencion y decisiones de UI, no cada propiedad.
-- Buenos comentarios explican reglas de layout, estados mock, limites frontend/backend o comportamiento responsive.
-- Evitar comentarios obvios como "color del boton" o "margen superior".
+- Comentar intención y decisiones de UI, no cada propiedad.
+- Buenos comentarios explican reglas de layout, estados simulados, límites frontend/backend o comportamiento adaptable.
+- Evitar comentarios obvios como "color del botón" o "margen superior".

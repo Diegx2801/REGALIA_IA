@@ -15,8 +15,8 @@ export class RegaliaProviderService {
   }
 
   /**
-   * Filtra perfiles de proveedores para el catalogo usando texto normalizado,
-   * evitando que las tildes generen fallos inesperados en la busqueda.
+   * Filtra perfiles de proveedores para el catálogo usando texto normalizado,
+   * evitando que las tildes generen fallos inesperados en la búsqueda.
    */
   filterProviders(filters: ProviderFilter): RegaliaProvider[] {
     const search = normalizeRegaliaText(filters.search);
@@ -43,7 +43,7 @@ export class RegaliaProviderService {
 
   /**
    * Devuelve proveedores compatibles para el constructor manual de solicitudes
-   * sin usar el paso simulado de interpretacion IA.
+   * sin usar el paso simulado de interpretación con IA.
    */
   findCompatibleProviders(
     category: RegaliaCategory | 'Todas',

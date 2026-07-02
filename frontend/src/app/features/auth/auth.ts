@@ -107,6 +107,7 @@ export class AuthComponent {
   setMode(mode: AuthMode): void {
     this.mode.set(mode);
     this.clearMessage();
+    // Conserva los query params actuales al cambiar entre login y registro.
     void this.router.navigate([mode === 'login' ? '/login' : '/registro'], {
       queryParamsHandling: 'merge',
     });
@@ -198,6 +199,7 @@ export class AuthComponent {
   }
 
   private postAuthDestination(returnUrl: string | null): string {
+    // returnUrl llega por query params para devolver al usuario a la ruta protegida original.
     if (returnUrl?.startsWith('/') && !returnUrl.startsWith('//')) return returnUrl;
     if (this.sellerIntent() && this.authSession.role() === 'Cliente') {
       return '/cliente/solicitud-proveedor';

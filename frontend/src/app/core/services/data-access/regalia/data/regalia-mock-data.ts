@@ -1,4 +1,4 @@
-import {
+﻿import {
   FeaturedProduct,
   FixedPriceProduct,
   OccasionShortcut,
@@ -182,7 +182,7 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
     ],
     deliveryTime: 'Entrega en 24 a 48 horas',
     stockStatus: 'Disponible esta semana',
-    personalization: 'Sabor, nombre y temática básica',
+    personalization: 'Sabor, nombre y temática bÃ¡sica',
     maxQuantity: 3,
   },
   {
@@ -475,3 +475,5 @@ export const REGALIA_ORDER_DRAFTS: Array<Omit<RegaliaOrder, 'reservation' | 'com
     dueDate: 'Hoy 7:00 p.m.',
   },
 ];
+
+

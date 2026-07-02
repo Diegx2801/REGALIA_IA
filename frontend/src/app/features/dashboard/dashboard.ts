@@ -54,7 +54,8 @@ interface DashboardView {
 export class DashboardComponent {
   private readonly authSession = inject(AuthSessionService);
   private readonly route = inject(ActivatedRoute);
-  private readonly previewRole = (this.route.parent?.snapshot.data['previewRole'] ?? null) as UserRole | null;
+  private readonly previewRole = (this.route.parent?.snapshot.data['previewRole'] ??
+    null) as UserRole | null;
 
   readonly isPreview = this.previewRole !== null;
   readonly role = computed<UserRole>(() => this.previewRole ?? this.authSession.role() ?? 'Cliente');
@@ -112,10 +113,30 @@ export class DashboardComponent {
         },
       ],
       actions: [
-        { label: 'Explorar regalos', hint: 'Catálogo y proveedores verificados', route: '/cliente/explorar', icon: '◇' },
-        { label: 'Pedir con IA', hint: 'Describe lo que necesitas en tus palabras', route: '/cliente/solicitud', icon: '✦' },
-        { label: 'Ver mis reservas', hint: 'Fechas, estados y seguimiento', route: '/cliente/reservas', icon: '◫' },
-        { label: 'Vender en REGALIA', hint: 'Postula tu negocio y crea tu perfil comercial', route: '/cliente/solicitud-proveedor', icon: '✧' },
+        {
+          label: 'Explorar regalos',
+          hint: 'Catálogo y proveedores verificados',
+          route: '/cliente/explorar',
+          icon: '◈',
+        },
+        {
+          label: 'Pedir con IA',
+          hint: 'Describe lo que necesitas en tus palabras',
+          route: '/cliente/solicitud',
+          icon: '✦',
+        },
+        {
+          label: 'Ver mis reservas',
+          hint: 'Fechas, estados y seguimiento',
+          route: '/cliente/reservas',
+          icon: '◫',
+        },
+        {
+          label: 'Vender en REGALIA',
+          hint: 'Postula tu negocio y crea tu perfil comercial',
+          route: '/cliente/solicitud-proveedor',
+          icon: '✧',
+        },
       ],
       activityTitle: 'Actividad reciente',
       activityDescription: 'Solo se muestran acciones vinculadas a tu cuenta.',
@@ -136,7 +157,8 @@ export class DashboardComponent {
           ]
         : [],
       emptyTitle: 'Tu espacio está listo',
-      emptyText: 'Empieza creando una solicitud o guardando un proveedor. No mostraremos actividad ficticia en tu cuenta.',
+      emptyText:
+        'Empieza creando una solicitud o guardando un proveedor. No mostraremos actividad ficticia en tu cuenta.',
     };
   }
 
@@ -149,27 +171,74 @@ export class DashboardComponent {
       primaryLabel: 'Revisar solicitudes',
       primaryRoute: '/proveedor/pedidos',
       metrics: [
-        { label: 'Solicitudes nuevas', value: demo ? '4' : '0', hint: demo ? '2 con alta compatibilidad' : 'Sin solicitudes nuevas' },
-        { label: 'Pedidos en proceso', value: demo ? '6' : '0', hint: demo ? '3 entregas esta semana' : 'Sin pedidos activos' },
-        { label: 'Ventas potenciales', value: demo ? 'S/ 1,240' : 'S/ 0', hint: demo ? 'Cotizaciones abiertas' : 'Aún no hay cotizaciones' },
-        { label: 'Reputación', value: demo ? '4.9' : '—', hint: demo ? '96 reseñas verificadas' : 'Se calculará con reseñas reales' },
+        {
+          label: 'Solicitudes nuevas',
+          value: demo ? '4' : '0',
+          hint: demo ? '2 con alta compatibilidad' : 'Sin solicitudes nuevas',
+        },
+        {
+          label: 'Pedidos en proceso',
+          value: demo ? '6' : '0',
+          hint: demo ? '3 entregas esta semana' : 'Sin pedidos activos',
+        },
+        {
+          label: 'Ventas potenciales',
+          value: demo ? 'S/ 1,240' : 'S/ 0',
+          hint: demo ? 'Cotizaciones abiertas' : 'Aún no hay cotizaciones',
+        },
+        {
+          label: 'Reputación',
+          value: demo ? '4.9' : '—',
+          hint: demo ? '96 reseñas verificadas' : 'Se calculará con reseñas reales',
+        },
       ],
       actions: [
-        { label: 'Gestionar pedidos', hint: 'Cotiza, acepta y actualiza estados', route: '/proveedor/pedidos', icon: '◇' },
-        { label: 'Organizar calendario', hint: 'Entregas, cupos y disponibilidad', route: '/proveedor/calendario', icon: '◫' },
-        { label: 'Mejorar mi perfil', hint: 'Catálogo, portafolio y zonas', route: '/proveedor/perfil', icon: '▦' },
+        {
+          label: 'Gestionar pedidos',
+          hint: 'Cotiza, acepta y actualiza estados',
+          route: '/proveedor/pedidos',
+          icon: '◈',
+        },
+        {
+          label: 'Organizar calendario',
+          hint: 'Entregas, cupos y disponibilidad',
+          route: '/proveedor/calendario',
+          icon: '◫',
+        },
+        {
+          label: 'Mejorar mi perfil',
+          hint: 'Catálogo, portafolio y zonas',
+          route: '/proveedor/perfil',
+          icon: '▦',
+        },
       ],
       activityTitle: 'Oportunidades prioritarias',
       activityDescription: 'Ordenadas por compatibilidad, urgencia y fecha de entrega.',
       activities: demo
         ? [
-            { title: 'Box de cumpleaños · Víctor Larco', meta: 'Presupuesto S/ 120 · entrega mañana', status: '96% compatible', tone: 'success' },
-            { title: 'Detalle corporativo · Centro', meta: '20 unidades · cotización abierta', status: 'Cotizar hoy', tone: 'warning' },
-            { title: 'Desayuno sorpresa · California', meta: 'Presupuesto S/ 85 · sábado', status: 'Nueva', tone: 'neutral' },
+            {
+              title: 'Box de cumpleaños · Víctor Larco',
+              meta: 'Presupuesto S/ 120 · entrega mañana',
+              status: '96% compatible',
+              tone: 'success',
+            },
+            {
+              title: 'Detalle corporativo · Centro',
+              meta: '20 unidades · cotización abierta',
+              status: 'Cotizar hoy',
+              tone: 'warning',
+            },
+            {
+              title: 'Desayuno sorpresa · California',
+              meta: 'Presupuesto S/ 85 · sábado',
+              status: 'Nueva',
+              tone: 'neutral',
+            },
           ]
         : [],
       emptyTitle: 'Aún no hay oportunidades asignadas',
-      emptyText: 'Cuando el módulo de solicitudes del backend esté disponible, aquí aparecerán únicamente pedidos compatibles con tu perfil.',
+      emptyText:
+        'Cuando el módulo de solicitudes del backend esté disponible, aquí aparecerán únicamente pedidos compatibles con tu perfil.',
     };
   }
 
@@ -182,28 +251,80 @@ export class DashboardComponent {
       primaryLabel: 'Abrir operación',
       primaryRoute: '/admin/operacion',
       metrics: [
-        { label: 'Usuarios activos', value: demo ? '128' : '0', hint: demo ? '+12 este mes' : 'Pendiente de endpoint estadístico' },
-        { label: 'Proveedores verificados', value: demo ? '24' : '0', hint: demo ? '5 solicitudes en revisión' : 'Pendiente del módulo de verificación' },
-        { label: 'Pedidos abiertos', value: demo ? '18' : '0', hint: demo ? '3 requieren seguimiento' : 'Sin datos operativos conectados' },
-        { label: 'Comisión estimada', value: demo ? 'S/ 1,840' : 'S/ 0', hint: demo ? 'Periodo actual' : 'Pendiente del módulo de pagos' },
+        {
+          label: 'Usuarios activos',
+          value: demo ? '128' : '0',
+          hint: demo ? '+12 este mes' : 'Pendiente de endpoint estadístico',
+        },
+        {
+          label: 'Proveedores verificados',
+          value: demo ? '24' : '0',
+          hint: demo ? '5 solicitudes en revisión' : 'Pendiente del módulo de verificación',
+        },
+        {
+          label: 'Pedidos abiertos',
+          value: demo ? '18' : '0',
+          hint: demo ? '3 requieren seguimiento' : 'Sin datos operativos conectados',
+        },
+        {
+          label: 'Comisión estimada',
+          value: demo ? 'S/ 1,840' : 'S/ 0',
+          hint: demo ? 'Periodo actual' : 'Pendiente del módulo de pagos',
+        },
       ],
       actions: [
-        { label: 'Supervisar operación', hint: 'Pedidos, reservas y comisiones', route: '/admin/operacion', icon: '◇' },
-        { label: 'Gestionar usuarios', hint: 'Cuentas, estados y permisos', route: '/admin/usuarios', icon: '◎' },
-        { label: 'Validar proveedores', hint: 'Revisión, observaciones y aprobación', route: '/admin/solicitudes-proveedor', icon: '✧' },
-        { label: 'Revisar calendario', hint: 'Demanda y fechas críticas', route: '/admin/calendario', icon: '◫' },
+        {
+          label: 'Supervisar operación',
+          hint: 'Pedidos, reservas y comisiones',
+          route: '/admin/operacion',
+          icon: '◈',
+        },
+        {
+          label: 'Gestionar usuarios',
+          hint: 'Cuentas, estados y permisos',
+          route: '/admin/usuarios',
+          icon: '◎',
+        },
+        {
+          label: 'Validar proveedores',
+          hint: 'Revisión, observaciones y aprobación',
+          route: '/admin/solicitudes-proveedor',
+          icon: '✧',
+        },
+        {
+          label: 'Revisar calendario',
+          hint: 'Demanda y fechas críticas',
+          route: '/admin/calendario',
+          icon: '◫',
+        },
       ],
       activityTitle: 'Alertas que requieren atención',
       activityDescription: 'Priorizadas por impacto en confianza, entrega y seguridad.',
       activities: demo
         ? [
-            { title: '5 proveedores esperan verificación', meta: 'Documentación completa para revisión', status: 'Revisar', tone: 'warning' },
-            { title: '3 pedidos próximos a vencer', meta: 'Entrega dentro de las siguientes 24 horas', status: 'Seguimiento', tone: 'warning' },
-            { title: 'Disponibilidad de la plataforma', meta: 'Servicios principales operativos', status: 'Estable', tone: 'success' },
+            {
+              title: '5 proveedores esperan verificación',
+              meta: 'Documentación completa para revisión',
+              status: 'Revisar',
+              tone: 'warning',
+            },
+            {
+              title: '3 pedidos próximos a vencer',
+              meta: 'Entrega dentro de las siguientes 24 horas',
+              status: 'Seguimiento',
+              tone: 'warning',
+            },
+            {
+              title: 'Disponibilidad de la plataforma',
+              meta: 'Servicios principales operativos',
+              status: 'Estable',
+              tone: 'success',
+            },
           ]
         : [],
       emptyTitle: 'Los módulos operativos aún no están conectados',
-      emptyText: 'La interfaz está preparada. Los indicadores permanecerán en cero hasta que existan endpoints reales en el backend.',
+      emptyText:
+        'La interfaz está preparada. Los indicadores permanecerán en cero hasta que existan endpoints reales en el backend.',
     };
   }
 }

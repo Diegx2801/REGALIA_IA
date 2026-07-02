@@ -5,10 +5,10 @@
     <header class="provider-profile-header">
       <span class="provider-profile-header__eyebrow">Perfil proveedor</span>
       <h1 class="provider-profile-header__title">
-        Gestiona tu negocio y catalogo visible en REGALIA.
+        Gestiona tu negocio y catálogo visible en REGALIA.
       </h1>
       <p class="provider-profile-header__text">
-        MantÃ©n datos, disponibilidad y productos actualizados para mejorar la compatibilidad con
+        Mantén datos, disponibilidad y productos actualizados para mejorar la compatibilidad con
         solicitudes.
       </p>
     </header>
@@ -17,7 +17,7 @@
       <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
         <div class="profile-form__head">
           <span class="profile-form__eyebrow">Datos comerciales</span>
-          <h2 class="profile-form__title">Informacion del proveedor</h2>
+          <h2 class="profile-form__title">Información del proveedor</h2>
         </div>
 
         <div class="profile-form__grid">
@@ -83,7 +83,7 @@
         </div>
 
         <label class="profile-field" for="description">
-          <span class="profile-field__label">Descripcion</span>
+          <span class="profile-field__label">Descripción</span>
           <textarea
             id="description"
             class="profile-field__control"
@@ -109,7 +109,7 @@
 
           <div class="provider-preview__score">
             <strong>{{ provider.rating }}</strong>
-            <span>{{ provider.reviews }} resenas Â· reputacion {{ provider.reputation }}%</span>
+            <span>{{ provider.reviews }} reseñas · reputación {{ provider.reputation }}%</span>
           </div>
 
           <div class="provider-preview__tags">
@@ -128,8 +128,8 @@
           <span class="product-form__eyebrow">Publicar producto</span>
           <h2 class="product-form__title">Sube lo que quieres vender</h2>
           <p class="product-form__text">
-            Registra nombre, precio, categoria, estado e imagen referencial para mostrarlo en tu
-            catalogo.
+            Registra nombre, precio, categoría, estado e imagen referencial para mostrarlo en tu
+            catálogo.
           </p>
         </div>
 
@@ -148,11 +148,11 @@
           }
 
           <label class="profile-field" for="productCategory">
-            <span class="profile-field__label">Categoria</span>
+            <span class="profile-field__label">Categoría</span>
             <select id="productCategory" class="profile-field__control" formControlName="category">
               <option>Cajas sorpresa</option>
               <option>Arreglos florales</option>
-              <option>Reposteria personalizada</option>
+              <option>Repostería personalizada</option>
               <option>Sublimados</option>
               <option>Evento corporativo</option>
             </select>
@@ -193,7 +193,7 @@
         </label>
 
         <label class="profile-field" for="productDescription">
-          <span class="profile-field__label">Descripcion comercial</span>
+          <span class="profile-field__label">Descripción comercial</span>
           <textarea
             id="productDescription"
             class="profile-field__control"
@@ -222,14 +222,14 @@
               type="button"
               (click)="resetProductForm()"
             >
-              Cancelar edicion
+              Cancelar edición
             </button>
           }
         </div>
 
         @if (productSaved()) {
           <p class="profile-form__success">
-            Producto agregado localmente al catalogo del proveedor.
+            Producto agregado localmente al catálogo del proveedor.
           </p>
         }
       </form>
@@ -238,7 +238,7 @@
     <section class="provider-catalog">
       <!-- Catalogo local con acciones de editar/eliminar para validar el flujo del proveedor. -->
       <div class="provider-catalog__head">
-        <span class="provider-catalog__eyebrow">Catalogo propio</span>
+        <span class="provider-catalog__eyebrow">Catálogo propio</span>
         <h2 class="provider-catalog__title">Productos publicados</h2>
       </div>
 

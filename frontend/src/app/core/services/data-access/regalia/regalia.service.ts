@@ -23,6 +23,7 @@ import { RegaliaProviderService } from './services/regalia-provider.service';
 
 @Injectable({ providedIn: 'root' })
 export class RegaliaService {
+  // Servicio raíz compartido en toda la aplicación. Angular lo resuelve como instancia única.
   private readonly adminService = inject(RegaliaAdminService);
   private readonly catalogService = inject(RegaliaCatalogService);
   private readonly matchingService = inject(RegaliaMatchingService);

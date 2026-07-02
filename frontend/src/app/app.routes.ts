@@ -8,6 +8,8 @@ import {
 } from './core/guards/auth.guard';
 import { devPreviewGuard } from './core/guards/dev-preview.guard';
 
+// En este archivo se concentra el flujo principal de navegación de Angular:
+// rutas públicas, áreas privadas por rol y redirecciones según permisos.
 export const routes: Routes = [
   {
     path: 'login',
