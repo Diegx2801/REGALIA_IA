@@ -52,6 +52,23 @@
   text-transform: uppercase;
 }
 
+.dashboard-heading__refresh {
+  background: var(--brand-gradient);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  min-height: 2.55rem;
+  padding: 0.62rem 1rem;
+}
+
+.dashboard-heading__refresh:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
 .dashboard-hero {
   align-items: center;
   background:
