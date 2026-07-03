@@ -21,9 +21,15 @@ public class AdminTiendaController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<TiendaResponse>>> listarTiendasAdministracion(
-            @RequestParam(required = false) String estadoRevision
+            @RequestParam(required = false) String estadoRevision,
+            @RequestParam(required = false) String searchField,
+            @RequestParam(required = false) String search
     ) {
-        List<TiendaResponse> tiendas = tiendaService.listarTiendasAdministracion(estadoRevision);
+        List<TiendaResponse> tiendas = tiendaService.listarTiendasAdministracion(
+                estadoRevision,
+                searchField,
+                search
+        );
 
         return ResponseEntity.ok(
                 ApiResponse.success(tiendas)

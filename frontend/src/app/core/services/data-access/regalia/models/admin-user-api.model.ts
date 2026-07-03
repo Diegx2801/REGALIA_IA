@@ -10,3 +10,11 @@ export interface AdminUserApiDto {
 }
 
 export type AdminUserStatusFilterApi = 'TODOS' | 'ACTIVO' | 'INACTIVO';
+
+export type AdminUserSearchFieldApi = 'NOMBRE' | 'CORREO' | 'TELEFONO' | 'ID_USUARIO';
+
+export interface AdminUserQueryApi {
+  estado?: AdminUserStatusFilterApi;
+  searchField?: AdminUserSearchFieldApi;
+  search?: string;
+}

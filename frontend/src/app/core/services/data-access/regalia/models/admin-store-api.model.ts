@@ -1,5 +1,13 @@
 export type AdminStoreReviewStatus = 'PENDIENTE' | 'APROBADA' | 'OBSERVADA' | 'RECHAZADA';
 
+export type AdminStoreSearchFieldApi = 'NOMBRE' | 'VENDEDOR' | 'CORREO_VENDEDOR' | 'ID_TIENDA';
+
+export interface AdminStoreQueryApi {
+  estadoRevision?: AdminStoreReviewStatus;
+  searchField?: AdminStoreSearchFieldApi;
+  search?: string;
+}
+
 export interface AdminStoreRubroApiDto {
   idRubro: number;
   nombre: string;

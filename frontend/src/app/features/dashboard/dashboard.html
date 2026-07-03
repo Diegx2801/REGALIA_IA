@@ -100,9 +100,19 @@
                   <strong>{{ activity.title }}</strong>
                   <small>{{ activity.meta }}</small>
                 </div>
-                <span class="activity-item__status" [attr.data-tone]="activity.tone">{{
-                  activity.status
-                }}</span>
+                @if (activity.route) {
+                  <a
+                    class="activity-item__status"
+                    [attr.data-tone]="activity.tone"
+                    [routerLink]="actionRoute(activity.route)"
+                  >
+                    {{ activity.status }}
+                  </a>
+                } @else {
+                  <span class="activity-item__status" [attr.data-tone]="activity.tone">{{
+                    activity.status
+                  }}</span>
+                }
               </article>
             }
           </div>

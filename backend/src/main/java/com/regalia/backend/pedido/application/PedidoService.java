@@ -228,10 +228,32 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> listarPedidosAdmin() {
-        return pedidoRepository.findByEstadoTrueOrderByIdPedidoDesc()
+    public List<PedidoResponse> listarPedidosAdmin(
+            String estadoPago,
+            String searchField,
+            String search
+    ) {
+        PedidoPagoFiltro filtroPago = PedidoPagoFiltro.desde(estadoPago);
+        PedidoSearchField campoBusqueda = PedidoSearchField.desde(searchField);
+        String busqueda = normalizarBusqueda(search);
+        Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+
+        if (busqueda == null) {
+            return pedidoRepository.findByEstadoTrueOrderByIdPedidoDesc()
+                    .stream()
+                    .map(this::construirResponse)
+                    .filter(pedido -> coincideEstadoPago(pedido, filtroPago))
+                    .toList();
+        }
+
+        return pedidoRepository.findPedidosAdministracionFiltrados(
+                        campoBusqueda.name(),
+                        busqueda,
+                        busquedaId
+                )
                 .stream()
                 .map(this::construirResponse)
+                .filter(pedido -> coincideEstadoPago(pedido, filtroPago))
                 .toList();
     }
 
@@ -324,6 +346,45 @@ public class PedidoService {
         BigDecimal saldoPendiente = calcularSaldoPendiente(pedido.getTotal(), montoPagado);
 
         return pedidoMapper.toResponse(pedido, detalles, montoPagado, saldoPendiente);
+    }
+
+    private boolean coincideEstadoPago(PedidoResponse pedido, PedidoPagoFiltro filtroPago) {
+        BigDecimal saldoPendiente = pedido.saldoPendiente() == null
+                ? BigDecimal.ZERO
+                : pedido.saldoPendiente();
+
+        if (filtroPago == PedidoPagoFiltro.PAGADO) {
+            return saldoPendiente.compareTo(BigDecimal.ZERO) <= 0;
+        }
+
+        if (filtroPago == PedidoPagoFiltro.CON_SALDO) {
+            return saldoPendiente.compareTo(BigDecimal.ZERO) > 0;
+        }
+
+        return true;
+    }
+
+    private String normalizarBusqueda(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+
+        return valor.trim();
+    }
+
+    private Long obtenerBusquedaIdSiAplica(PedidoSearchField campoBusqueda, String busqueda) {
+        if (busqueda == null
+                || (campoBusqueda != PedidoSearchField.ID_PEDIDO
+                && campoBusqueda != PedidoSearchField.ID_USUARIO
+                && campoBusqueda != PedidoSearchField.ID_TIENDA)) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            throw new ReglaNegocioException("El ID de pedido, usuario o tienda debe ser numerico");
+        }
     }
 
     private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {

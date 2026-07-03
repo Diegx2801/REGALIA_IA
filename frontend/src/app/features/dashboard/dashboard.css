@@ -380,6 +380,7 @@
   font-size: 0.68rem;
   font-weight: 900;
   padding: 0.35rem 0.55rem;
+  text-decoration: none;
 }
 
 .activity-item__status[data-tone='success'] {
@@ -489,12 +490,21 @@
     padding-inline: 1rem;
   }
 
+  .dashboard-heading__refresh {
+    justify-content: center;
+    width: 100%;
+  }
+
   .dashboard-hero {
     grid-template-columns: 1fr;
     min-height: auto;
   }
   .dashboard-hero__signature {
     display: none;
+  }
+
+  .dashboard-flow {
+    grid-template-columns: 1fr;
   }
 }
 

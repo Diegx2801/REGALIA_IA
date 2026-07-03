@@ -36,6 +36,10 @@
   padding: clamp(1rem, 2vw, 1.4rem);
 }
 
+.admin-catalogs__header > div {
+  min-width: 0;
+}
+
 .admin-catalogs__eyebrow,
 .admin-catalogs__metrics span,
 .admin-catalogs__search span {
@@ -82,6 +86,7 @@
 .admin-catalogs__refresh {
   background: var(--brand-gradient);
   color: #fff;
+  flex: 0 0 auto;
   min-height: 2.7rem;
   padding: 0.7rem 1rem;
 }
@@ -123,6 +128,7 @@
   display: flex;
   gap: 0.45rem;
   overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .admin-catalogs__tabs button {
@@ -391,12 +397,35 @@
     display: grid;
   }
 
+  .admin-catalogs__refresh {
+    justify-self: start;
+  }
+
   .admin-catalogs__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-catalogs__list,
+  .admin-catalog-detail {
+    min-height: auto;
   }
 
   .admin-catalog-card,
   .admin-catalogs__search {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .admin-catalogs {
+    padding-inline: 0.85rem;
+  }
+
+  .admin-catalogs__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-catalogs__refresh {
+    width: 100%;
   }
 }

@@ -56,3 +56,17 @@ export interface OrderApiDto {
   fechaActualizacion: string | null;
   detalles: OrderDetailApiDto[];
 }
+
+export type AdminOrderPaymentFilterApi = 'TODOS' | 'PAGADO' | 'CON_SALDO';
+export type AdminOrderSearchFieldApi =
+  | 'ID_PEDIDO'
+  | 'NOMBRE_TIENDA'
+  | 'ID_USUARIO'
+  | 'ID_TIENDA'
+  | 'ESTADO_PEDIDO';
+
+export interface AdminOrderQueryApi {
+  estadoPago?: AdminOrderPaymentFilterApi;
+  searchField?: AdminOrderSearchFieldApi;
+  search?: string;
+}

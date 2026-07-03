@@ -1,23 +1,37 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AdminUserApiDto } from '../../core/services/data-access/regalia/models/admin-user-api.model';
+import {
+  AdminUserApiDto,
+  AdminUserSearchFieldApi,
+  AdminUserStatusFilterApi,
+} from '../../core/services/data-access/regalia/models/admin-user-api.model';
 import { RegaliaAdminUserApiService } from '../../core/services/data-access/regalia/services/regalia-admin-user-api.service';
 
-type AdminUserFilter = 'TODOS' | 'ACTIVOS' | 'INACTIVOS' | 'CON_TELEFONO' | 'SIN_TELEFONO';
-
 interface AdminUserFilterOption {
-  value: AdminUserFilter;
+  value: AdminUserStatusFilterApi;
   label: string;
 }
 
 const FILTER_OPTIONS: AdminUserFilterOption[] = [
   { value: 'TODOS', label: 'Todos' },
-  { value: 'ACTIVOS', label: 'Activos' },
-  { value: 'INACTIVOS', label: 'Inactivos' },
-  { value: 'CON_TELEFONO', label: 'Con telefono' },
-  { value: 'SIN_TELEFONO', label: 'Sin telefono' },
+  { value: 'ACTIVO', label: 'Activos' },
+  { value: 'INACTIVO', label: 'Inactivos' },
+];
+
+interface AdminUserSearchFieldOption {
+  value: AdminUserSearchFieldApi;
+  label: string;
+  placeholder: string;
+}
+
+const SEARCH_FIELD_OPTIONS: AdminUserSearchFieldOption[] = [
+  { value: 'NOMBRE', label: 'Nombre', placeholder: 'Ej. Cliente Prueba' },
+  { value: 'CORREO', label: 'Correo', placeholder: 'Ej. cliente@regalia.com' },
+  { value: 'TELEFONO', label: 'Telefono', placeholder: 'Ej. 999111222' },
+  { value: 'ID_USUARIO', label: 'ID usuario', placeholder: 'Ej. 1' },
 ];
 
 @Component({
@@ -29,10 +43,14 @@ const FILTER_OPTIONS: AdminUserFilterOption[] = [
 })
 export class AdminUsersComponent implements OnInit {
   private readonly adminUserApi = inject(RegaliaAdminUserApiService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly filterOptions = FILTER_OPTIONS;
-  readonly filter = signal<AdminUserFilter>('TODOS');
+  readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
+  readonly filter = signal<AdminUserStatusFilterApi>('TODOS');
+  readonly searchField = signal<AdminUserSearchFieldApi>('NOMBRE');
   readonly searchTerm = signal('');
   readonly users = signal<AdminUserApiDto[]>([]);
   readonly selectedUserId = signal<number | null>(null);
@@ -42,35 +60,12 @@ export class AdminUsersComponent implements OnInit {
   readonly errorMessage = signal('');
   readonly actionMessage = signal('');
 
-  readonly filteredUsers = computed(() => {
-    const normalizedSearch = this.normalize(this.searchTerm());
-    const currentFilter = this.filter();
-
-    return this.users().filter((user) => {
-      const matchesFilter = this.matchesFilter(user, currentFilter);
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        this.normalize(
-          [
-            user.nombres,
-            user.apellidos,
-            user.correo,
-            user.telefono,
-            user.idUsuario,
-          ].join(' '),
-        ).includes(normalizedSearch);
-
-      return matchesFilter && matchesSearch;
-    });
-  });
-
-  readonly selectedUser = computed(() => {
-    const filteredUsers = this.filteredUsers();
+  readonly selectedUser = computed<AdminUserApiDto | null>(() => {
     const selectedUserId = this.selectedUserId();
 
     return (
-      filteredUsers.find((user) => user.idUsuario === selectedUserId) ??
-      filteredUsers[0] ??
+      this.users().find((user) => user.idUsuario === selectedUserId) ??
+      this.users()[0] ??
       null
     );
   });
@@ -81,28 +76,42 @@ export class AdminUsersComponent implements OnInit {
   readonly withPhoneCount = computed(
     () => this.users().filter((user) => Boolean(user.telefono?.trim())).length,
   );
+  readonly searchPlaceholder = computed(
+    () =>
+      this.searchFieldOptions.find((option) => option.value === this.searchField())?.placeholder ??
+      'Buscar',
+  );
 
   ngOnInit(): void {
-    this.loadUsers();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.filter.set(this.parseStatusFilter(params.get('estado')));
+      this.searchField.set(this.parseSearchField(params.get('searchField')));
+      this.searchTerm.set(params.get('search') ?? '');
+      this.selectedUserId.set(null);
+      this.pendingStatusChangeId.set(null);
+      this.loadUsers();
+    });
   }
 
-  setFilter(filter: AdminUserFilter): void {
-    this.filter.set(filter);
-    this.selectedUserId.set(null);
-    this.pendingStatusChangeId.set(null);
+  setFilter(filter: AdminUserStatusFilterApi): void {
+    this.updateQueryParams({ estado: filter === 'TODOS' ? null : filter });
   }
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.searchTerm.set(input.value);
-    this.selectedUserId.set(null);
-    this.pendingStatusChangeId.set(null);
+    this.updateQueryParams({ search: input.value.trim() || null });
+  }
+
+  onSearchFieldChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.updateQueryParams({
+      searchField: this.parseSearchField(select.value),
+      search: this.searchTerm().trim() || null,
+    });
   }
 
   clearSearch(): void {
-    this.searchTerm.set('');
-    this.selectedUserId.set(null);
-    this.pendingStatusChangeId.set(null);
+    this.updateQueryParams({ search: null });
   }
 
   selectUser(user: AdminUserApiDto): void {
@@ -193,7 +202,11 @@ export class AdminUsersComponent implements OnInit {
     this.actionMessage.set('');
 
     this.adminUserApi
-      .getUsers('TODOS')
+      .getUsers({
+        estado: this.filter(),
+        searchField: this.searchField(),
+        search: this.searchTerm(),
+      })
       .pipe(
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -201,12 +214,7 @@ export class AdminUsersComponent implements OnInit {
       .subscribe({
         next: (users) => {
           this.users.set(users);
-          const selectedUserStillExists = users.some(
-            (user) => user.idUsuario === this.selectedUserId(),
-          );
-          if (!selectedUserStillExists) {
-            this.selectedUserId.set(users[0]?.idUsuario ?? null);
-          }
+          this.selectedUserId.set(users[0]?.idUsuario ?? null);
         },
         error: () => {
           this.users.set([]);
@@ -268,19 +276,28 @@ export class AdminUsersComponent implements OnInit {
     );
   }
 
-  private matchesFilter(user: AdminUserApiDto, filter: AdminUserFilter): boolean {
-    if (filter === 'ACTIVOS') return Boolean(user.estado);
-    if (filter === 'INACTIVOS') return !user.estado;
-    if (filter === 'CON_TELEFONO') return this.hasPhone(user);
-    if (filter === 'SIN_TELEFONO') return !this.hasPhone(user);
-    return true;
+  private parseStatusFilter(value: string | null): AdminUserStatusFilterApi {
+    if (value === 'ACTIVO' || value === 'INACTIVO') {
+      return value;
+    }
+
+    return 'TODOS';
   }
 
-  private normalize(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+  private parseSearchField(value: string | null): AdminUserSearchFieldApi {
+    if (value === 'CORREO' || value === 'TELEFONO' || value === 'ID_USUARIO') {
+      return value;
+    }
+
+    return 'NOMBRE';
+  }
+
+  private updateQueryParams(queryParams: Record<string, string | null>): void {
+    void this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'merge',
+      relativeTo: this.route,
+      replaceUrl: true,
+    });
   }
 }

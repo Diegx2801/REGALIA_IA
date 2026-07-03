@@ -33,7 +33,7 @@ export class RegaliaAdminSummaryApiService {
       stores: this.storeApi.getStores(),
       orders: this.orderApi.getOrders(),
       sellers: this.sellerApi.getSellers(),
-      users: this.userApi.getUsers('TODOS'),
+      users: this.userApi.getUsers({ estado: 'TODOS' }),
       catalogs: this.catalogApi.getCatalogs(),
     }).pipe(
       map(({ stores, orders, sellers, users, catalogs }) => {

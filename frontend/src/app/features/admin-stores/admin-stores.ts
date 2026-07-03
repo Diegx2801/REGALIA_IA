@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import {
   AdminStoreApiDto,
   AdminStoreReviewStatus,
+  AdminStoreSearchFieldApi,
 } from '../../core/services/data-access/regalia/models/admin-store-api.model';
 import { RegaliaAdminStoreApiService } from '../../core/services/data-access/regalia/services/regalia-admin-store-api.service';
 
@@ -23,6 +25,19 @@ const STATUS_OPTIONS: AdminStoreStatusOption[] = [
   { value: 'RECHAZADA', label: 'Rechazadas' },
 ];
 
+interface AdminStoreSearchFieldOption {
+  value: AdminStoreSearchFieldApi;
+  label: string;
+  placeholder: string;
+}
+
+const SEARCH_FIELD_OPTIONS: AdminStoreSearchFieldOption[] = [
+  { value: 'NOMBRE', label: 'Tienda', placeholder: 'Ej. Regalia Gifts' },
+  { value: 'VENDEDOR', label: 'Vendedor', placeholder: 'Ej. Cliente Prueba' },
+  { value: 'CORREO_VENDEDOR', label: 'Correo vendedor', placeholder: 'Ej. cliente@regalia.com' },
+  { value: 'ID_TIENDA', label: 'ID tienda', placeholder: 'Ej. 3' },
+];
+
 @Component({
   selector: 'app-admin-stores',
   standalone: true,
@@ -32,10 +47,15 @@ const STATUS_OPTIONS: AdminStoreStatusOption[] = [
 })
 export class AdminStoresComponent implements OnInit {
   private readonly adminStoreApi = inject(RegaliaAdminStoreApiService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly statusOptions = STATUS_OPTIONS;
+  readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
   readonly filter = signal<AdminStoreFilter>('TODAS');
+  readonly searchField = signal<AdminStoreSearchFieldApi>('NOMBRE');
+  readonly searchTerm = signal('');
   readonly stores = signal<AdminStoreApiDto[]>([]);
   readonly selectedStoreId = signal<number | null>(null);
   readonly isLoading = signal(false);
@@ -43,7 +63,7 @@ export class AdminStoresComponent implements OnInit {
   readonly errorMessage = signal('');
   readonly actionMessage = signal('');
 
-  readonly selectedStore = computed(() => {
+  readonly selectedStore = computed<AdminStoreApiDto | null>(() => {
     const selectedStoreId = this.selectedStoreId();
     return this.stores().find((store) => store.idTienda === selectedStoreId) ?? null;
   });
@@ -59,16 +79,42 @@ export class AdminStoresComponent implements OnInit {
   readonly rejectedCount = computed(
     () => this.stores().filter((store) => store.estadoRevision === 'RECHAZADA').length,
   );
+  readonly searchPlaceholder = computed(
+    () =>
+      this.searchFieldOptions.find((option) => option.value === this.searchField())?.placeholder ??
+      'Buscar',
+  );
 
   ngOnInit(): void {
-    this.loadStores();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.filter.set(this.parseStatusFilter(params.get('estadoRevision')));
+      this.searchField.set(this.parseSearchField(params.get('searchField')));
+      this.searchTerm.set(params.get('search') ?? '');
+      this.selectedStoreId.set(null);
+      this.actionMessage.set('');
+      this.loadStores();
+    });
   }
 
   setFilter(filter: AdminStoreFilter): void {
-    this.filter.set(filter);
-    this.selectedStoreId.set(null);
-    this.actionMessage.set('');
-    this.loadStores();
+    this.updateQueryParams({ estadoRevision: filter === 'TODAS' ? null : filter });
+  }
+
+  onSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.updateQueryParams({ search: input.value.trim() || null });
+  }
+
+  onSearchFieldChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.updateQueryParams({
+      searchField: this.parseSearchField(select.value),
+      search: this.searchTerm().trim() || null,
+    });
+  }
+
+  clearSearch(): void {
+    this.updateQueryParams({ search: null });
   }
 
   selectStore(store: AdminStoreApiDto): void {
@@ -153,7 +199,11 @@ export class AdminStoresComponent implements OnInit {
     this.errorMessage.set('');
 
     this.adminStoreApi
-      .getStores(status)
+      .getStores({
+        estadoRevision: status,
+        searchField: this.searchField(),
+        search: this.searchTerm(),
+      })
       .pipe(
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -161,12 +211,7 @@ export class AdminStoresComponent implements OnInit {
       .subscribe({
         next: (stores) => {
           this.stores.set(stores);
-          const selectedStoreStillExists = stores.some(
-            (store) => store.idTienda === this.selectedStoreId(),
-          );
-          if (!selectedStoreStillExists) {
-            this.selectedStoreId.set(stores[0]?.idTienda ?? null);
-          }
+          this.selectedStoreId.set(stores[0]?.idTienda ?? null);
         },
         error: () => {
           this.stores.set([]);
@@ -191,6 +236,36 @@ export class AdminStoresComponent implements OnInit {
       }
 
       return stores.map((store) => (store.idTienda === updatedStore.idTienda ? updatedStore : store));
+    });
+  }
+
+  private parseStatusFilter(value: string | null): AdminStoreFilter {
+    if (
+      value === 'PENDIENTE' ||
+      value === 'APROBADA' ||
+      value === 'OBSERVADA' ||
+      value === 'RECHAZADA'
+    ) {
+      return value;
+    }
+
+    return 'TODAS';
+  }
+
+  private parseSearchField(value: string | null): AdminStoreSearchFieldApi {
+    if (value === 'VENDEDOR' || value === 'CORREO_VENDEDOR' || value === 'ID_TIENDA') {
+      return value;
+    }
+
+    return 'NOMBRE';
+  }
+
+  private updateQueryParams(queryParams: Record<string, string | null>): void {
+    void this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'merge',
+      relativeTo: this.route,
+      replaceUrl: true,
     });
   }
 }

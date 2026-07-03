@@ -47,11 +47,20 @@
         }
       </nav>
 
+      <label class="admin-users__search-field">
+        <span>Buscar por</span>
+        <select [value]="searchField()" (change)="onSearchFieldChange($event)">
+          @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
       <label class="admin-users__search">
-        <span>Buscar</span>
+        <span>Valor</span>
         <input
           type="search"
-          placeholder="Nombre, correo, telefono o ID..."
+          [placeholder]="searchPlaceholder()"
           [value]="searchTerm()"
           (input)="onSearch($event)"
         />
@@ -77,14 +86,14 @@
             <h2>Cargando usuarios</h2>
             <p>Estamos consultando las cuentas gestionables del backend.</p>
           </div>
-        } @else if (filteredUsers().length === 0) {
+        } @else if (users().length === 0) {
           <div class="admin-users__empty">
             <span aria-hidden="true">U</span>
             <h2>No hay usuarios para este filtro</h2>
             <p>Cambia el filtro, limpia la busqueda o actualiza la informacion.</p>
           </div>
         } @else {
-          @for (user of filteredUsers(); track trackUser($index, user)) {
+          @for (user of users(); track trackUser($index, user)) {
             <button
               class="admin-user-card"
               type="button"

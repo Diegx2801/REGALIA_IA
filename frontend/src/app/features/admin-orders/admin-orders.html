@@ -47,11 +47,20 @@
         }
       </nav>
 
+      <label class="admin-orders__search-field">
+        <span>Buscar por</span>
+        <select [value]="searchField()" (change)="onSearchFieldChange($event)">
+          @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
       <label class="admin-orders__search">
-        <span>Buscar</span>
+        <span>Valor</span>
         <input
           type="search"
-          placeholder="Pedido, tienda, estado..."
+          [placeholder]="searchPlaceholder()"
           [value]="searchTerm()"
           (input)="onSearch($event)"
         />
@@ -73,18 +82,18 @@
             <h2>Cargando pedidos</h2>
             <p>Estamos consultando la informacion administrativa del backend.</p>
           </div>
-        } @else if (filteredOrders().length === 0) {
+        } @else if (orders().length === 0) {
           <div class="admin-orders__empty">
             <span aria-hidden="true">P</span>
             <h2>No hay pedidos para este filtro</h2>
             <p>Cambia el filtro, limpia la busqueda o actualiza la informacion.</p>
           </div>
         } @else {
-          @for (order of filteredOrders(); track trackOrder($index, order)) {
+          @for (order of orders(); track trackOrder($index, order)) {
             <button
               class="admin-order-card"
               type="button"
-              [class.admin-order-card--selected]="selectedOrder().idPedido === order.idPedido"
+              [class.admin-order-card--selected]="isSelectedOrder(order)"
               (click)="selectOrder(order)"
             >
               <span class="admin-order-card__status" [attr.data-tone]="paymentTone(order)">

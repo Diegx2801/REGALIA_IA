@@ -32,7 +32,7 @@ export class AdminCatalogsComponent implements OnInit {
   readonly isLoading = signal(false);
   readonly errorMessage = signal('');
 
-  readonly selectedGroup = computed(
+  readonly selectedGroup = computed<AdminCatalogGroup | null>(
     () => this.groups().find((group) => group.type === this.selectedType()) ?? null,
   );
 
@@ -58,7 +58,7 @@ export class AdminCatalogsComponent implements OnInit {
     });
   });
 
-  readonly selectedItem = computed(() => {
+  readonly selectedItem = computed<AdminCatalogItem | null>(() => {
     const selectedItemId = this.selectedItemId();
     const filteredItems = this.filteredItems();
 
@@ -110,6 +110,10 @@ export class AdminCatalogsComponent implements OnInit {
 
   selectItem(item: AdminCatalogItem): void {
     this.selectedItemId.set(item.id);
+  }
+
+  isSelectedItem(item: AdminCatalogItem): boolean {
+    return this.selectedItem()?.id === item.id;
   }
 
   refresh(): void {

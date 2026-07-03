@@ -11,3 +11,14 @@ export interface AdminSellerApiDto {
   fechaCreacion: string | null;
   fechaActualizacion: string | null;
 }
+
+export type AdminSellerStatusFilterApi = 'TODOS' | 'ACTIVO' | 'INACTIVO';
+export type AdminSellerVerificationFilterApi = 'TODOS' | 'VERIFICADO' | 'SIN_VERIFICAR';
+export type AdminSellerSearchFieldApi = 'NOMBRE' | 'CORREO' | 'ID_VENDEDOR' | 'ID_USUARIO';
+
+export interface AdminSellerQueryApi {
+  estado?: AdminSellerStatusFilterApi;
+  verificacion?: AdminSellerVerificationFilterApi;
+  searchField?: AdminSellerSearchFieldApi;
+  search?: string;
+}

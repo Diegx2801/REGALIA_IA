@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AdminSellerApiDto } from '../../core/services/data-access/regalia/models/admin-seller-api.model';
+import {
+  AdminSellerApiDto,
+  AdminSellerSearchFieldApi,
+  AdminSellerStatusFilterApi,
+  AdminSellerVerificationFilterApi,
+} from '../../core/services/data-access/regalia/models/admin-seller-api.model';
 import { RegaliaAdminSellerApiService } from '../../core/services/data-access/regalia/services/regalia-admin-seller-api.service';
 
 type AdminSellerFilter = 'TODOS' | 'ACTIVOS' | 'INACTIVOS' | 'VERIFICADOS' | 'SIN_VERIFICAR';
@@ -21,6 +26,19 @@ const FILTER_OPTIONS: AdminSellerFilterOption[] = [
   { value: 'SIN_VERIFICAR', label: 'Sin verificar' },
 ];
 
+interface AdminSellerSearchFieldOption {
+  value: AdminSellerSearchFieldApi;
+  label: string;
+  placeholder: string;
+}
+
+const SEARCH_FIELD_OPTIONS: AdminSellerSearchFieldOption[] = [
+  { value: 'NOMBRE', label: 'Nombre', placeholder: 'Ej. Cliente Prueba' },
+  { value: 'CORREO', label: 'Correo', placeholder: 'Ej. vendedor@regalia.com' },
+  { value: 'ID_VENDEDOR', label: 'ID vendedor', placeholder: 'Ej. 1' },
+  { value: 'ID_USUARIO', label: 'ID usuario', placeholder: 'Ej. 1' },
+];
+
 @Component({
   selector: 'app-admin-sellers',
   standalone: true,
@@ -30,45 +48,26 @@ const FILTER_OPTIONS: AdminSellerFilterOption[] = [
 })
 export class AdminSellersComponent implements OnInit {
   private readonly adminSellerApi = inject(RegaliaAdminSellerApiService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly filterOptions = FILTER_OPTIONS;
+  readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
   readonly filter = signal<AdminSellerFilter>('TODOS');
+  readonly searchField = signal<AdminSellerSearchFieldApi>('NOMBRE');
   readonly searchTerm = signal('');
   readonly sellers = signal<AdminSellerApiDto[]>([]);
   readonly selectedSellerId = signal<number | null>(null);
   readonly isLoading = signal(false);
   readonly errorMessage = signal('');
 
-  readonly filteredSellers = computed(() => {
-    const normalizedSearch = this.normalize(this.searchTerm());
-    const currentFilter = this.filter();
-
-    return this.sellers().filter((seller) => {
-      const matchesFilter = this.matchesFilter(seller, currentFilter);
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        this.normalize(
-          [
-            seller.nombreUsuario,
-            seller.apellidoUsuario,
-            seller.correoUsuario,
-            seller.idVendedor,
-            seller.idUsuario,
-          ].join(' '),
-        ).includes(normalizedSearch);
-
-      return matchesFilter && matchesSearch;
-    });
-  });
-
-  readonly selectedSeller = computed(() => {
-    const filteredSellers = this.filteredSellers();
+  readonly selectedSeller = computed<AdminSellerApiDto | null>(() => {
     const selectedSellerId = this.selectedSellerId();
 
     return (
-      filteredSellers.find((seller) => seller.idVendedor === selectedSellerId) ??
-      filteredSellers[0] ??
+      this.sellers().find((seller) => seller.idVendedor === selectedSellerId) ??
+      this.sellers()[0] ??
       null
     );
   });
@@ -83,29 +82,53 @@ export class AdminSellersComponent implements OnInit {
   readonly withStoresCount = computed(
     () => this.sellers().filter((seller) => (seller.cantidadTiendasTotales ?? 0) > 0).length,
   );
+  readonly searchPlaceholder = computed(
+    () =>
+      this.searchFieldOptions.find((option) => option.value === this.searchField())?.placeholder ??
+      'Buscar',
+  );
 
   ngOnInit(): void {
-    this.loadSellers();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.filter.set(this.parseFilter(params.get('estado'), params.get('verificacion')));
+      this.searchField.set(this.parseSearchField(params.get('searchField')));
+      this.searchTerm.set(params.get('search') ?? '');
+      this.selectedSellerId.set(null);
+      this.loadSellers();
+    });
   }
 
   setFilter(filter: AdminSellerFilter): void {
-    this.filter.set(filter);
-    this.selectedSellerId.set(null);
+    const query = this.queryFromFilter(filter);
+    this.updateQueryParams({
+      estado: query.estado ?? null,
+      verificacion: query.verificacion ?? null,
+    });
   }
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.searchTerm.set(input.value);
-    this.selectedSellerId.set(null);
+    this.updateQueryParams({ search: input.value.trim() || null });
+  }
+
+  onSearchFieldChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.updateQueryParams({
+      searchField: this.parseSearchField(select.value),
+      search: this.searchTerm().trim() || null,
+    });
   }
 
   clearSearch(): void {
-    this.searchTerm.set('');
-    this.selectedSellerId.set(null);
+    this.updateQueryParams({ search: null });
   }
 
   selectSeller(seller: AdminSellerApiDto): void {
     this.selectedSellerId.set(seller.idVendedor);
+  }
+
+  isSelectedSeller(seller: AdminSellerApiDto): boolean {
+    return this.selectedSeller()?.idVendedor === seller.idVendedor;
   }
 
   refresh(): void {
@@ -145,7 +168,11 @@ export class AdminSellersComponent implements OnInit {
     this.errorMessage.set('');
 
     this.adminSellerApi
-      .getSellers()
+      .getSellers({
+        ...this.queryFromFilter(this.filter()),
+        searchField: this.searchField(),
+        search: this.searchTerm(),
+      })
       .pipe(
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -153,12 +180,7 @@ export class AdminSellersComponent implements OnInit {
       .subscribe({
         next: (sellers) => {
           this.sellers.set(sellers);
-          const selectedSellerStillExists = sellers.some(
-            (seller) => seller.idVendedor === this.selectedSellerId(),
-          );
-          if (!selectedSellerStillExists) {
-            this.selectedSellerId.set(sellers[0]?.idVendedor ?? null);
-          }
+          this.selectedSellerId.set(sellers[0]?.idVendedor ?? null);
         },
         error: () => {
           this.sellers.set([]);
@@ -168,19 +190,42 @@ export class AdminSellersComponent implements OnInit {
       });
   }
 
-  private matchesFilter(seller: AdminSellerApiDto, filter: AdminSellerFilter): boolean {
-    if (filter === 'ACTIVOS') return Boolean(seller.estado);
-    if (filter === 'INACTIVOS') return !seller.estado;
-    if (filter === 'VERIFICADOS') return Boolean(seller.vendedorVerificado);
-    if (filter === 'SIN_VERIFICAR') return !seller.vendedorVerificado;
-    return true;
+  private parseFilter(
+    estado: string | null,
+    verificacion: string | null,
+  ): AdminSellerFilter {
+    if (estado === 'ACTIVO') return 'ACTIVOS';
+    if (estado === 'INACTIVO') return 'INACTIVOS';
+    if (verificacion === 'VERIFICADO') return 'VERIFICADOS';
+    if (verificacion === 'SIN_VERIFICAR') return 'SIN_VERIFICAR';
+    return 'TODOS';
   }
 
-  private normalize(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+  private parseSearchField(value: string | null): AdminSellerSearchFieldApi {
+    if (value === 'CORREO' || value === 'ID_VENDEDOR' || value === 'ID_USUARIO') {
+      return value;
+    }
+
+    return 'NOMBRE';
+  }
+
+  private queryFromFilter(filter: AdminSellerFilter): {
+    estado?: AdminSellerStatusFilterApi;
+    verificacion?: AdminSellerVerificationFilterApi;
+  } {
+    if (filter === 'ACTIVOS') return { estado: 'ACTIVO' };
+    if (filter === 'INACTIVOS') return { estado: 'INACTIVO' };
+    if (filter === 'VERIFICADOS') return { verificacion: 'VERIFICADO' };
+    if (filter === 'SIN_VERIFICAR') return { verificacion: 'SIN_VERIFICAR' };
+    return {};
+  }
+
+  private updateQueryParams(queryParams: Record<string, string | null | undefined>): void {
+    void this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'merge',
+      relativeTo: this.route,
+      replaceUrl: true,
+    });
   }
 }

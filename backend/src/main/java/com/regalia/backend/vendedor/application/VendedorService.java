@@ -75,10 +75,37 @@ public class VendedorService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminVendedorResponse> listarVendedoresAdmin() {
-        return vendedorRepository.findAllByOrderByIdVendedorAsc()
+    public List<AdminVendedorResponse> listarVendedoresAdmin(
+            String estado,
+            String verificacion,
+            String searchField,
+            String search
+    ) {
+        VendedorEstadoFiltro filtroEstado = VendedorEstadoFiltro.desde(estado);
+        VendedorVerificacionFiltro filtroVerificacion = VendedorVerificacionFiltro.desde(verificacion);
+        VendedorSearchField campoBusqueda = VendedorSearchField.desde(searchField);
+        String busqueda = normalizarBusqueda(search);
+        Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+
+        if (busqueda == null) {
+            return vendedorRepository.findVendedoresAdministracionPorEstado(
+                            filtroEstado.toEstadoBoolean()
+                    )
+                    .stream()
+                    .map(this::construirAdminResponse)
+                    .filter(vendedor -> coincideVerificacion(vendedor, filtroVerificacion))
+                    .toList();
+        }
+
+        return vendedorRepository.findVendedoresAdministracionFiltrados(
+                        filtroEstado.toEstadoBoolean(),
+                        campoBusqueda.name(),
+                        busqueda,
+                        busquedaId
+                )
                 .stream()
                 .map(this::construirAdminResponse)
+                .filter(vendedor -> coincideVerificacion(vendedor, filtroVerificacion))
                 .toList();
     }
 
@@ -107,6 +134,43 @@ public class VendedorService {
                 cantidadTiendasActivas,
                 cantidadTiendasTotales
         );
+    }
+
+    private boolean coincideVerificacion(
+            AdminVendedorResponse vendedor,
+            VendedorVerificacionFiltro filtroVerificacion
+    ) {
+        if (filtroVerificacion == VendedorVerificacionFiltro.VERIFICADO) {
+            return Boolean.TRUE.equals(vendedor.vendedorVerificado());
+        }
+
+        if (filtroVerificacion == VendedorVerificacionFiltro.SIN_VERIFICAR) {
+            return !Boolean.TRUE.equals(vendedor.vendedorVerificado());
+        }
+
+        return true;
+    }
+
+    private String normalizarBusqueda(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+
+        return valor.trim();
+    }
+
+    private Long obtenerBusquedaIdSiAplica(VendedorSearchField campoBusqueda, String busqueda) {
+        if (busqueda == null
+                || (campoBusqueda != VendedorSearchField.ID_VENDEDOR
+                && campoBusqueda != VendedorSearchField.ID_USUARIO)) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            throw new ReglaNegocioException("El ID de vendedor o usuario debe ser numerico");
+        }
     }
 
     private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {

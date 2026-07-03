@@ -85,7 +85,7 @@
             <button
               class="admin-catalog-card"
               type="button"
-              [class.admin-catalog-card--selected]="selectedItem().id === item.id"
+              [class.admin-catalog-card--selected]="isSelectedItem(item)"
               (click)="selectItem(item)"
             >
               <span class="admin-catalog-card__status" [attr.data-tone]="statusTone(item)">

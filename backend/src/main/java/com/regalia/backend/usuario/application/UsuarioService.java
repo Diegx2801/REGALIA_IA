@@ -45,10 +45,31 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion(UsuarioEstadoFiltro filtro) {
-        return usuarioRepository.findGestionablesSinRolOrderByIdUsuarioAsc(
+    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion(
+            UsuarioEstadoFiltro filtro,
+            String searchField,
+            String search
+    ) {
+        UsuarioSearchField campoBusqueda = UsuarioSearchField.desde(searchField);
+        String busqueda = normalizarBusqueda(search);
+        Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+
+        if (busqueda == null) {
+            return usuarioRepository.findGestionablesSinRolPorEstadoOrderByIdUsuarioAsc(
+                            ROL_ADMIN,
+                            filtro.toEstadoBoolean()
+                    )
+                    .stream()
+                    .map(usuarioMapper::toResponse)
+                    .toList();
+        }
+
+        return usuarioRepository.findGestionablesSinRolFiltradosOrderByIdUsuarioAsc(
                         ROL_ADMIN,
-                        filtro.toEstadoBoolean()
+                        filtro.toEstadoBoolean(),
+                        campoBusqueda.name(),
+                        busqueda,
+                        busquedaId
                 )
                 .stream()
                 .map(usuarioMapper::toResponse)
@@ -171,6 +192,26 @@ public class UsuarioService {
     private void validarUsuarioNoAdministrador(Long idUsuario) {
         if (usuarioRolRepository.existsByUsuarioIdUsuarioAndRolNombreIgnoreCaseAndEstadoTrue(idUsuario, ROL_ADMIN)) {
             throw new ReglaNegocioException("Las cuentas administrativas no se gestionan desde este módulo");
+        }
+    }
+
+    private String normalizarBusqueda(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+
+        return valor.trim();
+    }
+
+    private Long obtenerBusquedaIdSiAplica(UsuarioSearchField campoBusqueda, String busqueda) {
+        if (busqueda == null || campoBusqueda != UsuarioSearchField.ID_USUARIO) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            throw new ReglaNegocioException("El ID de usuario debe ser numerico");
         }
     }
 

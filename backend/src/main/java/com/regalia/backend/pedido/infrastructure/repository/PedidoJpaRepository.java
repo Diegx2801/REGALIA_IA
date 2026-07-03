@@ -24,9 +24,31 @@ public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long> {
             Long idUsuario
     );
 
+    Optional<PedidoEntity> findByIdPedidoAndEstadoTrue(Long idPedido);
+
     List<PedidoEntity> findByEstadoTrueOrderByIdPedidoDesc();
 
-    Optional<PedidoEntity> findByIdPedidoAndEstadoTrue(Long idPedido);
+    @Query("""
+            SELECT p
+            FROM PedidoEntity p
+            JOIN p.tienda t
+            JOIN p.usuario u
+            WHERE p.estado = true
+              AND (
+                  :search IS NULL
+                  OR (:searchField = 'ID_PEDIDO' AND p.idPedido = :searchId)
+                  OR (:searchField = 'NOMBRE_TIENDA' AND LOWER(COALESCE(t.nombre, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+                  OR (:searchField = 'ID_USUARIO' AND u.idUsuario = :searchId)
+                  OR (:searchField = 'ID_TIENDA' AND t.idTienda = :searchId)
+                  OR (:searchField = 'ESTADO_PEDIDO' AND LOWER(COALESCE(p.estadoPedido, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+              )
+            ORDER BY p.idPedido DESC
+            """)
+    List<PedidoEntity> findPedidosAdministracionFiltrados(
+            @Param("searchField") String searchField,
+            @Param("search") String search,
+            @Param("searchId") Long searchId
+    );
 
     /**
      * Lista los pedidos recibidos en todas las tiendas del vendedor autenticado.

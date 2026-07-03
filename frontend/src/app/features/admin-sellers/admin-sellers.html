@@ -47,11 +47,20 @@
         }
       </nav>
 
+      <label class="admin-sellers__search-field">
+        <span>Buscar por</span>
+        <select [value]="searchField()" (change)="onSearchFieldChange($event)">
+          @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
       <label class="admin-sellers__search">
-        <span>Buscar</span>
+        <span>Valor</span>
         <input
           type="search"
-          placeholder="Nombre, correo o ID..."
+          [placeholder]="searchPlaceholder()"
           [value]="searchTerm()"
           (input)="onSearch($event)"
         />
@@ -73,18 +82,18 @@
             <h2>Cargando vendedores</h2>
             <p>Estamos consultando la informacion administrativa del backend.</p>
           </div>
-        } @else if (filteredSellers().length === 0) {
+        } @else if (sellers().length === 0) {
           <div class="admin-sellers__empty">
             <span aria-hidden="true">V</span>
             <h2>No hay vendedores para este filtro</h2>
             <p>Cambia el filtro, limpia la busqueda o actualiza la informacion.</p>
           </div>
         } @else {
-          @for (seller of filteredSellers(); track trackSeller($index, seller)) {
+          @for (seller of sellers(); track trackSeller($index, seller)) {
             <button
               class="admin-seller-card"
               type="button"
-              [class.admin-seller-card--selected]="selectedSeller().idVendedor === seller.idVendedor"
+              [class.admin-seller-card--selected]="isSelectedSeller(seller)"
               (click)="selectSeller(seller)"
             >
               <span class="admin-seller-card__status" [attr.data-tone]="seller.estado ? 'success' : 'danger'">

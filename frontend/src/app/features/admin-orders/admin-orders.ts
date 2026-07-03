@@ -1,12 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { OrderApiDto, OrderDetailApiDto } from '../../core/services/data-access/orders/models/order-api.model';
+import {
+  AdminOrderPaymentFilterApi,
+  AdminOrderSearchFieldApi,
+  OrderApiDto,
+  OrderDetailApiDto,
+} from '../../core/services/data-access/orders/models/order-api.model';
 import { AdminOrderApiService } from '../../core/services/data-access/orders/services/admin-order-api.service';
 
-type AdminOrderFilter = 'TODOS' | 'ACTIVOS' | 'PAGADOS' | 'CON_SALDO';
+type AdminOrderFilter = 'TODOS' | 'PAGADOS' | 'CON_SALDO';
 
 interface AdminOrderFilterOption {
   value: AdminOrderFilter;
@@ -15,9 +20,22 @@ interface AdminOrderFilterOption {
 
 const FILTER_OPTIONS: AdminOrderFilterOption[] = [
   { value: 'TODOS', label: 'Todos' },
-  { value: 'ACTIVOS', label: 'Activos' },
   { value: 'PAGADOS', label: 'Pagados' },
   { value: 'CON_SALDO', label: 'Con saldo' },
+];
+
+interface AdminOrderSearchFieldOption {
+  value: AdminOrderSearchFieldApi;
+  label: string;
+  placeholder: string;
+}
+
+const SEARCH_FIELD_OPTIONS: AdminOrderSearchFieldOption[] = [
+  { value: 'ID_PEDIDO', label: 'ID pedido', placeholder: 'Ej. 4' },
+  { value: 'NOMBRE_TIENDA', label: 'Tienda', placeholder: 'Ej. Regalia Gifts' },
+  { value: 'ID_USUARIO', label: 'ID usuario', placeholder: 'Ej. 3' },
+  { value: 'ID_TIENDA', label: 'ID tienda', placeholder: 'Ej. 3' },
+  { value: 'ESTADO_PEDIDO', label: 'Estado pedido', placeholder: 'Ej. RESERVADO' },
 ];
 
 @Component({
@@ -29,46 +47,26 @@ const FILTER_OPTIONS: AdminOrderFilterOption[] = [
 })
 export class AdminOrdersComponent implements OnInit {
   private readonly adminOrderApi = inject(AdminOrderApiService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly filterOptions = FILTER_OPTIONS;
+  readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
   readonly filter = signal<AdminOrderFilter>('TODOS');
+  readonly searchField = signal<AdminOrderSearchFieldApi>('ID_PEDIDO');
   readonly searchTerm = signal('');
   readonly orders = signal<OrderApiDto[]>([]);
   readonly selectedOrderId = signal<number | null>(null);
   readonly isLoading = signal(false);
   readonly errorMessage = signal('');
 
-  readonly filteredOrders = computed(() => {
-    const normalizedSearch = this.normalize(this.searchTerm());
-    const currentFilter = this.filter();
-
-    return this.orders().filter((order) => {
-      const matchesFilter = this.matchesFilter(order, currentFilter);
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        this.normalize(
-          [
-            order.idPedido,
-            order.idUsuario,
-            order.nombreTienda,
-            order.tipoEntrega,
-            order.estadoPedido,
-            order.observacion,
-          ].join(' '),
-        ).includes(normalizedSearch);
-
-      return matchesFilter && matchesSearch;
-    });
-  });
-
-  readonly selectedOrder = computed(() => {
-    const filteredOrders = this.filteredOrders();
+  readonly selectedOrder = computed<OrderApiDto | null>(() => {
     const selectedOrderId = this.selectedOrderId();
 
     return (
-      filteredOrders.find((order) => order.idPedido === selectedOrderId) ??
-      filteredOrders[0] ??
+      this.orders().find((order) => order.idPedido === selectedOrderId) ??
+      this.orders()[0] ??
       null
     );
   });
@@ -84,29 +82,51 @@ export class AdminOrdersComponent implements OnInit {
   readonly totalPaid = computed(() =>
     this.orders().reduce((sum, order) => sum + this.toNumber(order.montoPagado), 0),
   );
+  readonly searchPlaceholder = computed(
+    () =>
+      this.searchFieldOptions.find((option) => option.value === this.searchField())?.placeholder ??
+      'Buscar',
+  );
 
   ngOnInit(): void {
-    this.loadOrders();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.filter.set(this.parsePaymentFilter(params.get('estadoPago')));
+      this.searchField.set(this.parseSearchField(params.get('searchField')));
+      this.searchTerm.set(params.get('search') ?? '');
+      this.selectedOrderId.set(null);
+      this.loadOrders();
+    });
   }
 
   setFilter(filter: AdminOrderFilter): void {
-    this.filter.set(filter);
-    this.selectedOrderId.set(null);
+    this.updateQueryParams({
+      estadoPago: this.paymentFilterToApi(filter) ?? null,
+    });
   }
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.searchTerm.set(input.value);
-    this.selectedOrderId.set(null);
+    this.updateQueryParams({ search: input.value.trim() || null });
+  }
+
+  onSearchFieldChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.updateQueryParams({
+      searchField: this.parseSearchField(select.value),
+      search: this.searchTerm().trim() || null,
+    });
   }
 
   clearSearch(): void {
-    this.searchTerm.set('');
-    this.selectedOrderId.set(null);
+    this.updateQueryParams({ search: null });
   }
 
   selectOrder(order: OrderApiDto): void {
     this.selectedOrderId.set(order.idPedido);
+  }
+
+  isSelectedOrder(order: OrderApiDto): boolean {
+    return this.selectedOrder()?.idPedido === order.idPedido;
   }
 
   refresh(): void {
@@ -162,7 +182,11 @@ export class AdminOrdersComponent implements OnInit {
     this.errorMessage.set('');
 
     this.adminOrderApi
-      .getOrders()
+      .getOrders({
+        estadoPago: this.paymentFilterToApi(this.filter()),
+        searchField: this.searchField(),
+        search: this.searchTerm(),
+      })
       .pipe(
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -170,12 +194,7 @@ export class AdminOrdersComponent implements OnInit {
       .subscribe({
         next: (orders) => {
           this.orders.set(orders);
-          const selectedOrderStillExists = orders.some(
-            (order) => order.idPedido === this.selectedOrderId(),
-          );
-          if (!selectedOrderStillExists) {
-            this.selectedOrderId.set(orders[0]?.idPedido ?? null);
-          }
+          this.selectedOrderId.set(orders[0]?.idPedido ?? null);
         },
         error: () => {
           this.orders.set([]);
@@ -185,19 +204,38 @@ export class AdminOrdersComponent implements OnInit {
       });
   }
 
-  private matchesFilter(order: OrderApiDto, filter: AdminOrderFilter): boolean {
-    if (filter === 'ACTIVOS') return Boolean(order.estado);
-    if (filter === 'PAGADOS') return this.toNumber(order.saldoPendiente) <= 0;
-    if (filter === 'CON_SALDO') return this.toNumber(order.saldoPendiente) > 0;
-    return true;
+  private parsePaymentFilter(value: string | null): AdminOrderFilter {
+    if (value === 'PAGADO') return 'PAGADOS';
+    if (value === 'CON_SALDO') return 'CON_SALDO';
+    return 'TODOS';
   }
 
-  private normalize(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+  private paymentFilterToApi(filter: AdminOrderFilter): AdminOrderPaymentFilterApi | undefined {
+    if (filter === 'PAGADOS') return 'PAGADO';
+    if (filter === 'CON_SALDO') return 'CON_SALDO';
+    return undefined;
+  }
+
+  private parseSearchField(value: string | null): AdminOrderSearchFieldApi {
+    if (
+      value === 'NOMBRE_TIENDA' ||
+      value === 'ID_USUARIO' ||
+      value === 'ID_TIENDA' ||
+      value === 'ESTADO_PEDIDO'
+    ) {
+      return value;
+    }
+
+    return 'ID_PEDIDO';
+  }
+
+  private updateQueryParams(queryParams: Record<string, string | null | undefined>): void {
+    void this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'merge',
+      relativeTo: this.route,
+      replaceUrl: true,
+    });
   }
 
   private toNumber(value: number | null): number {

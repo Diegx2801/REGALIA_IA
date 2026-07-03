@@ -22,10 +22,16 @@ public class AdminUsuarioController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UsuarioResponse>>> listarUsuariosGestionablesAdministracion(
-            @RequestParam(defaultValue = "ACTIVO") String estado
+            @RequestParam(defaultValue = "ACTIVO") String estado,
+            @RequestParam(required = false) String searchField,
+            @RequestParam(required = false) String search
     ) {
         UsuarioEstadoFiltro filtro = UsuarioEstadoFiltro.desde(estado);
-        List<UsuarioResponse> usuarios = usuarioService.listarUsuariosGestionablesAdministracion(filtro);
+        List<UsuarioResponse> usuarios = usuarioService.listarUsuariosGestionablesAdministracion(
+                filtro,
+                searchField,
+                search
+        );
 
         return ResponseEntity.ok(
                 ApiResponse.success(usuarios)
