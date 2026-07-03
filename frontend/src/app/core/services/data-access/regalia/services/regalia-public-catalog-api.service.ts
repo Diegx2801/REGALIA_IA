@@ -32,7 +32,7 @@ export class RegaliaPublicCatalogApiService {
 
   private toProduct(product: PublicProductApiDto): FixedPriceProduct {
     const productName = product.nombre?.trim() || 'Producto REGALIA';
-    const providerName = product.nombreTienda?.trim() || 'Vendedor REGALIA';
+    const sellerName = product.nombreTienda?.trim() || 'Vendedor REGALIA';
     const productType = product.tipoProducto?.trim() || 'Producto listo';
     const category = this.mapCategory(productType);
     const description =
@@ -42,9 +42,9 @@ export class RegaliaPublicCatalogApiService {
     return {
       id: product.idProducto,
       title: productName,
-      provider: providerName,
-      providerId: product.idTienda,
-      providerCategory: category,
+      seller: sellerName,
+      sellerId: product.idTienda,
+      sellerCategory: category,
       occasion: this.inferOccasion(`${productName} ${description}`),
       price: Number(product.precio ?? 0),
       rating: 4.8,

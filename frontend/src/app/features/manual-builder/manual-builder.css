@@ -20,9 +20,9 @@
 
 .manual-header__eyebrow,
 .manual-form__eyebrow,
-.manual-providers__eyebrow,
+.manual-sellers__eyebrow,
 .manual-summary__eyebrow,
-.manual-provider-card__category {
+.manual-seller-card__category {
   color: var(--color-primary);
   font-size: 0.78rem;
   font-weight: 900;
@@ -35,7 +35,7 @@
 }
 
 .manual-header__text,
-.manual-provider-card__text,
+.manual-seller-card__text,
 .manual-summary__text,
 .manual-empty__text {
   color: var(--color-muted);
@@ -50,7 +50,7 @@
 }
 
 .manual-form,
-.manual-provider-card,
+.manual-seller-card,
 .manual-summary,
 .manual-empty {
   background: rgba(255, 253, 249, 0.95);
@@ -67,7 +67,7 @@
 }
 
 .manual-form__title,
-.manual-providers__title,
+.manual-sellers__title,
 .manual-summary__title {
   font-size: 1.3rem;
   margin: 0.2rem 0 0.9rem;
@@ -119,19 +119,19 @@ textarea.manual-field__control {
   transform: translateY(-2px);
 }
 
-.manual-providers {
+.manual-sellers {
   display: grid;
   gap: 0.85rem;
 }
 
-.manual-providers__head {
+.manual-sellers__head {
   background: rgba(255, 253, 249, 0.74);
   border: 1px solid rgba(234, 216, 201, 0.8);
   border-radius: 14px;
   padding: 0.9rem 1rem;
 }
 
-.manual-provider-card {
+.manual-seller-card {
   align-items: start;
   color: inherit;
   display: grid;
@@ -141,14 +141,14 @@ textarea.manual-field__control {
   text-align: left;
 }
 
-.manual-provider-card:hover,
-.manual-provider-card--selected {
+.manual-seller-card:hover,
+.manual-seller-card--selected {
   border-color: rgba(242, 109, 91, 0.65);
   box-shadow: var(--shadow-lift);
   transform: translateY(-3px);
 }
 
-.manual-provider-card__score {
+.manual-seller-card__score {
   align-items: center;
   background: rgba(46, 125, 104, 0.12);
   border-radius: 50%;
@@ -160,25 +160,25 @@ textarea.manual-field__control {
   width: 3rem;
 }
 
-.manual-provider-card__body,
-.manual-provider-card__tags {
+.manual-seller-card__body,
+.manual-seller-card__tags {
   display: grid;
   gap: 0.28rem;
 }
 
-.manual-provider-card__title {
+.manual-seller-card__title {
   color: var(--color-text);
   font-size: 1.12rem;
 }
 
-.manual-provider-card__tags {
+.manual-seller-card__tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.42rem;
   margin-top: 0.3rem;
 }
 
-.manual-provider-card__tags span,
+.manual-seller-card__tags span,
 .manual-summary__facts span {
   background: rgba(91, 46, 109, 0.1);
   border-radius: var(--radius-pill);
@@ -188,7 +188,7 @@ textarea.manual-field__control {
   padding: 0.32rem 0.55rem;
 }
 
-.manual-provider-card__price {
+.manual-seller-card__price {
   color: var(--color-text);
   font-weight: 900;
   text-align: right;
@@ -201,7 +201,7 @@ textarea.manual-field__control {
   margin-bottom: 1rem;
 }
 
-.manual-summary__provider,
+.manual-summary__seller,
 .manual-breakdown {
   background: #ffffff;
   border: 1px solid rgba(234, 216, 201, 0.72);
@@ -212,13 +212,13 @@ textarea.manual-field__control {
   padding: 0.9rem;
 }
 
-.manual-summary__provider span,
-.manual-summary__provider small,
+.manual-summary__seller span,
+.manual-summary__seller small,
 .manual-breakdown__row span {
   color: var(--color-muted);
 }
 
-.manual-summary__provider strong,
+.manual-summary__seller strong,
 .manual-breakdown__row strong {
   color: var(--color-text);
 }
@@ -269,11 +269,11 @@ textarea.manual-field__control {
 
 @media (max-width: 767.98px) {
   .manual-form__grid,
-  .manual-provider-card {
+  .manual-seller-card {
     grid-template-columns: 1fr;
   }
 
-  .manual-provider-card__price {
+  .manual-seller-card__price {
     text-align: left;
   }
 }

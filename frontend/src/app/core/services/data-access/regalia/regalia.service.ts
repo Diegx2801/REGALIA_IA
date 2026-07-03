@@ -6,11 +6,11 @@ import {
   MatchRecommendation,
   OccasionShortcut,
   OrderStatus,
-  ProviderFilter,
+  SellerFilter,
   RegaliaCategory,
   RegaliaOccasion,
   RegaliaOrder,
-  RegaliaProvider,
+  RegaliaSeller,
   RegaliaRequest,
   ReservationBreakdown,
 } from '../../../../shared/models/regalia.model';
@@ -19,7 +19,7 @@ import { RegaliaCatalogService } from './services/regalia-catalog.service';
 import { RegaliaMatchingService } from './services/regalia-matching.service';
 import { RegaliaOrdersService } from './services/regalia-orders.service';
 import { RegaliaPricingService } from './services/regalia-pricing.service';
-import { RegaliaProviderService } from './services/regalia-provider.service';
+import { RegaliaSellerService } from './services/regalia-seller.service';
 
 @Injectable({ providedIn: 'root' })
 export class RegaliaService {
@@ -29,7 +29,7 @@ export class RegaliaService {
   private readonly matchingService = inject(RegaliaMatchingService);
   private readonly ordersService = inject(RegaliaOrdersService);
   private readonly pricingService = inject(RegaliaPricingService);
-  private readonly providerService = inject(RegaliaProviderService);
+  private readonly sellerService = inject(RegaliaSellerService);
 
   getCategories(): RegaliaCategory[] {
     return this.catalogService.getCategories();
@@ -68,14 +68,14 @@ export class RegaliaService {
   }
 
   filterFixedPriceProducts(
-    filters: ProviderFilter,
+    filters: SellerFilter,
     products?: FixedPriceProduct[],
   ): FixedPriceProduct[] {
     return this.catalogService.filterFixedPriceProducts(filters, products);
   }
 
-  getProviders(): RegaliaProvider[] {
-    return this.providerService.getProviders();
+  getSellers(): RegaliaSeller[] {
+    return this.sellerService.getSellers();
   }
 
   getOrders(): RegaliaOrder[] {
@@ -86,16 +86,16 @@ export class RegaliaService {
     return this.pricingService.calculateReservationBreakdown(totalAmount);
   }
 
-  filterProviders(filters: ProviderFilter): RegaliaProvider[] {
-    return this.providerService.filterProviders(filters);
+  filterSellers(filters: SellerFilter): RegaliaSeller[] {
+    return this.sellerService.filterSellers(filters);
   }
 
-  findCompatibleProviders(
+  findCompatibleSellers(
     category: RegaliaCategory | 'Todas',
     occasion: RegaliaOccasion,
     budget: number,
-  ): RegaliaProvider[] {
-    return this.providerService.findCompatibleProviders(category, occasion, budget);
+  ): RegaliaSeller[] {
+    return this.sellerService.findCompatibleSellers(category, occasion, budget);
   }
 
   matchRequest(request: RegaliaRequest): MatchRecommendation[] {

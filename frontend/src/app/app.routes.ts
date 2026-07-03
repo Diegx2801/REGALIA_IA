@@ -126,8 +126,8 @@ export const routes: Routes = [
       {
         path: 'solicitud-vendedor',
         loadComponent: () =>
-          import('./features/provider-application/provider-application').then(
-            (m) => m.ProviderApplicationComponent,
+          import('./features/seller-application/seller-application').then(
+            (m) => m.SellerApplicationComponent,
           ),
       },
       {
@@ -173,8 +173,8 @@ export const routes: Routes = [
       {
         path: 'perfil',
         loadComponent: () =>
-          import('./features/provider-profile/provider-profile').then(
-            (m) => m.ProviderProfileComponent,
+          import('./features/seller-profile/seller-profile').then(
+            (m) => m.SellerProfileComponent,
           ),
       },
       {

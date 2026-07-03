@@ -47,7 +47,7 @@
 .cart-hero__eyebrow,
 .cart-summary__eyebrow,
 .cart-list__head span,
-.cart-item__provider {
+.cart-item__seller {
   color: var(--color-accent-dark, #986f18);
   font-size: 0.72rem;
   font-weight: 950;

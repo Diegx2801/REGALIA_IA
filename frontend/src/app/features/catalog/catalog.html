@@ -40,7 +40,7 @@
             <span>productos</span>
           </div>
           <div>
-            <strong>{{ filteredProviders().length }}</strong>
+            <strong>{{ filteredSellers().length }}</strong>
             <span>vendedores</span>
           </div>
         </div>
@@ -188,7 +188,7 @@
 
                   <div class="product-card__body">
                     <div class="product-card__topline">
-                      <span class="product-card__category">{{ product.providerCategory }}</span>
+                      <span class="product-card__category">{{ product.sellerCategory }}</span>
                       <span class="product-card__rating">★ {{ product.rating }}</span>
                     </div>
 
@@ -199,7 +199,7 @@
                     <p class="product-card__description">{{ product.shortDescription }}</p>
 
                     <div class="product-card__meta">
-                      <span>{{ product.provider }}</span>
+                      <span>{{ product.seller }}</span>
                       <span>{{ product.deliveryTime }}</span>
                     </div>
 
@@ -233,37 +233,37 @@
           }
         </section>
 
-        <section class="catalog-section catalog-section--providers">
+        <section class="catalog-section catalog-section--sellers">
           <div class="catalog-toolbar catalog-toolbar--compact">
             <div class="catalog-toolbar__summary">
               <span>Vendedores locales</span>
-              <h2>{{ filteredProviders().length }} perfiles compatibles</h2>
+              <h2>{{ filteredSellers().length }} perfiles compatibles</h2>
             </div>
             <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
           </div>
 
-          <div class="provider-grid">
-            @for (provider of filteredProviders(); track trackProvider($index, provider)) {
-              <article class="provider-card">
-                <div class="provider-card__head">
-                  <span class="provider-card__badge">{{
-                    provider.featured ? 'Destacado' : 'Verificado'
+          <div class="seller-grid">
+            @for (seller of filteredSellers(); track trackSeller($index, seller)) {
+              <article class="seller-card">
+                <div class="seller-card__head">
+                  <span class="seller-card__badge">{{
+                    seller.featured ? 'Destacado' : 'Verificado'
                   }}</span>
-                  <span class="provider-card__rating">★ {{ provider.rating }}</span>
+                  <span class="seller-card__rating">★ {{ seller.rating }}</span>
                 </div>
-                <span class="provider-card__category">{{ provider.category }}</span>
-                <h3 class="provider-card__title">{{ provider.businessName }}</h3>
-                <p class="provider-card__text">{{ provider.description }}</p>
+                <span class="seller-card__category">{{ seller.category }}</span>
+                <h3 class="seller-card__title">{{ seller.businessName }}</h3>
+                <p class="seller-card__text">{{ seller.description }}</p>
 
-                <div class="provider-card__tags">
-                  @for (style of provider.styles; track trackText($index, style)) {
+                <div class="seller-card__tags">
+                  @for (style of seller.styles; track trackText($index, style)) {
                     <span>{{ style }}</span>
                   }
                 </div>
 
-                <div class="provider-card__footer">
-                  <span>{{ provider.district }} · {{ provider.distanceKm }} km</span>
-                  <strong>S/ {{ provider.priceFrom }} - {{ provider.priceTo }}</strong>
+                <div class="seller-card__footer">
+                  <span>{{ seller.district }} · {{ seller.distanceKm }} km</span>
+                  <strong>S/ {{ seller.priceFrom }} - {{ seller.priceTo }}</strong>
                 </div>
               </article>
             } @empty {

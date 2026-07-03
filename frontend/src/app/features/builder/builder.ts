@@ -151,20 +151,20 @@ export class BuilderComponent {
     };
   });
 
-  readonly selectedProviderFacts = computed(() => {
+  readonly selectedSellerFacts = computed(() => {
     const selected = this.selectedRecommendation();
 
     if (!selected) {
       return [];
     }
 
-    const proveedor = selected.proveedor;
+    const vendedor = selected.vendedor;
 
     return [
       selected.producto.deliveryTime,
       selected.producto.stockStatus,
-      proveedor
-        ? `* ${proveedor.rating} · ${proveedor.reviews} reseñas`
+      vendedor
+        ? `* ${vendedor.rating} · ${vendedor.reviews} reseñas`
         : `* ${selected.producto.rating} · ${selected.producto.reviews} reseñas`,
     ];
   });

@@ -30,7 +30,7 @@
             <span class="order-row__id">#{{ order.id }}</span>
             <span class="order-row__main">
               <strong>{{ order.clientName }} · {{ order.occasion }}</strong>
-              <small>{{ order.providerName }} · {{ order.category }}</small>
+              <small>{{ order.sellerName }} · {{ order.category }}</small>
             </span>
             <em class="order-row__status">{{ order.status }}</em>
             <strong class="order-row__total">S/ {{ order.total }}</strong>
@@ -43,7 +43,7 @@
           <span class="order-detail__eyebrow">Pedido seleccionado</span>
           <h2 class="order-detail__title">#{{ order.id }} · {{ order.occasion }}</h2>
           <p class="order-detail__text">
-            {{ order.clientName }} eligió a {{ order.providerName }} para {{ order.category }}.
+            {{ order.clientName }} eligió a {{ order.sellerName }} para {{ order.category }}.
           </p>
 
           <div class="status-flow" aria-label="Estado del pedido">
@@ -71,7 +71,7 @@
             </div>
             <div class="commission-box__row">
               <span>Vendedor recibe</span
-              ><strong>S/ {{ selectedBreakdown().providerCredit }}</strong>
+              ><strong>S/ {{ selectedBreakdown().sellerCredit }}</strong>
             </div>
           </section>
 

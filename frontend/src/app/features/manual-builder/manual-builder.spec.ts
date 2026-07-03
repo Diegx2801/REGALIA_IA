@@ -21,11 +21,11 @@ describe('ManualBuilderComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should select a provider profile', () => {
-    const provider = component.providers()[1];
+  it('should select a seller profile', () => {
+    const seller = component.sellers()[1];
 
-    component.selectProvider(provider);
+    component.selectSeller(seller);
 
-    expect(component.selectedProvider().id).toBe(provider.id);
+    expect(component.selectedSeller().id).toBe(seller.id);
   });
 });

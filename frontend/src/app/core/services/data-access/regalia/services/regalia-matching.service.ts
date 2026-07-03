@@ -2,17 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import {
   MatchRecommendation,
   RegaliaCategory,
-  RegaliaProvider,
+  RegaliaSeller,
   RegaliaRequest,
 } from '../../../../../shared/models/regalia.model';
 import { normalizeRegaliaText } from '../utils/regalia-text.util';
 import { RegaliaPricingService } from './regalia-pricing.service';
-import { RegaliaProviderService } from './regalia-provider.service';
+import { RegaliaSellerService } from './regalia-seller.service';
 
 @Injectable({ providedIn: 'root' })
 export class RegaliaMatchingService {
   private readonly pricingService = inject(RegaliaPricingService);
-  private readonly providerService = inject(RegaliaProviderService);
+  private readonly sellerService = inject(RegaliaSellerService);
 
   /**
    * Construye la lista simulada de recomendaciones IA usada por el flujo MVP.
@@ -21,19 +21,19 @@ export class RegaliaMatchingService {
   matchRequest(request: RegaliaRequest): MatchRecommendation[] {
     const interpretedCategory = this.inferCategory(request);
 
-    return this.providerService
-      .getProviders()
-      .map((provider) => {
-        const score = this.scoreProvider(provider, request, interpretedCategory);
+    return this.sellerService
+      .getSellers()
+      .map((seller) => {
+        const score = this.scoreSeller(seller, request, interpretedCategory);
         const estimatedOrder = Math.min(
-          Math.max(request.budget, provider.priceFrom),
-          provider.priceTo,
+          Math.max(request.budget, seller.priceFrom),
+          seller.priceTo,
         );
 
         return {
-          provider,
+          seller,
           score,
-          reason: this.reasonFor(provider, request, interpretedCategory),
+          reason: this.reasonFor(seller, request, interpretedCategory),
           interpretedNeed: {
             category: interpretedCategory,
             occasion: request.occasion,
@@ -66,23 +66,23 @@ export class RegaliaMatchingService {
     return request.occasion === 'Evento corporativo' ? 'Servicios creativos' : 'Cajas sorpresa';
   }
 
-  private scoreProvider(
-    provider: RegaliaProvider,
+  private scoreSeller(
+    seller: RegaliaSeller,
     request: RegaliaRequest,
     category: RegaliaCategory,
   ): number {
     const normalizedStyle = normalizeRegaliaText(request.style);
-    const categoryScore = provider.category === category ? 30 : 8;
-    const occasionScore = provider.occasions.includes(request.occasion) ? 20 : 4;
-    const budgetScore = request.budget >= provider.priceFrom ? 18 : 6;
-    const styleScore = provider.styles.some((style) =>
+    const categoryScore = seller.category === category ? 30 : 8;
+    const occasionScore = seller.occasions.includes(request.occasion) ? 20 : 4;
+    const budgetScore = request.budget >= seller.priceFrom ? 18 : 6;
+    const styleScore = seller.styles.some((style) =>
       normalizedStyle.includes(normalizeRegaliaText(style)),
     )
       ? 12
       : 5;
     const urgencyScore =
-      request.urgent && normalizeRegaliaText(provider.deliveryTime).includes('mismo') ? 10 : 6;
-    const reputationScore = Math.round(provider.reputation / 10);
+      request.urgent && normalizeRegaliaText(seller.deliveryTime).includes('mismo') ? 10 : 6;
+    const reputationScore = Math.round(seller.reputation / 10);
 
     return Math.min(
       99,
@@ -91,11 +91,11 @@ export class RegaliaMatchingService {
   }
 
   private reasonFor(
-    provider: RegaliaProvider,
+    seller: RegaliaSeller,
     request: RegaliaRequest,
     category: RegaliaCategory,
   ): string {
-    if (provider.category === category && provider.occasions.includes(request.occasion)) {
+    if (seller.category === category && seller.occasions.includes(request.occasion)) {
       return `Coincide con la categoría detectada, trabaja ${request.occasion.toLowerCase()} y encaja con el presupuesto referencial.`;
     }
 

@@ -1,19 +1,19 @@
-<section class="provider-profile-page">
+<section class="seller-profile-page">
   <div
-    class="container rg-page__container rg-page__container--wide provider-profile-page__container"
+    class="container rg-page__container rg-page__container--wide seller-profile-page__container"
   >
-    <header class="provider-profile-header">
-      <span class="provider-profile-header__eyebrow">Perfil vendedor</span>
-      <h1 class="provider-profile-header__title">
+    <header class="seller-profile-header">
+      <span class="seller-profile-header__eyebrow">Perfil vendedor</span>
+      <h1 class="seller-profile-header__title">
         Gestiona tu negocio y catálogo visible en REGALIA.
       </h1>
-      <p class="provider-profile-header__text">
+      <p class="seller-profile-header__text">
         Mantén datos, disponibilidad y productos actualizados para mejorar la compatibilidad con
         solicitudes.
       </p>
     </header>
 
-    <div class="provider-profile-layout">
+    <div class="seller-profile-layout">
       <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
         <div class="profile-form__head">
           <span class="profile-form__eyebrow">Datos comerciales</span>
@@ -101,19 +101,19 @@
         }
       </form>
 
-      <aside class="provider-preview">
-        @if (provider(); as provider) {
-          <span class="provider-preview__eyebrow">{{ provider.category }}</span>
-          <h2 class="provider-preview__title">{{ provider.businessName }}</h2>
-          <p class="provider-preview__text">{{ provider.description }}</p>
+      <aside class="seller-preview">
+        @if (seller(); as seller) {
+          <span class="seller-preview__eyebrow">{{ seller.category }}</span>
+          <h2 class="seller-preview__title">{{ seller.businessName }}</h2>
+          <p class="seller-preview__text">{{ seller.description }}</p>
 
-          <div class="provider-preview__score">
-            <strong>{{ provider.rating }}</strong>
-            <span>{{ provider.reviews }} reseñas · reputación {{ provider.reputation }}%</span>
+          <div class="seller-preview__score">
+            <strong>{{ seller.rating }}</strong>
+            <span>{{ seller.reviews }} reseñas · reputación {{ seller.reputation }}%</span>
           </div>
 
-          <div class="provider-preview__tags">
-            @for (style of provider.styles; track trackText($index, style)) {
+          <div class="seller-preview__tags">
+            @for (style of seller.styles; track trackText($index, style)) {
               <span>{{ style }}</span>
             }
           </div>
@@ -121,7 +121,7 @@
       </aside>
     </div>
 
-    <section class="provider-upload">
+    <section class="seller-upload">
       <!-- Formulario mock para publicar productos; luego se conectara a persistencia backend. -->
       <form class="product-form" [formGroup]="productForm" (ngSubmit)="publishProduct()">
         <div class="product-form__head">
@@ -235,14 +235,14 @@
       </form>
     </section>
 
-    <section class="provider-catalog">
+    <section class="seller-catalog">
       <!-- Catalogo local con acciones de editar/eliminar para validar el flujo del vendedor. -->
-      <div class="provider-catalog__head">
-        <span class="provider-catalog__eyebrow">Catálogo propio</span>
-        <h2 class="provider-catalog__title">Productos publicados</h2>
+      <div class="seller-catalog__head">
+        <span class="seller-catalog__eyebrow">Catálogo propio</span>
+        <h2 class="seller-catalog__title">Productos publicados</h2>
       </div>
 
-      <div class="provider-catalog__grid">
+      <div class="seller-catalog__grid">
         @for (item of catalogItems(); track trackCatalog($index, item)) {
           <article class="catalog-item">
             <img class="catalog-item__image" [src]="item.imagePreview" [alt]="item.name" />

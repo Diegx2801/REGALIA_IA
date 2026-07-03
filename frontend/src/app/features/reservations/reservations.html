@@ -73,7 +73,7 @@
               <span class="reservation-card__category">{{ order.category }}</span>
               <h2 class="reservation-card__title">{{ order.occasion }}</h2>
               <p class="reservation-card__text">
-                {{ order.clientName }} · {{ order.providerName }}
+                {{ order.clientName }} · {{ order.sellerName }}
               </p>
             </div>
             <div class="reservation-card__details" aria-label="Detalle de reserva">
@@ -142,7 +142,7 @@
           <div>
             <span class="reservation-drawer__eyebrow">Reserva #{{ selected.id }}</span>
             <h2>{{ selected.occasion }}</h2>
-            <p>{{ selected.providerName }}</p>
+            <p>{{ selected.sellerName }}</p>
           </div>
           <button type="button" aria-label="Cerrar panel" (click)="closePanel()">×</button>
         </header>
@@ -168,8 +168,8 @@
           <section class="reservation-chat">
             <span class="reservation-drawer__label">Chat con vendedor</span>
             <div class="reservation-chat__body">
-              <p class="reservation-chat__bubble reservation-chat__bubble--provider">
-                Hola, soy {{ selected.providerName }}. Confirmo tu pedido para
+              <p class="reservation-chat__bubble reservation-chat__bubble--seller">
+                Hola, soy {{ selected.sellerName }}. Confirmo tu pedido para
                 {{ selected.dueDate }}.
               </p>
               <p class="reservation-chat__bubble reservation-chat__bubble--client">
@@ -197,7 +197,7 @@
             </p>
             <div class="reservation-drawer__grid">
               <span>Fecha actual</span><strong>{{ selected.dueDate }}</strong> <span>Vendedor</span
-              ><strong>{{ selected.providerName }}</strong>
+              ><strong>{{ selected.sellerName }}</strong>
             </div>
             <div class="reservation-drawer__inputs">
               <label>

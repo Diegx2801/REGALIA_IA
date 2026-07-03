@@ -96,7 +96,7 @@
                     <div class="col-12 col-md-8 col-lg-9 cart-item__body">
                       <div class="cart-item__top">
                         <div>
-                          <span class="cart-item__provider">{{ item.product.provider }}</span>
+                          <span class="cart-item__seller">{{ item.product.seller }}</span>
                           <h2>{{ item.product.title }}</h2>
                         </div>
                         <strong>S/ {{ item.product.price }}</strong>
@@ -246,7 +246,7 @@
               </div>
               <div>
                 <span>Adelanto al vendedor</span
-                ><strong>S/ {{ summary().providerAdvance }}</strong>
+                ><strong>S/ {{ summary().sellerAdvance }}</strong>
               </div>
               <div class="cart-summary__total">
                 <span>Saldo al recibir</span><strong>S/ {{ summary().remainingToPay }}</strong>

@@ -15,9 +15,9 @@ export class RegaliaPricingService {
     const estimatedOrder = this.roundMoney(Math.max(totalAmount, 0));
     const reservation = this.roundMoney(estimatedOrder * 0.1);
     const platformCommission = this.roundMoney(reservation * 0.3);
-    const providerCredit = this.roundMoney(reservation - platformCommission);
+    const sellerCredit = this.roundMoney(reservation - platformCommission);
 
-    return { estimatedOrder, reservation, platformCommission, providerCredit };
+    return { estimatedOrder, reservation, platformCommission, sellerCredit };
   }
 
   roundMoney(value: number): number {

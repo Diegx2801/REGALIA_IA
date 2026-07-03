@@ -344,7 +344,7 @@
 
                       <span class="builder-recommendation-card__body">
                         <span class="builder-recommendation-card__category">
-                          {{ recommendation.producto.providerCategory }}
+                          {{ recommendation.producto.sellerCategory }}
                         </span>
 
                         <strong class="builder-recommendation-card__title">
@@ -384,24 +384,24 @@
                 }
               </main>
 
-              <aside class="builder-card builder-provider-summary">
+              <aside class="builder-card builder-seller-summary">
                 @if (selectedRecommendation(); as selected) {
                   <span class="builder-card__eyebrow">Producto recomendado</span>
 
-                  <h3 class="builder-provider-summary__title">
+                  <h3 class="builder-seller-summary__title">
                     {{ selected.producto.title }}
                   </h3>
 
-                  <p class="builder-provider-summary__text">
+                  <p class="builder-seller-summary__text">
                     {{ selected.producto.shortDescription }}
                   </p>
 
-                  <p class="builder-provider-summary__text">
-                    Preparado por {{ selected.proveedor?.businessName || selected.producto.provider }}.
+                  <p class="builder-seller-summary__text">
+                    Preparado por {{ selected.vendedor?.businessName || selected.producto.seller }}.
                   </p>
 
-                  <div class="builder-provider-facts">
-                    @for (fact of selectedProviderFacts(); track trackText($index, fact)) {
+                  <div class="builder-seller-facts">
+                    @for (fact of selectedSellerFacts(); track trackText($index, fact)) {
                       <span>{{ fact }}</span>
                     }
                   </div>
@@ -454,15 +454,15 @@
                 </div>
 
                 <div class="builder-reservation-layout">
-                  <section class="builder-provider-final">
+                  <section class="builder-seller-final">
                     <span>Producto seleccionado</span>
                     <h3>{{ selected.producto.title }}</h3>
                     <p>{{ selected.producto.description }}</p>
 
-                    <p>Preparado por {{ selected.proveedor?.businessName || selected.producto.provider }}.</p>
+                    <p>Preparado por {{ selected.vendedor?.businessName || selected.producto.seller }}.</p>
 
-                    <div class="builder-provider-facts">
-                      @for (fact of selectedProviderFacts(); track trackText($index, fact)) {
+                    <div class="builder-seller-facts">
+                      @for (fact of selectedSellerFacts(); track trackText($index, fact)) {
                         <span>{{ fact }}</span>
                       }
                     </div>
@@ -486,7 +486,7 @@
 
                     <div class="builder-reservation-box__total">
                       <span>Vendedor recibe</span>
-                      <strong>S/ {{ selected.reserva.providerCredit }}</strong>
+                      <strong>S/ {{ selected.reserva.sellerCredit }}</strong>
                     </div>
                   </section>
                 </div>
@@ -496,7 +496,7 @@
                     <span>Reserva preparada</span>
                     <strong>
                       Tu solicitud quedó lista para coordinar con
-                      {{ selected.proveedor?.businessName || selected.producto.provider }}.
+                      {{ selected.vendedor?.businessName || selected.producto.seller }}.
                     </strong>
                     <p>
                       Esta versión prepara la reserva de forma visual. El siguiente paso del proyecto

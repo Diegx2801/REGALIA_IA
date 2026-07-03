@@ -22,10 +22,10 @@ describe('CatalogComponent', () => {
   it('should filter by category', () => {
     component.applyCategory('Arreglos florales');
 
-    expect(component.filteredProviders().every((provider) => provider.category === 'Arreglos florales')).toBe(true);
+    expect(component.filteredSellers().every((seller) => seller.category === 'Arreglos florales')).toBe(true);
   });
 
-  it('should render provider catalog', () => {
+  it('should render seller catalog', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Dulce Detalle Trujillo');

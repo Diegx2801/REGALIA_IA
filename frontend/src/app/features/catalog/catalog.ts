@@ -8,10 +8,10 @@ import { RegaliaService } from '../../core/services/data-access/regalia/regalia.
 import { RegaliaPublicCatalogApiService } from '../../core/services/data-access/regalia/services/regalia-public-catalog-api.service';
 import {
   FixedPriceProduct,
-  ProviderFilter,
+  SellerFilter,
   RegaliaCategory,
   RegaliaOccasion,
-  RegaliaProvider,
+  RegaliaSeller,
 } from '../../shared/models/regalia.model';
 
 type CatalogSortOption = 'recommended' | 'priceAsc' | 'priceDesc' | 'ratingDesc';
@@ -38,7 +38,7 @@ export class CatalogComponent implements OnInit {
     'Todas',
     ...this.regaliaService.getOccasions(),
   ];
-  readonly providers = signal(this.regaliaService.getProviders());
+  readonly sellers = signal(this.regaliaService.getSellers());
   readonly products = signal<FixedPriceProduct[]>([]);
   readonly catalogLoadState = signal<CatalogLoadState>('loading');
   readonly addedProductId = signal<number | null>(null);
@@ -61,7 +61,7 @@ export class CatalogComponent implements OnInit {
     availableOnly: new FormControl(true, { nonNullable: true }),
   });
 
-  readonly currentFilters = computed<ProviderFilter>(() => {
+  readonly currentFilters = computed<SellerFilter>(() => {
     this.filtersVersion();
     return this.filtersForm.getRawValue();
   });
@@ -69,8 +69,8 @@ export class CatalogComponent implements OnInit {
   readonly filteredProducts = computed(() =>
     this.regaliaService.filterFixedPriceProducts(this.currentFilters(), this.products()),
   );
-  readonly filteredProviders = computed(() =>
-    this.regaliaService.filterProviders(this.currentFilters()),
+  readonly filteredSellers = computed(() =>
+    this.regaliaService.filterSellers(this.currentFilters()),
   );
   readonly sortedProducts = computed(() => {
     this.sortVersion();
@@ -138,8 +138,8 @@ export class CatalogComponent implements OnInit {
     this.sortVersion.update((value) => value + 1);
   }
 
-  trackProvider(_: number, provider: RegaliaProvider): number {
-    return provider.id;
+  trackSeller(_: number, seller: RegaliaSeller): number {
+    return seller.id;
   }
 
   trackProduct(_: number, product: FixedPriceProduct): number {

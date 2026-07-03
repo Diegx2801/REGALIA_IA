@@ -27,7 +27,7 @@
 
         <div class="product-detail-card__content">
           <span class="product-detail-card__eyebrow"
-            >{{ product.providerCategory }} · {{ product.provider }}</span
+            >{{ product.sellerCategory }} · {{ product.seller }}</span
           >
           <h1>{{ product.title }}</h1>
           <p>{{ product.description }}</p>
@@ -98,7 +98,7 @@
           @for (item of relatedProducts(); track trackProduct($index, item)) {
             <article>
               <strong>{{ item.title }}</strong>
-              <span>{{ item.provider }}</span>
+              <span>{{ item.seller }}</span>
               <div>
                 <b>S/ {{ item.price }}</b>
                 <button type="button" (click)="addRelatedProduct(item.id)">Agregar</button>

@@ -2,7 +2,7 @@ import {
   FixedPriceProduct,
   RegaliaCategory,
   RegaliaOccasion,
-  RegaliaProvider,
+  RegaliaSeller,
   RegaliaRequest,
   ReservationBreakdown,
 } from '../../../shared/models/regalia.model';
@@ -45,7 +45,7 @@ export interface InterpretacionBuilder {
 
 export interface RecomendacionProductoBuilder {
   producto: FixedPriceProduct;
-  proveedor: RegaliaProvider | null;
+  vendedor: RegaliaSeller | null;
   puntaje: number;
   motivo: string;
   interpretacion: InterpretacionBuilder;

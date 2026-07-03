@@ -1,39 +1,39 @@
 import { Injectable } from '@angular/core';
-import { REGALIA_PROVIDERS } from '../data/regalia-mock-data';
+import { REGALIA_SELLERS } from '../data/regalia-mock-data';
 import {
-  ProviderFilter,
+  SellerFilter,
   RegaliaCategory,
   RegaliaOccasion,
-  RegaliaProvider,
+  RegaliaSeller,
 } from '../../../../../shared/models/regalia.model';
 import { normalizeRegaliaText } from '../utils/regalia-text.util';
 
 @Injectable({ providedIn: 'root' })
-export class RegaliaProviderService {
-  getProviders(): RegaliaProvider[] {
-    return [...REGALIA_PROVIDERS];
+export class RegaliaSellerService {
+  getSellers(): RegaliaSeller[] {
+    return [...REGALIA_SELLERS];
   }
 
   /**
    * Filtra perfiles de vendedores para el catalogo usando texto normalizado,
    * evitando que las tildes generen fallos inesperados en la busqueda.
    */
-  filterProviders(filters: ProviderFilter): RegaliaProvider[] {
+  filterSellers(filters: SellerFilter): RegaliaSeller[] {
     const search = normalizeRegaliaText(filters.search);
 
-    return REGALIA_PROVIDERS.filter((provider) => {
+    return REGALIA_SELLERS.filter((seller) => {
       const searchableText = normalizeRegaliaText(
-        `${provider.businessName} ${provider.description} ${provider.styles.join(' ')} ${provider.category}`,
+        `${seller.businessName} ${seller.description} ${seller.styles.join(' ')} ${seller.category}`,
       );
       const matchesSearch = search.length === 0 || searchableText.includes(search);
       const matchesCategory =
-        filters.category === 'Todas' || provider.category === filters.category;
+        filters.category === 'Todas' || seller.category === filters.category;
       const matchesOccasion =
-        filters.occasion === 'Todas' || provider.occasions.includes(filters.occasion);
-      const matchesPrice = provider.priceFrom <= filters.maxPrice;
+        filters.occasion === 'Todas' || seller.occasions.includes(filters.occasion);
+      const matchesPrice = seller.priceFrom <= filters.maxPrice;
       const matchesAvailability =
         !filters.availableOnly ||
-        normalizeRegaliaText(provider.availability).includes('disponible');
+        normalizeRegaliaText(seller.availability).includes('disponible');
 
       return (
         matchesSearch && matchesCategory && matchesOccasion && matchesPrice && matchesAvailability
@@ -45,15 +45,15 @@ export class RegaliaProviderService {
    * Devuelve vendedores compatibles para el constructor manual de solicitudes
    * sin usar el paso simulado de interpretacion IA.
    */
-  findCompatibleProviders(
+  findCompatibleSellers(
     category: RegaliaCategory | 'Todas',
     occasion: RegaliaOccasion,
     budget: number,
-  ): RegaliaProvider[] {
-    return REGALIA_PROVIDERS.filter((provider) => {
-      const matchesCategory = category === 'Todas' || provider.category === category;
-      const matchesOccasion = provider.occasions.includes(occasion);
-      const matchesBudget = provider.priceFrom <= budget;
+  ): RegaliaSeller[] {
+    return REGALIA_SELLERS.filter((seller) => {
+      const matchesCategory = category === 'Todas' || seller.category === category;
+      const matchesOccasion = seller.occasions.includes(occasion);
+      const matchesBudget = seller.priceFrom <= budget;
 
       return matchesCategory && matchesOccasion && matchesBudget;
     })
