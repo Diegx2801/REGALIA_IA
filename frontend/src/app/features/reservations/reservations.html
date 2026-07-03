@@ -9,7 +9,7 @@
       </header>
     }
 
-    <section class="reservation-metrics row g-3" aria-label="Resumen de reservas del dÃ­a">
+    <section class="reservation-metrics row g-3" aria-label="Resumen de reservas del día">
       <article class="reservation-metric col-6 col-xl-3">
         <span class="reservation-metric__label">Reservas activas</span>
         <strong>{{ selectedDateActiveCount() }}</strong>
@@ -19,11 +19,11 @@
         <strong>{{ selectedDateReadyCount() }}</strong>
       </article>
       <article class="reservation-metric col-6 col-xl-3">
-        <span class="reservation-metric__label">SeÃ±as pagadas</span>
+        <span class="reservation-metric__label">Señas pagadas</span>
         <strong>S/ {{ selectedDateReservationTotal() }}</strong>
       </article>
       <article class="reservation-metric col-6 col-xl-3">
-        <span class="reservation-metric__label">Total del dÃ­a</span>
+        <span class="reservation-metric__label">Total del día</span>
         <strong>S/ {{ selectedDateTotal() }}</strong>
       </article>
     </section>
@@ -41,7 +41,7 @@
         />
       </label>
 
-      <nav class="calendar-strip" aria-label="Seleccion rapida por fecha">
+      <nav class="calendar-strip" aria-label="Selección rápida por fecha">
         @for (day of weekDays; track trackDay($index, day)) {
           <button
             class="calendar-strip__day"
@@ -73,7 +73,7 @@
               <span class="reservation-card__category">{{ order.category }}</span>
               <h2 class="reservation-card__title">{{ order.occasion }}</h2>
               <p class="reservation-card__text">
-                {{ order.clientName }} Â· {{ order.providerName }}
+                {{ order.clientName }} · {{ order.providerName }}
               </p>
             </div>
             <div class="reservation-card__details" aria-label="Detalle de reserva">
@@ -90,7 +90,7 @@
             <div class="reservation-card__amount">
               <small>Total</small>
               <strong>S/ {{ order.total }}</strong>
-              <span>SeÃ±a S/ {{ order.reservation }}</span>
+              <span>Seña S/ {{ order.reservation }}</span>
             </div>
 
             <div class="reservation-card__actions" aria-label="Acciones de reserva">
@@ -114,7 +114,7 @@
           <article class="empty-calendar">
             <h2 class="empty-calendar__title">No hay reservas para esta fecha</h2>
             <p class="empty-calendar__text">
-              Selecciona otro dia del calendario o crea una nueva solicitud.
+              Selecciona otro día del calendario o crea una nueva solicitud.
             </p>
           </article>
         }
@@ -130,7 +130,7 @@
           <strong>S/ {{ selectedDateTotal() }}</strong>
         </div>
         <div class="calendar-summary__box">
-          <span>SeÃ±as confirmadas</span>
+          <span>Señas confirmadas</span>
           <strong>S/ {{ selectedDateReservationTotal() }}</strong>
         </div>
       </aside>
@@ -144,7 +144,7 @@
             <h2>{{ selected.occasion }}</h2>
             <p>{{ selected.providerName }}</p>
           </div>
-          <button type="button" aria-label="Cerrar panel" (click)="closePanel()">Ã—</button>
+          <button type="button" aria-label="Cerrar panel" (click)="closePanel()">×</button>
         </header>
 
         @if (actionNotice()) {
@@ -158,7 +158,7 @@
               <span>Estado</span><strong>{{ selected.status }}</strong> <span>Entrega</span
               ><strong>{{ selected.dueDate }}</strong> <span>Hora</span
               ><strong>{{ selected.scheduledTime }}</strong> <span>Total</span
-              ><strong>S/ {{ selected.total }}</strong> <span>SeÃ±a</span
+              ><strong>S/ {{ selected.total }}</strong> <span>Seña</span
               ><strong>S/ {{ selected.reservation }}</strong>
             </div>
           </section>
@@ -173,7 +173,7 @@
                 {{ selected.dueDate }}.
               </p>
               <p class="reservation-chat__bubble reservation-chat__bubble--client">
-                Perfecto, por favor avÃ­same cuando estÃ© listo para entrega.
+                Perfecto, por favor avísame cuando esté listo para entrega.
               </p>
             </div>
             <form class="reservation-chat__composer">
@@ -190,9 +190,13 @@
 
         @if (panelMode() === 'reschedule') {
           <section class="reservation-drawer__section">
-            <span class="reservation-drawer__label">ReprogramaciÃ³n</span>
+            <span class="reservation-drawer__label">Reprogramación</span>
             <p>
+<<<<<<< HEAD
               En el MVP esta acciÃ³n queda preparada para coordinar una nueva fecha con el vendedor
+=======
+              En el MVP esta acción queda preparada para coordinar una nueva fecha con el proveedor
+>>>>>>> origin/main
               antes de confirmar cambios.
             </p>
             <div class="reservation-drawer__grid">
@@ -221,17 +225,22 @@
 
         @if (panelMode() === 'cancel') {
           <section class="reservation-drawer__section reservation-drawer__section--danger">
-            <span class="reservation-drawer__label">CancelaciÃ³n</span>
+            <span class="reservation-drawer__label">Cancelación</span>
             <p>
+<<<<<<< HEAD
               Cancela solo si el vendedor aÃºn no iniciÃ³ la preparaciÃ³n. La seÃ±a puede quedar
               sujeta a revisiÃ³n operativa.
+=======
+              Cancela solo si el proveedor aún no inició la preparación. La seña puede quedar
+              sujeta a revisión operativa.
+>>>>>>> origin/main
             </p>
             <button
               class="reservation-drawer__danger"
               type="button"
               (click)="requestCancellation(selected)"
             >
-              Solicitar cancelaciÃ³n
+              Solicitar cancelación
             </button>
           </section>
         }

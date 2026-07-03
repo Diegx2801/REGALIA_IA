@@ -4,7 +4,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { RegaliaProvider } from '../../shared/models/regalia.model';
 
+<<<<<<< HEAD
 // Producto publicado localmente por el vendedor antes de conectar persistencia backend.
+=======
+// Producto publicado localmente por el proveedor antes de conectar persistencia con backend.
+>>>>>>> origin/main
 interface ProviderCatalogItem {
   id: number;
   name: string;
@@ -28,9 +32,9 @@ export class ProviderProfileComponent {
   readonly provider = signal<RegaliaProvider>(this.regaliaService.getProviders()[0]);
   readonly saved = signal(false);
   readonly productSaved = signal(false);
-  // Identifica si el formulario esta creando un producto nuevo o editando uno existente.
+  // Identifica si el formulario está creando un producto nuevo o editando uno existente.
   readonly editingProductId = signal<number | null>(null);
-  // Data URL local para previsualizar imagen antes de persistirla.
+  // URL local en memoria para previsualizar la imagen antes de persistirla.
   readonly imagePreview = signal('');
   private nextProductId = 4;
 
@@ -66,7 +70,7 @@ export class ProviderProfileComponent {
   }
 
   publishProduct(): void {
-    // Valida el formulario y luego crea/actualiza el producto en el catalogo mock local.
+    // Valida el formulario y luego crea o actualiza el producto en el catálogo simulado local.
     this.productSaved.set(false);
     const product = this.productForm.getRawValue();
 
@@ -104,12 +108,16 @@ export class ProviderProfileComponent {
       price: item.price,
       status: item.status,
       imageName: item.imageName,
+<<<<<<< HEAD
       description: 'Producto publicado en catalogo del vendedor.',
+=======
+      description: 'Producto publicado en catálogo del proveedor.',
+>>>>>>> origin/main
     });
   }
 
   deleteProduct(item: ProviderCatalogItem): void {
-    // Elimina solo del estado local; el backend se conectara despues.
+    // Elimina solo del estado local; el backend se conectará después.
     this.catalogItems.update((items) => items.filter((currentItem) => currentItem.id !== item.id));
 
     if (this.editingProductId() === item.id) {
@@ -118,7 +126,11 @@ export class ProviderProfileComponent {
   }
 
   onImageSelected(event: Event): void {
+<<<<<<< HEAD
     // Convierte la imagen seleccionada en vista previa local para mejorar la revision del vendedor.
+=======
+    // Convierte la imagen seleccionada en vista previa local para mejorar la revisión del proveedor.
+>>>>>>> origin/main
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 

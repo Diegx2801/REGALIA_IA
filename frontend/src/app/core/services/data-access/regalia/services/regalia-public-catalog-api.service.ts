@@ -17,6 +17,7 @@ const FALLBACK_PRODUCT_IMAGE = '/images/regalia-hero-gift.png';
 export class RegaliaPublicCatalogApiService {
   private readonly http = inject(HttpClient);
 
+  // Servicio de datos: consume el backend por GET y adapta la respuesta al modelo del frontend.
   getPublicProducts(): Observable<FixedPriceProduct[]> {
     return this.http
       .get<ApiResponse<PublicProductApiDto[]>>(API_ENDPOINTS.marketplace.products)
@@ -55,13 +56,19 @@ export class RegaliaPublicCatalogApiService {
       shortDescription: description,
       description,
       includes: [
+<<<<<<< HEAD
         'Producto publicado por vendedor local',
         'Coordinacion directa desde REGALIA',
         'Reserva segun disponibilidad del vendedor',
+=======
+        'Producto publicado por proveedor local',
+        'Coordinación directa desde REGALIA',
+        'Reserva según disponibilidad del vendedor',
+>>>>>>> origin/main
       ],
       deliveryTime: 'Coordinar con vendedor',
       stockStatus: stock > 0 ? `Disponible (${stock})` : 'Agotado',
-      personalization: 'Personalizacion segun coordinacion',
+      personalization: 'Personalización según coordinación',
       maxQuantity: Math.max(1, Math.min(stock || 1, 10)),
     };
   }
@@ -84,15 +91,17 @@ export class RegaliaPublicCatalogApiService {
     const normalizedType = normalizeRegaliaText(productType);
 
     if (normalizedType.includes('box') || normalizedType.includes('pack')) return 'Cajas sorpresa';
-    if (normalizedType.includes('flor') || normalizedType.includes('arreglo'))
+    if (normalizedType.includes('flor') || normalizedType.includes('arreglo')) {
       return 'Arreglos florales';
+    }
     if (normalizedType.includes('comestible') || normalizedType.includes('torta')) {
       return 'Repostería personalizada';
     }
     if (normalizedType.includes('sublim')) return 'Sublimados';
     if (normalizedType.includes('decor')) return 'Decoración de eventos';
-    if (normalizedType.includes('accesorio') || normalizedType.includes('manual'))
+    if (normalizedType.includes('accesorio') || normalizedType.includes('manual')) {
       return 'Manualidades';
+    }
 
     return 'Servicios creativos';
   }
@@ -100,14 +109,17 @@ export class RegaliaPublicCatalogApiService {
   private inferOccasion(searchableText: string): RegaliaOccasion {
     const normalizedText = normalizeRegaliaText(searchableText);
 
-    if (normalizedText.includes('mama') || normalizedText.includes('madre'))
+    if (normalizedText.includes('mama') || normalizedText.includes('madre')) {
       return 'Día de la Madre';
-    if (normalizedText.includes('aniversario') || normalizedText.includes('romant'))
+    }
+    if (normalizedText.includes('aniversario') || normalizedText.includes('romant')) {
       return 'Aniversario';
+    }
     if (normalizedText.includes('gradu')) return 'Graduación';
     if (normalizedText.includes('navidad')) return 'Navidad';
-    if (normalizedText.includes('san valentin') || normalizedText.includes('pareja'))
+    if (normalizedText.includes('san valentin') || normalizedText.includes('pareja')) {
       return 'San Valentín';
+    }
     if (normalizedText.includes('condol')) return 'Condolencias';
     if (normalizedText.includes('corporativo') || normalizedText.includes('empresa')) {
       return 'Evento corporativo';

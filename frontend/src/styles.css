@@ -1,5 +1,5 @@
 /* ==========================================================================
-   REGALIA Design System
+   Sistema de diseño de REGALIA
    Base visual compartida para todo el frontend Angular.
    Bootstrap aporta reboot, grilla y utilidades; REGALIA define encima su
    identidad visual, tokens y componentes BEM especificos.
@@ -174,7 +174,8 @@ app-root {
 }
 
 /* Ajustes de Bootstrap para que respete la identidad de REGALIA.
-   Importamos grid/utilities/reboot, no todo el CSS de Bootstrap, para evitar peso innecesario. */
+   Aquí se ve el uso de Bootstrap como base de grilla y utilidades.
+   Flexbox y Grid se aplican encima para ajustar la composición final. */
 .btn {
   align-items: center;
   border: 1px solid transparent;

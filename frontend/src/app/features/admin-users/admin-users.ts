@@ -10,9 +10,20 @@ import {
 } from '../../core/services/data-access/regalia/models/admin-user-api.model';
 import { RegaliaAdminUserApiService } from '../../core/services/data-access/regalia/services/regalia-admin-user-api.service';
 
+<<<<<<< HEAD
 interface AdminUserFilterOption {
   value: AdminUserStatusFilterApi;
   label: string;
+=======
+// Fila visible en la administración simulada de usuarios y roles.
+interface AdminUserRow {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: 'Activo' | 'Pendiente' | 'Suspendido';
+  lastAccess: string;
+>>>>>>> origin/main
 }
 
 const FILTER_OPTIONS: AdminUserFilterOption[] = [
@@ -47,6 +58,7 @@ export class AdminUsersComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+<<<<<<< HEAD
   readonly filterOptions = FILTER_OPTIONS;
   readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
   readonly filter = signal<AdminUserStatusFilterApi>('TODOS');
@@ -59,6 +71,15 @@ export class AdminUsersComponent implements OnInit {
   readonly isLoading = signal(false);
   readonly errorMessage = signal('');
   readonly actionMessage = signal('');
+=======
+  // Usuarios simulados para validar la interfaz de administración antes de conectar endpoints reales.
+  readonly users: AdminUserRow[] = [
+    { id: 1, name: 'Andrea Mendoza', email: 'andrea@regalia.pe', role: 'Cliente', status: 'Activo', lastAccess: 'Hoy' },
+    { id: 2, name: 'Floralia Studio', email: 'ventas@floralia.pe', role: 'Proveedor', status: 'Activo', lastAccess: 'Ayer' },
+    { id: 3, name: 'Dulce Detalle', email: 'contacto@dulcedetalle.pe', role: 'Proveedor', status: 'Pendiente', lastAccess: 'Hace 2 dias' },
+    { id: 4, name: 'Operaciones REGALIA', email: 'admin@regalia.pe', role: 'Administrador', status: 'Activo', lastAccess: 'Hoy' },
+  ];
+>>>>>>> origin/main
 
   readonly selectedUser = computed<AdminUserApiDto | null>(() => {
     const selectedUserId = this.selectedUserId();

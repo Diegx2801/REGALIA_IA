@@ -1,14 +1,14 @@
-# REGALIA Frontend
+# Frontend de REGALIA
 
-Aplicacion Angular para REGALIA, una plataforma local de Trujillo que conecta clientes con proveedores de regalos y servicios personalizados mediante matching inteligente.
+Aplicación Angular para REGALIA, una plataforma local de Trujillo que conecta clientes con proveedores de regalos y servicios personalizados mediante coincidencia inteligente.
 
 ## Flujos MVP
 
 - Inicio: propuesta de valor y modelo de reserva.
-- Pedir con IA: interpretacion de necesidad y recomendaciones.
-- Catalogo: proveedores locales con filtros por categoria, ocasion y presupuesto.
-- Proveedores: registro/perfil base y reputacion.
-- Panel: pedidos, estados, senas y comisiones.
+- Pedir con IA: interpretación de necesidad y recomendaciones.
+- Catálogo: proveedores locales con filtros por categoría, ocasión y presupuesto.
+- Proveedores: registro, perfil base y reputación.
+- Panel: pedidos, estados, señas y comisiones.
 
 ## Desarrollo
 
@@ -18,7 +18,7 @@ npm run start
 
 Abrir `http://localhost:4200/`.
 
-## Validacion
+## Validación
 
 ```bash
 npm run build

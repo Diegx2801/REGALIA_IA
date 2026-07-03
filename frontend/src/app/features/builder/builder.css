@@ -21,7 +21,7 @@
   gap: clamp(1rem, 2vw, 1.35rem);
 }
 
-/* HERO */
+/* ENCABEZADO PRINCIPAL */
 
 .builder-hero {
   margin-inline: auto;
@@ -74,7 +74,7 @@
   padding: 0.48rem 0.85rem;
 }
 
-/* STEPPER */
+/* PASOS DEL FLUJO */
 
 .builder-stepper {
   background: rgba(255, 250, 245, 0.76);
@@ -177,7 +177,7 @@
   font-size: 0.74rem;
 }
 
-/* LAYOUT GENERAL */
+/* ESTRUCTURA GENERAL */
 
 .builder-shell {
   margin-inline: auto;
@@ -383,7 +383,7 @@ textarea.builder-field__control {
   width: 1rem;
 }
 
-/* CHIPS */
+/* ETIQUETAS */
 
 .builder-suggestions {
   display: grid;
@@ -417,13 +417,21 @@ textarea.builder-field__control {
   padding: 0.48rem 0.78rem;
 }
 
+.builder-chip img {
+  border-radius: 50%;
+  flex: 0 0 1.65rem;
+  height: 1.65rem;
+  object-fit: cover;
+  width: 1.65rem;
+}
+
 .builder-chip:hover {
   background: var(--color-primary-soft);
   border-color: rgba(90, 36, 64, 0.28);
   transform: translateY(-1px);
 }
 
-/* TIP / FEEDBACK */
+/* AYUDA Y RETROALIMENTACIÓN */
 
 .builder-tip {
   align-items: flex-start;
@@ -526,7 +534,7 @@ textarea.builder-field__control {
   border-color: rgba(90, 36, 64, 0.28);
 }
 
-/* PREVIEW */
+/* VISTA PREVIA */
 
 .builder-preview {
   align-self: stretch;
@@ -601,7 +609,7 @@ textarea.builder-field__control {
   content: '🛡️';
 }
 
-/* INTERPRETACION */
+/* INTERPRETACIÓN */
 
 .builder-phase--interpretation {
   padding-top: 0.25rem;
@@ -788,7 +796,7 @@ textarea.builder-field__control {
   color: var(--color-text);
 }
 
-/* SIDEBAR PROVEEDOR */
+/* PANEL LATERAL DEL PROVEEDOR */
 
 .builder-provider-summary {
   display: grid;
@@ -946,7 +954,7 @@ textarea.builder-field__control {
   margin: 0;
 }
 
-/* FOOTER PROGRESO */
+/* PIE DE PROGRESO */
 
 .builder-footer-progress {
   align-items: center;
