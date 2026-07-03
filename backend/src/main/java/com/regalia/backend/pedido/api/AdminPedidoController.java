@@ -3,11 +3,10 @@ package com.regalia.backend.pedido.api;
 import com.regalia.backend.pedido.api.dto.PedidoResponse;
 import com.regalia.backend.pedido.application.PedidoService;
 import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.response.PaginaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Controlador REST para operaciones administrativas sobre pedidos.
@@ -23,15 +22,21 @@ public class AdminPedidoController {
     private final PedidoService pedidoService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidosAdmin(
+    public ResponseEntity<ApiResponse<PaginaResponse<PedidoResponse>>> listarPedidosAdmin(
             @RequestParam(required = false) String estadoPago,
             @RequestParam(required = false) String searchField,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "fechaCreacion,desc") String sort
     ) {
-        List<PedidoResponse> pedidos = pedidoService.listarPedidosAdmin(
+        PaginaResponse<PedidoResponse> pedidos = pedidoService.listarPedidosAdmin(
                 estadoPago,
                 searchField,
-                search
+                search,
+                page,
+                size,
+                sort
         );
 
         return ResponseEntity.ok(

@@ -1,4 +1,4 @@
-<section class="admin-orders">
+﻿<section class="admin-orders">
   <div class="admin-orders__container rg-page__container rg-page__container--wide">
     <header class="admin-orders__header">
       <div>
@@ -17,19 +17,19 @@
 
     <section class="admin-orders__metrics" aria-label="Resumen administrativo de pedidos">
       <article>
-        <span>Total</span>
+        <span>Resultados</span>
         <strong>{{ totalCount() }}</strong>
       </article>
       <article>
-        <span>Activos</span>
+        <span>Activos pagina</span>
         <strong>{{ activeCount() }}</strong>
       </article>
       <article>
-        <span>Pagados</span>
+        <span>Pagados pagina</span>
         <strong>{{ paidCount() }}</strong>
       </article>
       <article>
-        <span>Monto pagado</span>
+        <span>Monto pagina</span>
         <strong>{{ formatCurrency(totalPaid()) }}</strong>
       </article>
     </section>
@@ -51,6 +51,15 @@
         <span>Buscar por</span>
         <select [value]="searchField()" (change)="onSearchFieldChange($event)">
           @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="admin-orders__sort-field">
+        <span>Ordenar</span>
+        <select [value]="sort()" (change)="onSortChange($event)">
+          @for (option of sortOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }
         </select>
@@ -108,6 +117,21 @@
               <span class="admin-order-card__arrow" aria-hidden="true">›</span>
             </button>
           }
+
+          <footer class="admin-orders__pagination" aria-label="Paginacion de pedidos">
+            <span>
+              Mostrando {{ displayedCount() }} de {{ totalCount() }} · pagina {{ currentPage() + 1 }}
+              de {{ totalPages() || 1 }}
+            </span>
+            <div>
+              <button type="button" (click)="goToPreviousPage()" [disabled]="isFirstPage() || isLoading()">
+                Anterior
+              </button>
+              <button type="button" (click)="goToNextPage()" [disabled]="isLastPage() || isLoading()">
+                Siguiente
+              </button>
+            </div>
+          </footer>
         }
       </main>
 

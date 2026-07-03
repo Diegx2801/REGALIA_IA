@@ -6,10 +6,12 @@ import { finalize } from 'rxjs';
 import {
   AdminOrderPaymentFilterApi,
   AdminOrderSearchFieldApi,
+  AdminOrderSortApi,
   OrderApiDto,
   OrderDetailApiDto,
 } from '../../core/services/data-access/orders/models/order-api.model';
 import { AdminOrderApiService } from '../../core/services/data-access/orders/services/admin-order-api.service';
+import { PageApiDto } from '../../shared/models/api-response.model';
 
 type AdminOrderFilter = 'TODOS' | 'PAGADOS' | 'CON_SALDO';
 
@@ -30,12 +32,28 @@ interface AdminOrderSearchFieldOption {
   placeholder: string;
 }
 
+interface AdminOrderSortOption {
+  value: AdminOrderSortApi;
+  label: string;
+}
+
 const SEARCH_FIELD_OPTIONS: AdminOrderSearchFieldOption[] = [
   { value: 'ID_PEDIDO', label: 'ID pedido', placeholder: 'Ej. 4' },
   { value: 'NOMBRE_TIENDA', label: 'Tienda', placeholder: 'Ej. Regalia Gifts' },
   { value: 'ID_USUARIO', label: 'ID usuario', placeholder: 'Ej. 3' },
   { value: 'ID_TIENDA', label: 'ID tienda', placeholder: 'Ej. 3' },
   { value: 'ESTADO_PEDIDO', label: 'Estado pedido', placeholder: 'Ej. RESERVADO' },
+];
+
+const SORT_OPTIONS: AdminOrderSortOption[] = [
+  { value: 'fechaCreacion,desc', label: 'Mas recientes' },
+  { value: 'fechaCreacion,asc', label: 'Mas antiguos' },
+  { value: 'idPedido,desc', label: 'ID mayor' },
+  { value: 'idPedido,asc', label: 'ID menor' },
+  { value: 'fechaEntrega,asc', label: 'Entrega proxima' },
+  { value: 'total,desc', label: 'Mayor total' },
+  { value: 'saldoPendiente,desc', label: 'Mayor saldo' },
+  { value: 'nombreTienda,asc', label: 'Tienda A-Z' },
 ];
 
 @Component({
@@ -53,9 +71,14 @@ export class AdminOrdersComponent implements OnInit {
 
   readonly filterOptions = FILTER_OPTIONS;
   readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
+  readonly sortOptions = SORT_OPTIONS;
   readonly filter = signal<AdminOrderFilter>('TODOS');
   readonly searchField = signal<AdminOrderSearchFieldApi>('ID_PEDIDO');
   readonly searchTerm = signal('');
+  readonly page = signal(0);
+  readonly pageSize = signal(10);
+  readonly sort = signal<AdminOrderSortApi>('fechaCreacion,desc');
+  readonly pageInfo = signal<PageApiDto<OrderApiDto> | null>(null);
   readonly orders = signal<OrderApiDto[]>([]);
   readonly selectedOrderId = signal<number | null>(null);
   readonly isLoading = signal(false);
@@ -71,7 +94,7 @@ export class AdminOrdersComponent implements OnInit {
     );
   });
 
-  readonly totalCount = computed(() => this.orders().length);
+  readonly totalCount = computed(() => this.pageInfo()?.totalElementos ?? this.orders().length);
   readonly activeCount = computed(() => this.orders().filter((order) => Boolean(order.estado)).length);
   readonly paidCount = computed(
     () => this.orders().filter((order) => this.toNumber(order.saldoPendiente) <= 0).length,
@@ -87,12 +110,20 @@ export class AdminOrdersComponent implements OnInit {
       this.searchFieldOptions.find((option) => option.value === this.searchField())?.placeholder ??
       'Buscar',
   );
+  readonly currentPage = computed(() => this.pageInfo()?.paginaActual ?? this.page());
+  readonly totalPages = computed(() => this.pageInfo()?.totalPaginas ?? 0);
+  readonly displayedCount = computed(() => this.orders().length);
+  readonly isFirstPage = computed(() => this.currentPage() <= 0);
+  readonly isLastPage = computed(() => this.pageInfo()?.ultimaPagina ?? true);
 
   ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.filter.set(this.parsePaymentFilter(params.get('estadoPago')));
       this.searchField.set(this.parseSearchField(params.get('searchField')));
       this.searchTerm.set(params.get('search') ?? '');
+      this.page.set(this.parseNonNegativeInteger(params.get('page'), 0));
+      this.pageSize.set(this.parsePageSize(params.get('size')));
+      this.sort.set(this.parseSort(params.get('sort')));
       this.selectedOrderId.set(null);
       this.loadOrders();
     });
@@ -101,12 +132,16 @@ export class AdminOrdersComponent implements OnInit {
   setFilter(filter: AdminOrderFilter): void {
     this.updateQueryParams({
       estadoPago: this.paymentFilterToApi(filter) ?? null,
+      page: '0',
     });
   }
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.updateQueryParams({ search: input.value.trim() || null });
+    this.updateQueryParams({
+      search: input.value.trim() || null,
+      page: '0',
+    });
   }
 
   onSearchFieldChange(event: Event): void {
@@ -114,11 +149,36 @@ export class AdminOrdersComponent implements OnInit {
     this.updateQueryParams({
       searchField: this.parseSearchField(select.value),
       search: this.searchTerm().trim() || null,
+      page: '0',
     });
   }
 
   clearSearch(): void {
-    this.updateQueryParams({ search: null });
+    this.updateQueryParams({ search: null, page: '0' });
+  }
+
+  onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.updateQueryParams({
+      sort: this.parseSort(select.value),
+      page: '0',
+    });
+  }
+
+  goToPreviousPage(): void {
+    if (this.isFirstPage()) {
+      return;
+    }
+
+    this.updateQueryParams({ page: String(this.currentPage() - 1) });
+  }
+
+  goToNextPage(): void {
+    if (this.isLastPage()) {
+      return;
+    }
+
+    this.updateQueryParams({ page: String(this.currentPage() + 1) });
   }
 
   selectOrder(order: OrderApiDto): void {
@@ -186,17 +246,22 @@ export class AdminOrdersComponent implements OnInit {
         estadoPago: this.paymentFilterToApi(this.filter()),
         searchField: this.searchField(),
         search: this.searchTerm(),
+        page: this.page(),
+        size: this.pageSize(),
+        sort: this.sort(),
       })
       .pipe(
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (orders) => {
-          this.orders.set(orders);
-          this.selectedOrderId.set(orders[0]?.idPedido ?? null);
+        next: (pageData) => {
+          this.pageInfo.set(pageData);
+          this.orders.set(pageData.contenido);
+          this.selectedOrderId.set(pageData.contenido[0]?.idPedido ?? null);
         },
         error: () => {
+          this.pageInfo.set(null);
           this.orders.set([]);
           this.selectedOrderId.set(null);
           this.errorMessage.set('No se pudieron cargar los pedidos administrativos.');
@@ -227,6 +292,34 @@ export class AdminOrdersComponent implements OnInit {
     }
 
     return 'ID_PEDIDO';
+  }
+
+  private parseSort(value: string | null): AdminOrderSortApi {
+    const normalizedValue = value as AdminOrderSortApi;
+
+    return SORT_OPTIONS.some((option) => option.value === normalizedValue)
+      ? normalizedValue
+      : 'fechaCreacion,desc';
+  }
+
+  private parseNonNegativeInteger(value: string | null, fallback: number): number {
+    if (!value) {
+      return fallback;
+    }
+
+    const parsedValue = Number(value);
+
+    return Number.isInteger(parsedValue) && parsedValue >= 0 ? parsedValue : fallback;
+  }
+
+  private parsePageSize(value: string | null): number {
+    const parsedValue = this.parseNonNegativeInteger(value, 10);
+
+    if (parsedValue < 1) {
+      return 10;
+    }
+
+    return Math.min(parsedValue, 50);
   }
 
   private updateQueryParams(queryParams: Record<string, string | null | undefined>): void {

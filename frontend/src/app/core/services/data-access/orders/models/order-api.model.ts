@@ -64,9 +64,25 @@ export type AdminOrderSearchFieldApi =
   | 'ID_USUARIO'
   | 'ID_TIENDA'
   | 'ESTADO_PEDIDO';
+export type AdminOrderSortApi =
+  | 'fechaCreacion,desc'
+  | 'fechaCreacion,asc'
+  | 'idPedido,desc'
+  | 'idPedido,asc'
+  | 'fechaEntrega,desc'
+  | 'fechaEntrega,asc'
+  | 'total,desc'
+  | 'total,asc'
+  | 'saldoPendiente,desc'
+  | 'saldoPendiente,asc'
+  | 'nombreTienda,asc'
+  | 'nombreTienda,desc';
 
 export interface AdminOrderQueryApi {
   estadoPago?: AdminOrderPaymentFilterApi;
   searchField?: AdminOrderSearchFieldApi;
   search?: string;
+  page?: number;
+  size?: number;
+  sort?: AdminOrderSortApi;
 }

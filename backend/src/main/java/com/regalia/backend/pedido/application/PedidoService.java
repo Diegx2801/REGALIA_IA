@@ -26,6 +26,7 @@ import com.regalia.backend.producto.infrastructure.repository.ProductoJpaReposit
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
 import com.regalia.backend.tienda.infrastructure.repository.TiendaJpaRepository;
 import com.regalia.backend.tipoentrega.infrastructure.entity.TipoEntregaEntity;
@@ -35,6 +36,9 @@ import com.regalia.backend.tipopago.infrastructure.repository.TipoPagoJpaReposit
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +71,9 @@ public class PedidoService {
     private static final String ESTADO_REVISION_APROBADA = "APROBADA";
 
     private static final BigDecimal CIEN = new BigDecimal("100.00");
+    private static final int DEFAULT_ADMIN_PAGE = 0;
+    private static final int DEFAULT_ADMIN_PAGE_SIZE = 10;
+    private static final int MAX_ADMIN_PAGE_SIZE = 50;
 
     private final PedidoJpaRepository pedidoRepository;
     private final DetallePedidoJpaRepository detallePedidoRepository;
@@ -228,33 +235,52 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> listarPedidosAdmin(
+    public PaginaResponse<PedidoResponse> listarPedidosAdmin(
             String estadoPago,
             String searchField,
-            String search
+            String search,
+            Integer page,
+            Integer size,
+            String sort
     ) {
         PedidoPagoFiltro filtroPago = PedidoPagoFiltro.desde(estadoPago);
         PedidoSearchField campoBusqueda = PedidoSearchField.desde(searchField);
         String busqueda = normalizarBusqueda(search);
         Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+        PedidoAdminSortField sortField = PedidoAdminSortField.desde(sort);
+        Sort.Direction sortDirection = PedidoAdminSortField.direccionDesde(sort);
+        int pagina = normalizarPagina(page);
+        int tamanioPagina = normalizarTamanioPagina(size);
 
-        if (busqueda == null) {
-            return pedidoRepository.findByEstadoTrueOrderByIdPedidoDesc()
-                    .stream()
-                    .map(this::construirResponse)
-                    .filter(pedido -> coincideEstadoPago(pedido, filtroPago))
-                    .toList();
-        }
+        PageRequest pageable = PageRequest.of(
+                pagina,
+                tamanioPagina,
+                Sort.by(sortDirection, sortField.apiName())
+        );
 
-        return pedidoRepository.findPedidosAdministracionFiltrados(
-                        campoBusqueda.name(),
-                        busqueda,
-                        busquedaId
-                )
+        Page<PedidoEntity> pedidos = pedidoRepository.findPedidosAdministracion(
+                filtroPago,
+                campoBusqueda,
+                busqueda,
+                busquedaId,
+                sortField,
+                sortDirection,
+                pageable
+        );
+
+        List<PedidoResponse> contenido = pedidos.getContent()
                 .stream()
                 .map(this::construirResponse)
-                .filter(pedido -> coincideEstadoPago(pedido, filtroPago))
                 .toList();
+
+        return new PaginaResponse<>(
+                contenido,
+                pedidos.getNumber(),
+                pedidos.getSize(),
+                pedidos.getTotalElements(),
+                pedidos.getTotalPages(),
+                pedidos.isLast()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -348,22 +374,6 @@ public class PedidoService {
         return pedidoMapper.toResponse(pedido, detalles, montoPagado, saldoPendiente);
     }
 
-    private boolean coincideEstadoPago(PedidoResponse pedido, PedidoPagoFiltro filtroPago) {
-        BigDecimal saldoPendiente = pedido.saldoPendiente() == null
-                ? BigDecimal.ZERO
-                : pedido.saldoPendiente();
-
-        if (filtroPago == PedidoPagoFiltro.PAGADO) {
-            return saldoPendiente.compareTo(BigDecimal.ZERO) <= 0;
-        }
-
-        if (filtroPago == PedidoPagoFiltro.CON_SALDO) {
-            return saldoPendiente.compareTo(BigDecimal.ZERO) > 0;
-        }
-
-        return true;
-    }
-
     private String normalizarBusqueda(String valor) {
         if (valor == null || valor.isBlank()) {
             return null;
@@ -385,6 +395,34 @@ public class PedidoService {
         } catch (NumberFormatException exception) {
             throw new ReglaNegocioException("El ID de pedido, usuario o tienda debe ser numerico");
         }
+    }
+
+    private int normalizarPagina(Integer page) {
+        if (page == null) {
+            return DEFAULT_ADMIN_PAGE;
+        }
+
+        if (page < 0) {
+            throw new ReglaNegocioException("La pagina no puede ser negativa");
+        }
+
+        return page;
+    }
+
+    private int normalizarTamanioPagina(Integer size) {
+        if (size == null) {
+            return DEFAULT_ADMIN_PAGE_SIZE;
+        }
+
+        if (size < 1) {
+            throw new ReglaNegocioException("El tamanio de pagina debe ser mayor a cero");
+        }
+
+        if (size > MAX_ADMIN_PAGE_SIZE) {
+            throw new ReglaNegocioException("El tamanio maximo permitido por pagina es 50");
+        }
+
+        return size;
     }
 
     private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {
