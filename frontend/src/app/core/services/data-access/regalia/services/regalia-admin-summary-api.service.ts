@@ -33,14 +33,14 @@ export class RegaliaAdminSummaryApiService {
       stores: this.storeApi.getStores(),
       orders: this.orderApi.getOrders({ page: 0, size: 50, sort: 'fechaCreacion,desc' }),
       sellers: this.sellerApi.getSellers(),
-      users: this.userApi.getUsers({ estado: 'TODOS' }),
+      users: this.userApi.getUsers({ estado: 'TODOS', page: 0, size: 50, sort: 'idUsuario,asc' }),
       catalogs: this.catalogApi.getCatalogs(),
     }).pipe(
       map(({ stores, orders, sellers, users, catalogs }) => {
         const storeSummary = this.buildStoreSummary(stores);
         const orderSummary = this.buildOrderSummary(orders.contenido, orders.totalElementos);
         const sellerSummary = this.buildSellerSummary(sellers);
-        const userSummary = this.buildUserSummary(users);
+        const userSummary = this.buildUserSummary(users.contenido, users.totalElementos);
         const catalogSummary = this.buildCatalogSummary(catalogs);
 
         return {
@@ -93,9 +93,9 @@ export class RegaliaAdminSummaryApiService {
     };
   }
 
-  private buildUserSummary(users: AdminUserApiDto[]): AdminUserSummary {
+  private buildUserSummary(users: AdminUserApiDto[], totalElements: number): AdminUserSummary {
     return {
-      total: users.length,
+      total: totalElements,
       active: users.filter((user) => Boolean(user.estado)).length,
       inactive: users.filter((user) => !user.estado).length,
       withPhone: users.filter((user) => Boolean(user.telefono?.trim())).length,

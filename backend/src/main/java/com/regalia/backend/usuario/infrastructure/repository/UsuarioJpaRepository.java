@@ -2,8 +2,6 @@ package com.regalia.backend.usuario.infrastructure.repository;
 
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,55 +9,9 @@ import java.util.Optional;
 /**
  * Repositorio JPA para operaciones sobre la tabla usuario.
  */
-public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long> {
+public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>, UsuarioAdminRepositoryCustom {
 
     List<UsuarioEntity> findByEstadoTrueOrderByIdUsuarioAsc();
-
-    @Query("""
-            SELECT u
-            FROM UsuarioEntity u
-            WHERE (:estado IS NULL OR u.estado = :estado)
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM UsuarioRolEntity ur
-                  WHERE ur.usuario = u
-                    AND ur.estado = true
-                    AND UPPER(ur.rol.nombre) = UPPER(:nombreRol)
-              )
-            ORDER BY u.idUsuario ASC
-            """)
-    List<UsuarioEntity> findGestionablesSinRolPorEstadoOrderByIdUsuarioAsc(
-            @Param("nombreRol") String nombreRol,
-            @Param("estado") Boolean estado
-    );
-
-    @Query("""
-            SELECT u
-            FROM UsuarioEntity u
-            WHERE (:estado IS NULL OR u.estado = :estado)
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM UsuarioRolEntity ur
-                  WHERE ur.usuario = u
-                    AND ur.estado = true
-                    AND UPPER(ur.rol.nombre) = UPPER(:nombreRol)
-              )
-              AND (
-                  :search IS NULL
-                  OR (:searchField = 'NOMBRE' AND LOWER(CONCAT(CONCAT(COALESCE(u.nombre, ''), ' '), COALESCE(u.apellido, ''))) LIKE LOWER(CONCAT('%', :search, '%')))
-                  OR (:searchField = 'CORREO' AND LOWER(COALESCE(u.correo, '')) LIKE LOWER(CONCAT('%', :search, '%')))
-                  OR (:searchField = 'TELEFONO' AND LOWER(COALESCE(u.telefono, '')) LIKE LOWER(CONCAT('%', :search, '%')))
-                  OR (:searchField = 'ID_USUARIO' AND u.idUsuario = :searchId)
-              )
-            ORDER BY u.idUsuario ASC
-            """)
-    List<UsuarioEntity> findGestionablesSinRolFiltradosOrderByIdUsuarioAsc(
-            @Param("nombreRol") String nombreRol,
-            @Param("estado") Boolean estado,
-            @Param("searchField") String searchField,
-            @Param("search") String search,
-            @Param("searchId") Long searchId
-    );
 
     Optional<UsuarioEntity> findByCorreoIgnoreCaseAndEstadoTrue(String correo);
 

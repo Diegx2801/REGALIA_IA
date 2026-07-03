@@ -6,9 +6,11 @@ import { finalize } from 'rxjs';
 import {
   AdminUserApiDto,
   AdminUserSearchFieldApi,
+  AdminUserSortApi,
   AdminUserStatusFilterApi,
 } from '../../core/services/data-access/regalia/models/admin-user-api.model';
 import { RegaliaAdminUserApiService } from '../../core/services/data-access/regalia/services/regalia-admin-user-api.service';
+import { PageApiDto } from '../../shared/models/api-response.model';
 
 interface AdminUserFilterOption {
   value: AdminUserStatusFilterApi;
@@ -34,6 +36,20 @@ const SEARCH_FIELD_OPTIONS: AdminUserSearchFieldOption[] = [
   { value: 'ID_USUARIO', label: 'ID usuario', placeholder: 'Ej. 1' },
 ];
 
+interface AdminUserSortOption {
+  value: AdminUserSortApi;
+  label: string;
+}
+
+const SORT_OPTIONS: AdminUserSortOption[] = [
+  { value: 'idUsuario,asc', label: 'ID menor' },
+  { value: 'idUsuario,desc', label: 'ID mayor' },
+  { value: 'nombre,asc', label: 'Nombre A-Z' },
+  { value: 'nombre,desc', label: 'Nombre Z-A' },
+  { value: 'correo,asc', label: 'Correo A-Z' },
+  { value: 'fechaCreacion,desc', label: 'Mas recientes' },
+];
+
 @Component({
   selector: 'app-admin-users',
   standalone: true,
@@ -49,9 +65,14 @@ export class AdminUsersComponent implements OnInit {
 
   readonly filterOptions = FILTER_OPTIONS;
   readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
+  readonly sortOptions = SORT_OPTIONS;
   readonly filter = signal<AdminUserStatusFilterApi>('TODOS');
   readonly searchField = signal<AdminUserSearchFieldApi>('NOMBRE');
   readonly searchTerm = signal('');
+  readonly page = signal(0);
+  readonly pageSize = signal(10);
+  readonly sort = signal<AdminUserSortApi>('idUsuario,asc');
+  readonly pageInfo = signal<PageApiDto<AdminUserApiDto> | null>(null);
   readonly users = signal<AdminUserApiDto[]>([]);
   readonly selectedUserId = signal<number | null>(null);
   readonly pendingStatusChangeId = signal<number | null>(null);
@@ -70,7 +91,7 @@ export class AdminUsersComponent implements OnInit {
     );
   });
 
-  readonly totalCount = computed(() => this.users().length);
+  readonly totalCount = computed(() => this.pageInfo()?.totalElementos ?? this.users().length);
   readonly activeCount = computed(() => this.users().filter((user) => Boolean(user.estado)).length);
   readonly inactiveCount = computed(() => this.users().filter((user) => !user.estado).length);
   readonly withPhoneCount = computed(
@@ -87,6 +108,9 @@ export class AdminUsersComponent implements OnInit {
       this.filter.set(this.parseStatusFilter(params.get('estado')));
       this.searchField.set(this.parseSearchField(params.get('searchField')));
       this.searchTerm.set(params.get('search') ?? '');
+      this.page.set(this.parseNonNegativeInteger(params.get('page'), 0));
+      this.pageSize.set(this.parsePageSize(params.get('size')));
+      this.sort.set(this.parseSort(params.get('sort')));
       this.selectedUserId.set(null);
       this.pendingStatusChangeId.set(null);
       this.loadUsers();
@@ -94,12 +118,18 @@ export class AdminUsersComponent implements OnInit {
   }
 
   setFilter(filter: AdminUserStatusFilterApi): void {
-    this.updateQueryParams({ estado: filter === 'TODOS' ? null : filter });
+    this.updateQueryParams({
+      estado: filter === 'TODOS' ? null : filter,
+      page: '0',
+    });
   }
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.updateQueryParams({ search: input.value.trim() || null });
+    this.updateQueryParams({
+      search: input.value.trim() || null,
+      page: '0',
+    });
   }
 
   onSearchFieldChange(event: Event): void {
@@ -107,11 +137,36 @@ export class AdminUsersComponent implements OnInit {
     this.updateQueryParams({
       searchField: this.parseSearchField(select.value),
       search: this.searchTerm().trim() || null,
+      page: '0',
     });
   }
 
   clearSearch(): void {
-    this.updateQueryParams({ search: null });
+    this.updateQueryParams({ search: null, page: '0' });
+  }
+
+  onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.updateQueryParams({
+      sort: this.parseSort(select.value),
+      page: '0',
+    });
+  }
+
+  goToPreviousPage(): void {
+    if (this.isFirstPage()) {
+      return;
+    }
+
+    this.updateQueryParams({ page: String(this.currentPage() - 1) });
+  }
+
+  goToNextPage(): void {
+    if (this.isLastPage()) {
+      return;
+    }
+
+    this.updateQueryParams({ page: String(this.currentPage() + 1) });
   }
 
   selectUser(user: AdminUserApiDto): void {
@@ -196,6 +251,12 @@ export class AdminUsersComponent implements OnInit {
     return user.idUsuario;
   }
 
+  readonly currentPage = computed(() => this.pageInfo()?.paginaActual ?? this.page());
+  readonly totalPages = computed(() => this.pageInfo()?.totalPaginas ?? 0);
+  readonly displayedCount = computed(() => this.users().length);
+  readonly isFirstPage = computed(() => this.currentPage() <= 0);
+  readonly isLastPage = computed(() => this.pageInfo()?.ultimaPagina ?? true);
+
   private loadUsers(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
@@ -206,17 +267,22 @@ export class AdminUsersComponent implements OnInit {
         estado: this.filter(),
         searchField: this.searchField(),
         search: this.searchTerm(),
+        page: this.page(),
+        size: this.pageSize(),
+        sort: this.sort(),
       })
       .pipe(
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (users) => {
-          this.users.set(users);
-          this.selectedUserId.set(users[0]?.idUsuario ?? null);
+        next: (pageData) => {
+          this.pageInfo.set(pageData);
+          this.users.set(pageData.contenido);
+          this.selectedUserId.set(pageData.contenido[0]?.idUsuario ?? null);
         },
         error: () => {
+          this.pageInfo.set(null);
           this.users.set([]);
           this.selectedUserId.set(null);
           this.errorMessage.set('No se pudieron cargar los usuarios administrativos.');
@@ -236,9 +302,9 @@ export class AdminUsersComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (updatedUser) => {
-          this.replaceUser(updatedUser);
+        next: () => {
           this.pendingStatusChangeId.set(null);
+          this.loadUsers();
           this.actionMessage.set('Usuario desactivado correctamente.');
         },
         error: () => {
@@ -259,21 +325,15 @@ export class AdminUsersComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (updatedUser) => {
-          this.replaceUser(updatedUser);
+        next: () => {
           this.pendingStatusChangeId.set(null);
+          this.loadUsers();
           this.actionMessage.set('Usuario reactivado correctamente.');
         },
         error: () => {
           this.errorMessage.set('No se pudo reactivar el usuario gestionable.');
         },
       });
-  }
-
-  private replaceUser(updatedUser: AdminUserApiDto): void {
-    this.users.update((users) =>
-      users.map((user) => (user.idUsuario === updatedUser.idUsuario ? updatedUser : user)),
-    );
   }
 
   private parseStatusFilter(value: string | null): AdminUserStatusFilterApi {
@@ -290,6 +350,34 @@ export class AdminUsersComponent implements OnInit {
     }
 
     return 'NOMBRE';
+  }
+
+  private parseSort(value: string | null): AdminUserSortApi {
+    if (
+      value === 'idUsuario,desc' ||
+      value === 'nombre,asc' ||
+      value === 'nombre,desc' ||
+      value === 'correo,asc' ||
+      value === 'fechaCreacion,desc'
+    ) {
+      return value;
+    }
+
+    return 'idUsuario,asc';
+  }
+
+  private parseNonNegativeInteger(value: string | null, fallback: number): number {
+    if (!value) {
+      return fallback;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+  }
+
+  private parsePageSize(value: string | null): number {
+    const parsed = this.parseNonNegativeInteger(value, 10);
+    return parsed >= 1 && parsed <= 50 ? parsed : 10;
   }
 
   private updateQueryParams(queryParams: Record<string, string | null>): void {

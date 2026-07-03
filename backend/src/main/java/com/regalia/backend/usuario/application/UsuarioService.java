@@ -5,6 +5,7 @@ import com.regalia.backend.rol.infrastructure.entity.RolEntity;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.usuario.api.dto.UsuarioActualizarRequest;
 import com.regalia.backend.usuario.api.dto.UsuarioRequest;
 import com.regalia.backend.usuario.api.dto.UsuarioResponse;
@@ -14,6 +15,10 @@ import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepositor
 import com.regalia.backend.usuariorol.infrastructure.entity.UsuarioRolEntity;
 import com.regalia.backend.usuariorol.infrastructure.repository.UsuarioRolJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +34,9 @@ public class UsuarioService {
 
     private static final String ROL_ADMIN = "ADMIN";
     private static final String ROL_CLIENTE = "CLIENTE";
+    private static final int DEFAULT_ADMIN_PAGE = 0;
+    private static final int DEFAULT_ADMIN_PAGE_SIZE = 10;
+    private static final int MAX_ADMIN_PAGE_SIZE = 50;
 
     private final UsuarioJpaRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
@@ -45,35 +53,47 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion(
+    public PaginaResponse<UsuarioResponse> listarUsuariosGestionablesAdministracion(
             UsuarioEstadoFiltro filtro,
             String searchField,
-            String search
+            String search,
+            Integer page,
+            Integer size,
+            String sort
     ) {
         UsuarioSearchField campoBusqueda = UsuarioSearchField.desde(searchField);
+        UsuarioAdminSortField sortField = UsuarioAdminSortField.desde(sort);
+        Sort.Direction sortDirection = UsuarioAdminSortField.direccionDesde(sort);
         String busqueda = normalizarBusqueda(search);
         Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+        int pagina = normalizarPagina(page);
+        int tamanioPagina = normalizarTamanioPagina(size);
+        Pageable pageable = PageRequest.of(
+                pagina,
+                tamanioPagina,
+                Sort.by(sortDirection, sortField.apiName())
+        );
 
-        if (busqueda == null) {
-            return usuarioRepository.findGestionablesSinRolPorEstadoOrderByIdUsuarioAsc(
-                            ROL_ADMIN,
-                            filtro.toEstadoBoolean()
-                    )
-                    .stream()
-                    .map(usuarioMapper::toResponse)
-                    .toList();
-        }
-
-        return usuarioRepository.findGestionablesSinRolFiltradosOrderByIdUsuarioAsc(
+        Page<UsuarioResponse> usuarios = usuarioRepository.findUsuariosGestionablesAdministracion(
                         ROL_ADMIN,
-                        filtro.toEstadoBoolean(),
-                        campoBusqueda.name(),
+                        filtro,
+                        campoBusqueda,
                         busqueda,
-                        busquedaId
+                        busquedaId,
+                        sortField,
+                        sortDirection,
+                        pageable
                 )
-                .stream()
-                .map(usuarioMapper::toResponse)
-                .toList();
+                .map(usuarioMapper::toResponse);
+
+        return new PaginaResponse<>(
+                usuarios.getContent(),
+                usuarios.getNumber(),
+                usuarios.getSize(),
+                usuarios.getTotalElements(),
+                usuarios.getTotalPages(),
+                usuarios.isLast()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -213,6 +233,34 @@ public class UsuarioService {
         } catch (NumberFormatException exception) {
             throw new ReglaNegocioException("El ID de usuario debe ser numerico");
         }
+    }
+
+    private int normalizarPagina(Integer page) {
+        if (page == null) {
+            return DEFAULT_ADMIN_PAGE;
+        }
+
+        if (page < 0) {
+            throw new ReglaNegocioException("La pagina no puede ser negativa");
+        }
+
+        return page;
+    }
+
+    private int normalizarTamanioPagina(Integer size) {
+        if (size == null) {
+            return DEFAULT_ADMIN_PAGE_SIZE;
+        }
+
+        if (size < 1) {
+            throw new ReglaNegocioException("El tamanio de pagina debe ser mayor a cero");
+        }
+
+        if (size > MAX_ADMIN_PAGE_SIZE) {
+            throw new ReglaNegocioException("El tamanio maximo permitido por pagina es 50");
+        }
+
+        return size;
     }
 
     private UsuarioEntity obtenerEntidadActivaPorId(Long id) {
