@@ -183,9 +183,9 @@ export class DashboardComponent {
       primaryRoute: '/admin/tiendas',
       metrics: [
         { label: 'Tiendas pendientes', value: demo ? '5' : '0', hint: demo ? 'Esperan revisión administrativa' : 'Pendiente de conectar /api/admin/tiendas' },
-        { label: 'Pedidos activos', value: demo ? '18' : '0', hint: demo ? '3 requieren seguimiento' : 'Pendiente de conectar /api/admin/pedidos' },
-        { label: 'Vendedores', value: demo ? '24' : '0', hint: demo ? 'Perfiles comerciales activos' : 'Pendiente de conectar /api/admin/vendedores' },
-        { label: 'Usuarios gestionables', value: demo ? '128' : '0', hint: demo ? '+12 este mes' : 'Pendiente de conectar /api/admin/usuarios' },
+        { label: 'Pedidos activos', value: demo ? '18' : '0', hint: demo ? '3 requieren seguimiento' : 'Disponible en el modulo Pedidos' },
+        { label: 'Vendedores', value: demo ? '24' : '0', hint: demo ? 'Perfiles comerciales activos' : 'Disponible en el modulo Vendedores' },
+        { label: 'Usuarios gestionables', value: demo ? '128' : '0', hint: demo ? '+12 este mes' : 'Disponible en el modulo Usuarios' },
       ],
       actions: [
         { label: 'Revisar tiendas', hint: 'Aprobar, observar o rechazar visibilidad', route: '/admin/tiendas', icon: 'T' },

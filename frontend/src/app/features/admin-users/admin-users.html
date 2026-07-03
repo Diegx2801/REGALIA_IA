@@ -1,52 +1,202 @@
-<section class="admin-users-page">
-  <div class="container rg-page__container rg-page__container--wide admin-users-page__container">
-    <!-- Vista administrativa mock para validar filtrado de roles sin backend. -->
-    <header class="admin-users-header">
-      <span class="admin-users-header__eyebrow">Administracion</span>
-      <h1 class="admin-users-header__title">Usuarios y roles de REGALIA.</h1>
-      <p class="admin-users-header__text">
-        Vista frontend para controlar clientes, vendedores y administradores antes de conectar la
-        gestion real.
-      </p>
-    </header>
-
-    <div class="admin-users-toolbar">
-      <label class="admin-users-filter" for="roleFilter">
-        <span class="admin-users-filter__label">Filtrar por rol</span>
-        <select
-          id="roleFilter"
-          class="admin-users-filter__control"
-          [formControl]="roleFilter"
-          (change)="onFilterChanged()"
-        >
-          <option value="Todos">Todos</option>
-          <option value="Cliente">Cliente</option>
-          <option value="Vendedor">Vendedor</option>
-          <option value="Administrador">Administrador</option>
-        </select>
-      </label>
-      <strong class="admin-users-toolbar__count">{{ filteredUsers().length }} usuarios</strong>
-    </div>
-
-    <main class="admin-users-table" aria-label="Usuarios registrados">
-      <div class="admin-users-table__head">
-        <span>Usuario</span>
-        <span>Rol</span>
-        <span>Estado</span>
-        <span>Ultimo acceso</span>
+<section class="admin-users">
+  <div class="admin-users__container rg-page__container rg-page__container--wide">
+    <header class="admin-users__header">
+      <div>
+        <span class="admin-users__eyebrow">Gestion de cuentas</span>
+        <h1>Usuarios</h1>
+        <p>
+          Supervisa cuentas gestionables del marketplace sin mezclar cuentas administrativas ni
+          alterar datos personales desde este modulo.
+        </p>
       </div>
 
-      @for (user of filteredUsers(); track trackUser($index, user)) {
-        <article class="admin-user-row">
-          <div>
-            <strong>{{ user.name }}</strong>
-            <small>{{ user.email }}</small>
+      <button class="admin-users__refresh" type="button" (click)="refresh()" [disabled]="isLoading()">
+        Actualizar
+      </button>
+    </header>
+
+    <section class="admin-users__metrics" aria-label="Resumen administrativo de usuarios">
+      <article>
+        <span>Gestionables</span>
+        <strong>{{ totalCount() }}</strong>
+      </article>
+      <article>
+        <span>Activos</span>
+        <strong>{{ activeCount() }}</strong>
+      </article>
+      <article>
+        <span>Inactivos</span>
+        <strong>{{ inactiveCount() }}</strong>
+      </article>
+      <article>
+        <span>Con telefono</span>
+        <strong>{{ withPhoneCount() }}</strong>
+      </article>
+    </section>
+
+    <section class="admin-users__toolbar" aria-label="Filtros de usuarios">
+      <nav class="admin-users__filters" aria-label="Filtrar usuarios">
+        @for (option of filterOptions; track option.value) {
+          <button
+            type="button"
+            [class.admin-users__filter--active]="filter() === option.value"
+            (click)="setFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </nav>
+
+      <label class="admin-users__search">
+        <span>Buscar</span>
+        <input
+          type="search"
+          placeholder="Nombre, correo, telefono o ID..."
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+        />
+        @if (searchTerm()) {
+          <button type="button" (click)="clearSearch()" aria-label="Limpiar busqueda">Limpiar</button>
+        }
+      </label>
+    </section>
+
+    @if (errorMessage()) {
+      <p class="admin-users__message admin-users__message--error">{{ errorMessage() }}</p>
+    }
+
+    @if (actionMessage()) {
+      <p class="admin-users__message admin-users__message--success">{{ actionMessage() }}</p>
+    }
+
+    <div class="admin-users__workspace">
+      <main class="admin-users__list" aria-label="Usuarios gestionables">
+        @if (isLoading()) {
+          <div class="admin-users__empty">
+            <span aria-hidden="true">U</span>
+            <h2>Cargando usuarios</h2>
+            <p>Estamos consultando las cuentas gestionables del backend.</p>
           </div>
-          <span class="admin-user-row__role">{{ user.role }}</span>
-          <span class="admin-user-row__status">{{ user.status }}</span>
-          <span>{{ user.lastAccess }}</span>
-        </article>
-      }
-    </main>
+        } @else if (filteredUsers().length === 0) {
+          <div class="admin-users__empty">
+            <span aria-hidden="true">U</span>
+            <h2>No hay usuarios para este filtro</h2>
+            <p>Cambia el filtro, limpia la busqueda o actualiza la informacion.</p>
+          </div>
+        } @else {
+          @for (user of filteredUsers(); track trackUser($index, user)) {
+            <button
+              class="admin-user-card"
+              type="button"
+              [class.admin-user-card--selected]="isSelectedUser(user)"
+              (click)="selectUser(user)"
+            >
+              <span class="admin-user-card__status" [attr.data-tone]="statusTone(user)">
+                {{ statusLabel(user) }}
+              </span>
+              <span class="admin-user-card__body">
+                <strong>{{ userName(user) }}</strong>
+                <small>{{ user.correo || 'Correo no registrado' }}</small>
+                <em>
+                  {{ hasPhone(user) ? user.telefono : 'Telefono no registrado' }}
+                </em>
+              </span>
+              <span class="admin-user-card__arrow" aria-hidden="true">&rsaquo;</span>
+            </button>
+          }
+        }
+      </main>
+
+      <aside class="admin-user-detail" aria-label="Detalle de usuario seleccionado">
+        @if (selectedUser(); as user) {
+          <header class="admin-user-detail__header">
+            <div>
+              <span class="admin-user-card__status" [attr.data-tone]="statusTone(user)">
+                {{ statusLabel(user) }}
+              </span>
+              <h2>{{ userName(user) }}</h2>
+              <p>
+                Cuenta gestionable vinculada al usuario #{{ user.idUsuario }}. Las cuentas
+                administrativas quedan fuera de este modulo.
+              </p>
+            </div>
+          </header>
+
+          <dl class="admin-user-detail__data">
+            <div>
+              <dt>Correo</dt>
+              <dd>{{ user.correo || 'No registrado' }}</dd>
+            </div>
+            <div>
+              <dt>Telefono</dt>
+              <dd>{{ user.telefono || 'No registrado' }}</dd>
+            </div>
+            <div>
+              <dt>ID usuario</dt>
+              <dd>#{{ user.idUsuario }}</dd>
+            </div>
+            <div>
+              <dt>Creacion</dt>
+              <dd>{{ formatDate(user.fechaCreacion) }}</dd>
+            </div>
+            <div>
+              <dt>Ultima actualizacion</dt>
+              <dd>{{ formatDate(user.fechaActualizacion) }}</dd>
+            </div>
+          </dl>
+
+          <section class="admin-user-detail__notice">
+            <strong>Alcance seguro</strong>
+            <p>
+              Este modulo permite consultar, desactivar y reactivar cuentas no administrativas. La
+              edicion de datos personales se mantiene fuera del panel para reducir riesgo operativo.
+            </p>
+          </section>
+
+          <section class="admin-user-detail__actions" aria-label="Acciones de usuario">
+            @if (isPendingStatusChange(user)) {
+              <p>{{ statusActionDescription(user) }}</p>
+              <div>
+                <button
+                  class="admin-user-detail__button"
+                  [class.admin-user-detail__button--danger]="user.estado"
+                  [class.admin-user-detail__button--success]="!user.estado"
+                  type="button"
+                  (click)="confirmStatusChange(user)"
+                  [disabled]="actionUserId() === user.idUsuario"
+                >
+                  {{ statusActionConfirmationLabel(user) }}
+                </button>
+                <button
+                  class="admin-user-detail__button admin-user-detail__button--ghost"
+                  type="button"
+                  (click)="cancelStatusChange()"
+                  [disabled]="actionUserId() === user.idUsuario"
+                >
+                  Cancelar
+                </button>
+              </div>
+            } @else {
+              <button
+                class="admin-user-detail__button"
+                [class.admin-user-detail__button--danger]="user.estado"
+                [class.admin-user-detail__button--success]="!user.estado"
+                type="button"
+                (click)="requestStatusChange(user)"
+                [disabled]="actionUserId() === user.idUsuario"
+              >
+                {{ statusActionLabel(user) }}
+              </button>
+            }
+          </section>
+        } @else {
+          <div class="admin-users__empty">
+            <span aria-hidden="true">U</span>
+            <h2>Selecciona un usuario</h2>
+            <p>El detalle de cuenta aparecera aqui.</p>
+          </div>
+        }
+      </aside>
+    </div>
   </div>
 </section>

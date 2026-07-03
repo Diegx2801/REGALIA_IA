@@ -45,8 +45,11 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion() {
-        return usuarioRepository.findActivosSinRolOrderByIdUsuarioAsc(ROL_ADMIN)
+    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion(UsuarioEstadoFiltro filtro) {
+        return usuarioRepository.findGestionablesSinRolOrderByIdUsuarioAsc(
+                        ROL_ADMIN,
+                        filtro.toEstadoBoolean()
+                )
                 .stream()
                 .map(usuarioMapper::toResponse)
                 .toList();
@@ -61,7 +64,7 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public UsuarioResponse buscarUsuarioGestionableAdministracionPorId(Long id) {
-        UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
+        UsuarioEntity usuario = obtenerEntidadPorId(id);
 
         validarUsuarioNoAdministrador(usuario.getIdUsuario());
 
@@ -107,14 +110,29 @@ public class UsuarioService {
     }
 
     @Transactional
-    public void desactivarUsuarioGestionableAdministracion(Long id) {
-        UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
+    public UsuarioResponse desactivarUsuarioGestionableAdministracion(Long id) {
+        UsuarioEntity usuario = obtenerEntidadPorId(id);
 
         validarUsuarioNoAdministrador(usuario.getIdUsuario());
 
         usuario.setEstado(false);
 
-        usuarioRepository.save(usuario);
+        UsuarioEntity usuarioActualizado = usuarioRepository.saveAndFlush(usuario);
+
+        return usuarioMapper.toResponse(usuarioActualizado);
+    }
+
+    @Transactional
+    public UsuarioResponse reactivarUsuarioGestionableAdministracion(Long id) {
+        UsuarioEntity usuario = obtenerEntidadPorId(id);
+
+        validarUsuarioNoAdministrador(usuario.getIdUsuario());
+
+        usuario.setEstado(true);
+
+        UsuarioEntity usuarioActualizado = usuarioRepository.saveAndFlush(usuario);
+
+        return usuarioMapper.toResponse(usuarioActualizado);
     }
 
     @Transactional(readOnly = true)
@@ -160,6 +178,11 @@ public class UsuarioService {
         return usuarioRepository.findById(id)
                 .filter(UsuarioEntity::getEstado)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario con ID: " + id));
+    }
+
+    private UsuarioEntity obtenerEntidadPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontrÃ³ el usuario con ID: " + id));
     }
 
     private UsuarioEntity obtenerEntidadActivaPorCorreo(String correo) {

@@ -18,7 +18,7 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
     @Query("""
             SELECT u
             FROM UsuarioEntity u
-            WHERE u.estado = true
+            WHERE (:estado IS NULL OR u.estado = :estado)
               AND NOT EXISTS (
                   SELECT 1
                   FROM UsuarioRolEntity ur
@@ -28,7 +28,10 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
               )
             ORDER BY u.idUsuario ASC
             """)
-    List<UsuarioEntity> findActivosSinRolOrderByIdUsuarioAsc(@Param("nombreRol") String nombreRol);
+    List<UsuarioEntity> findGestionablesSinRolOrderByIdUsuarioAsc(
+            @Param("nombreRol") String nombreRol,
+            @Param("estado") Boolean estado
+    );
 
     Optional<UsuarioEntity> findByCorreoIgnoreCaseAndEstadoTrue(String correo);
 

@@ -2,7 +2,7 @@
   display: block;
 }
 
-.admin-users {
+.admin-catalogs {
   background:
     radial-gradient(circle at 88% 4%, rgba(214, 168, 62, 0.14), transparent 19rem),
     linear-gradient(180deg, #fbf6f1 0%, #f7efe8 100%);
@@ -10,24 +10,24 @@
   padding: clamp(1rem, 2vw, 1.6rem) clamp(1rem, 2vw, 2rem) 3rem;
 }
 
-.admin-users__container {
+.admin-catalogs__container {
   display: grid;
   gap: 1rem;
   margin: 0 auto;
   max-width: 1500px;
 }
 
-.admin-users__header,
-.admin-users__metrics article,
-.admin-users__toolbar,
-.admin-users__list,
-.admin-user-detail {
+.admin-catalogs__header,
+.admin-catalogs__metrics article,
+.admin-catalogs__toolbar,
+.admin-catalogs__list,
+.admin-catalog-detail {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(234, 219, 208, 0.92);
   box-shadow: var(--shadow-soft);
 }
 
-.admin-users__header {
+.admin-catalogs__header {
   align-items: center;
   border-radius: 20px;
   display: flex;
@@ -36,9 +36,9 @@
   padding: clamp(1rem, 2vw, 1.4rem);
 }
 
-.admin-users__eyebrow,
-.admin-users__metrics span,
-.admin-users__search span {
+.admin-catalogs__eyebrow,
+.admin-catalogs__metrics span,
+.admin-catalogs__search span {
   color: var(--color-primary);
   font-size: 0.7rem;
   font-weight: 900;
@@ -46,106 +46,121 @@
   text-transform: uppercase;
 }
 
-.admin-users__header h1 {
+.admin-catalogs__header h1,
+.admin-catalog-detail h2 {
   color: var(--color-text);
-  font-size: clamp(1.8rem, 2.4vw, 2.5rem);
   margin: 0.25rem 0 0.35rem;
 }
 
-.admin-users__header p,
-.admin-user-card small,
-.admin-user-card em,
-.admin-user-detail p,
-.admin-user-detail dd,
-.admin-user-detail__notice p,
-.admin-user-detail__actions p {
+.admin-catalogs__header h1 {
+  font-size: clamp(1.8rem, 2.4vw, 2.5rem);
+}
+
+.admin-catalogs__header p,
+.admin-catalog-card small,
+.admin-catalog-card em,
+.admin-catalog-detail p,
+.admin-catalog-detail dd {
   color: var(--color-muted);
 }
 
-.admin-users__header p {
+.admin-catalogs__header p {
   line-height: 1.55;
   margin: 0;
-  max-width: 54rem;
+  max-width: 57rem;
 }
 
-.admin-users__refresh,
-.admin-users__filters button,
-.admin-users__search button,
-.admin-user-detail__button {
+.admin-catalogs__refresh,
+.admin-catalogs__tabs button,
+.admin-catalogs__search button {
   border: 0;
   border-radius: var(--radius-pill);
   cursor: pointer;
   font-weight: 900;
 }
 
-.admin-users__refresh {
+.admin-catalogs__refresh {
   background: var(--brand-gradient);
   color: #fff;
   min-height: 2.7rem;
   padding: 0.7rem 1rem;
 }
 
-.admin-users__refresh:disabled,
-.admin-user-detail__button:disabled {
+.admin-catalogs__refresh:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-.admin-users__metrics {
+.admin-catalogs__metrics {
   display: grid;
   gap: 0.85rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.admin-users__metrics article {
+.admin-catalogs__metrics article {
   border-radius: 16px;
   display: grid;
   gap: 0.15rem;
   padding: 0.95rem;
 }
 
-.admin-users__metrics strong {
+.admin-catalogs__metrics strong {
   color: var(--color-text);
   font-family: var(--font-display);
   font-size: 2rem;
   line-height: 1.1;
 }
 
-.admin-users__toolbar {
-  align-items: center;
+.admin-catalogs__toolbar {
   border-radius: 18px;
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.36fr);
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.34fr);
   padding: 0.45rem;
 }
 
-.admin-users__filters {
+.admin-catalogs__tabs {
   display: flex;
   gap: 0.45rem;
   overflow-x: auto;
 }
 
-.admin-users__filters button {
+.admin-catalogs__tabs button {
+  align-items: center;
   background: transparent;
   color: var(--color-text);
+  display: inline-flex;
   flex: 0 0 auto;
+  gap: 0.45rem;
   padding: 0.62rem 0.9rem;
 }
 
-.admin-users__filters .admin-users__filter--active {
+.admin-catalogs__tabs small {
+  background: #f3e9e3;
+  border-radius: 999px;
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  padding: 0.18rem 0.45rem;
+}
+
+.admin-catalogs__tabs .admin-catalogs__tab--active {
   background: var(--color-primary);
   color: #fff;
 }
 
-.admin-users__search {
+.admin-catalogs__tabs .admin-catalogs__tab--active small {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.admin-catalogs__search {
   align-items: center;
   display: grid;
   gap: 0.45rem;
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
-.admin-users__search input {
+.admin-catalogs__search input {
   background: #fff;
   border: 1px solid rgba(234, 219, 208, 0.92);
   border-radius: var(--radius-pill);
@@ -155,14 +170,14 @@
   width: 100%;
 }
 
-.admin-users__search button {
+.admin-catalogs__search button {
   background: #f3e9e3;
   color: var(--color-primary);
   min-height: 2.45rem;
   padding: 0.55rem 0.85rem;
 }
 
-.admin-users__message {
+.admin-catalogs__message {
   border-radius: 14px;
   font-size: 0.86rem;
   font-weight: 800;
@@ -170,38 +185,32 @@
   padding: 0.8rem 1rem;
 }
 
-.admin-users__message--error {
+.admin-catalogs__message--error {
   background: #fff0ef;
   border: 1px solid rgba(180, 60, 66, 0.22);
   color: #8c2530;
 }
 
-.admin-users__message--success {
-  background: var(--color-success-soft);
-  border: 1px solid rgba(39, 122, 90, 0.2);
-  color: var(--color-success);
-}
-
-.admin-users__workspace {
+.admin-catalogs__workspace {
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.48fr);
 }
 
-.admin-users__list,
-.admin-user-detail {
+.admin-catalogs__list,
+.admin-catalog-detail {
   border-radius: 18px;
   min-height: 32rem;
   padding: 0.8rem;
 }
 
-.admin-users__list {
+.admin-catalogs__list {
   align-content: start;
   display: grid;
   gap: 0.7rem;
 }
 
-.admin-user-card {
+.admin-catalog-card {
   align-items: center;
   background: #fff;
   border: 1px solid rgba(234, 219, 208, 0.92);
@@ -215,14 +224,14 @@
   text-align: left;
 }
 
-.admin-user-card:hover,
-.admin-user-card--selected {
+.admin-catalog-card:hover,
+.admin-catalog-card--selected {
   border-color: rgba(99, 37, 73, 0.28);
   box-shadow: var(--shadow-xs);
   transform: translateY(-1px);
 }
 
-.admin-user-card__status {
+.admin-catalog-card__status {
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 950;
@@ -230,29 +239,34 @@
   text-transform: uppercase;
 }
 
-.admin-user-card__status[data-tone='success'] {
+.admin-catalog-card__status[data-tone='success'] {
   background: var(--color-success-soft);
   color: var(--color-success);
 }
 
-.admin-user-card__status[data-tone='danger'] {
+.admin-catalog-card__status[data-tone='danger'] {
   background: #fff0ef;
   color: #8c2530;
 }
 
-.admin-user-card__body {
+.admin-catalog-card__status[data-tone='neutral'] {
+  background: #f3e9e3;
+  color: var(--color-muted);
+}
+
+.admin-catalog-card__body {
   display: grid;
   gap: 0.18rem;
   min-width: 0;
 }
 
-.admin-user-card strong {
+.admin-catalog-card strong {
   color: var(--color-text);
   font-size: 1rem;
 }
 
-.admin-user-card small,
-.admin-user-card em {
+.admin-catalog-card small,
+.admin-catalog-card em {
   font-size: 0.78rem;
   font-style: normal;
   overflow: hidden;
@@ -260,12 +274,12 @@
   white-space: nowrap;
 }
 
-.admin-user-card__arrow {
+.admin-catalog-card__arrow {
   color: var(--color-muted);
   font-size: 1.35rem;
 }
 
-.admin-user-detail {
+.admin-catalog-detail {
   align-content: start;
   display: grid;
   gap: 1rem;
@@ -273,36 +287,45 @@
   top: 6rem;
 }
 
-.admin-user-detail__header {
+.admin-catalog-detail__summary,
+.admin-catalog-detail__notice {
+  background: #fbf6f1;
+  border: 1px solid rgba(234, 219, 208, 0.92);
+  border-radius: 16px;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem;
+}
+
+.admin-catalog-detail__header {
   display: grid;
   gap: 0.7rem;
 }
 
-.admin-user-detail h2 {
-  color: var(--color-text);
+.admin-catalog-detail__header h2,
+.admin-catalog-detail__summary h2 {
   font-size: 1.45rem;
-  margin: 0.55rem 0 0.3rem;
 }
 
-.admin-user-detail p {
+.admin-catalog-detail p {
   line-height: 1.55;
   margin: 0;
 }
 
-.admin-user-detail__data {
+.admin-catalog-detail__data {
   display: grid;
   gap: 0.65rem;
   margin: 0;
 }
 
-.admin-user-detail__data div {
+.admin-catalog-detail__data div {
   border-bottom: 1px solid rgba(234, 219, 208, 0.84);
   display: grid;
   gap: 0.1rem;
   padding-bottom: 0.65rem;
 }
 
-.admin-user-detail dt {
+.admin-catalog-detail dt {
   color: var(--color-primary);
   font-size: 0.68rem;
   font-weight: 900;
@@ -310,50 +333,15 @@
   text-transform: uppercase;
 }
 
-.admin-user-detail dd {
+.admin-catalog-detail dd {
   margin: 0;
 }
 
-.admin-user-detail__notice,
-.admin-user-detail__actions {
-  background: #fbf6f1;
-  border: 1px solid rgba(234, 219, 208, 0.92);
-  border-radius: 16px;
-  display: grid;
-  gap: 0.65rem;
-  padding: 0.9rem;
-}
-
-.admin-user-detail__notice strong {
+.admin-catalog-detail__notice strong {
   color: var(--color-text);
 }
 
-.admin-user-detail__actions div {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.admin-user-detail__button {
-  min-height: 2.7rem;
-  padding: 0.68rem 0.9rem;
-}
-
-.admin-user-detail__button--danger {
-  background: #fff0ef;
-  color: #8c2530;
-}
-
-.admin-user-detail__button--success {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.admin-user-detail__button--ghost {
-  background: #f3e9e3;
-  color: var(--color-primary);
-}
-
-.admin-users__empty {
+.admin-catalogs__empty {
   align-content: center;
   display: grid;
   justify-items: center;
@@ -362,7 +350,7 @@
   text-align: center;
 }
 
-.admin-users__empty span {
+.admin-catalogs__empty span {
   align-items: center;
   background: #f4edf2;
   border-radius: 18px;
@@ -375,40 +363,40 @@
   width: 3.2rem;
 }
 
-.admin-users__empty h2 {
+.admin-catalogs__empty h2 {
   color: var(--color-text);
   font-size: 1.25rem;
   margin: 0 0 0.35rem;
 }
 
-.admin-users__empty p {
+.admin-catalogs__empty p {
   color: var(--color-muted);
   margin: 0;
 }
 
 @media (max-width: 1199.98px) {
-  .admin-users__workspace,
-  .admin-users__toolbar {
+  .admin-catalogs__workspace,
+  .admin-catalogs__toolbar {
     grid-template-columns: 1fr;
   }
 
-  .admin-user-detail {
+  .admin-catalog-detail {
     position: static;
   }
 }
 
 @media (max-width: 767.98px) {
-  .admin-users__header {
+  .admin-catalogs__header {
     align-items: flex-start;
     display: grid;
   }
 
-  .admin-users__metrics {
+  .admin-catalogs__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-user-card,
-  .admin-users__search {
+  .admin-catalog-card,
+  .admin-catalogs__search {
     grid-template-columns: minmax(0, 1fr);
   }
 }

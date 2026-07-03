@@ -2,6 +2,7 @@ package com.regalia.backend.usuario.api;
 
 import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.usuario.api.dto.UsuarioResponse;
+import com.regalia.backend.usuario.application.UsuarioEstadoFiltro;
 import com.regalia.backend.usuario.application.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,11 @@ public class AdminUsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UsuarioResponse>>> listarUsuariosGestionablesAdministracion() {
-        List<UsuarioResponse> usuarios = usuarioService.listarUsuariosGestionablesAdministracion();
+    public ResponseEntity<ApiResponse<List<UsuarioResponse>>> listarUsuariosGestionablesAdministracion(
+            @RequestParam(defaultValue = "ACTIVO") String estado
+    ) {
+        UsuarioEstadoFiltro filtro = UsuarioEstadoFiltro.desde(estado);
+        List<UsuarioResponse> usuarios = usuarioService.listarUsuariosGestionablesAdministracion(filtro);
 
         return ResponseEntity.ok(
                 ApiResponse.success(usuarios)
@@ -39,12 +43,21 @@ public class AdminUsuarioController {
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> desactivar(@PathVariable Long id) {
-        usuarioService.desactivarUsuarioGestionableAdministracion(id);
+    @PatchMapping("/{id}/desactivar")
+    public ResponseEntity<ApiResponse<UsuarioResponse>> desactivar(@PathVariable Long id) {
+        UsuarioResponse usuario = usuarioService.desactivarUsuarioGestionableAdministracion(id);
 
         return ResponseEntity.ok(
-                ApiResponse.success(null, "Usuario desactivado correctamente")
+                ApiResponse.success(usuario, "Usuario desactivado correctamente")
+        );
+    }
+
+    @PatchMapping("/{id}/reactivar")
+    public ResponseEntity<ApiResponse<UsuarioResponse>> reactivar(@PathVariable Long id) {
+        UsuarioResponse usuario = usuarioService.reactivarUsuarioGestionableAdministracion(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(usuario, "Usuario reactivado correctamente")
         );
     }
 }

@@ -209,9 +209,7 @@ export const routes: Routes = [
       {
         path: 'pedidos',
         loadComponent: () =>
-          import('./features/marketplace-quotes/marketplace-quotes').then(
-            (m) => m.MarketplaceQuotesComponent,
-          ),
+          import('./features/admin-orders/admin-orders').then((m) => m.AdminOrdersComponent),
       },
       {
         path: 'tiendas',
@@ -220,11 +218,8 @@ export const routes: Routes = [
       },
       {
         path: 'vendedores',
-        data: { adminModule: 'sellers' },
         loadComponent: () =>
-          import('./features/admin-module-placeholder/admin-module-placeholder').then(
-            (m) => m.AdminModulePlaceholderComponent,
-          ),
+          import('./features/admin-sellers/admin-sellers').then((m) => m.AdminSellersComponent),
       },
       {
         path: 'usuarios',
@@ -233,11 +228,8 @@ export const routes: Routes = [
       },
       {
         path: 'catalogos',
-        data: { adminModule: 'catalogs' },
         loadComponent: () =>
-          import('./features/admin-module-placeholder/admin-module-placeholder').then(
-            (m) => m.AdminModulePlaceholderComponent,
-          ),
+          import('./features/admin-catalogs/admin-catalogs').then((m) => m.AdminCatalogsComponent),
       },
       {
         path: 'perfil',
