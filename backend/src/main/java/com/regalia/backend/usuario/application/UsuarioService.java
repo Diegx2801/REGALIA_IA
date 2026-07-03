@@ -223,7 +223,7 @@ public class UsuarioService {
 
     private UsuarioEntity obtenerEntidadPorId(Long id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontrÃ³ el usuario con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario con ID: " + id));
     }
 
     private UsuarioEntity obtenerEntidadActivaPorCorreo(String correo) {

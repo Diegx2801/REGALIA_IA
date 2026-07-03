@@ -4,11 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { RegaliaProvider } from '../../shared/models/regalia.model';
 
-<<<<<<< HEAD
 // Producto publicado localmente por el vendedor antes de conectar persistencia backend.
-=======
-// Producto publicado localmente por el proveedor antes de conectar persistencia con backend.
->>>>>>> origin/main
 interface ProviderCatalogItem {
   id: number;
   name: string;
@@ -108,11 +104,7 @@ export class ProviderProfileComponent {
       price: item.price,
       status: item.status,
       imageName: item.imageName,
-<<<<<<< HEAD
       description: 'Producto publicado en catalogo del vendedor.',
-=======
-      description: 'Producto publicado en catálogo del proveedor.',
->>>>>>> origin/main
     });
   }
 
@@ -126,11 +118,7 @@ export class ProviderProfileComponent {
   }
 
   onImageSelected(event: Event): void {
-<<<<<<< HEAD
     // Convierte la imagen seleccionada en vista previa local para mejorar la revision del vendedor.
-=======
-    // Convierte la imagen seleccionada en vista previa local para mejorar la revisión del proveedor.
->>>>>>> origin/main
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 

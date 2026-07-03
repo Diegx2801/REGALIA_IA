@@ -46,11 +46,7 @@ export class BuilderComponent {
     {
       phase: 'recommendations',
       label: 'Recomendaciones',
-<<<<<<< HEAD
-      description: 'Vendedores ideales para ti',
-=======
       description: 'Productos ideales para ti',
->>>>>>> origin/main
     },
     {
       phase: 'reservation',
@@ -168,8 +164,8 @@ export class BuilderComponent {
       selected.producto.deliveryTime,
       selected.producto.stockStatus,
       proveedor
-        ? `★ ${proveedor.rating} · ${proveedor.reviews} reseñas`
-        : `★ ${selected.producto.rating} · ${selected.producto.reviews} reseñas`,
+        ? `* ${proveedor.rating} · ${proveedor.reviews} reseñas`
+        : `* ${selected.producto.rating} · ${selected.producto.reviews} reseñas`,
     ];
   });
 
@@ -262,16 +258,7 @@ export class BuilderComponent {
     this.recommendations.set(matches);
     this.selectedRecommendation.set(matches[0] ?? null);
     this.confirmedRecommendation.set(null);
-<<<<<<< HEAD
-
-    this.searchFeedback.set(
-      matches.length > 0
-        ? `${matches.length} vendedores compatibles encontrados.`
-        : 'No encontramos vendedores compatibles con esos filtros.',
-    );
-=======
     this.searchFeedback.set(result.mensaje);
->>>>>>> origin/main
 
     if (shouldFocusResults) {
       this.focusResults();

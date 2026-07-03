@@ -12,7 +12,7 @@
         </div>
 
         <div class="builder-hero__badge" aria-hidden="true">
-          ✨ Asistente REGALIA
+          * Asistente REGALIA
         </div>
       </div>
     </header>
@@ -29,7 +29,7 @@
         >
           <span class="builder-stepper__number">
             @if (isStepCompleted(step.phase)) {
-              ✓
+              &#10003;
             } @else {
               {{ index + 1 }}
             }
@@ -171,7 +171,7 @@
 
               <button class="builder-primary-action" type="button" (click)="continueToInterpretation()">
                 Continuar a interpretación IA
-                <span aria-hidden="true">→</span>
+                <span aria-hidden="true">-></span>
               </button>
             </form>
 
@@ -235,11 +235,7 @@
                   <h2 class="builder-card__title">Interpretación IA</h2>
                   <p class="builder-card__text">
                     REGALIA analizó tu necesidad y organizó los criterios principales para buscar
-<<<<<<< HEAD
-                    vendedores compatibles.
-=======
                     productos compatibles.
->>>>>>> origin/main
                   </p>
                 </div>
 
@@ -275,15 +271,11 @@
               }
 
               <aside class="builder-tip builder-tip--soft">
-                <span class="builder-tip__icon" aria-hidden="true">✨</span>
+                <span class="builder-tip__icon" aria-hidden="true">*</span>
                 <div>
                   <strong>¿Qué hará REGALIA ahora?</strong>
                   <p>
-<<<<<<< HEAD
-                    Comparará vendedores por categoría, estilo, presupuesto, reputación y
-=======
                     Comparará productos por categoría, estilo, presupuesto, reputación y
->>>>>>> origin/main
                     disponibilidad.
                   </p>
                 </div>
@@ -300,7 +292,7 @@
                   (click)="continueToRecommendations()"
                 >
                   Ver recomendaciones
-                  <span aria-hidden="true">→</span>
+                  <span aria-hidden="true">-></span>
                 </button>
               </div>
             </article>
@@ -323,11 +315,7 @@
                       Recomendador de productos
                     </h2>
                     <p class="builder-card__text">
-<<<<<<< HEAD
-                      Estos vendedores son los más compatibles con tu solicitud.
-=======
                       Estos productos son los más compatibles con tu solicitud.
->>>>>>> origin/main
                     </p>
                   </div>
 
@@ -383,7 +371,7 @@
                         <small>Seña S/ {{ recommendation.reserva.reservation }}</small>
                       </span>
 
-                      <span class="builder-recommendation-card__arrow" aria-hidden="true">›</span>
+                      <span class="builder-recommendation-card__arrow" aria-hidden="true">&rsaquo;</span>
                     </button>
                   }
                 </div>
@@ -398,11 +386,7 @@
 
               <aside class="builder-card builder-provider-summary">
                 @if (selectedRecommendation(); as selected) {
-<<<<<<< HEAD
-                  <span class="builder-card__eyebrow">Vendedor recomendado</span>
-=======
                   <span class="builder-card__eyebrow">Producto recomendado</span>
->>>>>>> origin/main
 
                   <h3 class="builder-provider-summary__title">
                     {{ selected.producto.title }}
@@ -445,7 +429,7 @@
                     (click)="continueToReservation()"
                   >
                     Preparar reserva
-                    <span aria-hidden="true">→</span>
+                    <span aria-hidden="true">-></span>
                   </button>
                 }
               </aside>
@@ -462,11 +446,7 @@
                     <span class="builder-card__eyebrow">Fase 4 de 4</span>
                     <h2 class="builder-card__title">Reserva inteligente</h2>
                     <p class="builder-card__text">
-<<<<<<< HEAD
-                      Revisa el resumen antes de preparar la reserva con el vendedor recomendado.
-=======
                       Revisa el resumen antes de preparar la reserva con el producto recomendado.
->>>>>>> origin/main
                     </p>
                   </div>
 
@@ -475,17 +455,11 @@
 
                 <div class="builder-reservation-layout">
                   <section class="builder-provider-final">
-<<<<<<< HEAD
-                    <span>Vendedor seleccionado</span>
-                    <h3>{{ selected.provider.businessName }}</h3>
-                    <p>{{ selected.provider.description }}</p>
-=======
                     <span>Producto seleccionado</span>
                     <h3>{{ selected.producto.title }}</h3>
                     <p>{{ selected.producto.description }}</p>
 
                     <p>Preparado por {{ selected.proveedor?.businessName || selected.producto.provider }}.</p>
->>>>>>> origin/main
 
                     <div class="builder-provider-facts">
                       @for (fact of selectedProviderFacts(); track trackText($index, fact)) {
@@ -511,13 +485,8 @@
                     </div>
 
                     <div class="builder-reservation-box__total">
-<<<<<<< HEAD
                       <span>Vendedor recibe</span>
-                      <strong>S/ {{ selected.reservation.providerCredit }}</strong>
-=======
-                      <span>Proveedor recibe</span>
                       <strong>S/ {{ selected.reserva.providerCredit }}</strong>
->>>>>>> origin/main
                     </div>
                   </section>
                 </div>
@@ -555,11 +524,7 @@
                       type="button"
                       (click)="goToPhase('recommendations')"
                     >
-<<<<<<< HEAD
-                      Cambiar vendedor
-=======
                       Cambiar producto
->>>>>>> origin/main
                     </button>
 
                     <button

@@ -56,15 +56,9 @@ export class RegaliaPublicCatalogApiService {
       shortDescription: description,
       description,
       includes: [
-<<<<<<< HEAD
         'Producto publicado por vendedor local',
-        'Coordinacion directa desde REGALIA',
-        'Reserva segun disponibilidad del vendedor',
-=======
-        'Producto publicado por proveedor local',
         'Coordinación directa desde REGALIA',
         'Reserva según disponibilidad del vendedor',
->>>>>>> origin/main
       ],
       deliveryTime: 'Coordinar con vendedor',
       stockStatus: stock > 0 ? `Disponible (${stock})` : 'Agotado',

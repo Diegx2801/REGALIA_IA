@@ -182,7 +182,7 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
     ],
     deliveryTime: 'Entrega en 24 a 48 horas',
     stockStatus: 'Disponible esta semana',
-    personalization: 'Sabor, nombre y temática bÃ¡sica',
+    personalization: 'Sabor, nombre y temática básica',
     maxQuantity: 3,
   },
   {
