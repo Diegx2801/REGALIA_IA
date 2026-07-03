@@ -32,7 +32,7 @@ export class RegaliaAdminService {
         hint: 'ingreso estimado de plataforma',
       },
       {
-        label: 'Proveedores',
+        label: 'Vendedores',
         value: String(this.providerService.getProviders().length),
         hint: 'perfiles visibles en Trujillo',
       },

@@ -23,8 +23,16 @@ public class AdminPedidoController {
     private final PedidoService pedidoService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidosAdmin() {
-        List<PedidoResponse> pedidos = pedidoService.listarPedidosAdmin();
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidosAdmin(
+            @RequestParam(required = false) String estadoPago,
+            @RequestParam(required = false) String searchField,
+            @RequestParam(required = false) String search
+    ) {
+        List<PedidoResponse> pedidos = pedidoService.listarPedidosAdmin(
+                estadoPago,
+                searchField,
+                search
+        );
 
         return ResponseEntity.ok(
                 ApiResponse.success(pedidos)

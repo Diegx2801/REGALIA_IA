@@ -21,16 +21,19 @@ type LoginEndpoint = typeof API_ENDPOINTS.auth.login | typeof API_ENDPOINTS.auth
 export class AuthSessionService {
   private readonly http = inject(HttpClient);
   private readonly authStorage = inject(AuthStorageService);
-  private readonly userSignal = signal<SessionUser | null>(this.authStorage.read());
+  private readonly activeContextSignal = signal<AuthContext>('PUBLIC');
+  private readonly publicUserSignal = signal<SessionUser | null>(this.authStorage.read('PUBLIC'));
+  private readonly adminUserSignal = signal<SessionUser | null>(this.authStorage.read('ADMIN'));
 
-  readonly currentUser = this.userSignal.asReadonly();
+  readonly currentUser = computed(() => this.sessionFor(this.activeContextSignal()));
 
-  readonly isLoggedIn = computed(() => {
-    const session = this.currentUser();
-    return session !== null && session.expiresAt > Date.now();
-  });
+  readonly isLoggedIn = computed(() => this.isSessionActive(this.currentUser()));
 
   readonly role = computed(() => this.currentUser()?.role ?? null);
+
+  setActiveContext(context: AuthContext): void {
+    this.activeContextSignal.set(context);
+  }
 
   login(request: LoginRequest, remember: boolean): Observable<SessionUser> {
     return this.loginWithContext(API_ENDPOINTS.auth.login, request, remember, 'PUBLIC');
@@ -59,13 +62,13 @@ export class AuthSessionService {
     if (!current) return;
 
     const updated = this.withIdentity(current, nombres, apellidos);
-    const remember = this.authStorage.isPersistent();
+    const remember = this.authStorage.isPersistent(current.authContext);
     this.persistSession(updated, remember);
   }
 
-  logout(): void {
-    this.userSignal.set(null);
-    this.authStorage.clear();
+  logout(context = this.activeContextSignal()): void {
+    this.authStorage.clear(context);
+    this.setSessionFor(context, null);
   }
 
   homeForCurrentUser(): string {
@@ -75,17 +78,17 @@ export class AuthSessionService {
       return '/admin/resumen';
     }
 
-    if (session?.roles.includes('Proveedor')) {
-      return '/proveedor/resumen';
+    if (session?.roles.includes('Vendedor')) {
+      return '/vendedor/resumen';
     }
 
     return '/cliente/inicio';
   }
 
   canAccess(roles: UserRole[], requiredContext?: AuthContext): boolean {
-    const session = this.currentUser();
+    const session = requiredContext ? this.sessionFor(requiredContext) : this.currentUser();
 
-    if (!session) return false;
+    if (!this.isSessionActive(session)) return false;
 
     if (requiredContext && session.authContext !== requiredContext) {
       return false;
@@ -95,7 +98,11 @@ export class AuthSessionService {
   }
 
   hasAuthContext(requiredContext: AuthContext): boolean {
-    return this.currentUser()?.authContext === requiredContext;
+    return this.isSessionActive(this.sessionFor(requiredContext));
+  }
+
+  isLoggedInFor(context: AuthContext): boolean {
+    return this.isSessionActive(this.sessionFor(context));
   }
 
   private loginWithContext(
@@ -153,18 +160,36 @@ export class AuthSessionService {
 
   private persistSession(user: SessionUser, remember: boolean): void {
     this.authStorage.save(user, remember);
-    this.userSignal.set(user);
+    this.setSessionFor(user.authContext, user);
+    this.activeContextSignal.set(user.authContext);
+  }
+
+  private sessionFor(context: AuthContext): SessionUser | null {
+    return context === 'ADMIN' ? this.adminUserSignal() : this.publicUserSignal();
+  }
+
+  private setSessionFor(context: AuthContext, session: SessionUser | null): void {
+    if (context === 'ADMIN') {
+      this.adminUserSignal.set(session);
+      return;
+    }
+
+    this.publicUserSignal.set(session);
+  }
+
+  private isSessionActive(session: SessionUser | null): session is SessionUser {
+    return session !== null && session.expiresAt > Date.now();
   }
 
   private toUserRole(role: BackendRole): UserRole {
     if (role === 'ADMIN') return 'Administrador';
-    if (role === 'VENDEDOR') return 'Proveedor';
+    if (role === 'VENDEDOR') return 'Vendedor';
     return 'Cliente';
   }
 
   private resolvePrimaryRole(roles: UserRole[]): UserRole {
     if (roles.includes('Administrador')) return 'Administrador';
-    if (roles.includes('Proveedor')) return 'Proveedor';
+    if (roles.includes('Vendedor')) return 'Vendedor';
     return 'Cliente';
   }
 

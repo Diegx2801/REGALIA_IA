@@ -1,0 +1,185 @@
+<section class="admin-sellers">
+  <div class="admin-sellers__container rg-page__container rg-page__container--wide">
+    <header class="admin-sellers__header">
+      <div>
+        <span class="admin-sellers__eyebrow">Gestion comercial</span>
+        <h1>Vendedores</h1>
+        <p>
+          Supervisa perfiles vendedores, verificacion documental y actividad de tiendas sin
+          mezclarlo con el portal publico.
+        </p>
+      </div>
+
+      <button class="admin-sellers__refresh" type="button" (click)="refresh()" [disabled]="isLoading()">
+        Actualizar
+      </button>
+    </header>
+
+    <section class="admin-sellers__metrics" aria-label="Resumen administrativo de vendedores">
+      <article>
+        <span>Total</span>
+        <strong>{{ totalCount() }}</strong>
+      </article>
+      <article>
+        <span>Activos</span>
+        <strong>{{ activeCount() }}</strong>
+      </article>
+      <article>
+        <span>Verificados</span>
+        <strong>{{ verifiedCount() }}</strong>
+      </article>
+      <article>
+        <span>Con tiendas</span>
+        <strong>{{ withStoresCount() }}</strong>
+      </article>
+    </section>
+
+    <section class="admin-sellers__toolbar" aria-label="Filtros de vendedores">
+      <nav class="admin-sellers__filters" aria-label="Filtrar vendedores">
+        @for (option of filterOptions; track option.value) {
+          <button
+            type="button"
+            [class.admin-sellers__filter--active]="filter() === option.value"
+            (click)="setFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </nav>
+
+      <label class="admin-sellers__search-field">
+        <span>Buscar por</span>
+        <select [value]="searchField()" (change)="onSearchFieldChange($event)">
+          @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="admin-sellers__search">
+        <span>Valor</span>
+        <input
+          type="search"
+          [placeholder]="searchPlaceholder()"
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+        />
+        @if (searchTerm()) {
+          <button type="button" (click)="clearSearch()" aria-label="Limpiar busqueda">Limpiar</button>
+        }
+      </label>
+    </section>
+
+    @if (errorMessage()) {
+      <p class="admin-sellers__message admin-sellers__message--error">{{ errorMessage() }}</p>
+    }
+
+    <div class="admin-sellers__workspace">
+      <main class="admin-sellers__list" aria-label="Vendedores administrativos">
+        @if (isLoading()) {
+          <div class="admin-sellers__empty">
+            <span aria-hidden="true">V</span>
+            <h2>Cargando vendedores</h2>
+            <p>Estamos consultando la informacion administrativa del backend.</p>
+          </div>
+        } @else if (sellers().length === 0) {
+          <div class="admin-sellers__empty">
+            <span aria-hidden="true">V</span>
+            <h2>No hay vendedores para este filtro</h2>
+            <p>Cambia el filtro, limpia la busqueda o actualiza la informacion.</p>
+          </div>
+        } @else {
+          @for (seller of sellers(); track trackSeller($index, seller)) {
+            <button
+              class="admin-seller-card"
+              type="button"
+              [class.admin-seller-card--selected]="isSelectedSeller(seller)"
+              (click)="selectSeller(seller)"
+            >
+              <span class="admin-seller-card__status" [attr.data-tone]="seller.estado ? 'success' : 'danger'">
+                {{ statusLabel(seller) }}
+              </span>
+              <span class="admin-seller-card__body">
+                <strong>{{ sellerName(seller) }}</strong>
+                <small>{{ seller.correoUsuario || 'Correo no registrado' }}</small>
+                <em>
+                  {{ verificationLabel(seller) }} ·
+                  {{ seller.cantidadTiendasActivas ?? 0 }}/{{ seller.cantidadTiendasTotales ?? 0 }}
+                  tiendas activas
+                </em>
+              </span>
+              <span class="admin-seller-card__arrow" aria-hidden="true">›</span>
+            </button>
+          }
+        }
+      </main>
+
+      <aside class="admin-seller-detail" aria-label="Detalle de vendedor seleccionado">
+        @if (selectedSeller(); as seller) {
+          <header class="admin-seller-detail__header">
+            <div>
+              <span class="admin-seller-card__status" [attr.data-tone]="seller.estado ? 'success' : 'danger'">
+                {{ statusLabel(seller) }}
+              </span>
+              <h2>{{ sellerName(seller) }}</h2>
+              <p>
+                Perfil comercial vinculado al usuario #{{ seller.idUsuario }}. Las revisiones de
+                visibilidad se gestionan desde Tiendas.
+              </p>
+            </div>
+          </header>
+
+          <dl class="admin-seller-detail__data">
+            <div>
+              <dt>Correo</dt>
+              <dd>{{ seller.correoUsuario || 'No registrado' }}</dd>
+            </div>
+            <div>
+              <dt>Verificacion</dt>
+              <dd>{{ verificationLabel(seller) }}</dd>
+            </div>
+            <div>
+              <dt>Tiendas activas</dt>
+              <dd>{{ seller.cantidadTiendasActivas ?? 0 }}</dd>
+            </div>
+            <div>
+              <dt>Tiendas totales</dt>
+              <dd>{{ seller.cantidadTiendasTotales ?? 0 }}</dd>
+            </div>
+            <div>
+              <dt>ID vendedor</dt>
+              <dd>#{{ seller.idVendedor }}</dd>
+            </div>
+            <div>
+              <dt>ID usuario</dt>
+              <dd>#{{ seller.idUsuario }}</dd>
+            </div>
+            <div>
+              <dt>Creacion</dt>
+              <dd>{{ formatDate(seller.fechaCreacion) }}</dd>
+            </div>
+            <div>
+              <dt>Ultima actualizacion</dt>
+              <dd>{{ formatDate(seller.fechaActualizacion) }}</dd>
+            </div>
+          </dl>
+
+          <section class="admin-seller-detail__notice">
+            <strong>Separacion operativa</strong>
+            <p>
+              Este modulo consulta perfiles vendedores. La aprobacion, observacion o rechazo de
+              visibilidad se realiza desde el modulo Tiendas.
+            </p>
+            <a routerLink="/admin/tiendas">Ir a Tiendas</a>
+          </section>
+        } @else {
+          <div class="admin-sellers__empty">
+            <span aria-hidden="true">V</span>
+            <h2>Selecciona un vendedor</h2>
+            <p>El detalle comercial aparecera aqui.</p>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+</section>

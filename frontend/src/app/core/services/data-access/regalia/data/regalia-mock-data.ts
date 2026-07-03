@@ -141,10 +141,10 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
     imageUrl: '/images/regalia-hero-gift.png',
     imagePosition: '48% 28%',
     verified: true,
-    badges: ['Proveedor verificado', 'Mismo día'],
+    badges: ['Vendedor verificado', 'Mismo día'],
     shortDescription: 'Ramo de flores frescas con tarjeta y coordinación express.',
     description:
-      'Ramo elegante para aniversarios, cumpleaños o fechas especiales. El proveedor valida tonos disponibles y horario de entrega antes de confirmar la reserva.',
+      'Ramo elegante para aniversarios, cumpleaños o fechas especiales. El vendedor valida tonos disponibles y horario de entrega antes de confirmar la reserva.',
     includes: [
       'Flores de temporada',
       'Papel premium',

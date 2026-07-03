@@ -45,8 +45,32 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion() {
-        return usuarioRepository.findActivosSinRolOrderByIdUsuarioAsc(ROL_ADMIN)
+    public List<UsuarioResponse> listarUsuariosGestionablesAdministracion(
+            UsuarioEstadoFiltro filtro,
+            String searchField,
+            String search
+    ) {
+        UsuarioSearchField campoBusqueda = UsuarioSearchField.desde(searchField);
+        String busqueda = normalizarBusqueda(search);
+        Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+
+        if (busqueda == null) {
+            return usuarioRepository.findGestionablesSinRolPorEstadoOrderByIdUsuarioAsc(
+                            ROL_ADMIN,
+                            filtro.toEstadoBoolean()
+                    )
+                    .stream()
+                    .map(usuarioMapper::toResponse)
+                    .toList();
+        }
+
+        return usuarioRepository.findGestionablesSinRolFiltradosOrderByIdUsuarioAsc(
+                        ROL_ADMIN,
+                        filtro.toEstadoBoolean(),
+                        campoBusqueda.name(),
+                        busqueda,
+                        busquedaId
+                )
                 .stream()
                 .map(usuarioMapper::toResponse)
                 .toList();
@@ -61,7 +85,7 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public UsuarioResponse buscarUsuarioGestionableAdministracionPorId(Long id) {
-        UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
+        UsuarioEntity usuario = obtenerEntidadPorId(id);
 
         validarUsuarioNoAdministrador(usuario.getIdUsuario());
 
@@ -107,14 +131,29 @@ public class UsuarioService {
     }
 
     @Transactional
-    public void desactivarUsuarioGestionableAdministracion(Long id) {
-        UsuarioEntity usuario = obtenerEntidadActivaPorId(id);
+    public UsuarioResponse desactivarUsuarioGestionableAdministracion(Long id) {
+        UsuarioEntity usuario = obtenerEntidadPorId(id);
 
         validarUsuarioNoAdministrador(usuario.getIdUsuario());
 
         usuario.setEstado(false);
 
-        usuarioRepository.save(usuario);
+        UsuarioEntity usuarioActualizado = usuarioRepository.saveAndFlush(usuario);
+
+        return usuarioMapper.toResponse(usuarioActualizado);
+    }
+
+    @Transactional
+    public UsuarioResponse reactivarUsuarioGestionableAdministracion(Long id) {
+        UsuarioEntity usuario = obtenerEntidadPorId(id);
+
+        validarUsuarioNoAdministrador(usuario.getIdUsuario());
+
+        usuario.setEstado(true);
+
+        UsuarioEntity usuarioActualizado = usuarioRepository.saveAndFlush(usuario);
+
+        return usuarioMapper.toResponse(usuarioActualizado);
     }
 
     @Transactional(readOnly = true)
@@ -156,10 +195,35 @@ public class UsuarioService {
         }
     }
 
+    private String normalizarBusqueda(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+
+        return valor.trim();
+    }
+
+    private Long obtenerBusquedaIdSiAplica(UsuarioSearchField campoBusqueda, String busqueda) {
+        if (busqueda == null || campoBusqueda != UsuarioSearchField.ID_USUARIO) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            throw new ReglaNegocioException("El ID de usuario debe ser numerico");
+        }
+    }
+
     private UsuarioEntity obtenerEntidadActivaPorId(Long id) {
         return usuarioRepository.findById(id)
                 .filter(UsuarioEntity::getEstado)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario con ID: " + id));
+    }
+
+    private UsuarioEntity obtenerEntidadPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontrÃ³ el usuario con ID: " + id));
     }
 
     private UsuarioEntity obtenerEntidadActivaPorCorreo(String correo) {

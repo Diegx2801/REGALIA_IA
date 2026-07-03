@@ -3,7 +3,7 @@
     class="container rg-page__container rg-page__container--wide provider-profile-page__container"
   >
     <header class="provider-profile-header">
-      <span class="provider-profile-header__eyebrow">Perfil proveedor</span>
+      <span class="provider-profile-header__eyebrow">Perfil vendedor</span>
       <h1 class="provider-profile-header__title">
         Gestiona tu negocio y catálogo visible en REGALIA.
       </h1>
@@ -17,7 +17,11 @@
       <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
         <div class="profile-form__head">
           <span class="profile-form__eyebrow">Datos comerciales</span>
+<<<<<<< HEAD
+          <h2 class="profile-form__title">Informacion del vendedor</h2>
+=======
           <h2 class="profile-form__title">Información del proveedor</h2>
+>>>>>>> origin/main
         </div>
 
         <div class="profile-form__grid">
@@ -229,14 +233,18 @@
 
         @if (productSaved()) {
           <p class="profile-form__success">
+<<<<<<< HEAD
+            Producto agregado localmente al catalogo del vendedor.
+=======
             Producto agregado localmente al catálogo del proveedor.
+>>>>>>> origin/main
           </p>
         }
       </form>
     </section>
 
     <section class="provider-catalog">
-      <!-- Catalogo local con acciones de editar/eliminar para validar el flujo del proveedor. -->
+      <!-- Catalogo local con acciones de editar/eliminar para validar el flujo del vendedor. -->
       <div class="provider-catalog__head">
         <span class="provider-catalog__eyebrow">Catálogo propio</span>
         <h2 class="provider-catalog__title">Productos publicados</h2>

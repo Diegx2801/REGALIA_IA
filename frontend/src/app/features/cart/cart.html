@@ -5,8 +5,8 @@
         <span class="cart-hero__eyebrow">Carrito REGALIA</span>
         <h1>Reserva productos con precio fijo sin mezclarlo con cotizaciones personalizadas.</h1>
         <p>
-          Este carrito es para regalos listos para reservar. Si necesitas algo único o todavía no
-          tienes claro qué pedir, usa el apartado de solicitud con IA.
+          Este carrito es para regalos listos para reservar. Si necesitas algo unico o todavia no
+          tienes claro que pedir, usa el apartado de solicitud con IA.
         </p>
       </div>
       <div class="col-12 col-lg-4 cart-hero__media">
@@ -15,7 +15,7 @@
       </div>
     </header>
 
-    @if (hasItems()) {
+    @if (hasCheckoutContent()) {
       <nav class="checkout-steps" aria-label="Progreso de reserva">
         <span class="checkout-steps__item checkout-steps__item--active">Carrito</span>
         <span
@@ -24,107 +24,212 @@
             checkoutMode() === 'confirmation' || checkoutMode() === 'sent'
           "
         >
-          Confirmación
+          Pago inicial
         </span>
         <span
           class="checkout-steps__item"
           [class.checkout-steps__item--active]="checkoutMode() === 'sent'"
         >
-          Reserva preparada
+          Reserva registrada
         </span>
       </nav>
 
       <div class="row g-3 g-xxl-4 align-items-start">
         <main class="col-12 col-xl-8 col-xxl-9" aria-label="Productos del carrito">
-          <section class="cart-list card border-0 shadow-sm">
-            <div class="cart-list__head">
-              <div>
-                <span>Productos seleccionados</span>
-                <strong>{{ summary().totalItems }} item(s)</strong>
+          @if (checkoutMode() === 'sent') {
+            @if (submittedOrder(); as order) {
+              <section class="cart-list cart-list--success card border-0 shadow-sm">
+                <span class="cart-summary__eyebrow">Reserva registrada</span>
+                <h2>Pedido #{{ order.idPedido }} creado correctamente</h2>
+                <p>
+                  REGALIA registr&oacute; tu pago inicial y el vendedor podr&aacute; revisar el pedido
+                  para coordinar la preparaci&oacute;n.
+                </p>
+                <div class="cart-order-result">
+                  <div>
+                    <span>Estado</span>
+                    <strong>{{ order.estadoPedido }}</strong>
+                  </div>
+                  <div>
+                    <span>Tienda</span>
+                    <strong>{{ order.nombreTienda }}</strong>
+                  </div>
+                  <div>
+                    <span>Entrega</span>
+                    <strong>{{ order.fechaEntrega }}</strong>
+                  </div>
+                  <div>
+                    <span>Pagado</span>
+                    <strong>S/ {{ order.montoPagado }}</strong>
+                  </div>
+                </div>
+              </section>
+            }
+          } @else {
+            <section class="cart-list card border-0 shadow-sm">
+              <div class="cart-list__head">
+                <div>
+                  <span>Productos seleccionados</span>
+                  <strong>{{ summary().totalItems }} item(s)</strong>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm rounded-pill"
+                  (click)="clear()"
+                >
+                  Vaciar carrito
+                </button>
               </div>
-              <button
-                type="button"
-                class="btn btn-outline-primary btn-sm rounded-pill"
-                (click)="clear()"
-              >
-                Vaciar carrito
-              </button>
-            </div>
 
-            <div class="d-grid gap-3">
-              @for (item of items(); track trackItem($index, item)) {
-                <article class="cart-item row g-3 align-items-stretch">
-                  <div class="col-12 col-md-4 col-lg-3">
-                    <div
-                      class="cart-item__media"
-                      [style.background-image]="'url(' + item.product.imageUrl + ')'"
-                      [style.background-position]="item.product.imagePosition"
-                      aria-hidden="true"
-                    ></div>
-                  </div>
+              <div class="d-grid gap-3">
+                @for (item of items(); track trackItem($index, item)) {
+                  <article class="cart-item row g-3 align-items-stretch">
+                    <div class="col-12 col-md-4 col-lg-3">
+                      <div
+                        class="cart-item__media"
+                        [style.background-image]="'url(' + item.product.imageUrl + ')'"
+                        [style.background-position]="item.product.imagePosition"
+                        aria-hidden="true"
+                      ></div>
+                    </div>
 
-                  <div class="col-12 col-md-8 col-lg-9 cart-item__body">
-                    <div class="cart-item__top">
-                      <div>
-                        <span class="cart-item__provider">{{ item.product.provider }}</span>
-                        <h2>{{ item.product.title }}</h2>
+                    <div class="col-12 col-md-8 col-lg-9 cart-item__body">
+                      <div class="cart-item__top">
+                        <div>
+                          <span class="cart-item__provider">{{ item.product.provider }}</span>
+                          <h2>{{ item.product.title }}</h2>
+                        </div>
+                        <strong>S/ {{ item.product.price }}</strong>
                       </div>
-                      <strong>S/ {{ item.product.price }}</strong>
-                    </div>
 
-                    <p>{{ item.product.shortDescription }}</p>
+                      <p>{{ item.product.shortDescription }}</p>
 
-                    <div class="cart-item__meta">
-                      <span>{{ item.product.deliveryTime }}</span>
-                      <span>{{ item.product.stockStatus }}</span>
-                      <span>{{ item.product.personalization }}</span>
-                    </div>
+                      <div class="cart-item__meta">
+                        <span>{{ item.product.deliveryTime }}</span>
+                        <span>{{ item.product.stockStatus }}</span>
+                        <span>{{ item.product.personalization }}</span>
+                      </div>
 
-                    <div class="cart-item__actions">
-                      <div class="quantity-control" aria-label="Cantidad">
-                        <button type="button" (click)="decrease(item.product.id, item.quantity)">
-                          −
-                        </button>
-                        <input
-                          type="number"
-                          min="1"
-                          [max]="item.product.maxQuantity"
-                          [value]="item.quantity"
-                          (change)="updateQuantity(item.product.id, $any($event.target).value)"
-                        />
-                        <button type="button" (click)="increase(item.product.id, item.quantity)">
-                          +
+                      <div class="cart-item__actions">
+                        <div class="quantity-control" aria-label="Cantidad">
+                          <button type="button" (click)="decrease(item.product.id, item.quantity)">
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            [max]="item.product.maxQuantity"
+                            [value]="item.quantity"
+                            (change)="updateQuantity(item.product.id, $any($event.target).value)"
+                          />
+                          <button type="button" (click)="increase(item.product.id, item.quantity)">
+                            +
+                          </button>
+                        </div>
+                        <button
+                          class="cart-item__remove"
+                          type="button"
+                          (click)="remove(item.product.id)"
+                        >
+                          Quitar
                         </button>
                       </div>
-                      <button
-                        class="cart-item__remove"
-                        type="button"
-                        (click)="remove(item.product.id)"
-                      >
-                        Quitar
-                      </button>
                     </div>
-                  </div>
-                </article>
-              }
-            </div>
-          </section>
+                  </article>
+                }
+              </div>
+            </section>
+          }
         </main>
 
         <aside class="col-12 col-xl-4 col-xxl-3" aria-label="Resumen del carrito">
           <section class="cart-summary card border-0 shadow-sm">
             <span class="cart-summary__eyebrow">Resumen de reserva</span>
-            <h2>Confirmación segura</h2>
+            <h2>Confirmacion segura</h2>
             <p>{{ deliveryNote() }}</p>
 
             @if (checkoutMode() === 'confirmation') {
-              <section class="cart-confirmation" aria-label="Condiciones de reserva">
-                <strong>Antes de preparar tu reserva</strong>
+              <section class="cart-confirmation" aria-label="Datos de pago inicial">
+                <strong>Datos para registrar la reserva</strong>
                 <ul>
-                  <li>REGALIA separa el pedido con una seña inicial del 20%.</li>
-                  <li>El proveedor confirma personalización, horario y disponibilidad.</li>
-                  <li>El saldo se paga al recibir, según coordinación final.</li>
+                  <li>REGALIA registra el pedido cuando existe un pago inicial valido.</li>
+                  <li>El codigo de operacion evita duplicar pagos registrados.</li>
+                  <li>El saldo queda pendiente para coordinacion final con el vendedor.</li>
                 </ul>
+
+                <div class="cart-checkout-form">
+                  <label class="cart-checkout-field">
+                    <span>Tipo de entrega</span>
+                    <select
+                      [value]="checkoutDraft().idTipoEntrega ?? ''"
+                      [disabled]="isLoadingCheckoutOptions()"
+                      (change)="updateDeliveryType($any($event.target).value)"
+                    >
+                      <option value="" disabled>Selecciona entrega</option>
+                      @for (option of deliveryOptions(); track option.idTipoEntrega) {
+                        <option [value]="option.idTipoEntrega">{{ option.nombre }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="cart-checkout-field">
+                    <span>Fecha de entrega</span>
+                    <input
+                      type="date"
+                      [min]="minDeliveryDate"
+                      [value]="checkoutDraft().fechaEntrega"
+                      (input)="updateDeliveryDate($any($event.target).value)"
+                    />
+                  </label>
+
+                  <label class="cart-checkout-field">
+                    <span>Pago inicial</span>
+                    <select
+                      [value]="checkoutDraft().codigoTipoPago"
+                      [disabled]="isLoadingCheckoutOptions()"
+                      (change)="updatePaymentOption($any($event.target).value)"
+                    >
+                      <option value="" disabled>Selecciona modalidad</option>
+                      @for (option of paymentOptions(); track option.codigo) {
+                        <option [value]="option.codigo">{{ option.nombre }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="cart-checkout-field">
+                    <span>Metodo de pago</span>
+                    <select
+                      [value]="checkoutDraft().metodoPagoPasarela"
+                      (change)="updatePaymentMethod($any($event.target).value)"
+                    >
+                      @for (method of paymentMethods; track method) {
+                        <option [value]="method">{{ method }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="cart-checkout-field cart-checkout-field--full">
+                    <span>Codigo de operacion</span>
+                    <input
+                      type="text"
+                      placeholder="Ej. YAPE-123456"
+                      maxlength="100"
+                      [value]="checkoutDraft().codigoTransaccion"
+                      (input)="updateTransactionCode($any($event.target).value)"
+                    />
+                  </label>
+
+                  <label class="cart-checkout-field cart-checkout-field--full">
+                    <span>Observacion para la entrega</span>
+                    <textarea
+                      rows="3"
+                      maxlength="1000"
+                      placeholder="Referencia, horario o detalle para coordinar con el vendedor"
+                      [value]="checkoutDraft().observacion"
+                      (input)="updateObservation($any($event.target).value)"
+                    ></textarea>
+                  </label>
+                </div>
               </section>
             }
 
@@ -136,11 +241,11 @@
                 <span>Reserva inicial 20%</span><strong>S/ {{ summary().reservation }}</strong>
               </div>
               <div>
-                <span>Comisión estimada REGALIA</span
+                <span>Comision estimada REGALIA</span
                 ><strong>S/ {{ summary().platformCommission }}</strong>
               </div>
               <div>
-                <span>Adelanto al proveedor</span
+                <span>Adelanto al vendedor</span
                 ><strong>S/ {{ summary().providerAdvance }}</strong>
               </div>
               <div class="cart-summary__total">
@@ -149,12 +254,17 @@
             </div>
 
             @if (checkoutMode() === 'sent') {
-              <div class="cart-summary__success">
-                <strong>Reserva preparada</strong>
-                <span
-                  >En el MVP esta acción queda simulada. Cuando conectemos pagos, aquí se generará
-                  la reserva real.</span
-                >
+              @if (submittedOrder(); as order) {
+                <div class="cart-summary__success">
+                  <strong>Reserva registrada</strong>
+                  <span>Pedido #{{ order.idPedido }} registrado con pago inicial.</span>
+                </div>
+              }
+            }
+
+            @if (checkoutMessage()) {
+              <div class="cart-summary__notice" role="alert">
+                {{ checkoutMessage() }}
               </div>
             }
 
@@ -164,20 +274,22 @@
                 type="button"
                 (click)="reviewReservation()"
               >
-                Revisar condiciones
+                {{ primaryCheckoutLabel() }}
               </button>
             }
             @if (checkoutMode() === 'confirmation') {
               <button
                 class="btn btn-primary rounded-pill w-100"
                 type="button"
+                [disabled]="isSubmittingOrder() || isLoadingCheckoutOptions()"
                 (click)="confirmReservation()"
               >
-                Preparar reserva
+                {{ isSubmittingOrder() ? 'Registrando reserva...' : 'Registrar reserva' }}
               </button>
               <button
                 class="btn btn-outline-primary rounded-pill w-100 mt-2"
                 type="button"
+                [disabled]="isSubmittingOrder()"
                 (click)="backToCart()"
               >
                 Volver al carrito
@@ -197,13 +309,13 @@
     } @else {
       <section class="cart-empty card border-0 shadow-sm">
         <img src="/images/regalia-cart-logo.png" alt="Carrito REGALIA" />
-        <h2>Tu carrito está vacío</h2>
+        <h2>Tu carrito esta vacio</h2>
         <p>
-          Agrega productos con precio fijo desde el catálogo o crea una solicitud personalizada con
+          Agrega productos con precio fijo desde el catalogo o crea una solicitud personalizada con
           IA.
         </p>
         <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-          <a class="btn btn-primary rounded-pill px-4" routerLink="/catalogo">Ver catálogo</a>
+          <a class="btn btn-primary rounded-pill px-4" routerLink="/catalogo">Ver catalogo</a>
           <a class="btn btn-outline-primary rounded-pill px-4" routerLink="/pedir-con-ia"
             >Cotizar con IA</a
           >

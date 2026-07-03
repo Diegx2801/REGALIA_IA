@@ -127,9 +127,13 @@ export class FestiveCalendarComponent {
         products: ['Producto destacado', 'Detalle personalizado', 'Reserva anticipada'],
       },
   );
+<<<<<<< HEAD
+  // El CTA cambia segun rol: vendedor prepara catalogo; visitante se registra.
+=======
   // El CTA cambia segun rol: proveedor prepara catálogo; visitante se registra.
+>>>>>>> origin/main
   readonly prepareRoute = computed(() =>
-    this.authSession.role() === 'Proveedor' ? '/proveedor/perfil' : '/registro',
+    this.authSession.role() === 'Vendedor' ? '/vendedor/perfil' : '/registro',
   );
 
   selectDay(day: number): void {

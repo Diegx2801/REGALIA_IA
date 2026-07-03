@@ -5,7 +5,7 @@
       <h1 class="manual-header__title">Arma una solicitud precisa sin usar IA.</h1>
       <p class="manual-header__text">
         Selecciona ocasión, presupuesto, estilo y zona para generar una reserva clara con
-        proveedores compatibles.
+        vendedores compatibles.
       </p>
     </header>
 
@@ -97,7 +97,7 @@
         <button class="manual-form__button" type="submit">Generar solicitud manual</button>
       </form>
 
-      <main class="manual-providers" aria-label="Proveedores compatibles">
+      <main class="manual-providers" aria-label="Vendedores compatibles">
         <div class="manual-providers__head">
           <span class="manual-providers__eyebrow">Compatibles</span>
           <h2 class="manual-providers__title">
@@ -150,7 +150,7 @@
 
         @if (selectedProvider(); as provider) {
           <section class="manual-summary__provider">
-            <span>Proveedor seleccionado</span>
+            <span>Vendedor seleccionado</span>
             <strong>{{ provider.businessName }}</strong>
             <small>{{ provider.rating }} ★ · {{ provider.reviews }} reseñas</small>
           </section>
@@ -169,14 +169,14 @@
             ><strong>S/ {{ reservationBreakdown().platformCommission }}</strong>
           </div>
           <div class="manual-breakdown__row">
-            <span>Proveedor recibe</span
+            <span>Vendedor recibe</span
             ><strong>S/ {{ reservationBreakdown().providerCredit }}</strong>
           </div>
         </section>
 
         @if (submitted()) {
           <p class="manual-summary__success">
-            Solicitud manual lista para enviar a proveedores compatibles.
+            Solicitud manual lista para enviar a vendedores compatibles.
           </p>
         }
       </aside>

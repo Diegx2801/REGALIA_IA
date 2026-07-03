@@ -81,14 +81,33 @@ public class TiendaService {
     }
 
     @Transactional(readOnly = true)
-    public List<TiendaResponse> listarTiendasAdministracion(String estadoRevision) {
+    public List<TiendaResponse> listarTiendasAdministracion(
+            String estadoRevision,
+            String searchField,
+            String search
+    ) {
         String estadoNormalizado = normalizarEstadoRevisionOpcional(estadoRevision);
+        TiendaSearchField campoBusqueda = TiendaSearchField.desde(searchField);
+        String busqueda = normalizarBusqueda(search);
+        Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
 
-        List<TiendaEntity> tiendas = estadoNormalizado == null
-                ? tiendaRepository.findTiendasAdministracion()
-                : tiendaRepository.findTiendasAdministracionPorEstado(estadoNormalizado);
+        if (busqueda == null) {
+            List<TiendaEntity> tiendas = estadoNormalizado == null
+                    ? tiendaRepository.findByEstadoTrueOrderByIdTiendaAsc()
+                    : tiendaRepository.findTiendasAdministracionPorEstado(estadoNormalizado);
 
-        return tiendas
+            return tiendas
+                    .stream()
+                    .map(this::construirResponse)
+                    .toList();
+        }
+
+        return tiendaRepository.findTiendasAdministracionFiltradas(
+                        estadoNormalizado,
+                        campoBusqueda.name(),
+                        busqueda,
+                        busquedaId
+                )
                 .stream()
                 .map(this::construirResponse)
                 .toList();
@@ -250,6 +269,26 @@ public class TiendaService {
         }
 
         return estadoNormalizado;
+    }
+
+    private String normalizarBusqueda(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+
+        return valor.trim();
+    }
+
+    private Long obtenerBusquedaIdSiAplica(TiendaSearchField campoBusqueda, String busqueda) {
+        if (busqueda == null || campoBusqueda != TiendaSearchField.ID_TIENDA) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            throw new ReglaNegocioException("El ID de tienda debe ser numerico");
+        }
     }
 
     private UsuarioDocumentoEntity obtenerDocumentoFiscalValidoSiExiste(Long idDocumentoFiscal, Long idUsuario) {

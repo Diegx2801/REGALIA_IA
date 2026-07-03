@@ -52,6 +52,23 @@
   text-transform: uppercase;
 }
 
+.dashboard-heading__refresh {
+  background: var(--brand-gradient);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  min-height: 2.55rem;
+  padding: 0.62rem 1rem;
+}
+
+.dashboard-heading__refresh:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
 .dashboard-hero {
   align-items: center;
   background:
@@ -70,7 +87,7 @@
   position: relative;
 }
 
-.dashboard-hero[data-role='Proveedor'] {
+.dashboard-hero[data-role='Vendedor'] {
   background:
     radial-gradient(circle at 86% 10%, rgba(214, 168, 62, 0.2), transparent 17rem),
     linear-gradient(125deg, #1f3d35 0%, #3f7569 100%);
@@ -363,6 +380,7 @@
   font-size: 0.68rem;
   font-weight: 900;
   padding: 0.35rem 0.55rem;
+  text-decoration: none;
 }
 
 .activity-item__status[data-tone='success'] {
@@ -472,12 +490,21 @@
     padding-inline: 1rem;
   }
 
+  .dashboard-heading__refresh {
+    justify-content: center;
+    width: 100%;
+  }
+
   .dashboard-hero {
     grid-template-columns: 1fr;
     min-height: auto;
   }
   .dashboard-hero__signature {
     display: none;
+  }
+
+  .dashboard-flow {
+    grid-template-columns: 1fr;
   }
 }
 

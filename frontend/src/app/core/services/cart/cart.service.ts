@@ -12,6 +12,11 @@ export class CartService {
   readonly items = this.itemsSignal.asReadonly();
   readonly totalItems = computed(() => this.items().reduce((sum, item) => sum + item.quantity, 0));
   readonly hasItems = computed(() => this.totalItems() > 0);
+  readonly storeIds = computed(() => [
+    ...new Set(this.items().map((item) => item.product.providerId).filter(Boolean)),
+  ]);
+  readonly currentStoreId = computed(() => this.storeIds()[0] ?? null);
+  readonly hasMultipleStores = computed(() => this.storeIds().length > 1);
   readonly summary = computed<CartSummary>(() => this.calculateSummary(this.items()));
 
   addProduct(product: FixedPriceProduct, quantity = 1): void {

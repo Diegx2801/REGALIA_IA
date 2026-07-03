@@ -29,6 +29,6 @@ describe('CatalogComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Dulce Detalle Trujillo');
-    expect(fixture.nativeElement.textContent).toContain('Proveedores locales');
+    expect(fixture.nativeElement.textContent).toContain('Vendedores locales');
   });
 });

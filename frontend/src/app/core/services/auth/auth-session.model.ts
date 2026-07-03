@@ -1,4 +1,4 @@
-export type UserRole = 'Cliente' | 'Proveedor' | 'Administrador';
+export type UserRole = 'Cliente' | 'Vendedor' | 'Administrador';
 export type BackendRole = 'CLIENTE' | 'VENDEDOR' | 'ADMIN';
 export type AuthContext = 'PUBLIC' | 'ADMIN';
 

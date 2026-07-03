@@ -1,6 +1,6 @@
 ﻿<section class="reservations-page">
   <div class="container rg-page__container rg-page__container--retail reservations-page__container">
-    <!-- Calendario reutilizado para cliente, proveedor y admin con textos por rol. -->
+    <!-- Calendario reutilizado para cliente, vendedor y admin con textos por rol. -->
     @if (pageCopy(); as copy) {
       <header class="reservations-header">
         <span class="reservations-header__eyebrow">{{ copy.eyebrow }}</span>
@@ -95,7 +95,7 @@
 
             <div class="reservation-card__actions" aria-label="Acciones de reserva">
               <button type="button" (click)="openPanel(order, 'detail')">Ver detalle</button>
-              <button type="button" (click)="openPanel(order, 'chat')">Chat proveedor</button>
+              <button type="button" (click)="openPanel(order, 'chat')">Chat vendedor</button>
               @if (canReschedule(order)) {
                 <button type="button" (click)="openPanel(order, 'reschedule')">Reprogramar</button>
               }
@@ -166,7 +166,7 @@
 
         @if (panelMode() === 'chat') {
           <section class="reservation-chat">
-            <span class="reservation-drawer__label">Chat con proveedor</span>
+            <span class="reservation-drawer__label">Chat con vendedor</span>
             <div class="reservation-chat__body">
               <p class="reservation-chat__bubble reservation-chat__bubble--provider">
                 Hola, soy {{ selected.providerName }}. Confirmo tu pedido para
@@ -180,7 +180,7 @@
               <input
                 type="text"
                 value="Mensaje simulado del MVP"
-                aria-label="Mensaje para proveedor"
+                aria-label="Mensaje para vendedor"
                 readonly
               />
               <button type="button" (click)="sendChatMessage(selected)">Enviar</button>
@@ -192,11 +192,15 @@
           <section class="reservation-drawer__section">
             <span class="reservation-drawer__label">Reprogramación</span>
             <p>
+<<<<<<< HEAD
+              En el MVP esta acciÃ³n queda preparada para coordinar una nueva fecha con el vendedor
+=======
               En el MVP esta acción queda preparada para coordinar una nueva fecha con el proveedor
+>>>>>>> origin/main
               antes de confirmar cambios.
             </p>
             <div class="reservation-drawer__grid">
-              <span>Fecha actual</span><strong>{{ selected.dueDate }}</strong> <span>Proveedor</span
+              <span>Fecha actual</span><strong>{{ selected.dueDate }}</strong> <span>Vendedor</span
               ><strong>{{ selected.providerName }}</strong>
             </div>
             <div class="reservation-drawer__inputs">
@@ -223,8 +227,13 @@
           <section class="reservation-drawer__section reservation-drawer__section--danger">
             <span class="reservation-drawer__label">Cancelación</span>
             <p>
+<<<<<<< HEAD
+              Cancela solo si el vendedor aÃºn no iniciÃ³ la preparaciÃ³n. La seÃ±a puede quedar
+              sujeta a revisiÃ³n operativa.
+=======
               Cancela solo si el proveedor aún no inició la preparación. La seña puede quedar
               sujeta a revisión operativa.
+>>>>>>> origin/main
             </p>
             <button
               class="reservation-drawer__danger"

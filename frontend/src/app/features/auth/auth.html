@@ -15,7 +15,7 @@
           <article>
             <span class="auth-story__icon" aria-hidden="true">✦</span>
             <div>
-              <strong>Proveedores verificados</strong>
+              <strong>Vendedores verificados</strong>
               <small>Perfiles, portafolios y reputación antes de reservar.</small>
             </div>
           </article>
@@ -32,7 +32,7 @@
       <div class="auth-story__floating-card" aria-hidden="true">
         <span class="auth-story__floating-badge">Selección REGALIA</span>
         <strong>Detalles únicos, creados cerca de ti</strong>
-        <small>Trujillo · proveedores locales</small>
+        <small>Trujillo · vendedores locales</small>
       </div>
     </section>
 
@@ -62,7 +62,7 @@
         @if (sellerIntent()) {
           <aside class="auth-seller-note">
             <span aria-hidden="true">✦</span>
-            <p><strong>¿Quieres vender en REGALIA?</strong> Primero crea tu cuenta personal. Luego completarás la solicitud y verificación de proveedor.</p>
+              <p><strong>¿Quieres vender en REGALIA?</strong> Primero crea tu cuenta personal. Luego completarás la solicitud y verificación de vendedor.</p>
           </aside>
         }
 
@@ -144,7 +144,7 @@
             <header class="auth-form__header">
               <span>Cuenta personal</span>
               <h2>Crea tu cuenta</h2>
-              <p>Todos empiezan como clientes. Los perfiles de proveedor pasan por una solicitud independiente.</p>
+              <p>Todos empiezan como clientes. Los perfiles de vendedor pasan por una solicitud independiente.</p>
             </header>
 
             <div class="auth-form__grid">
@@ -255,7 +255,7 @@
               }
             </button>
 
-            <a class="auth-seller-link" [routerLink]="['/registro']" [queryParams]="{ origen: 'proveedor' }">
+            <a class="auth-seller-link" [routerLink]="['/registro']" [queryParams]="{ origen: 'vendedor' }">
               <span aria-hidden="true">✦</span>
               Quiero vender mis productos o servicios
             </a>

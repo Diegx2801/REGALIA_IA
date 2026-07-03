@@ -10,8 +10,11 @@ function loginRouteFor(url: string): string {
 export const authGuard: CanActivateFn = (_route, state) => {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
+  const authContext: AuthContext = state.url.startsWith('/admin') ? 'ADMIN' : 'PUBLIC';
 
-  return authSession.isLoggedIn()
+  authSession.setActiveContext(authContext);
+
+  return authSession.isLoggedInFor(authContext)
     ? true
     : router.createUrlTree([loginRouteFor(state.url)], {
         queryParams: { returnUrl: state.url },
@@ -22,7 +25,9 @@ export const guestGuard: CanActivateFn = () => {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
 
-  return authSession.isLoggedIn()
+  authSession.setActiveContext('PUBLIC');
+
+  return authSession.isLoggedInFor('PUBLIC')
     ? router.createUrlTree([authSession.homeForCurrentUser()])
     : true;
 };
@@ -31,7 +36,9 @@ export const adminGuestGuard: CanActivateFn = () => {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
 
-  if (authSession.isLoggedIn() && authSession.hasAuthContext('ADMIN')) {
+  authSession.setActiveContext('ADMIN');
+
+  if (authSession.isLoggedInFor('ADMIN') && authSession.hasAuthContext('ADMIN')) {
     return router.createUrlTree(['/admin/resumen']);
   }
 
@@ -44,8 +51,12 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   const roles = (route.data['roles'] ?? []) as UserRole[];
   const authContext = route.data['authContext'] as AuthContext | undefined;
+  const expectedContext: AuthContext =
+    authContext ?? (state.url.startsWith('/admin') ? 'ADMIN' : 'PUBLIC');
 
-  if (!authSession.isLoggedIn()) {
+  authSession.setActiveContext(expectedContext);
+
+  if (!authSession.isLoggedInFor(expectedContext)) {
     return router.createUrlTree([loginRouteFor(state.url)], {
       queryParams: { returnUrl: state.url },
     });
@@ -69,6 +80,8 @@ export const roleGuard: CanActivateFn = (route, state) => {
 export const roleRedirectGuard: CanActivateFn = (route) => {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
+
+  authSession.setActiveContext('PUBLIC');
 
   const redirects = (route.data['redirects'] ?? {}) as Partial<Record<UserRole, string>>;
   const role = authSession.role();

@@ -124,7 +124,7 @@ export class ProviderApplicationComponent implements OnInit {
     const user = this.authSession.currentUser();
     if (!user) {
       void this.router.navigate(['/login'], {
-        queryParams: { origen: 'proveedor', returnUrl: '/cliente/solicitud-proveedor' },
+        queryParams: { origen: 'vendedor', returnUrl: '/cliente/solicitud-vendedor' },
       });
       return;
     }

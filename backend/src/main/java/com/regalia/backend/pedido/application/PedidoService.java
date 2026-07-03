@@ -2,7 +2,13 @@ package com.regalia.backend.pedido.application;
 
 import com.regalia.backend.comision.infrastructure.entity.ComisionEntity;
 import com.regalia.backend.comision.infrastructure.repository.ComisionJpaRepository;
+import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
+import com.regalia.backend.pago.application.gateway.PaymentGatewayRegistry;
+import com.regalia.backend.pago.application.gateway.PaymentGatewayStatus;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationCommand;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationResult;
 import com.regalia.backend.pago.infrastructure.entity.PagoEntity;
+import com.regalia.backend.pago.infrastructure.gateway.PaymentGatewayProperties;
 import com.regalia.backend.pago.infrastructure.repository.PagoJpaRepository;
 import com.regalia.backend.pedido.api.dto.ConfirmarPedidoRequest;
 import com.regalia.backend.pedido.api.dto.OpcionPagoResponse;
@@ -73,6 +79,8 @@ public class PedidoService {
     private final ProductoJpaRepository productoRepository;
     private final PedidoMapper pedidoMapper;
     private final PoliticaComercialService politicaComercialService;
+    private final PaymentGatewayRegistry paymentGatewayRegistry;
+    private final PaymentGatewayProperties paymentGatewayProperties;
 
     @Transactional(readOnly = true)
     public List<OpcionPagoResponse> listarOpcionesPagoInicial() {
@@ -99,7 +107,6 @@ public class PedidoService {
         String codigoTipoPago = normalizarCodigo(tipoPago.getCodigo());
 
         validarTipoPagoInicial(codigoTipoPago);
-        validarCodigoTransaccionDisponible(request.codigoTransaccion());
         validarItemsPedido(request.items());
         validarProductosDuplicados(request.items());
 
@@ -146,6 +153,17 @@ public class PedidoService {
                 porcentajeSena
         );
 
+        PaymentGatewayVerificationResult paymentResult = verifyPayment(
+                usuario,
+                tienda,
+                null,
+                codigoTipoPago,
+                montoPagoInicial,
+                request.metodoPagoPasarela(),
+                request.codigoTransaccion()
+        );
+        validarCodigoTransaccionDisponible(paymentResult.transactionCode());
+
         PedidoEntity pedido = new PedidoEntity();
         pedido.setUsuario(usuario);
         pedido.setTienda(tienda);
@@ -167,9 +185,7 @@ public class PedidoService {
         PagoEntity pago = crearPago(
                 pedidoGuardado,
                 tipoPago,
-                montoPagoInicial,
-                request.metodoPagoPasarela(),
-                request.codigoTransaccion()
+                paymentResult
         );
 
         PagoEntity pagoGuardado = pagoRepository.save(pago);
@@ -212,10 +228,32 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> listarPedidosAdmin() {
-        return pedidoRepository.findByEstadoTrueOrderByIdPedidoDesc()
+    public List<PedidoResponse> listarPedidosAdmin(
+            String estadoPago,
+            String searchField,
+            String search
+    ) {
+        PedidoPagoFiltro filtroPago = PedidoPagoFiltro.desde(estadoPago);
+        PedidoSearchField campoBusqueda = PedidoSearchField.desde(searchField);
+        String busqueda = normalizarBusqueda(search);
+        Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+
+        if (busqueda == null) {
+            return pedidoRepository.findByEstadoTrueOrderByIdPedidoDesc()
+                    .stream()
+                    .map(this::construirResponse)
+                    .filter(pedido -> coincideEstadoPago(pedido, filtroPago))
+                    .toList();
+        }
+
+        return pedidoRepository.findPedidosAdministracionFiltrados(
+                        campoBusqueda.name(),
+                        busqueda,
+                        busquedaId
+                )
                 .stream()
                 .map(this::construirResponse)
+                .filter(pedido -> coincideEstadoPago(pedido, filtroPago))
                 .toList();
     }
 
@@ -250,8 +288,6 @@ public class PedidoService {
             );
         }
 
-        validarCodigoTransaccionDisponible(request.codigoTransaccion());
-
         BigDecimal montoPagadoActual = obtenerMontoPagadoAprobado(pedido.getIdPedido());
         BigDecimal saldoPendiente = calcularSaldoPendiente(pedido.getTotal(), montoPagadoActual);
 
@@ -264,12 +300,21 @@ public class PedidoService {
         TipoPagoEntity tipoPagoRestante = obtenerTipoPagoActivoPorCodigo(CODIGO_TIPO_PAGO_RESTANTE);
         BigDecimal porcentajeComision = politicaComercialService.obtenerPorcentajeComision();
 
-        PagoEntity pago = crearPago(
-                pedido,
-                tipoPagoRestante,
+        PaymentGatewayVerificationResult paymentResult = verifyPayment(
+                usuario,
+                pedido.getTienda(),
+                pedido.getIdPedido(),
+                CODIGO_TIPO_PAGO_RESTANTE,
                 saldoPendiente,
                 request.metodoPagoPasarela(),
                 request.codigoTransaccion()
+        );
+        validarCodigoTransaccionDisponible(paymentResult.transactionCode());
+
+        PagoEntity pago = crearPago(
+                pedido,
+                tipoPagoRestante,
+                paymentResult
         );
 
         PagoEntity pagoGuardado = pagoRepository.save(pago);
@@ -301,6 +346,45 @@ public class PedidoService {
         BigDecimal saldoPendiente = calcularSaldoPendiente(pedido.getTotal(), montoPagado);
 
         return pedidoMapper.toResponse(pedido, detalles, montoPagado, saldoPendiente);
+    }
+
+    private boolean coincideEstadoPago(PedidoResponse pedido, PedidoPagoFiltro filtroPago) {
+        BigDecimal saldoPendiente = pedido.saldoPendiente() == null
+                ? BigDecimal.ZERO
+                : pedido.saldoPendiente();
+
+        if (filtroPago == PedidoPagoFiltro.PAGADO) {
+            return saldoPendiente.compareTo(BigDecimal.ZERO) <= 0;
+        }
+
+        if (filtroPago == PedidoPagoFiltro.CON_SALDO) {
+            return saldoPendiente.compareTo(BigDecimal.ZERO) > 0;
+        }
+
+        return true;
+    }
+
+    private String normalizarBusqueda(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+
+        return valor.trim();
+    }
+
+    private Long obtenerBusquedaIdSiAplica(PedidoSearchField campoBusqueda, String busqueda) {
+        if (busqueda == null
+                || (campoBusqueda != PedidoSearchField.ID_PEDIDO
+                && campoBusqueda != PedidoSearchField.ID_USUARIO
+                && campoBusqueda != PedidoSearchField.ID_TIENDA)) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            throw new ReglaNegocioException("El ID de pedido, usuario o tienda debe ser numerico");
+        }
     }
 
     private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {
@@ -467,23 +551,64 @@ public class PedidoService {
     private PagoEntity crearPago(
             PedidoEntity pedido,
             TipoPagoEntity tipoPago,
-            BigDecimal monto,
-            String metodoPagoPasarela,
-            String codigoTransaccion
+            PaymentGatewayVerificationResult paymentResult
     ) {
         PagoEntity pago = new PagoEntity();
         pago.setPedido(pedido);
         pago.setTipoPago(tipoPago);
-        pago.setMonto(monto.setScale(2, RoundingMode.HALF_UP));
-        pago.setEstadoPago(PagoEntity.ESTADO_APROBADO);
-        pago.setMetodoPagoPasarela(normalizarTextoOpcional(metodoPagoPasarela));
-        pago.setCodigoTransaccion(normalizarTextoObligatorio(
-                codigoTransaccion,
-                "El código de transacción es obligatorio"
-        ));
+        pago.setMonto(paymentResult.amount().setScale(2, RoundingMode.HALF_UP));
+        pago.setEstadoPago(toEstadoPago(paymentResult.status()));
+        pago.setMetodoPagoPasarela(paymentResult.paymentMethod());
+        pago.setCodigoTransaccion(paymentResult.transactionCode());
         pago.setEstado(true);
 
         return pago;
+    }
+
+    private PaymentGatewayVerificationResult verifyPayment(
+            UsuarioEntity usuario,
+            TiendaEntity tienda,
+            Long idPedido,
+            String codigoTipoPago,
+            BigDecimal amount,
+            String paymentMethod,
+            String transactionCode
+    ) {
+        PaymentGatewayProvider provider = PaymentGatewayProvider.from(
+                paymentGatewayProperties.getDefaultProvider()
+        );
+
+        PaymentGatewayVerificationResult paymentResult = paymentGatewayRegistry.verifyPayment(
+                new PaymentGatewayVerificationCommand(
+                        provider,
+                        paymentMethod,
+                        transactionCode,
+                        amount,
+                        paymentGatewayProperties.getCurrency(),
+                        usuario.getIdUsuario(),
+                        tienda.getIdTienda(),
+                        idPedido,
+                        codigoTipoPago
+                )
+        );
+
+        if (!PaymentGatewayStatus.APPROVED.equals(paymentResult.status())) {
+            throw new ReglaNegocioException(
+                    "El pago no fue aprobado por la pasarela"
+            );
+        }
+
+        return paymentResult;
+    }
+
+    private String toEstadoPago(PaymentGatewayStatus status) {
+        if (PaymentGatewayStatus.APPROVED.equals(status)) {
+            return PagoEntity.ESTADO_APROBADO;
+        }
+
+        throw new ReglaNegocioException(
+                "Solo se registran pagos aprobados en pedidos"
+        );
     }
 
     private ComisionEntity crearComision(

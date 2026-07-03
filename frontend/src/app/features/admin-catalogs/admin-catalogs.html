@@ -1,0 +1,149 @@
+<section class="admin-catalogs">
+  <div class="admin-catalogs__container rg-page__container rg-page__container--wide">
+    <header class="admin-catalogs__header">
+      <div>
+        <span class="admin-catalogs__eyebrow">Configuracion del marketplace</span>
+        <h1>Catalogos</h1>
+        <p>
+          Consulta mantenedores del sistema desde endpoints administrativos reales. Las acciones de
+          edicion se habilitaran por bloque para no tocar datos maestros sin politica cerrada.
+        </p>
+      </div>
+
+      <button class="admin-catalogs__refresh" type="button" (click)="refresh()" [disabled]="isLoading()">
+        Actualizar
+      </button>
+    </header>
+
+    <section class="admin-catalogs__metrics" aria-label="Resumen de catalogos">
+      <article>
+        <span>Catalogos</span>
+        <strong>{{ groups().length }}</strong>
+      </article>
+      <article>
+        <span>Registros</span>
+        <strong>{{ totalItemsCount() }}</strong>
+      </article>
+      <article>
+        <span>Activos</span>
+        <strong>{{ activeItemsCount() }}</strong>
+      </article>
+      <article>
+        <span>Inactivos</span>
+        <strong>{{ inactiveItemsCount() }}</strong>
+      </article>
+    </section>
+
+    <section class="admin-catalogs__toolbar" aria-label="Seleccion y busqueda de catalogos">
+      <nav class="admin-catalogs__tabs" aria-label="Catalogos disponibles">
+        @for (group of groups(); track trackGroup($index, group)) {
+          <button
+            type="button"
+            [class.admin-catalogs__tab--active]="selectedType() === group.type"
+            (click)="selectGroup(group)"
+          >
+            <span>{{ group.label }}</span>
+            <small>{{ group.items.length }}</small>
+          </button>
+        }
+      </nav>
+
+      <label class="admin-catalogs__search">
+        <span>Buscar</span>
+        <input
+          type="search"
+          placeholder="Nombre, codigo, ID o estado..."
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+        />
+        @if (searchTerm()) {
+          <button type="button" (click)="clearSearch()" aria-label="Limpiar busqueda">Limpiar</button>
+        }
+      </label>
+    </section>
+
+    @if (errorMessage()) {
+      <p class="admin-catalogs__message admin-catalogs__message--error">{{ errorMessage() }}</p>
+    }
+
+    <div class="admin-catalogs__workspace">
+      <main class="admin-catalogs__list" aria-label="Registros del catalogo seleccionado">
+        @if (isLoading()) {
+          <div class="admin-catalogs__empty">
+            <span aria-hidden="true">C</span>
+            <h2>Cargando catalogos</h2>
+            <p>Estamos consultando los mantenedores reales del backend.</p>
+          </div>
+        } @else if (filteredItems().length === 0) {
+          <div class="admin-catalogs__empty">
+            <span aria-hidden="true">C</span>
+            <h2>No hay registros para esta busqueda</h2>
+            <p>Cambia el texto de busqueda, selecciona otro catalogo o actualiza la informacion.</p>
+          </div>
+        } @else {
+          @for (item of filteredItems(); track trackItem($index, item)) {
+            <button
+              class="admin-catalog-card"
+              type="button"
+              [class.admin-catalog-card--selected]="isSelectedItem(item)"
+              (click)="selectItem(item)"
+            >
+              <span class="admin-catalog-card__status" [attr.data-tone]="statusTone(item)">
+                {{ statusLabel(item) }}
+              </span>
+              <span class="admin-catalog-card__body">
+                <strong>{{ item.name }}</strong>
+                <small>{{ item.description }}</small>
+                <em>{{ item.primaryMeta }} - {{ item.secondaryMeta }}</em>
+              </span>
+              <span class="admin-catalog-card__arrow" aria-hidden="true">&rsaquo;</span>
+            </button>
+          }
+        }
+      </main>
+
+      <aside class="admin-catalog-detail" aria-label="Detalle del catalogo seleccionado">
+        @if (selectedGroup(); as group) {
+          <section class="admin-catalog-detail__summary">
+            <span class="admin-catalogs__eyebrow">{{ group.label }}</span>
+            <h2>{{ group.items.length }} registros</h2>
+            <p>{{ group.description }}</p>
+          </section>
+        }
+
+        @if (selectedItem(); as item) {
+          <header class="admin-catalog-detail__header">
+            <span class="admin-catalog-card__status" [attr.data-tone]="statusTone(item)">
+              {{ statusLabel(item) }}
+            </span>
+            <h2>{{ item.name }}</h2>
+            <p>{{ item.description }}</p>
+          </header>
+
+          <dl class="admin-catalog-detail__data">
+            @for (row of detailRows(); track row.label) {
+              <div>
+                <dt>{{ row.label }}</dt>
+                <dd>{{ row.value }}</dd>
+              </div>
+            }
+          </dl>
+
+          <section class="admin-catalog-detail__notice">
+            <strong>Modo seguro</strong>
+            <p>
+              Esta pantalla queda en lectura real. Crear, editar, desactivar o reactivar catalogos
+              se implementara despues de uniformizar la politica de acciones administrativas.
+            </p>
+          </section>
+        } @else {
+          <div class="admin-catalogs__empty">
+            <span aria-hidden="true">C</span>
+            <h2>Selecciona un registro</h2>
+            <p>El detalle del mantenedor aparecera aqui.</p>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+</section>

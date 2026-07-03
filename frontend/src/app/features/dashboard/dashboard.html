@@ -7,6 +7,15 @@
       </div>
       @if (isPreview) {
         <span class="dashboard-heading__demo">Contenido de muestra</span>
+      } @else if (role() === 'Administrador') {
+        <button
+          type="button"
+          class="dashboard-heading__refresh"
+          [disabled]="adminSummaryLoading()"
+          (click)="refreshAdminSummary()"
+        >
+          {{ adminSummaryLoading() ? 'Actualizando...' : 'Actualizar resumen' }}
+        </button>
       }
     </header>
 
@@ -91,9 +100,19 @@
                   <strong>{{ activity.title }}</strong>
                   <small>{{ activity.meta }}</small>
                 </div>
-                <span class="activity-item__status" [attr.data-tone]="activity.tone">{{
-                  activity.status
-                }}</span>
+                @if (activity.route) {
+                  <a
+                    class="activity-item__status"
+                    [attr.data-tone]="activity.tone"
+                    [routerLink]="actionRoute(activity.route)"
+                  >
+                    {{ activity.status }}
+                  </a>
+                } @else {
+                  <span class="activity-item__status" [attr.data-tone]="activity.tone">{{
+                    activity.status
+                  }}</span>
+                }
               </article>
             }
           </div>

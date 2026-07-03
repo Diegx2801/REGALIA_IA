@@ -41,7 +41,10 @@ export class AuthComponent {
   readonly showConfirmPassword = signal(false);
   readonly message = signal('');
   readonly messageType = signal<MessageType>('error');
-  readonly sellerIntent = computed(() => this.route.snapshot.queryParamMap.get('origen') === 'proveedor');
+  readonly sellerIntent = computed(() => {
+    const origin = this.route.snapshot.queryParamMap.get('origen');
+    return origin === 'vendedor';
+  });
 
   readonly activeTitle = computed(() =>
     this.mode() === 'login' ? 'Vuelve a regalar momentos memorables' : 'Tu próxima historia empieza aquí',
@@ -49,7 +52,7 @@ export class AuthComponent {
 
   readonly activeText = computed(() =>
     this.mode() === 'login'
-      ? 'Accede a tus solicitudes, reservas, favoritos y conversaciones con proveedores locales.'
+      ? 'Accede a tus solicitudes, reservas, favoritos y conversaciones con vendedores locales.'
       : 'Crea una cuenta personal para descubrir, solicitar y reservar regalos únicos con total confianza.',
   );
 
@@ -151,6 +154,7 @@ export class AuthComponent {
     }
 
     const { firstName, lastName, email, phone, password } = this.registerForm.getRawValue();
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     this.isSubmitting.set(true);
 
     this.authSession
@@ -166,7 +170,7 @@ export class AuthComponent {
         next: () => {
           this.messageType.set('success');
           this.message.set('Tu cuenta fue creada correctamente. Estamos preparando tu experiencia.');
-          setTimeout(() => void this.router.navigateByUrl(this.postAuthDestination(null)), 700);
+          setTimeout(() => void this.router.navigateByUrl(this.postAuthDestination(returnUrl)), 700);
         },
         error: (error) => this.showError(this.readApiMessage(error, 'No pudimos crear tu cuenta. Inténtalo nuevamente.')),
       });
@@ -202,7 +206,7 @@ export class AuthComponent {
     // returnUrl llega por query params para devolver al usuario a la ruta protegida original.
     if (returnUrl?.startsWith('/') && !returnUrl.startsWith('//')) return returnUrl;
     if (this.sellerIntent() && this.authSession.role() === 'Cliente') {
-      return '/cliente/solicitud-proveedor';
+      return '/cliente/solicitud-vendedor';
     }
     return this.authSession.homeForCurrentUser();
   }

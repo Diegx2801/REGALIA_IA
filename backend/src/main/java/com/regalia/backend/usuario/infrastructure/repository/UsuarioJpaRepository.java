@@ -18,7 +18,7 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
     @Query("""
             SELECT u
             FROM UsuarioEntity u
-            WHERE u.estado = true
+            WHERE (:estado IS NULL OR u.estado = :estado)
               AND NOT EXISTS (
                   SELECT 1
                   FROM UsuarioRolEntity ur
@@ -28,7 +28,38 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
               )
             ORDER BY u.idUsuario ASC
             """)
-    List<UsuarioEntity> findActivosSinRolOrderByIdUsuarioAsc(@Param("nombreRol") String nombreRol);
+    List<UsuarioEntity> findGestionablesSinRolPorEstadoOrderByIdUsuarioAsc(
+            @Param("nombreRol") String nombreRol,
+            @Param("estado") Boolean estado
+    );
+
+    @Query("""
+            SELECT u
+            FROM UsuarioEntity u
+            WHERE (:estado IS NULL OR u.estado = :estado)
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM UsuarioRolEntity ur
+                  WHERE ur.usuario = u
+                    AND ur.estado = true
+                    AND UPPER(ur.rol.nombre) = UPPER(:nombreRol)
+              )
+              AND (
+                  :search IS NULL
+                  OR (:searchField = 'NOMBRE' AND LOWER(CONCAT(CONCAT(COALESCE(u.nombre, ''), ' '), COALESCE(u.apellido, ''))) LIKE LOWER(CONCAT('%', :search, '%')))
+                  OR (:searchField = 'CORREO' AND LOWER(COALESCE(u.correo, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+                  OR (:searchField = 'TELEFONO' AND LOWER(COALESCE(u.telefono, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+                  OR (:searchField = 'ID_USUARIO' AND u.idUsuario = :searchId)
+              )
+            ORDER BY u.idUsuario ASC
+            """)
+    List<UsuarioEntity> findGestionablesSinRolFiltradosOrderByIdUsuarioAsc(
+            @Param("nombreRol") String nombreRol,
+            @Param("estado") Boolean estado,
+            @Param("searchField") String searchField,
+            @Param("search") String search,
+            @Param("searchId") Long searchId
+    );
 
     Optional<UsuarioEntity> findByCorreoIgnoreCaseAndEstadoTrue(String correo);
 

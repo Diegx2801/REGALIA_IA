@@ -77,6 +77,12 @@
   padding: clamp(0.9rem, 1.7vw, 1.2rem);
 }
 
+.cart-list--success {
+  display: grid;
+  gap: 0.9rem;
+  min-height: 18rem;
+}
+
 .checkout-steps {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(232, 215, 202, 0.95);
@@ -298,6 +304,80 @@
   line-height: 1.4;
 }
 
+.cart-checkout-form {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.45rem;
+}
+
+.cart-checkout-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.cart-checkout-field--full {
+  grid-column: 1 / -1;
+}
+
+.cart-checkout-field span {
+  color: var(--color-text);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.cart-checkout-field input,
+.cart-checkout-field select,
+.cart-checkout-field textarea {
+  background: #fffaf6;
+  border: 1px solid rgba(91, 46, 109, 0.14);
+  border-radius: 12px;
+  color: var(--color-text);
+  font: inherit;
+  min-height: 2.55rem;
+  padding: 0.62rem 0.72rem;
+  width: 100%;
+}
+
+.cart-checkout-field textarea {
+  resize: vertical;
+}
+
+.cart-checkout-field input:focus,
+.cart-checkout-field select:focus,
+.cart-checkout-field textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.18rem rgba(91, 46, 109, 0.1);
+  outline: 0;
+}
+
+.cart-order-result {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cart-order-result div {
+  background: #fffaf6;
+  border: 1px solid rgba(232, 215, 202, 0.95);
+  border-radius: 14px;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.75rem;
+}
+
+.cart-order-result span {
+  color: var(--color-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.cart-order-result strong {
+  color: var(--color-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* El carrito prioriza lectura rápida: listado amplio y resumen fijo sin ocupar exceso de ancho. */
 @media (min-width: 1400px) {
   .cart-item__media {
@@ -323,6 +403,18 @@
 .cart-summary__success span {
   font-size: 0.82rem;
   line-height: 1.45;
+}
+
+.cart-summary__notice {
+  background: #fff6ee;
+  border: 1px solid rgba(185, 82, 79, 0.24);
+  border-radius: 16px;
+  color: #8d363d;
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.45;
+  margin-bottom: 0.85rem;
+  padding: 0.8rem 0.9rem;
 }
 
 .cart-empty {
@@ -384,6 +476,11 @@
   }
 
   .checkout-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-checkout-form,
+  .cart-order-result {
     grid-template-columns: 1fr;
   }
 

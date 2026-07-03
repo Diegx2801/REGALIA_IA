@@ -15,22 +15,41 @@ public interface TiendaJpaRepository extends JpaRepository<TiendaEntity, Long> {
 
     List<TiendaEntity> findByVendedorIdVendedorAndEstadoTrueOrderByIdTiendaAsc(Long idVendedor);
 
-    @Query("""
-            SELECT t
-            FROM TiendaEntity t
-            WHERE t.estado = true
-            ORDER BY t.idTienda ASC
-            """)
-    List<TiendaEntity> findTiendasAdministracion();
+    List<TiendaEntity> findByEstadoTrueOrderByIdTiendaAsc();
 
     @Query("""
             SELECT t
             FROM TiendaEntity t
             WHERE t.estado = true
-              AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
+              AND (:estadoRevision IS NULL OR UPPER(t.estadoRevision) = UPPER(:estadoRevision))
             ORDER BY t.idTienda ASC
             """)
-    List<TiendaEntity> findTiendasAdministracionPorEstado(@Param("estadoRevision") String estadoRevision);
+    List<TiendaEntity> findTiendasAdministracionPorEstado(
+            @Param("estadoRevision") String estadoRevision
+    );
+
+    @Query("""
+            SELECT t
+            FROM TiendaEntity t
+            JOIN t.vendedor v
+            JOIN v.usuario u
+            WHERE t.estado = true
+              AND (:estadoRevision IS NULL OR UPPER(t.estadoRevision) = UPPER(:estadoRevision))
+              AND (
+                  :search IS NULL
+                  OR (:searchField = 'NOMBRE' AND LOWER(COALESCE(t.nombre, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+                  OR (:searchField = 'VENDEDOR' AND LOWER(CONCAT(CONCAT(COALESCE(u.nombre, ''), ' '), COALESCE(u.apellido, ''))) LIKE LOWER(CONCAT('%', :search, '%')))
+                  OR (:searchField = 'CORREO_VENDEDOR' AND LOWER(COALESCE(u.correo, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+                  OR (:searchField = 'ID_TIENDA' AND t.idTienda = :searchId)
+              )
+            ORDER BY t.idTienda ASC
+            """)
+    List<TiendaEntity> findTiendasAdministracionFiltradas(
+            @Param("estadoRevision") String estadoRevision,
+            @Param("searchField") String searchField,
+            @Param("search") String search,
+            @Param("searchId") Long searchId
+    );
 
     @Query("""
             SELECT t

@@ -20,8 +20,18 @@ public class AdminVendedorController {
     private final VendedorService vendedorService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminVendedorResponse>>> listarVendedores() {
-        List<AdminVendedorResponse> vendedores = vendedorService.listarVendedoresAdmin();
+    public ResponseEntity<ApiResponse<List<AdminVendedorResponse>>> listarVendedores(
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String verificacion,
+            @RequestParam(required = false) String searchField,
+            @RequestParam(required = false) String search
+    ) {
+        List<AdminVendedorResponse> vendedores = vendedorService.listarVendedoresAdmin(
+                estado,
+                verificacion,
+                searchField,
+                search
+        );
 
         return ResponseEntity.ok(
                 ApiResponse.success(vendedores)
