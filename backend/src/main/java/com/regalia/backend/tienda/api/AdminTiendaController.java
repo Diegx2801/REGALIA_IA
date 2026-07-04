@@ -1,13 +1,12 @@
 package com.regalia.backend.tienda.api;
 
 import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.tienda.api.dto.TiendaResponse;
 import com.regalia.backend.tienda.application.TiendaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Controlador REST administrativo para revisar y moderar tiendas.
@@ -20,15 +19,21 @@ public class AdminTiendaController {
     private final TiendaService tiendaService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TiendaResponse>>> listarTiendasAdministracion(
+    public ResponseEntity<ApiResponse<PaginaResponse<TiendaResponse>>> listarTiendasAdministracion(
             @RequestParam(required = false) String estadoRevision,
             @RequestParam(required = false) String searchField,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "idTienda,asc") String sort
     ) {
-        List<TiendaResponse> tiendas = tiendaService.listarTiendasAdministracion(
+        PaginaResponse<TiendaResponse> tiendas = tiendaService.listarTiendasAdministracion(
                 estadoRevision,
                 searchField,
-                search
+                search,
+                page,
+                size,
+                sort
         );
 
         return ResponseEntity.ok(

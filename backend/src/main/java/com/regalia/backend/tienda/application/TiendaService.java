@@ -5,6 +5,7 @@ import com.regalia.backend.rubro.infrastructure.repository.RubroJpaRepository;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.tienda.api.dto.TiendaRequest;
 import com.regalia.backend.tienda.api.dto.TiendaResponse;
 import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
@@ -17,6 +18,10 @@ import com.regalia.backend.usuariodocumento.infrastructure.repository.UsuarioDoc
 import com.regalia.backend.vendedor.infrastructure.entity.VendedorEntity;
 import com.regalia.backend.vendedor.infrastructure.repository.VendedorJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +40,9 @@ import java.util.stream.Collectors;
 public class TiendaService {
 
     private static final int LIMITE_TIENDAS_PLAN_ACTUAL = 1;
+    private static final int DEFAULT_ADMIN_PAGE = 0;
+    private static final int DEFAULT_ADMIN_PAGE_SIZE = 10;
+    private static final int MAX_ADMIN_PAGE_SIZE = 50;
 
     private static final String ESTADO_REVISION_PENDIENTE = "PENDIENTE";
     private static final String ESTADO_REVISION_APROBADA = "APROBADA";
@@ -81,36 +89,47 @@ public class TiendaService {
     }
 
     @Transactional(readOnly = true)
-    public List<TiendaResponse> listarTiendasAdministracion(
+    public PaginaResponse<TiendaResponse> listarTiendasAdministracion(
             String estadoRevision,
             String searchField,
-            String search
+            String search,
+            Integer page,
+            Integer size,
+            String sort
     ) {
         String estadoNormalizado = normalizarEstadoRevisionOpcional(estadoRevision);
         TiendaSearchField campoBusqueda = TiendaSearchField.desde(searchField);
+        TiendaAdminSortField sortField = TiendaAdminSortField.desde(sort);
+        Sort.Direction sortDirection = TiendaAdminSortField.direccionDesde(sort);
         String busqueda = normalizarBusqueda(search);
         Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+        int pagina = normalizarPagina(page);
+        int tamanioPagina = normalizarTamanioPagina(size);
+        Pageable pageable = PageRequest.of(
+                pagina,
+                tamanioPagina,
+                Sort.by(sortDirection, sortField.apiName())
+        );
 
-        if (busqueda == null) {
-            List<TiendaEntity> tiendas = estadoNormalizado == null
-                    ? tiendaRepository.findByEstadoTrueOrderByIdTiendaAsc()
-                    : tiendaRepository.findTiendasAdministracionPorEstado(estadoNormalizado);
-
-            return tiendas
-                    .stream()
-                    .map(this::construirResponse)
-                    .toList();
-        }
-
-        return tiendaRepository.findTiendasAdministracionFiltradas(
+        Page<TiendaResponse> tiendas = tiendaRepository.findTiendasAdministracion(
                         estadoNormalizado,
-                        campoBusqueda.name(),
+                        campoBusqueda,
                         busqueda,
-                        busquedaId
+                        busquedaId,
+                        sortField,
+                        sortDirection,
+                        pageable
                 )
-                .stream()
-                .map(this::construirResponse)
-                .toList();
+                .map(this::construirResponse);
+
+        return new PaginaResponse<>(
+                tiendas.getContent(),
+                tiendas.getNumber(),
+                tiendas.getSize(),
+                tiendas.getTotalElements(),
+                tiendas.getTotalPages(),
+                tiendas.isLast()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -289,6 +308,34 @@ public class TiendaService {
         } catch (NumberFormatException exception) {
             throw new ReglaNegocioException("El ID de tienda debe ser numerico");
         }
+    }
+
+    private int normalizarPagina(Integer page) {
+        if (page == null) {
+            return DEFAULT_ADMIN_PAGE;
+        }
+
+        if (page < 0) {
+            throw new ReglaNegocioException("La pagina no puede ser negativa");
+        }
+
+        return page;
+    }
+
+    private int normalizarTamanioPagina(Integer size) {
+        if (size == null) {
+            return DEFAULT_ADMIN_PAGE_SIZE;
+        }
+
+        if (size < 1) {
+            throw new ReglaNegocioException("El tamanio de pagina debe ser mayor a cero");
+        }
+
+        if (size > MAX_ADMIN_PAGE_SIZE) {
+            throw new ReglaNegocioException("El tamanio maximo permitido por pagina es 50");
+        }
+
+        return size;
     }
 
     private UsuarioDocumentoEntity obtenerDocumentoFiscalValidoSiExiste(Long idDocumentoFiscal, Long idUsuario) {

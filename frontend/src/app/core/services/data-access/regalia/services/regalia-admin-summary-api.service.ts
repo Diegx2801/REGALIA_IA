@@ -30,14 +30,14 @@ export class RegaliaAdminSummaryApiService {
 
   getSummary(): Observable<AdminSummary> {
     return forkJoin({
-      stores: this.storeApi.getStores(),
+      stores: this.storeApi.getStores({ page: 0, size: 50, sort: 'idTienda,asc' }),
       orders: this.orderApi.getOrders({ page: 0, size: 50, sort: 'fechaCreacion,desc' }),
       sellers: this.sellerApi.getSellers(),
       users: this.userApi.getUsers({ estado: 'TODOS', page: 0, size: 50, sort: 'idUsuario,asc' }),
       catalogs: this.catalogApi.getCatalogs(),
     }).pipe(
       map(({ stores, orders, sellers, users, catalogs }) => {
-        const storeSummary = this.buildStoreSummary(stores);
+        const storeSummary = this.buildStoreSummary(stores.contenido, stores.totalElementos);
         const orderSummary = this.buildOrderSummary(orders.contenido, orders.totalElementos);
         const sellerSummary = this.buildSellerSummary(sellers);
         const userSummary = this.buildUserSummary(users.contenido, users.totalElementos);
@@ -55,9 +55,9 @@ export class RegaliaAdminSummaryApiService {
     );
   }
 
-  private buildStoreSummary(stores: AdminStoreApiDto[]): AdminStoreSummary {
+  private buildStoreSummary(stores: AdminStoreApiDto[], totalElements: number): AdminStoreSummary {
     return {
-      total: stores.length,
+      total: totalElements,
       active: stores.filter((store) => Boolean(store.estado)).length,
       inactive: stores.filter((store) => !store.estado).length,
       pending: stores.filter((store) => store.estadoRevision === 'PENDIENTE').length,

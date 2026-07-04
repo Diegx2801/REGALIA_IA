@@ -17,19 +17,19 @@
 
     <section class="admin-stores__metrics" aria-label="Resumen de tiendas por estado">
       <article>
-        <span>Pendientes</span>
+        <span>Pendientes pagina</span>
         <strong>{{ pendingCount() }}</strong>
       </article>
       <article>
-        <span>Aprobadas</span>
+        <span>Aprobadas pagina</span>
         <strong>{{ approvedCount() }}</strong>
       </article>
       <article>
-        <span>Observadas</span>
+        <span>Observadas pagina</span>
         <strong>{{ observedCount() }}</strong>
       </article>
       <article>
-        <span>Rechazadas</span>
+        <span>Rechazadas pagina</span>
         <strong>{{ rejectedCount() }}</strong>
       </article>
     </section>
@@ -51,6 +51,15 @@
         <span>Buscar por</span>
         <select [value]="searchField()" (change)="onSearchFieldChange($event)">
           @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="admin-stores__sort-field">
+        <span>Ordenar</span>
+        <select [value]="sort()" (change)="onSortChange($event)">
+          @for (option of sortOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }
         </select>
@@ -111,6 +120,21 @@
               <span class="admin-store-card__arrow" aria-hidden="true">&rsaquo;</span>
             </button>
           }
+
+          <footer class="admin-stores__pagination" aria-label="Paginacion de tiendas">
+            <span>
+              Mostrando {{ displayedCount() }} de {{ totalCount() }} &middot; pagina {{ currentPage() + 1 }}
+              de {{ totalPages() || 1 }}
+            </span>
+            <div>
+              <button type="button" (click)="goToPreviousPage()" [disabled]="isFirstPage() || isLoading()">
+                Anterior
+              </button>
+              <button type="button" (click)="goToNextPage()" [disabled]="isLastPage() || isLoading()">
+                Siguiente
+              </button>
+            </div>
+          </footer>
         }
       </main>
 
