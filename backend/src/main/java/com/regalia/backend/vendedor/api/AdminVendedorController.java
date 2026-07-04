@@ -1,13 +1,12 @@
 package com.regalia.backend.vendedor.api;
 
 import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.vendedor.api.dto.AdminVendedorResponse;
 import com.regalia.backend.vendedor.application.VendedorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Controlador REST administrativo para consultar vendedores.
@@ -20,17 +19,23 @@ public class AdminVendedorController {
     private final VendedorService vendedorService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminVendedorResponse>>> listarVendedores(
+    public ResponseEntity<ApiResponse<PaginaResponse<AdminVendedorResponse>>> listarVendedores(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String verificacion,
             @RequestParam(required = false) String searchField,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort
     ) {
-        List<AdminVendedorResponse> vendedores = vendedorService.listarVendedoresAdmin(
+        PaginaResponse<AdminVendedorResponse> vendedores = vendedorService.listarVendedoresAdmin(
                 estado,
                 verificacion,
                 searchField,
-                search
+                search,
+                page,
+                size,
+                sort
         );
 
         return ResponseEntity.ok(

@@ -17,19 +17,19 @@
 
     <section class="admin-sellers__metrics" aria-label="Resumen administrativo de vendedores">
       <article>
-        <span>Total</span>
+        <span>Resultados</span>
         <strong>{{ totalCount() }}</strong>
       </article>
       <article>
-        <span>Activos</span>
+        <span>Activos pagina</span>
         <strong>{{ activeCount() }}</strong>
       </article>
       <article>
-        <span>Verificados</span>
+        <span>Verificados pagina</span>
         <strong>{{ verifiedCount() }}</strong>
       </article>
       <article>
-        <span>Con tiendas</span>
+        <span>Con tiendas pagina</span>
         <strong>{{ withStoresCount() }}</strong>
       </article>
     </section>
@@ -51,6 +51,15 @@
         <span>Buscar por</span>
         <select [value]="searchField()" (change)="onSearchFieldChange($event)">
           @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="admin-sellers__sort-field">
+        <span>Ordenar</span>
+        <select [value]="sort()" (change)="onSortChange($event)">
+          @for (option of sortOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }
         </select>
@@ -103,14 +112,29 @@
                 <strong>{{ sellerName(seller) }}</strong>
                 <small>{{ seller.correoUsuario || 'Correo no registrado' }}</small>
                 <em>
-                  {{ verificationLabel(seller) }} ·
+                  {{ verificationLabel(seller) }} &middot;
                   {{ seller.cantidadTiendasActivas ?? 0 }}/{{ seller.cantidadTiendasTotales ?? 0 }}
                   tiendas activas
                 </em>
               </span>
-              <span class="admin-seller-card__arrow" aria-hidden="true">›</span>
+              <span class="admin-seller-card__arrow" aria-hidden="true">&rsaquo;</span>
             </button>
           }
+
+          <footer class="admin-sellers__pagination" aria-label="Paginacion de vendedores">
+            <span>
+              Mostrando {{ displayedCount() }} de {{ totalCount() }} &middot; pagina
+              {{ currentPage() + 1 }} de {{ totalPages() || 1 }}
+            </span>
+            <div>
+              <button type="button" (click)="goToPreviousPage()" [disabled]="isFirstPage() || isLoading()">
+                Anterior
+              </button>
+              <button type="button" (click)="goToNextPage()" [disabled]="isLastPage() || isLoading()">
+                Siguiente
+              </button>
+            </div>
+          </footer>
         }
       </main>
 

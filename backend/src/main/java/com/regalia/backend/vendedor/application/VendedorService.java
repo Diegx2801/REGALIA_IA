@@ -5,6 +5,7 @@ import com.regalia.backend.rol.infrastructure.repository.RolJpaRepository;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.tienda.infrastructure.repository.TiendaJpaRepository;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
@@ -18,10 +19,12 @@ import com.regalia.backend.vendedor.infrastructure.entity.VendedorEntity;
 import com.regalia.backend.vendedor.infrastructure.mapper.VendedorMapper;
 import com.regalia.backend.vendedor.infrastructure.repository.VendedorJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * Servicio de aplicación para gestionar el perfil vendedor del usuario autenticado
@@ -35,6 +38,8 @@ public class VendedorService {
     private static final String ROL_VENDEDOR = "VENDEDOR";
     private static final String ESTADO_VERIFICADO = "VERIFICADO";
     private static final String CATEGORIA_IDENTIDAD_PERSONAL = "IDENTIDAD_PERSONAL";
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final VendedorJpaRepository vendedorRepository;
     private final UsuarioJpaRepository usuarioRepository;
@@ -75,38 +80,50 @@ public class VendedorService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminVendedorResponse> listarVendedoresAdmin(
+    public PaginaResponse<AdminVendedorResponse> listarVendedoresAdmin(
             String estado,
             String verificacion,
             String searchField,
-            String search
+            String search,
+            int page,
+            int size,
+            String sort
     ) {
         VendedorEstadoFiltro filtroEstado = VendedorEstadoFiltro.desde(estado);
         VendedorVerificacionFiltro filtroVerificacion = VendedorVerificacionFiltro.desde(verificacion);
         VendedorSearchField campoBusqueda = VendedorSearchField.desde(searchField);
+        VendedorAdminSortField campoOrdenamiento = VendedorAdminSortField.desde(sort);
+        Sort.Direction direccionOrdenamiento = VendedorAdminSortField.direccionDesde(sort);
         String busqueda = normalizarBusqueda(search);
         Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
+        Pageable pageable = PageRequest.of(
+                normalizarPagina(page),
+                normalizarTamanioPagina(size),
+                Sort.by(direccionOrdenamiento, campoOrdenamiento.apiName())
+        );
 
-        if (busqueda == null) {
-            return vendedorRepository.findVendedoresAdministracionPorEstado(
-                            filtroEstado.toEstadoBoolean()
-                    )
-                    .stream()
-                    .map(this::construirAdminResponse)
-                    .filter(vendedor -> coincideVerificacion(vendedor, filtroVerificacion))
-                    .toList();
-        }
-
-        return vendedorRepository.findVendedoresAdministracionFiltrados(
-                        filtroEstado.toEstadoBoolean(),
-                        campoBusqueda.name(),
+        Page<AdminVendedorResponse> pagina = vendedorRepository.findVendedoresAdministracion(
+                        filtroEstado,
+                        filtroVerificacion,
+                        campoBusqueda,
                         busqueda,
-                        busquedaId
+                        busquedaId,
+                        ESTADO_VERIFICADO,
+                        CATEGORIA_IDENTIDAD_PERSONAL,
+                        campoOrdenamiento,
+                        direccionOrdenamiento,
+                        pageable
                 )
-                .stream()
-                .map(this::construirAdminResponse)
-                .filter(vendedor -> coincideVerificacion(vendedor, filtroVerificacion))
-                .toList();
+                .map(this::construirAdminResponse);
+
+        return new PaginaResponse<>(
+                pagina.getContent(),
+                pagina.getNumber(),
+                pagina.getSize(),
+                pagina.getTotalElements(),
+                pagina.getTotalPages(),
+                pagina.isLast()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -136,21 +153,6 @@ public class VendedorService {
         );
     }
 
-    private boolean coincideVerificacion(
-            AdminVendedorResponse vendedor,
-            VendedorVerificacionFiltro filtroVerificacion
-    ) {
-        if (filtroVerificacion == VendedorVerificacionFiltro.VERIFICADO) {
-            return Boolean.TRUE.equals(vendedor.vendedorVerificado());
-        }
-
-        if (filtroVerificacion == VendedorVerificacionFiltro.SIN_VERIFICAR) {
-            return !Boolean.TRUE.equals(vendedor.vendedorVerificado());
-        }
-
-        return true;
-    }
-
     private String normalizarBusqueda(String valor) {
         if (valor == null || valor.isBlank()) {
             return null;
@@ -171,6 +173,26 @@ public class VendedorService {
         } catch (NumberFormatException exception) {
             throw new ReglaNegocioException("El ID de vendedor o usuario debe ser numerico");
         }
+    }
+
+    private int normalizarPagina(int page) {
+        if (page < 0) {
+            throw new ReglaNegocioException("La pagina no puede ser negativa");
+        }
+
+        return page;
+    }
+
+    private int normalizarTamanioPagina(int size) {
+        if (size < 1) {
+            return DEFAULT_PAGE_SIZE;
+        }
+
+        if (size > MAX_PAGE_SIZE) {
+            throw new ReglaNegocioException("El tamanio maximo permitido por pagina es 50");
+        }
+
+        return size;
     }
 
     private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {
