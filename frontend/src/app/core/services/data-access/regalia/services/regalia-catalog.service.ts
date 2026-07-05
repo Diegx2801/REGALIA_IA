@@ -10,7 +10,7 @@ import {
   FeaturedProduct,
   FixedPriceProduct,
   OccasionShortcut,
-  ProviderFilter,
+  SellerFilter,
   RegaliaCategory,
   RegaliaOccasion,
 } from '../../../../../shared/models/regalia.model';
@@ -58,18 +58,18 @@ export class RegaliaCatalogService {
   }
 
   filterFixedPriceProducts(
-    filters: ProviderFilter,
+    filters: SellerFilter,
     products: FixedPriceProduct[] = this.getProductSource(),
   ): FixedPriceProduct[] {
     const search = normalizeRegaliaText(filters.search);
 
     return products.filter((product) => {
       const searchableText = normalizeRegaliaText(
-        `${product.title} ${product.provider} ${product.shortDescription} ${product.badges.join(' ')} ${product.providerCategory}`,
+        `${product.title} ${product.seller} ${product.shortDescription} ${product.badges.join(' ')} ${product.sellerCategory}`,
       );
       const matchesSearch = search.length === 0 || searchableText.includes(search);
       const matchesCategory =
-        filters.category === 'Todas' || product.providerCategory === filters.category;
+        filters.category === 'Todas' || product.sellerCategory === filters.category;
       const matchesOccasion = filters.occasion === 'Todas' || product.occasion === filters.occasion;
       const matchesPrice = product.price <= filters.maxPrice;
       const matchesAvailability =

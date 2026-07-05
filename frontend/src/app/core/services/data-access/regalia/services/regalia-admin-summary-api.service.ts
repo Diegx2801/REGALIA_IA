@@ -30,17 +30,17 @@ export class RegaliaAdminSummaryApiService {
 
   getSummary(): Observable<AdminSummary> {
     return forkJoin({
-      stores: this.storeApi.getStores(),
-      orders: this.orderApi.getOrders(),
-      sellers: this.sellerApi.getSellers(),
-      users: this.userApi.getUsers({ estado: 'TODOS' }),
+      stores: this.storeApi.getStores({ page: 0, size: 50, sort: 'idTienda,asc' }),
+      orders: this.orderApi.getOrders({ page: 0, size: 50, sort: 'fechaCreacion,desc' }),
+      sellers: this.sellerApi.getSellers({ page: 0, size: 50, sort: 'idVendedor,asc' }),
+      users: this.userApi.getUsers({ estado: 'TODOS', page: 0, size: 50, sort: 'idUsuario,asc' }),
       catalogs: this.catalogApi.getCatalogs(),
     }).pipe(
       map(({ stores, orders, sellers, users, catalogs }) => {
-        const storeSummary = this.buildStoreSummary(stores);
-        const orderSummary = this.buildOrderSummary(orders);
-        const sellerSummary = this.buildSellerSummary(sellers);
-        const userSummary = this.buildUserSummary(users);
+        const storeSummary = this.buildStoreSummary(stores.contenido, stores.totalElementos);
+        const orderSummary = this.buildOrderSummary(orders.contenido, orders.totalElementos);
+        const sellerSummary = this.buildSellerSummary(sellers.contenido, sellers.totalElementos);
+        const userSummary = this.buildUserSummary(users.contenido, users.totalElementos);
         const catalogSummary = this.buildCatalogSummary(catalogs);
 
         return {
@@ -55,9 +55,9 @@ export class RegaliaAdminSummaryApiService {
     );
   }
 
-  private buildStoreSummary(stores: AdminStoreApiDto[]): AdminStoreSummary {
+  private buildStoreSummary(stores: AdminStoreApiDto[], totalElements: number): AdminStoreSummary {
     return {
-      total: stores.length,
+      total: totalElements,
       active: stores.filter((store) => Boolean(store.estado)).length,
       inactive: stores.filter((store) => !store.estado).length,
       pending: stores.filter((store) => store.estadoRevision === 'PENDIENTE').length,
@@ -67,13 +67,13 @@ export class RegaliaAdminSummaryApiService {
     };
   }
 
-  private buildOrderSummary(orders: OrderApiDto[]): AdminOrderSummary {
+  private buildOrderSummary(orders: OrderApiDto[], totalElements: number): AdminOrderSummary {
     const paid = orders.filter((order) => this.toNumber(order.saldoPendiente) <= 0).length;
     const pendingBalance = orders.filter((order) => this.toNumber(order.saldoPendiente) > 0).length;
     const totalPaid = orders.reduce((sum, order) => sum + this.toNumber(order.montoPagado), 0);
 
     return {
-      total: orders.length,
+      total: totalElements,
       active: orders.filter((order) => Boolean(order.estado)).length,
       inactive: orders.filter((order) => !order.estado).length,
       paid,
@@ -82,9 +82,9 @@ export class RegaliaAdminSummaryApiService {
     };
   }
 
-  private buildSellerSummary(sellers: AdminSellerApiDto[]): AdminSellerSummary {
+  private buildSellerSummary(sellers: AdminSellerApiDto[], totalElements: number): AdminSellerSummary {
     return {
-      total: sellers.length,
+      total: totalElements,
       active: sellers.filter((seller) => Boolean(seller.estado)).length,
       inactive: sellers.filter((seller) => !seller.estado).length,
       verified: sellers.filter((seller) => Boolean(seller.vendedorVerificado)).length,
@@ -93,9 +93,9 @@ export class RegaliaAdminSummaryApiService {
     };
   }
 
-  private buildUserSummary(users: AdminUserApiDto[]): AdminUserSummary {
+  private buildUserSummary(users: AdminUserApiDto[], totalElements: number): AdminUserSummary {
     return {
-      total: users.length,
+      total: totalElements,
       active: users.filter((user) => Boolean(user.estado)).length,
       inactive: users.filter((user) => !user.estado).length,
       withPhone: users.filter((user) => Boolean(user.telefono?.trim())).length,

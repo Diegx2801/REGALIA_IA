@@ -2,14 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
-import { RegaliaProvider } from '../../shared/models/regalia.model';
+import { RegaliaSeller } from '../../shared/models/regalia.model';
 
-<<<<<<< HEAD
 // Producto publicado localmente por el vendedor antes de conectar persistencia backend.
-=======
-// Producto publicado localmente por el proveedor antes de conectar persistencia con backend.
->>>>>>> origin/main
-interface ProviderCatalogItem {
+interface SellerCatalogItem {
   id: number;
   name: string;
   price: number;
@@ -20,16 +16,16 @@ interface ProviderCatalogItem {
 }
 
 @Component({
-  selector: 'app-provider-profile',
+  selector: 'app-seller-profile',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './provider-profile.html',
-  styleUrl: './provider-profile.css',
+  templateUrl: './seller-profile.html',
+  styleUrl: './seller-profile.css',
 })
-export class ProviderProfileComponent {
+export class SellerProfileComponent {
   private readonly regaliaService = inject(RegaliaService);
 
-  readonly provider = signal<RegaliaProvider>(this.regaliaService.getProviders()[0]);
+  readonly seller = signal<RegaliaSeller>(this.regaliaService.getSellers()[0]);
   readonly saved = signal(false);
   readonly productSaved = signal(false);
   // Identifica si el formulario está creando un producto nuevo o editando uno existente.
@@ -39,16 +35,16 @@ export class ProviderProfileComponent {
   private nextProductId = 4;
 
   readonly profileForm = new FormGroup({
-    businessName: new FormControl(this.provider().businessName, { nonNullable: true }),
-    ownerName: new FormControl(this.provider().ownerName, { nonNullable: true }),
-    district: new FormControl(this.provider().district, { nonNullable: true }),
-    whatsapp: new FormControl(this.provider().whatsapp, { nonNullable: true }),
-    availability: new FormControl(this.provider().availability, { nonNullable: true }),
-    deliveryTime: new FormControl(this.provider().deliveryTime, { nonNullable: true }),
-    description: new FormControl(this.provider().description, { nonNullable: true }),
+    businessName: new FormControl(this.seller().businessName, { nonNullable: true }),
+    ownerName: new FormControl(this.seller().ownerName, { nonNullable: true }),
+    district: new FormControl(this.seller().district, { nonNullable: true }),
+    whatsapp: new FormControl(this.seller().whatsapp, { nonNullable: true }),
+    availability: new FormControl(this.seller().availability, { nonNullable: true }),
+    deliveryTime: new FormControl(this.seller().deliveryTime, { nonNullable: true }),
+    description: new FormControl(this.seller().description, { nonNullable: true }),
   });
 
-  readonly catalogItems = signal<ProviderCatalogItem[]>([
+  readonly catalogItems = signal<SellerCatalogItem[]>([
     { id: 1, name: 'Box premium personalizado', price: 129, status: 'Activo', category: 'Cajas sorpresa', imageName: 'box-premium.jpg', imagePreview: '/images/regalia-hero-gift.png' },
     { id: 2, name: 'Detalle express', price: 75, status: 'Activo', category: 'Regalos personalizados', imageName: 'detalle-express.jpg', imagePreview: '/images/regalia-hero-gift.png' },
     { id: 3, name: 'Pack corporativo', price: 180, status: 'Pausado', category: 'Evento corporativo', imageName: 'pack-corporativo.jpg', imagePreview: '/images/regalia-hero-gift.png' },
@@ -65,7 +61,7 @@ export class ProviderProfileComponent {
 
   saveProfile(): void {
     this.saved.set(false);
-    this.provider.update((provider) => ({ ...provider, ...this.profileForm.getRawValue() }));
+    this.seller.update((seller) => ({ ...seller, ...this.profileForm.getRawValue() }));
     this.saved.set(true);
   }
 
@@ -79,7 +75,7 @@ export class ProviderProfileComponent {
       return;
     }
 
-    const productPayload: ProviderCatalogItem = {
+    const productPayload: SellerCatalogItem = {
       id: this.editingProductId() ?? this.nextProductId++,
       name: product.name,
       price: product.price,
@@ -98,7 +94,7 @@ export class ProviderProfileComponent {
     this.productSaved.set(true);
   }
 
-  editProduct(item: ProviderCatalogItem): void {
+  editProduct(item: SellerCatalogItem): void {
     // Carga un producto publicado al formulario para editarlo sin salir de la pantalla.
     this.editingProductId.set(item.id);
     this.imagePreview.set(item.imagePreview);
@@ -108,15 +104,11 @@ export class ProviderProfileComponent {
       price: item.price,
       status: item.status,
       imageName: item.imageName,
-<<<<<<< HEAD
       description: 'Producto publicado en catalogo del vendedor.',
-=======
-      description: 'Producto publicado en catálogo del proveedor.',
->>>>>>> origin/main
     });
   }
 
-  deleteProduct(item: ProviderCatalogItem): void {
+  deleteProduct(item: SellerCatalogItem): void {
     // Elimina solo del estado local; el backend se conectará después.
     this.catalogItems.update((items) => items.filter((currentItem) => currentItem.id !== item.id));
 
@@ -126,11 +118,7 @@ export class ProviderProfileComponent {
   }
 
   onImageSelected(event: Event): void {
-<<<<<<< HEAD
     // Convierte la imagen seleccionada en vista previa local para mejorar la revision del vendedor.
-=======
-    // Convierte la imagen seleccionada en vista previa local para mejorar la revisión del proveedor.
->>>>>>> origin/main
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
@@ -164,7 +152,7 @@ export class ProviderProfileComponent {
     return value;
   }
 
-  trackCatalog(_: number, item: ProviderCatalogItem): string {
+  trackCatalog(_: number, item: SellerCatalogItem): string {
     return String(item.id);
   }
 }

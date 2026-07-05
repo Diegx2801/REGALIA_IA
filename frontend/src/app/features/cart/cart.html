@@ -17,129 +17,96 @@
 
     @if (hasCheckoutContent()) {
       <nav class="checkout-steps" aria-label="Progreso de reserva">
-        <span class="checkout-steps__item checkout-steps__item--active">Carrito</span>
         <span
           class="checkout-steps__item"
-          [class.checkout-steps__item--active]="
-            checkoutMode() === 'confirmation' || checkoutMode() === 'sent'
-          "
+          [class.checkout-steps__item--active]="checkoutMode() === 'cart'"
         >
-          Pago inicial
+          Carrito
         </span>
         <span
           class="checkout-steps__item"
-          [class.checkout-steps__item--active]="checkoutMode() === 'sent'"
+          [class.checkout-steps__item--active]="checkoutMode() === 'confirmation'"
         >
-          Reserva registrada
+          Datos de reserva
         </span>
+        <span class="checkout-steps__item">Pago seguro</span>
       </nav>
 
       <div class="row g-3 g-xxl-4 align-items-start">
         <main class="col-12 col-xl-8 col-xxl-9" aria-label="Productos del carrito">
-          @if (checkoutMode() === 'sent') {
-            @if (submittedOrder(); as order) {
-              <section class="cart-list cart-list--success card border-0 shadow-sm">
-                <span class="cart-summary__eyebrow">Reserva registrada</span>
-                <h2>Pedido #{{ order.idPedido }} creado correctamente</h2>
-                <p>
-                  REGALIA registr&oacute; tu pago inicial y el vendedor podr&aacute; revisar el pedido
-                  para coordinar la preparaci&oacute;n.
-                </p>
-                <div class="cart-order-result">
-                  <div>
-                    <span>Estado</span>
-                    <strong>{{ order.estadoPedido }}</strong>
-                  </div>
-                  <div>
-                    <span>Tienda</span>
-                    <strong>{{ order.nombreTienda }}</strong>
-                  </div>
-                  <div>
-                    <span>Entrega</span>
-                    <strong>{{ order.fechaEntrega }}</strong>
-                  </div>
-                  <div>
-                    <span>Pagado</span>
-                    <strong>S/ {{ order.montoPagado }}</strong>
-                  </div>
-                </div>
-              </section>
-            }
-          } @else {
-            <section class="cart-list card border-0 shadow-sm">
-              <div class="cart-list__head">
-                <div>
-                  <span>Productos seleccionados</span>
-                  <strong>{{ summary().totalItems }} item(s)</strong>
-                </div>
-                <button
-                  type="button"
-                  class="btn btn-outline-primary btn-sm rounded-pill"
-                  (click)="clear()"
-                >
-                  Vaciar carrito
-                </button>
+          <section class="cart-list card border-0 shadow-sm">
+            <div class="cart-list__head">
+              <div>
+                <span>Productos seleccionados</span>
+                <strong>{{ summary().totalItems }} item(s)</strong>
               </div>
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm rounded-pill"
+                (click)="clear()"
+              >
+                Vaciar carrito
+              </button>
+            </div>
 
-              <div class="d-grid gap-3">
-                @for (item of items(); track trackItem($index, item)) {
-                  <article class="cart-item row g-3 align-items-stretch">
-                    <div class="col-12 col-md-4 col-lg-3">
-                      <div
-                        class="cart-item__media"
-                        [style.background-image]="'url(' + item.product.imageUrl + ')'"
-                        [style.background-position]="item.product.imagePosition"
-                        aria-hidden="true"
-                      ></div>
+            <div class="d-grid gap-3">
+              @for (item of items(); track trackItem($index, item)) {
+                <article class="cart-item row g-3 align-items-stretch">
+                  <div class="col-12 col-md-4 col-lg-3">
+                    <div
+                      class="cart-item__media"
+                      [style.background-image]="'url(' + item.product.imageUrl + ')'"
+                      [style.background-position]="item.product.imagePosition"
+                      aria-hidden="true"
+                    ></div>
+                  </div>
+
+                  <div class="col-12 col-md-8 col-lg-9 cart-item__body">
+                    <div class="cart-item__top">
+                      <div>
+                        <span class="cart-item__seller">{{ item.product.seller }}</span>
+                        <h2>{{ item.product.title }}</h2>
+                      </div>
+                      <strong>S/ {{ item.product.price }}</strong>
                     </div>
 
-                    <div class="col-12 col-md-8 col-lg-9 cart-item__body">
-                      <div class="cart-item__top">
-                        <div>
-                          <span class="cart-item__provider">{{ item.product.provider }}</span>
-                          <h2>{{ item.product.title }}</h2>
-                        </div>
-                        <strong>S/ {{ item.product.price }}</strong>
-                      </div>
+                    <p>{{ item.product.shortDescription }}</p>
 
-                      <p>{{ item.product.shortDescription }}</p>
+                    <div class="cart-item__meta">
+                      <span>{{ item.product.deliveryTime }}</span>
+                      <span>{{ item.product.stockStatus }}</span>
+                      <span>{{ item.product.personalization }}</span>
+                    </div>
 
-                      <div class="cart-item__meta">
-                        <span>{{ item.product.deliveryTime }}</span>
-                        <span>{{ item.product.stockStatus }}</span>
-                        <span>{{ item.product.personalization }}</span>
-                      </div>
-
-                      <div class="cart-item__actions">
-                        <div class="quantity-control" aria-label="Cantidad">
-                          <button type="button" (click)="decrease(item.product.id, item.quantity)">
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            [max]="item.product.maxQuantity"
-                            [value]="item.quantity"
-                            (change)="updateQuantity(item.product.id, $any($event.target).value)"
-                          />
-                          <button type="button" (click)="increase(item.product.id, item.quantity)">
-                            +
-                          </button>
-                        </div>
-                        <button
-                          class="cart-item__remove"
-                          type="button"
-                          (click)="remove(item.product.id)"
-                        >
-                          Quitar
+                    <div class="cart-item__actions">
+                      <div class="quantity-control" aria-label="Cantidad">
+                        <button type="button" (click)="decrease(item.product.id, item.quantity)">
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          [max]="item.product.maxQuantity"
+                          [value]="item.quantity"
+                          (change)="updateQuantity(item.product.id, $any($event.target).value)"
+                        />
+                        <button type="button" (click)="increase(item.product.id, item.quantity)">
+                          +
                         </button>
                       </div>
+                      <button
+                        class="cart-item__remove"
+                        type="button"
+                        (click)="remove(item.product.id)"
+                      >
+                        Quitar
+                      </button>
                     </div>
-                  </article>
-                }
-              </div>
-            </section>
-          }
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
         </main>
 
         <aside class="col-12 col-xl-4 col-xxl-3" aria-label="Resumen del carrito">
@@ -149,13 +116,12 @@
             <p>{{ deliveryNote() }}</p>
 
             @if (checkoutMode() === 'confirmation') {
-              <section class="cart-confirmation" aria-label="Datos de pago inicial">
-                <strong>Datos para registrar la reserva</strong>
-                <ul>
-                  <li>REGALIA registra el pedido cuando existe un pago inicial valido.</li>
-                  <li>El codigo de operacion evita duplicar pagos registrados.</li>
-                  <li>El saldo queda pendiente para coordinacion final con el vendedor.</li>
-                </ul>
+              <section class="cart-confirmation" aria-label="Datos de reserva">
+                <strong>Completa los datos para continuar</strong>
+                <p>
+                  Te llevaremos al entorno seguro de pago para confirmar el monto inicial de tu
+                  reserva.
+                </p>
 
                 <div class="cart-checkout-form">
                   <label class="cart-checkout-field">
@@ -196,29 +162,6 @@
                     </select>
                   </label>
 
-                  <label class="cart-checkout-field">
-                    <span>Metodo de pago</span>
-                    <select
-                      [value]="checkoutDraft().metodoPagoPasarela"
-                      (change)="updatePaymentMethod($any($event.target).value)"
-                    >
-                      @for (method of paymentMethods; track method) {
-                        <option [value]="method">{{ method }}</option>
-                      }
-                    </select>
-                  </label>
-
-                  <label class="cart-checkout-field cart-checkout-field--full">
-                    <span>Codigo de operacion</span>
-                    <input
-                      type="text"
-                      placeholder="Ej. YAPE-123456"
-                      maxlength="100"
-                      [value]="checkoutDraft().codigoTransaccion"
-                      (input)="updateTransactionCode($any($event.target).value)"
-                    />
-                  </label>
-
                   <label class="cart-checkout-field cart-checkout-field--full">
                     <span>Observacion para la entrega</span>
                     <textarea
@@ -238,29 +181,13 @@
                 <span>Subtotal</span><strong>S/ {{ summary().subtotal }}</strong>
               </div>
               <div>
-                <span>Reserva inicial 20%</span><strong>S/ {{ summary().reservation }}</strong>
-              </div>
-              <div>
-                <span>Comision estimada REGALIA</span
-                ><strong>S/ {{ summary().platformCommission }}</strong>
-              </div>
-              <div>
-                <span>Adelanto al vendedor</span
-                ><strong>S/ {{ summary().providerAdvance }}</strong>
+                <span>{{ initialPaymentLabel() }}</span>
+                <strong>S/ {{ initialPaymentAmount() }}</strong>
               </div>
               <div class="cart-summary__total">
-                <span>Saldo al recibir</span><strong>S/ {{ summary().remainingToPay }}</strong>
+                <span>Saldo restante</span><strong>S/ {{ remainingPaymentAmount() }}</strong>
               </div>
             </div>
-
-            @if (checkoutMode() === 'sent') {
-              @if (submittedOrder(); as order) {
-                <div class="cart-summary__success">
-                  <strong>Reserva registrada</strong>
-                  <span>Pedido #{{ order.idPedido }} registrado con pago inicial.</span>
-                </div>
-              }
-            }
 
             @if (checkoutMessage()) {
               <div class="cart-summary__notice" role="alert">
@@ -281,28 +208,27 @@
               <button
                 class="btn btn-primary rounded-pill w-100"
                 type="button"
-                [disabled]="isSubmittingOrder() || isLoadingCheckoutOptions()"
-                (click)="confirmReservation()"
+                [disabled]="isCreatingPaymentSession() || isLoadingCheckoutOptions()"
+                (click)="startMercadoPagoCheckout()"
               >
-                {{ isSubmittingOrder() ? 'Registrando reserva...' : 'Registrar reserva' }}
+                {{
+                  isCreatingPaymentSession()
+                    ? 'Abriendo pago seguro...'
+                    : 'Continuar al pago seguro'
+                }}
               </button>
               <button
                 class="btn btn-outline-primary rounded-pill w-100 mt-2"
                 type="button"
-                [disabled]="isSubmittingOrder()"
+                [disabled]="isCreatingPaymentSession()"
                 (click)="backToCart()"
               >
                 Volver al carrito
               </button>
             }
-            @if (checkoutMode() === 'sent') {
-              <a class="btn btn-primary rounded-pill w-100" routerLink="/cliente/reservas"
-                >Ver mis reservas</a
-              >
-            }
-            <a class="btn btn-outline-primary rounded-pill w-100 mt-2" routerLink="/catalogo"
-              >Seguir explorando</a
-            >
+            <a class="btn btn-outline-primary rounded-pill w-100 mt-2" routerLink="/catalogo">
+              Seguir explorando
+            </a>
           </section>
         </aside>
       </div>
@@ -316,9 +242,9 @@
         </p>
         <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
           <a class="btn btn-primary rounded-pill px-4" routerLink="/catalogo">Ver catalogo</a>
-          <a class="btn btn-outline-primary rounded-pill px-4" routerLink="/pedir-con-ia"
-            >Cotizar con IA</a
-          >
+          <a class="btn btn-outline-primary rounded-pill px-4" routerLink="/pedir-con-ia">
+            Cotizar con IA
+          </a>
         </div>
       </section>
     }

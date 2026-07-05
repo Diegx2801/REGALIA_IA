@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthSessionService } from '../../../../core/services/auth/auth-session.service';
 
@@ -127,11 +127,7 @@ export class FestiveCalendarComponent {
         products: ['Producto destacado', 'Detalle personalizado', 'Reserva anticipada'],
       },
   );
-<<<<<<< HEAD
   // El CTA cambia segun rol: vendedor prepara catalogo; visitante se registra.
-=======
-  // El CTA cambia segun rol: proveedor prepara catálogo; visitante se registra.
->>>>>>> origin/main
   readonly prepareRoute = computed(() =>
     this.authSession.role() === 'Vendedor' ? '/vendedor/perfil' : '/registro',
   );

@@ -13,7 +13,7 @@ export class CartService {
   readonly totalItems = computed(() => this.items().reduce((sum, item) => sum + item.quantity, 0));
   readonly hasItems = computed(() => this.totalItems() > 0);
   readonly storeIds = computed(() => [
-    ...new Set(this.items().map((item) => item.product.providerId).filter(Boolean)),
+    ...new Set(this.items().map((item) => item.product.sellerId).filter(Boolean)),
   ]);
   readonly currentStoreId = computed(() => this.storeIds()[0] ?? null);
   readonly hasMultipleStores = computed(() => this.storeIds().length > 1);
@@ -79,14 +79,14 @@ export class CartService {
     );
     const reservation = this.roundMoney(subtotal * RESERVATION_RATE);
     const platformCommission = this.roundMoney(reservation * PLATFORM_RATE_FROM_RESERVATION);
-    const providerAdvance = this.roundMoney(reservation - platformCommission);
+    const sellerAdvance = this.roundMoney(reservation - platformCommission);
     const remainingToPay = this.roundMoney(subtotal - reservation);
 
     return {
       subtotal,
       reservation,
       platformCommission,
-      providerAdvance,
+      sellerAdvance,
       remainingToPay,
       totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
     };

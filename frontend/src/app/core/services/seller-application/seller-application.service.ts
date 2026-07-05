@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type ProviderApplicationStatus =
+export type SellerApplicationStatus =
   | 'draft'
   | 'submitted'
   | 'under_review'
@@ -8,7 +8,7 @@ export type ProviderApplicationStatus =
   | 'approved'
   | 'rejected';
 
-export interface ProviderApplicationPayload {
+export interface SellerApplicationPayload {
   businessName: string;
   responsibleName: string;
   email: string;
@@ -34,10 +34,10 @@ export interface ProviderApplicationPayload {
   confirmsTruthfulness: boolean;
 }
 
-export interface ProviderApplication extends ProviderApplicationPayload {
+export interface SellerApplication extends SellerApplicationPayload {
   id: string;
   userId: number;
-  status: ProviderApplicationStatus;
+  status: SellerApplicationStatus;
   currentStep: number;
   createdAt: string;
   updatedAt: string;
@@ -46,26 +46,26 @@ export interface ProviderApplication extends ProviderApplicationPayload {
 }
 
 @Injectable({ providedIn: 'root' })
-export class ProviderApplicationService {
-  private readonly storageKey = 'regalia_provider_applications_v1';
-  private readonly applicationsSignal = signal<ProviderApplication[]>(this.readStorage());
+export class SellerApplicationService {
+  private readonly storageKey = 'regalia_seller_applications_v1';
+  private readonly applicationsSignal = signal<SellerApplication[]>(this.readStorage());
 
   readonly applications = this.applicationsSignal.asReadonly();
 
-  getByUser(userId: number): ProviderApplication | null {
+  getByUser(userId: number): SellerApplication | null {
     return this.applicationsSignal().find((application) => application.userId === userId) ?? null;
   }
 
   saveDraft(
     userId: number,
-    payload: ProviderApplicationPayload,
+    payload: SellerApplicationPayload,
     currentStep: number,
-  ): ProviderApplication {
+  ): SellerApplication {
     const existing = this.getByUser(userId);
     const now = new Date().toISOString();
-    const application: ProviderApplication = {
+    const application: SellerApplication = {
       ...payload,
-      id: existing?.id ?? `provider-${userId}-${Date.now()}`,
+      id: existing?.id ?? `seller-${userId}-${Date.now()}`,
       userId,
       status: existing?.status === 'changes_requested' ? 'changes_requested' : 'draft',
       currentStep,
@@ -79,12 +79,12 @@ export class ProviderApplicationService {
     return application;
   }
 
-  submit(userId: number, payload: ProviderApplicationPayload): ProviderApplication {
+  submit(userId: number, payload: SellerApplicationPayload): SellerApplication {
     const existing = this.getByUser(userId);
     const now = new Date().toISOString();
-    const application: ProviderApplication = {
+    const application: SellerApplication = {
       ...payload,
-      id: existing?.id ?? `provider-${userId}-${Date.now()}`,
+      id: existing?.id ?? `seller-${userId}-${Date.now()}`,
       userId,
       status: 'submitted',
       currentStep: 5,
@@ -100,7 +100,7 @@ export class ProviderApplicationService {
 
   updateStatus(
     applicationId: string,
-    status: Exclude<ProviderApplicationStatus, 'draft' | 'submitted'>,
+    status: Exclude<SellerApplicationStatus, 'draft' | 'submitted'>,
     adminNotes = '',
   ): void {
     const updated = this.applicationsSignal().map((application) =>
@@ -126,7 +126,7 @@ export class ProviderApplicationService {
     this.persist(updated);
   }
 
-  private upsert(application: ProviderApplication): void {
+  private upsert(application: SellerApplication): void {
     const applications = this.applicationsSignal();
     const index = applications.findIndex((item) => item.id === application.id);
     const updated = [...applications];
@@ -137,14 +137,14 @@ export class ProviderApplicationService {
     this.persist(updated);
   }
 
-  private persist(applications: ProviderApplication[]): void {
+  private persist(applications: SellerApplication[]): void {
     this.applicationsSignal.set(applications);
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(this.storageKey, JSON.stringify(applications));
     }
   }
 
-  private readStorage(): ProviderApplication[] {
+  private readStorage(): SellerApplication[] {
     if (typeof localStorage === 'undefined') return [];
 
     const raw = localStorage.getItem(this.storageKey);
@@ -152,7 +152,7 @@ export class ProviderApplicationService {
 
     try {
       const value = JSON.parse(raw) as unknown;
-      return Array.isArray(value) ? (value as ProviderApplication[]) : [];
+      return Array.isArray(value) ? (value as SellerApplication[]) : [];
     } catch {
       return [];
     }

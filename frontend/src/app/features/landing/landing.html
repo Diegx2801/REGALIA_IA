@@ -57,7 +57,7 @@
               </div>
               <div class="product-card__body">
                 <h3 class="product-card__title">{{ product.title }}</h3>
-                <p class="product-card__provider">{{ product.provider }}</p>
+                <p class="product-card__seller">{{ product.seller }}</p>
                 <strong class="product-card__price">Desde S/ {{ product.priceFrom }}</strong>
                 <div class="product-card__meta">
                   <span class="product-card__rating" aria-label="Calificación"
@@ -138,18 +138,18 @@
     </div>
   </section>
 
-  <section class="provider-cta-band">
-    <div class="container rg-page__container rg-page__container--retail provider-cta">
-      <div class="provider-cta__art" aria-hidden="true"></div>
-      <div class="provider-cta__copy">
-        <span class="provider-cta__eyebrow">¿Tienes un emprendimiento?</span>
-        <h2 class="provider-cta__title">Únete a REGALIA</h2>
+  <section class="seller-cta-band">
+    <div class="container rg-page__container rg-page__container--retail seller-cta">
+      <div class="seller-cta__art" aria-hidden="true"></div>
+      <div class="seller-cta__copy">
+        <span class="seller-cta__eyebrow">¿Tienes un emprendimiento?</span>
+        <h2 class="seller-cta__title">Únete a REGALIA</h2>
       </div>
-      <p class="provider-cta__text">
+      <p class="seller-cta__text">
         Publica tus productos, llega a más clientes y haz crecer tu marca con nosotros.
       </p>
       <a
-        class="provider-cta__button"
+        class="seller-cta__button"
         [routerLink]="sellerRoute()"
         [queryParams]="sellerQueryParams()"
         >Quiero vender en REGALIA →</a

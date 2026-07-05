@@ -7,8 +7,10 @@ import {
   AdminStoreApiDto,
   AdminStoreReviewStatus,
   AdminStoreSearchFieldApi,
+  AdminStoreSortApi,
 } from '../../core/services/data-access/regalia/models/admin-store-api.model';
 import { RegaliaAdminStoreApiService } from '../../core/services/data-access/regalia/services/regalia-admin-store-api.service';
+import { PageApiDto } from '../../shared/models/api-response.model';
 
 type AdminStoreFilter = 'TODAS' | AdminStoreReviewStatus;
 
@@ -38,6 +40,21 @@ const SEARCH_FIELD_OPTIONS: AdminStoreSearchFieldOption[] = [
   { value: 'ID_TIENDA', label: 'ID tienda', placeholder: 'Ej. 3' },
 ];
 
+interface AdminStoreSortOption {
+  value: AdminStoreSortApi;
+  label: string;
+}
+
+const SORT_OPTIONS: AdminStoreSortOption[] = [
+  { value: 'idTienda,asc', label: 'ID menor' },
+  { value: 'idTienda,desc', label: 'ID mayor' },
+  { value: 'nombre,asc', label: 'Tienda A-Z' },
+  { value: 'nombre,desc', label: 'Tienda Z-A' },
+  { value: 'estadoRevision,asc', label: 'Estado' },
+  { value: 'nombreVendedor,asc', label: 'Vendedor A-Z' },
+  { value: 'fechaCreacion,desc', label: 'Mas recientes' },
+];
+
 @Component({
   selector: 'app-admin-stores',
   standalone: true,
@@ -53,9 +70,14 @@ export class AdminStoresComponent implements OnInit {
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly searchFieldOptions = SEARCH_FIELD_OPTIONS;
+  readonly sortOptions = SORT_OPTIONS;
   readonly filter = signal<AdminStoreFilter>('TODAS');
   readonly searchField = signal<AdminStoreSearchFieldApi>('NOMBRE');
   readonly searchTerm = signal('');
+  readonly page = signal(0);
+  readonly pageSize = signal(10);
+  readonly sort = signal<AdminStoreSortApi>('idTienda,asc');
+  readonly pageInfo = signal<PageApiDto<AdminStoreApiDto> | null>(null);
   readonly stores = signal<AdminStoreApiDto[]>([]);
   readonly selectedStoreId = signal<number | null>(null);
   readonly isLoading = signal(false);
@@ -79,6 +101,12 @@ export class AdminStoresComponent implements OnInit {
   readonly rejectedCount = computed(
     () => this.stores().filter((store) => store.estadoRevision === 'RECHAZADA').length,
   );
+  readonly totalCount = computed(() => this.pageInfo()?.totalElementos ?? this.stores().length);
+  readonly currentPage = computed(() => this.pageInfo()?.paginaActual ?? this.page());
+  readonly totalPages = computed(() => this.pageInfo()?.totalPaginas ?? 0);
+  readonly displayedCount = computed(() => this.stores().length);
+  readonly isFirstPage = computed(() => this.currentPage() <= 0);
+  readonly isLastPage = computed(() => this.pageInfo()?.ultimaPagina ?? true);
   readonly searchPlaceholder = computed(
     () =>
       this.searchFieldOptions.find((option) => option.value === this.searchField())?.placeholder ??
@@ -90,6 +118,9 @@ export class AdminStoresComponent implements OnInit {
       this.filter.set(this.parseStatusFilter(params.get('estadoRevision')));
       this.searchField.set(this.parseSearchField(params.get('searchField')));
       this.searchTerm.set(params.get('search') ?? '');
+      this.page.set(this.parseNonNegativeInteger(params.get('page'), 0));
+      this.pageSize.set(this.parsePageSize(params.get('size')));
+      this.sort.set(this.parseSort(params.get('sort')));
       this.selectedStoreId.set(null);
       this.actionMessage.set('');
       this.loadStores();
@@ -97,12 +128,18 @@ export class AdminStoresComponent implements OnInit {
   }
 
   setFilter(filter: AdminStoreFilter): void {
-    this.updateQueryParams({ estadoRevision: filter === 'TODAS' ? null : filter });
+    this.updateQueryParams({
+      estadoRevision: filter === 'TODAS' ? null : filter,
+      page: '0',
+    });
   }
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.updateQueryParams({ search: input.value.trim() || null });
+    this.updateQueryParams({
+      search: input.value.trim() || null,
+      page: '0',
+    });
   }
 
   onSearchFieldChange(event: Event): void {
@@ -110,11 +147,36 @@ export class AdminStoresComponent implements OnInit {
     this.updateQueryParams({
       searchField: this.parseSearchField(select.value),
       search: this.searchTerm().trim() || null,
+      page: '0',
     });
   }
 
   clearSearch(): void {
-    this.updateQueryParams({ search: null });
+    this.updateQueryParams({ search: null, page: '0' });
+  }
+
+  onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.updateQueryParams({
+      sort: this.parseSort(select.value),
+      page: '0',
+    });
+  }
+
+  goToPreviousPage(): void {
+    if (this.isFirstPage()) {
+      return;
+    }
+
+    this.updateQueryParams({ page: String(this.currentPage() - 1) });
+  }
+
+  goToNextPage(): void {
+    if (this.isLastPage()) {
+      return;
+    }
+
+    this.updateQueryParams({ page: String(this.currentPage() + 1) });
   }
 
   selectStore(store: AdminStoreApiDto): void {
@@ -141,13 +203,7 @@ export class AdminStoresComponent implements OnInit {
       )
       .subscribe({
         next: (updatedStore) => {
-          this.replaceStore(updatedStore);
-          const currentFilter = this.filter();
-          const shouldRemainVisible =
-            currentFilter === 'TODAS' || updatedStore.estadoRevision === currentFilter;
-          this.selectedStoreId.set(
-            shouldRemainVisible ? updatedStore.idTienda : (this.stores()[0]?.idTienda ?? null),
-          );
+          this.loadStores();
           this.actionMessage.set(`Tienda actualizada a ${this.statusLabel(updatedStore.estadoRevision)}.`);
         },
         error: () => {
@@ -203,17 +259,22 @@ export class AdminStoresComponent implements OnInit {
         estadoRevision: status,
         searchField: this.searchField(),
         search: this.searchTerm(),
+        page: this.page(),
+        size: this.pageSize(),
+        sort: this.sort(),
       })
       .pipe(
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (stores) => {
-          this.stores.set(stores);
-          this.selectedStoreId.set(stores[0]?.idTienda ?? null);
+        next: (pageData) => {
+          this.pageInfo.set(pageData);
+          this.stores.set(pageData.contenido);
+          this.selectedStoreId.set(pageData.contenido[0]?.idTienda ?? null);
         },
         error: () => {
+          this.pageInfo.set(null);
           this.stores.set([]);
           this.selectedStoreId.set(null);
           this.errorMessage.set('No se pudieron cargar las tiendas administrativas.');
@@ -226,17 +287,6 @@ export class AdminStoresComponent implements OnInit {
     if (status === 'APROBADA') return this.adminStoreApi.approve(storeId);
     if (status === 'OBSERVADA') return this.adminStoreApi.observe(storeId);
     return this.adminStoreApi.reject(storeId);
-  }
-
-  private replaceStore(updatedStore: AdminStoreApiDto): void {
-    const currentFilter = this.filter();
-    this.stores.update((stores) => {
-      if (currentFilter !== 'TODAS' && updatedStore.estadoRevision !== currentFilter) {
-        return stores.filter((store) => store.idTienda !== updatedStore.idTienda);
-      }
-
-      return stores.map((store) => (store.idTienda === updatedStore.idTienda ? updatedStore : store));
-    });
   }
 
   private parseStatusFilter(value: string | null): AdminStoreFilter {
@@ -258,6 +308,35 @@ export class AdminStoresComponent implements OnInit {
     }
 
     return 'NOMBRE';
+  }
+
+  private parseSort(value: string | null): AdminStoreSortApi {
+    if (
+      value === 'idTienda,desc' ||
+      value === 'nombre,asc' ||
+      value === 'nombre,desc' ||
+      value === 'estadoRevision,asc' ||
+      value === 'nombreVendedor,asc' ||
+      value === 'fechaCreacion,desc'
+    ) {
+      return value;
+    }
+
+    return 'idTienda,asc';
+  }
+
+  private parseNonNegativeInteger(value: string | null, fallback: number): number {
+    if (!value) {
+      return fallback;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+  }
+
+  private parsePageSize(value: string | null): number {
+    const parsed = this.parseNonNegativeInteger(value, 10);
+    return parsed >= 1 && parsed <= 50 ? parsed : 10;
   }
 
   private updateQueryParams(queryParams: Record<string, string | null>): void {

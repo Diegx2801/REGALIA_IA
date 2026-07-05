@@ -6,7 +6,7 @@
   RegaliaCategory,
   RegaliaOccasion,
   RegaliaOrder,
-  RegaliaProvider,
+  RegaliaSeller,
 } from '../../../../../shared/models/regalia.model';
 
 export const REGALIA_CATEGORIES: RegaliaCategory[] = [
@@ -51,8 +51,8 @@ export const REGALIA_FEATURED_PRODUCTS: FeaturedProduct[] = [
   {
     id: 1,
     title: 'Box mamá edición especial',
-    provider: 'Bienestar Natural',
-    providerCategory: 'Cajas sorpresa',
+    seller: 'Bienestar Natural',
+    sellerCategory: 'Cajas sorpresa',
     priceFrom: 129,
     rating: 4.9,
     reviews: 128,
@@ -63,8 +63,8 @@ export const REGALIA_FEATURED_PRODUCTS: FeaturedProduct[] = [
   {
     id: 2,
     title: 'Arreglo floral radiante',
-    provider: 'Floralia Studio',
-    providerCategory: 'Arreglos florales',
+    seller: 'Floralia Studio',
+    sellerCategory: 'Arreglos florales',
     priceFrom: 99,
     rating: 4.8,
     reviews: 96,
@@ -75,8 +75,8 @@ export const REGALIA_FEATURED_PRODUCTS: FeaturedProduct[] = [
   {
     id: 3,
     title: 'Torta eres única',
-    provider: 'Dulce Detalle',
-    providerCategory: 'Repostería personalizada',
+    seller: 'Dulce Detalle',
+    sellerCategory: 'Repostería personalizada',
     priceFrom: 85,
     rating: 4.9,
     reviews: 76,
@@ -87,8 +87,8 @@ export const REGALIA_FEATURED_PRODUCTS: FeaturedProduct[] = [
   {
     id: 4,
     title: 'Detalle relax personalizado',
-    provider: 'Momentos Deco',
-    providerCategory: 'Servicios creativos',
+    seller: 'Momentos Deco',
+    sellerCategory: 'Servicios creativos',
     priceFrom: 119,
     rating: 4.8,
     reviews: 64,
@@ -102,9 +102,9 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
   {
     id: 101,
     title: 'Box cumpleaños premium',
-    provider: 'Caja Bonita',
-    providerId: 3,
-    providerCategory: 'Cajas sorpresa',
+    seller: 'Caja Bonita',
+    sellerId: 3,
+    sellerCategory: 'Cajas sorpresa',
     occasion: 'Cumpleaños',
     price: 89,
     originalPrice: 105,
@@ -131,9 +131,9 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
   {
     id: 102,
     title: 'Ramo floral clásico',
-    provider: 'Floralia Studio',
-    providerId: 2,
-    providerCategory: 'Arreglos florales',
+    seller: 'Floralia Studio',
+    sellerId: 2,
+    sellerCategory: 'Arreglos florales',
     occasion: 'Aniversario',
     price: 120,
     rating: 4.9,
@@ -159,9 +159,9 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
   {
     id: 103,
     title: 'Mini torta personalizada',
-    provider: 'Dulce Detalle Trujillo',
-    providerId: 1,
-    providerCategory: 'Repostería personalizada',
+    seller: 'Dulce Detalle Trujillo',
+    sellerId: 1,
+    sellerCategory: 'Repostería personalizada',
     occasion: 'Graduación',
     price: 95,
     originalPrice: 115,
@@ -182,15 +182,15 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
     ],
     deliveryTime: 'Entrega en 24 a 48 horas',
     stockStatus: 'Disponible esta semana',
-    personalization: 'Sabor, nombre y temática bÃ¡sica',
+    personalization: 'Sabor, nombre y temática básica',
     maxQuantity: 3,
   },
   {
     id: 104,
     title: 'Pack taza + llavero sublimado',
-    provider: 'Sublima Norte',
-    providerId: 4,
-    providerCategory: 'Sublimados',
+    seller: 'Sublima Norte',
+    sellerId: 4,
+    sellerCategory: 'Sublimados',
     occasion: 'Evento corporativo',
     price: 45,
     rating: 4.6,
@@ -211,9 +211,9 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
   {
     id: 105,
     title: 'Caja de madera grabada',
-    provider: 'Madera & Detalle',
-    providerId: 5,
-    providerCategory: 'Carpintería personalizada',
+    seller: 'Madera & Detalle',
+    sellerId: 5,
+    sellerCategory: 'Carpintería personalizada',
     occasion: 'Día de la Madre',
     price: 150,
     rating: 4.8,
@@ -234,9 +234,9 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
   {
     id: 106,
     title: 'Mini setup decorativo',
-    provider: 'Momentos Deco',
-    providerId: 6,
-    providerCategory: 'Decoración de eventos',
+    seller: 'Momentos Deco',
+    sellerId: 6,
+    sellerCategory: 'Decoración de eventos',
     occasion: 'San Valentín',
     price: 180,
     rating: 4.9,
@@ -261,7 +261,7 @@ export const REGALIA_FIXED_PRICE_PRODUCTS: FixedPriceProduct[] = [
   },
 ];
 
-export const REGALIA_PROVIDERS: RegaliaProvider[] = [
+export const REGALIA_SELLERS: RegaliaSeller[] = [
   {
     id: 1,
     businessName: 'Dulce Detalle Trujillo',
@@ -447,7 +447,7 @@ export const REGALIA_ORDER_DRAFTS: Array<Omit<RegaliaOrder, 'reservation' | 'com
   {
     id: 1001,
     clientName: 'Andrea M.',
-    providerName: 'Floralia Studio',
+    sellerName: 'Floralia Studio',
     category: 'Arreglos florales',
     occasion: 'Aniversario',
     status: 'Pedido aceptado',
@@ -457,7 +457,7 @@ export const REGALIA_ORDER_DRAFTS: Array<Omit<RegaliaOrder, 'reservation' | 'com
   {
     id: 1002,
     clientName: 'Carlos P.',
-    providerName: 'Dulce Detalle Trujillo',
+    sellerName: 'Dulce Detalle Trujillo',
     category: 'Repostería personalizada',
     occasion: 'Graduación',
     status: 'En proceso',
@@ -467,7 +467,7 @@ export const REGALIA_ORDER_DRAFTS: Array<Omit<RegaliaOrder, 'reservation' | 'com
   {
     id: 1003,
     clientName: 'María C.',
-    providerName: 'Caja Bonita',
+    sellerName: 'Caja Bonita',
     category: 'Cajas sorpresa',
     occasion: 'Cumpleaños',
     status: 'Listo',

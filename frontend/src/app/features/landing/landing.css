@@ -210,7 +210,7 @@
   margin: 0;
 }
 
-.product-card__provider,
+.product-card__seller,
 .product-card__rating {
   color: var(--color-muted);
   font-size: 0.85rem;
@@ -241,7 +241,7 @@
 
 .product-card__button,
 .season-card__button,
-.provider-cta__button {
+.seller-cta__button {
   background: var(--brand-gradient);
   border-radius: var(--radius-pill);
   color: #ffffff;
@@ -255,7 +255,7 @@
 
 .product-card__button:hover,
 .season-card__button:hover,
-.provider-cta__button:hover {
+.seller-cta__button:hover {
   color: #ffffff;
   transform: translateY(-2px);
 }
@@ -267,7 +267,7 @@
 
 .trust-card,
 .season-card,
-.provider-cta,
+.seller-cta,
 .business-step {
   background: rgba(255, 253, 249, 0.95);
   border: 1px solid rgba(234, 216, 201, 0.95);
@@ -297,14 +297,14 @@
 
 .trust-card__title,
 .season-card__title,
-.provider-cta__title {
+.seller-cta__title {
   font-size: 1.35rem;
   margin: 0;
 }
 
 .trust-card__text,
 .season-card__text,
-.provider-cta__text {
+.seller-cta__text {
   color: var(--color-muted);
   margin: 0.45rem 0 0.8rem;
 }
@@ -326,7 +326,7 @@
 }
 
 .season-card__eyebrow,
-.provider-cta__eyebrow {
+.seller-cta__eyebrow {
   color: var(--color-primary);
   font-size: 0.78rem;
   font-weight: 900;
@@ -353,8 +353,8 @@
 }
 
 /* ==========================================================================
-   Modelo de Negocio y Llamado a la Acción de Proveedores
-   Explicación de soporte del producto y bloque de captación de proveedores.
+   Modelo de Negocio y Llamado a la Acción de Vendedores
+   Explicación de soporte del producto y bloque de captación de vendedores.
    ========================================================================== */
 .business-model {
   background: rgba(255, 253, 249, 0.65);
@@ -391,11 +391,11 @@
   font-weight: 800;
 }
 
-.provider-cta-band {
+.seller-cta-band {
   padding: 1.5rem 0 2.3rem;
 }
 
-.provider-cta {
+.seller-cta {
   align-items: center;
   background:
     radial-gradient(circle at 9% 22%, rgba(242, 109, 91, 0.16), transparent 6rem),
@@ -406,7 +406,7 @@
   padding: 1.1rem 1.35rem;
 }
 
-.provider-cta__art {
+.seller-cta__art {
   background:
     radial-gradient(circle at 32% 62%, var(--color-secondary) 0 1.1rem, transparent 1.18rem),
     radial-gradient(circle at 62% 42%, var(--color-accent) 0 1.2rem, transparent 1.28rem),
@@ -415,7 +415,7 @@
   min-height: 4.8rem;
 }
 
-.provider-cta__button {
+.seller-cta__button {
   margin: 0;
   min-width: 13rem;
   padding: 0.85rem 1rem;
@@ -447,7 +447,7 @@
 
   .landing-market,
   .business-model__grid,
-  .provider-cta {
+  .seller-cta {
     grid-template-columns: 1fr;
   }
 
@@ -490,7 +490,7 @@
     grid-template-columns: 1fr;
   }
 
-  .provider-cta__button {
+  .seller-cta__button {
     width: 100%;
   }
 }

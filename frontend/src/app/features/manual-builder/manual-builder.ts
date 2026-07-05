@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
-import { RegaliaCategory, RegaliaOccasion, RegaliaProvider } from '../../shared/models/regalia.model';
+import { RegaliaCategory, RegaliaOccasion, RegaliaSeller } from '../../shared/models/regalia.model';
 
 @Component({
   selector: 'app-manual-builder',
@@ -16,8 +16,8 @@ export class ManualBuilderComponent {
 
   readonly categories: Array<RegaliaCategory | 'Todas'> = ['Todas', ...this.regaliaService.getCategories()];
   readonly occasions = this.regaliaService.getOccasions();
-  readonly providers = signal(this.regaliaService.getProviders());
-  readonly selectedProvider = signal<RegaliaProvider>(this.providers()[0]);
+  readonly sellers = signal(this.regaliaService.getSellers());
+  readonly selectedSeller = signal<RegaliaSeller>(this.sellers()[0]);
   readonly submitted = signal(false);
   private readonly formVersion = signal(0);
 
@@ -31,11 +31,11 @@ export class ManualBuilderComponent {
     details: new FormControl('Quiero un detalle personalizado con tarjeta y presentación premium.', { nonNullable: true }),
   });
 
-  readonly compatibleProviders = computed(() => {
+  readonly compatibleSellers = computed(() => {
     this.formVersion();
     const request = this.manualForm.getRawValue();
 
-    return this.regaliaService.findCompatibleProviders(request.category, request.occasion, request.budget);
+    return this.regaliaService.findCompatibleSellers(request.category, request.occasion, request.budget);
   });
 
   readonly reservationBreakdown = computed(() => {
@@ -44,39 +44,39 @@ export class ManualBuilderComponent {
   });
 
   constructor() {
-    this.ensureSelectedProviderIsVisible();
+    this.ensureSelectedSellerIsVisible();
   }
 
   onFormChanged(): void {
     this.formVersion.update((value) => value + 1);
-    this.ensureSelectedProviderIsVisible();
+    this.ensureSelectedSellerIsVisible();
     this.submitted.set(false);
   }
 
   confirmManualRequest(): void {
     this.formVersion.update((value) => value + 1);
-    this.ensureSelectedProviderIsVisible();
+    this.ensureSelectedSellerIsVisible();
     this.submitted.set(true);
   }
 
-  selectProvider(provider: RegaliaProvider): void {
-    this.selectedProvider.set(provider);
+  selectSeller(seller: RegaliaSeller): void {
+    this.selectedSeller.set(seller);
   }
 
-  trackProvider(_: number, provider: RegaliaProvider): number {
-    return provider.id;
+  trackSeller(_: number, seller: RegaliaSeller): number {
+    return seller.id;
   }
 
   trackText(_: number, value: string): string {
     return value;
   }
 
-  private ensureSelectedProviderIsVisible(): void {
-    const visibleProviders = this.compatibleProviders();
-    const selected = this.selectedProvider();
+  private ensureSelectedSellerIsVisible(): void {
+    const visibleSellers = this.compatibleSellers();
+    const selected = this.selectedSeller();
 
-    if (visibleProviders.length > 0 && !visibleProviders.some((provider) => provider.id === selected.id)) {
-      this.selectedProvider.set(visibleProviders[0]);
+    if (visibleSellers.length > 0 && !visibleSellers.some((seller) => seller.id === selected.id)) {
+      this.selectedSeller.set(visibleSellers[0]);
     }
   }
 }

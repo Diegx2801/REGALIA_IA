@@ -1,14 +1,13 @@
 package com.regalia.backend.usuario.api;
 
 import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.usuario.api.dto.UsuarioResponse;
 import com.regalia.backend.usuario.application.UsuarioEstadoFiltro;
 import com.regalia.backend.usuario.application.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Controlador REST administrativo para gestionar usuarios.
@@ -21,16 +20,22 @@ public class AdminUsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UsuarioResponse>>> listarUsuariosGestionablesAdministracion(
+    public ResponseEntity<ApiResponse<PaginaResponse<UsuarioResponse>>> listarUsuariosGestionablesAdministracion(
             @RequestParam(defaultValue = "ACTIVO") String estado,
             @RequestParam(required = false) String searchField,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "idUsuario,asc") String sort
     ) {
         UsuarioEstadoFiltro filtro = UsuarioEstadoFiltro.desde(estado);
-        List<UsuarioResponse> usuarios = usuarioService.listarUsuariosGestionablesAdministracion(
+        PaginaResponse<UsuarioResponse> usuarios = usuarioService.listarUsuariosGestionablesAdministracion(
                 filtro,
                 searchField,
-                search
+                search,
+                page,
+                size,
+                sort
         );
 
         return ResponseEntity.ok(

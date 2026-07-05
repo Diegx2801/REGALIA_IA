@@ -2,13 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { AdminMetric } from '../../../../../shared/models/regalia.model';
 import { RegaliaOrdersService } from './regalia-orders.service';
 import { RegaliaPricingService } from './regalia-pricing.service';
-import { RegaliaProviderService } from './regalia-provider.service';
+import { RegaliaSellerService } from './regalia-seller.service';
 
 @Injectable({ providedIn: 'root' })
 export class RegaliaAdminService {
   private readonly ordersService = inject(RegaliaOrdersService);
   private readonly pricingService = inject(RegaliaPricingService);
-  private readonly providerService = inject(RegaliaProviderService);
+  private readonly sellerService = inject(RegaliaSellerService);
 
   getAdminMetrics(): AdminMetric[] {
     const orders = this.ordersService.getOrders();
@@ -33,7 +33,7 @@ export class RegaliaAdminService {
       },
       {
         label: 'Vendedores',
-        value: String(this.providerService.getProviders().length),
+        value: String(this.sellerService.getSellers().length),
         hint: 'perfiles visibles en Trujillo',
       },
     ];

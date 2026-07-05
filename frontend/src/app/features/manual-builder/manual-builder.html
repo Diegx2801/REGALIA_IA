@@ -97,35 +97,35 @@
         <button class="manual-form__button" type="submit">Generar solicitud manual</button>
       </form>
 
-      <main class="manual-providers" aria-label="Vendedores compatibles">
-        <div class="manual-providers__head">
-          <span class="manual-providers__eyebrow">Compatibles</span>
-          <h2 class="manual-providers__title">
-            {{ compatibleProviders().length }} opciones sugeridas
+      <main class="manual-sellers" aria-label="Vendedores compatibles">
+        <div class="manual-sellers__head">
+          <span class="manual-sellers__eyebrow">Compatibles</span>
+          <h2 class="manual-sellers__title">
+            {{ compatibleSellers().length }} opciones sugeridas
           </h2>
         </div>
 
-        @for (provider of compatibleProviders(); track trackProvider($index, provider)) {
+        @for (seller of compatibleSellers(); track trackSeller($index, seller)) {
           <button
             type="button"
-            class="manual-provider-card"
-            [class.manual-provider-card--selected]="selectedProvider().id === provider.id"
-            (click)="selectProvider(provider)"
+            class="manual-seller-card"
+            [class.manual-seller-card--selected]="selectedSeller().id === seller.id"
+            (click)="selectSeller(seller)"
           >
-            <span class="manual-provider-card__score">{{ provider.reputation }}%</span>
-            <span class="manual-provider-card__body">
-              <span class="manual-provider-card__category">{{ provider.category }}</span>
-              <strong class="manual-provider-card__title">{{ provider.businessName }}</strong>
-              <small class="manual-provider-card__text"
-                >{{ provider.availability }} · {{ provider.deliveryTime }}</small
+            <span class="manual-seller-card__score">{{ seller.reputation }}%</span>
+            <span class="manual-seller-card__body">
+              <span class="manual-seller-card__category">{{ seller.category }}</span>
+              <strong class="manual-seller-card__title">{{ seller.businessName }}</strong>
+              <small class="manual-seller-card__text"
+                >{{ seller.availability }} · {{ seller.deliveryTime }}</small
               >
-              <span class="manual-provider-card__tags">
-                @for (style of provider.styles; track trackText($index, style)) {
+              <span class="manual-seller-card__tags">
+                @for (style of seller.styles; track trackText($index, style)) {
                   <span>{{ style }}</span>
                 }
               </span>
             </span>
-            <span class="manual-provider-card__price">Desde S/ {{ provider.priceFrom }}</span>
+            <span class="manual-seller-card__price">Desde S/ {{ seller.priceFrom }}</span>
           </button>
         } @empty {
           <article class="manual-empty">
@@ -148,11 +148,11 @@
           <span>{{ manualForm.controls.style.value }}</span>
         </div>
 
-        @if (selectedProvider(); as provider) {
-          <section class="manual-summary__provider">
+        @if (selectedSeller(); as seller) {
+          <section class="manual-summary__seller">
             <span>Vendedor seleccionado</span>
-            <strong>{{ provider.businessName }}</strong>
-            <small>{{ provider.rating }} ★ · {{ provider.reviews }} reseñas</small>
+            <strong>{{ seller.businessName }}</strong>
+            <small>{{ seller.rating }} ★ · {{ seller.reviews }} reseñas</small>
           </section>
         }
 
@@ -170,7 +170,7 @@
           </div>
           <div class="manual-breakdown__row">
             <span>Vendedor recibe</span
-            ><strong>S/ {{ reservationBreakdown().providerCredit }}</strong>
+            ><strong>S/ {{ reservationBreakdown().sellerCredit }}</strong>
           </div>
         </section>
 

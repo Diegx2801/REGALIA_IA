@@ -1,6 +1,6 @@
 /* ==========================================================================
    Calendario de Reservas
-   Vista por fecha para clientes, proveedores y administración.
+   Vista por fecha para clientes, vendedores y administración.
    ========================================================================== */
 .reservations-page {
   background:
@@ -437,7 +437,7 @@
   padding: 0.65rem 0.75rem;
 }
 
-.reservation-chat__bubble--provider {
+.reservation-chat__bubble--seller {
   background: rgba(91, 46, 109, 0.1);
   color: var(--color-text);
 }

@@ -2,6 +2,8 @@ package com.regalia.backend.pago.application.gateway;
 
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationResult;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutCommand;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutResult;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import org.springframework.stereotype.Component;
 
@@ -34,5 +36,19 @@ public class PaymentGatewayRegistry {
         }
 
         return client.verifyPayment(command);
+    }
+
+    public PaymentGatewayCheckoutResult createCheckout(PaymentGatewayCheckoutCommand command) {
+        PaymentGatewayProvider provider = command.provider() == null
+                ? PaymentGatewayProvider.MANUAL
+                : command.provider();
+
+        PaymentGatewayClient client = clients.get(provider);
+
+        if (client == null) {
+            throw new ReglaNegocioException("La pasarela de pago solicitada no esta disponible");
+        }
+
+        return client.createCheckout(command);
     }
 }

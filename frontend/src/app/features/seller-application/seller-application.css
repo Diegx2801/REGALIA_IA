@@ -1,11 +1,11 @@
 :host {
   display: block;
 }
-.provider-onboarding {
+.seller-onboarding {
   padding: clamp(1.25rem, 3vw, 2.5rem);
   color: var(--color-text);
 }
-.provider-onboarding__hero {
+.seller-onboarding__hero {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.65fr);
   gap: 2rem;
@@ -13,7 +13,7 @@
   max-width: 1320px;
   margin: 0 auto 1.6rem;
 }
-.provider-onboarding__back {
+.seller-onboarding__back {
   display: inline-flex;
   color: var(--color-primary);
   font-size: 0.8rem;
@@ -21,7 +21,7 @@
   text-decoration: none;
   margin-bottom: 1.3rem;
 }
-.provider-onboarding__eyebrow,
+.seller-onboarding__eyebrow,
 .onboarding-card__header span,
 .submitted-summary__heading span,
 .review-grid article > span,
@@ -33,20 +33,20 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.provider-onboarding__hero h1 {
+.seller-onboarding__hero h1 {
   font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 3.45rem);
   line-height: 1.02;
   max-width: 48rem;
   margin: 0.55rem 0 1rem;
 }
-.provider-onboarding__hero > div > p {
+.seller-onboarding__hero > div > p {
   color: var(--color-muted);
   font-size: 1rem;
   line-height: 1.7;
   max-width: 47rem;
 }
-.provider-onboarding__promise {
+.seller-onboarding__promise {
   display: flex;
   gap: 1rem;
   background: linear-gradient(145deg, #fffaf0, #fff);
@@ -55,7 +55,7 @@
   padding: 1.25rem;
   box-shadow: 0 18px 40px rgba(68, 40, 26, 0.07);
 }
-.provider-onboarding__promise-icon {
+.seller-onboarding__promise-icon {
   display: grid;
   place-items: center;
   flex: 0 0 2.7rem;
@@ -64,10 +64,10 @@
   background: #f6c453;
   color: #603b00;
 }
-.provider-onboarding__promise strong {
+.seller-onboarding__promise strong {
   font-size: 0.9rem;
 }
-.provider-onboarding__promise p {
+.seller-onboarding__promise p {
   color: var(--color-muted);
   font-size: 0.78rem;
   line-height: 1.55;
@@ -504,7 +504,7 @@
 
 /* Breakpoints alineados con el flujo: sidebar en desktop, pasos horizontales en tablet y pila simple en mobile. */
 @media (max-width: 1050px) {
-  .provider-onboarding__hero {
+  .seller-onboarding__hero {
     grid-template-columns: 1fr;
   }
 
@@ -535,11 +535,11 @@
 }
 
 @media (max-width: 760px) {
-  .provider-onboarding {
+  .seller-onboarding {
     padding: 1rem;
   }
 
-  .provider-onboarding__hero h1 {
+  .seller-onboarding__hero h1 {
     font-size: 2.15rem;
   }
 

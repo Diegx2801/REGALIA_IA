@@ -2,19 +2,19 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { API_ENDPOINTS } from '../../../../config/api.config';
-import { ApiResponse } from '../../../../../shared/models/api-response.model';
+import { ApiResponse, PageApiDto } from '../../../../../shared/models/api-response.model';
 import { AdminStoreApiDto, AdminStoreQueryApi } from '../models/admin-store-api.model';
 
 @Injectable({ providedIn: 'root' })
 export class RegaliaAdminStoreApiService {
   private readonly http = inject(HttpClient);
 
-  getStores(query: AdminStoreQueryApi = {}): Observable<AdminStoreApiDto[]> {
+  getStores(query: AdminStoreQueryApi = {}): Observable<PageApiDto<AdminStoreApiDto>> {
     const params = this.buildParams(query);
 
     return this.http
-      .get<ApiResponse<AdminStoreApiDto[]>>(API_ENDPOINTS.admin.stores, { params })
-      .pipe(map((response) => response.data ?? []));
+      .get<ApiResponse<PageApiDto<AdminStoreApiDto>>>(API_ENDPOINTS.admin.stores, { params })
+      .pipe(map((response) => response.data ?? this.emptyPage(query)));
   }
 
   getStoreById(storeId: number): Observable<AdminStoreApiDto> {
@@ -46,7 +46,10 @@ export class RegaliaAdminStoreApiService {
   }
 
   private buildParams(query: AdminStoreQueryApi): HttpParams {
-    let params = new HttpParams();
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 0))
+      .set('size', String(query.size ?? 10))
+      .set('sort', query.sort ?? 'idTienda,asc');
 
     if (query.estadoRevision) {
       params = params.set('estadoRevision', query.estadoRevision);
@@ -59,5 +62,16 @@ export class RegaliaAdminStoreApiService {
     }
 
     return params;
+  }
+
+  private emptyPage(query: AdminStoreQueryApi): PageApiDto<AdminStoreApiDto> {
+    return {
+      contenido: [],
+      paginaActual: query.page ?? 0,
+      tamanioPagina: query.size ?? 10,
+      totalElementos: 0,
+      totalPaginas: 0,
+      ultimaPagina: true,
+    };
   }
 }

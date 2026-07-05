@@ -3,11 +3,11 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
-  ProviderApplication,
-  ProviderApplicationPayload,
-  ProviderApplicationService,
-  ProviderApplicationStatus,
-} from '../../core/services/provider-application/provider-application.service';
+  SellerApplication,
+  SellerApplicationPayload,
+  SellerApplicationService,
+  SellerApplicationStatus,
+} from '../../core/services/seller-application/seller-application.service';
 import { AuthSessionService } from '../../core/services/auth/auth-session.service';
 
 interface OnboardingStep {
@@ -32,15 +32,15 @@ const CATEGORY_OPTIONS = [
 const DELIVERY_OPTIONS = ['Recojo en tienda', 'Delivery propio', 'Courier externo', 'Entrega en punto acordado'];
 
 @Component({
-  selector: 'app-provider-application',
+  selector: 'app-seller-application',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './provider-application.html',
-  styleUrl: './provider-application.css',
+  templateUrl: './seller-application.html',
+  styleUrl: './seller-application.css',
 })
-export class ProviderApplicationComponent implements OnInit {
+export class SellerApplicationComponent implements OnInit {
   private readonly authSession = inject(AuthSessionService);
-  private readonly applicationService = inject(ProviderApplicationService);
+  private readonly applicationService = inject(SellerApplicationService);
   private readonly router = inject(Router);
 
   readonly steps: OnboardingStep[] = [
@@ -56,12 +56,12 @@ export class ProviderApplicationComponent implements OnInit {
   readonly currentStep = signal(1);
   readonly selectedCategories = signal<string[]>([]);
   readonly selectedDeliveryMethods = signal<string[]>([]);
-  readonly application = signal<ProviderApplication | null>(null);
+  readonly application = signal<SellerApplication | null>(null);
   readonly saveMessage = signal('');
   readonly isSaving = signal(false);
   readonly showValidationSummary = signal(false);
 
-  readonly status = computed<ProviderApplicationStatus>(() => this.application()?.status ?? 'draft');
+  readonly status = computed<SellerApplicationStatus>(() => this.application()?.status ?? 'draft');
   readonly isLocked = computed(() => ['submitted', 'under_review', 'approved', 'rejected'].includes(this.status()));
   readonly canEdit = computed(() => !this.isLocked());
   readonly progress = computed(() => `${Math.max(1, this.currentStep()) * 20}%`);
@@ -230,8 +230,8 @@ export class ProviderApplicationComponent implements OnInit {
     return control.invalid && (control.touched || this.showValidationSummary());
   }
 
-  statusLabel(status: ProviderApplicationStatus): string {
-    const labels: Record<ProviderApplicationStatus, string> = {
+  statusLabel(status: SellerApplicationStatus): string {
+    const labels: Record<SellerApplicationStatus, string> = {
       draft: 'Borrador',
       submitted: 'Solicitud enviada',
       under_review: 'En revisión',
@@ -281,7 +281,7 @@ export class ProviderApplicationComponent implements OnInit {
     return from === null || to === null || to >= from;
   }
 
-  private payload(): ProviderApplicationPayload {
+  private payload(): SellerApplicationPayload {
     const value = this.form.getRawValue();
     return {
       ...value,

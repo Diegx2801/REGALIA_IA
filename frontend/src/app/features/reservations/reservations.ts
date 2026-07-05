@@ -128,12 +128,12 @@ export class ReservationsComponent {
 
   sendChatMessage(order: CalendarOrder): void {
     this.actionNotice.set(
-      `Mensaje preparado para ${order.providerName}. El chat real se conectara al backend.`,
+      `Mensaje preparado para ${order.sellerName}. El chat real se conectara al backend.`,
     );
   }
 
   requestReschedule(order: CalendarOrder): void {
-    this.actionNotice.set(`Solicitud de reprogramacion lista para ${order.providerName}.`);
+    this.actionNotice.set(`Solicitud de reprogramacion lista para ${order.sellerName}.`);
   }
 
   requestCancellation(order: CalendarOrder): void {

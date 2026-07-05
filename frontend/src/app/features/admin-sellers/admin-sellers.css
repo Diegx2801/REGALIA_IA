@@ -43,7 +43,8 @@
 .admin-sellers__eyebrow,
 .admin-sellers__metrics span,
 .admin-sellers__search span,
-.admin-sellers__search-field span {
+.admin-sellers__search-field span,
+.admin-sellers__sort-field span {
   color: var(--color-primary);
   font-size: 0.7rem;
   font-weight: 900;
@@ -75,6 +76,7 @@
 .admin-sellers__refresh,
 .admin-sellers__filters button,
 .admin-sellers__search button,
+.admin-sellers__pagination button,
 .admin-seller-detail__notice a {
   border: 0;
   border-radius: var(--radius-pill);
@@ -120,7 +122,7 @@
   border-radius: 18px;
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.2fr) minmax(18rem, 0.32fr);
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.18fr) minmax(10rem, 0.18fr) minmax(18rem, 0.32fr);
   padding: 0.45rem;
 }
 
@@ -157,8 +159,16 @@
   grid-template-columns: auto minmax(0, 1fr);
 }
 
+.admin-sellers__sort-field {
+  align-items: center;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
 .admin-sellers__search input,
-.admin-sellers__search-field select {
+.admin-sellers__search-field select,
+.admin-sellers__sort-field select {
   background: #fff;
   border: 1px solid rgba(234, 219, 208, 0.92);
   border-radius: var(--radius-pill);
@@ -173,6 +183,36 @@
   color: var(--color-primary);
   min-height: 2.45rem;
   padding: 0.55rem 0.85rem;
+}
+
+.admin-sellers__pagination {
+  align-items: center;
+  border-top: 1px solid rgba(234, 219, 208, 0.84);
+  color: var(--color-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  padding-top: 0.8rem;
+}
+
+.admin-sellers__pagination div {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.admin-sellers__pagination button {
+  background: #f3e9e3;
+  color: var(--color-primary);
+  min-height: 2.35rem;
+  padding: 0.55rem 0.8rem;
+}
+
+.admin-sellers__pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .admin-sellers__message {
@@ -408,7 +448,8 @@
 
   .admin-seller-card,
   .admin-sellers__search,
-  .admin-sellers__search-field {
+  .admin-sellers__search-field,
+  .admin-sellers__sort-field {
     grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -38,8 +38,8 @@ export interface OccasionShortcut {
 export interface FeaturedProduct {
   id: number;
   title: string;
-  provider: string;
-  providerCategory: RegaliaCategory;
+  seller: string;
+  sellerCategory: RegaliaCategory;
   priceFrom: number;
   rating: number;
   reviews: number;
@@ -51,9 +51,9 @@ export interface FeaturedProduct {
 export interface FixedPriceProduct {
   id: number;
   title: string;
-  provider: string;
-  providerId: number;
-  providerCategory: RegaliaCategory;
+  seller: string;
+  sellerId: number;
+  sellerCategory: RegaliaCategory;
   occasion: RegaliaOccasion;
   price: number;
   originalPrice?: number;
@@ -81,12 +81,12 @@ export interface CartSummary {
   subtotal: number;
   reservation: number;
   platformCommission: number;
-  providerAdvance: number;
+  sellerAdvance: number;
   remainingToPay: number;
   totalItems: number;
 }
 
-export interface RegaliaProvider {
+export interface RegaliaSeller {
   id: number;
   businessName: string;
   ownerName: string;
@@ -124,11 +124,11 @@ export interface ReservationBreakdown {
   estimatedOrder: number;
   reservation: number;
   platformCommission: number;
-  providerCredit: number;
+  sellerCredit: number;
 }
 
 export interface MatchRecommendation {
-  provider: RegaliaProvider;
+  seller: RegaliaSeller;
   score: number;
   reason: string;
   interpretedNeed: {
@@ -144,7 +144,7 @@ export interface MatchRecommendation {
 export interface RegaliaOrder {
   id: number;
   clientName: string;
-  providerName: string;
+  sellerName: string;
   category: RegaliaCategory;
   occasion: RegaliaOccasion;
   status: OrderStatus;
@@ -154,7 +154,7 @@ export interface RegaliaOrder {
   dueDate: string;
 }
 
-export interface ProviderFilter {
+export interface SellerFilter {
   search: string;
   category: RegaliaCategory | 'Todas';
   occasion: RegaliaOccasion | 'Todas';

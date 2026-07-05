@@ -17,19 +17,19 @@
 
     <section class="admin-users__metrics" aria-label="Resumen administrativo de usuarios">
       <article>
-        <span>Gestionables</span>
+        <span>Resultados</span>
         <strong>{{ totalCount() }}</strong>
       </article>
       <article>
-        <span>Activos</span>
+        <span>Activos pagina</span>
         <strong>{{ activeCount() }}</strong>
       </article>
       <article>
-        <span>Inactivos</span>
+        <span>Inactivos pagina</span>
         <strong>{{ inactiveCount() }}</strong>
       </article>
       <article>
-        <span>Con telefono</span>
+        <span>Con telefono pagina</span>
         <strong>{{ withPhoneCount() }}</strong>
       </article>
     </section>
@@ -51,6 +51,15 @@
         <span>Buscar por</span>
         <select [value]="searchField()" (change)="onSearchFieldChange($event)">
           @for (option of searchFieldOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="admin-users__sort-field">
+        <span>Ordenar</span>
+        <select [value]="sort()" (change)="onSortChange($event)">
+          @for (option of sortOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }
         </select>
@@ -113,6 +122,21 @@
               <span class="admin-user-card__arrow" aria-hidden="true">&rsaquo;</span>
             </button>
           }
+
+          <footer class="admin-users__pagination" aria-label="Paginacion de usuarios">
+            <span>
+              Mostrando {{ displayedCount() }} de {{ totalCount() }} · pagina {{ currentPage() + 1 }}
+              de {{ totalPages() || 1 }}
+            </span>
+            <div>
+              <button type="button" (click)="goToPreviousPage()" [disabled]="isFirstPage() || isLoading()">
+                Anterior
+              </button>
+              <button type="button" (click)="goToNextPage()" [disabled]="isLastPage() || isLoading()">
+                Siguiente
+              </button>
+            </div>
+          </footer>
         }
       </main>
 

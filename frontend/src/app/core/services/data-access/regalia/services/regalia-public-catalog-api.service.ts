@@ -32,7 +32,7 @@ export class RegaliaPublicCatalogApiService {
 
   private toProduct(product: PublicProductApiDto): FixedPriceProduct {
     const productName = product.nombre?.trim() || 'Producto REGALIA';
-    const providerName = product.nombreTienda?.trim() || 'Vendedor REGALIA';
+    const sellerName = product.nombreTienda?.trim() || 'Vendedor REGALIA';
     const productType = product.tipoProducto?.trim() || 'Producto listo';
     const category = this.mapCategory(productType);
     const description =
@@ -42,9 +42,9 @@ export class RegaliaPublicCatalogApiService {
     return {
       id: product.idProducto,
       title: productName,
-      provider: providerName,
-      providerId: product.idTienda,
-      providerCategory: category,
+      seller: sellerName,
+      sellerId: product.idTienda,
+      sellerCategory: category,
       occasion: this.inferOccasion(`${productName} ${description}`),
       price: Number(product.precio ?? 0),
       rating: 4.8,
@@ -56,15 +56,9 @@ export class RegaliaPublicCatalogApiService {
       shortDescription: description,
       description,
       includes: [
-<<<<<<< HEAD
         'Producto publicado por vendedor local',
-        'Coordinacion directa desde REGALIA',
-        'Reserva segun disponibilidad del vendedor',
-=======
-        'Producto publicado por proveedor local',
         'Coordinación directa desde REGALIA',
         'Reserva según disponibilidad del vendedor',
->>>>>>> origin/main
       ],
       deliveryTime: 'Coordinar con vendedor',
       stockStatus: stock > 0 ? `Disponible (${stock})` : 'Agotado',
