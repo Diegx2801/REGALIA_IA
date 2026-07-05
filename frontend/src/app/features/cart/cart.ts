@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
@@ -8,19 +7,16 @@ import { CartService } from '../../core/services/cart/cart.service';
 import {
   DeliveryTypeApiDto,
   InitialPaymentOptionApiDto,
-  OrderApiDto,
 } from '../../core/services/data-access/orders/models/order-api.model';
 import { OrderCheckoutApiService } from '../../core/services/data-access/orders/services/order-checkout-api.service';
-import { CartSummary } from '../../shared/models/regalia.model';
+import { PaymentCheckoutApiService } from '../../core/services/data-access/payments/services/payment-checkout-api.service';
 
-type CheckoutMode = 'cart' | 'confirmation' | 'sent';
+type CheckoutMode = 'cart' | 'confirmation';
 
 interface CheckoutDraft {
   idTipoEntrega: number | null;
   codigoTipoPago: string;
   fechaEntrega: string;
-  metodoPagoPasarela: string;
-  codigoTransaccion: string;
   observacion: string;
 }
 
@@ -33,14 +29,19 @@ interface CheckoutDraft {
 })
 export class CartComponent implements OnInit {
   private static readonly CHECKOUT_RETURN_URL = '/carrito?checkout=confirmacion';
+  private static readonly FULL_PAYMENT_CODE = 'PAGO_COMPLETO';
+  private static readonly PAYMENT_START_ERROR =
+    'No pudimos iniciar el pago seguro. Intenta nuevamente en unos minutos.';
+  private static readonly CHECKOUT_OPTIONS_ERROR =
+    'No pudimos cargar las opciones de reserva. Actualiza la pagina e intenta nuevamente.';
 
   private readonly authSession = inject(AuthSessionService);
   private readonly cartService = inject(CartService);
   private readonly orderCheckoutApi = inject(OrderCheckoutApiService);
+  private readonly paymentCheckoutApi = inject(PaymentCheckoutApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  readonly paymentMethods = ['YAPE', 'PLIN', 'TRANSFERENCIA'] as const;
   readonly minDeliveryDate = this.todayAsInputDate();
   readonly items = this.cartService.items;
   readonly hasItems = this.cartService.hasItems;
@@ -52,13 +53,29 @@ export class CartComponent implements OnInit {
   readonly deliveryOptions = signal<DeliveryTypeApiDto[]>([]);
   readonly paymentOptions = signal<InitialPaymentOptionApiDto[]>([]);
   readonly isLoadingCheckoutOptions = signal(false);
-  readonly isSubmittingOrder = signal(false);
-  readonly submittedOrder = signal<OrderApiDto | null>(null);
-  readonly submittedSummary = signal<CartSummary | null>(null);
-  readonly summary = computed(() => this.submittedSummary() ?? this.cartService.summary());
-  readonly hasCheckoutContent = computed(() => this.hasItems() || this.submittedOrder() !== null);
+  readonly isCreatingPaymentSession = signal(false);
+  readonly summary = this.cartService.summary;
+  readonly hasCheckoutContent = computed(() => this.hasItems());
   readonly primaryCheckoutLabel = computed(() =>
     this.isLoggedIn() ? 'Revisar condiciones' : 'Iniciar sesion para reservar',
+  );
+  readonly selectedPaymentOption = computed(() =>
+    this.paymentOptions().find((option) => option.codigo === this.checkoutDraft().codigoTipoPago),
+  );
+  readonly initialPaymentLabel = computed(() =>
+    this.checkoutDraft().codigoTipoPago === CartComponent.FULL_PAYMENT_CODE
+      ? 'Pago online'
+      : this.selectedPaymentOption()?.nombre || 'Pago inicial',
+  );
+  readonly initialPaymentAmount = computed(() =>
+    this.checkoutDraft().codigoTipoPago === CartComponent.FULL_PAYMENT_CODE
+      ? this.summary().subtotal
+      : this.summary().reservation,
+  );
+  readonly remainingPaymentAmount = computed(() =>
+    this.checkoutDraft().codigoTipoPago === CartComponent.FULL_PAYMENT_CODE
+      ? 0
+      : this.summary().remainingToPay,
   );
   readonly deliveryNote = computed(() =>
     this.items().length === 1
@@ -111,11 +128,11 @@ export class CartComponent implements OnInit {
     this.resetCheckoutDraft();
   }
 
-  confirmReservation(): void {
+  startMercadoPagoCheckout(): void {
     if (!this.ensureCheckoutSession()) return;
     if (!this.ensureSingleStore()) return;
 
-    const validationError = this.validateCheckoutDraft();
+    const validationError = this.validateGatewayCheckoutDraft();
     if (validationError) {
       this.checkoutMessage.set(validationError);
       return;
@@ -129,32 +146,33 @@ export class CartComponent implements OnInit {
     }
 
     this.checkoutMessage.set('');
-    this.isSubmittingOrder.set(true);
+    this.isCreatingPaymentSession.set(true);
 
-    this.orderCheckoutApi
-      .confirmOrder({
+    this.paymentCheckoutApi
+      .createSession({
+        provider: 'MERCADO_PAGO',
         idTienda,
         idTipoEntrega: draft.idTipoEntrega as number,
         codigoTipoPago: draft.codigoTipoPago,
         fechaEntrega: draft.fechaEntrega,
         observacion: draft.observacion.trim() || null,
-        metodoPagoPasarela: draft.metodoPagoPasarela,
-        codigoTransaccion: draft.codigoTransaccion.trim(),
         items: this.items().map((item) => ({
           idProducto: item.product.id,
           cantidad: item.quantity,
         })),
       })
-      .pipe(finalize(() => this.isSubmittingOrder.set(false)))
+      .pipe(finalize(() => this.isCreatingPaymentSession.set(false)))
       .subscribe({
-        next: (order) => {
-          this.submittedSummary.set(this.cartService.summary());
-          this.submittedOrder.set(order);
-          this.checkoutMode.set('sent');
-          this.cartService.clearCart();
+        next: (session) => {
+          if (!session.redirectUrl) {
+            this.checkoutMessage.set(CartComponent.PAYMENT_START_ERROR);
+            return;
+          }
+
+          window.location.href = session.redirectUrl;
         },
-        error: (error: unknown) => {
-          this.checkoutMessage.set(this.errorMessage(error));
+        error: () => {
+          this.checkoutMessage.set(CartComponent.PAYMENT_START_ERROR);
         },
       });
   }
@@ -173,24 +191,10 @@ export class CartComponent implements OnInit {
     }));
   }
 
-  updatePaymentMethod(value: string): void {
-    this.checkoutDraft.update((draft) => ({
-      ...draft,
-      metodoPagoPasarela: value,
-    }));
-  }
-
   updateDeliveryDate(value: string): void {
     this.checkoutDraft.update((draft) => ({
       ...draft,
       fechaEntrega: value,
-    }));
-  }
-
-  updateTransactionCode(value: string): void {
-    this.checkoutDraft.update((draft) => ({
-      ...draft,
-      codigoTransaccion: value,
     }));
   }
 
@@ -208,8 +212,6 @@ export class CartComponent implements OnInit {
   private resetCheckoutDraft(): void {
     this.checkoutMode.set('cart');
     this.checkoutMessage.set('');
-    this.submittedOrder.set(null);
-    this.submittedSummary.set(null);
   }
 
   private ensureCheckoutSession(): boolean {
@@ -264,8 +266,8 @@ export class CartComponent implements OnInit {
           this.paymentOptions.set(paymentOptions);
           this.applyDefaultCheckoutOptions(deliveryOptions, paymentOptions);
         },
-        error: (error: unknown) => {
-          this.checkoutMessage.set(this.errorMessage(error));
+        error: () => {
+          this.checkoutMessage.set(CartComponent.CHECKOUT_OPTIONS_ERROR);
         },
       });
   }
@@ -285,18 +287,16 @@ export class CartComponent implements OnInit {
     }));
   }
 
-  private validateCheckoutDraft(): string | null {
+  private validateGatewayCheckoutDraft(): string | null {
     const draft = this.checkoutDraft();
 
-    if (!this.hasItems()) return 'Agrega al menos un producto antes de registrar la reserva.';
+    if (!this.hasItems()) return 'Agrega al menos un producto antes de iniciar el pago.';
     if (!draft.idTipoEntrega) return 'Selecciona el tipo de entrega.';
     if (!draft.codigoTipoPago) return 'Selecciona la modalidad de pago inicial.';
     if (!draft.fechaEntrega) return 'Selecciona la fecha de entrega.';
     if (draft.fechaEntrega < this.minDeliveryDate) {
       return 'La fecha de entrega no puede ser anterior a hoy.';
     }
-    if (!draft.metodoPagoPasarela) return 'Selecciona el metodo de pago.';
-    if (!draft.codigoTransaccion.trim()) return 'Ingresa el codigo de operacion del pago.';
 
     return null;
   }
@@ -306,8 +306,6 @@ export class CartComponent implements OnInit {
       idTipoEntrega: null,
       codigoTipoPago: '',
       fechaEntrega: this.minDeliveryDate,
-      metodoPagoPasarela: 'YAPE',
-      codigoTransaccion: '',
       observacion: '',
     };
   }
@@ -318,16 +316,5 @@ export class CartComponent implements OnInit {
     const day = String(today.getDate()).padStart(2, '0');
 
     return `${today.getFullYear()}-${month}-${day}`;
-  }
-
-  private errorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      return (
-        error.error?.message ||
-        'No se pudo registrar la reserva. Revisa los datos del pago inicial.'
-      );
-    }
-
-    return 'No se pudo registrar la reserva. Intenta nuevamente.';
   }
 }

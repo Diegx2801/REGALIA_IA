@@ -58,6 +58,11 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+            "options": {
+              "allowedHosts": [
+                "darius-unmatured-dalton.ngrok-free.dev"
+              ]
+            },
           "configurations": {
             "production": {
               "buildTarget": "Regalia:build:production"

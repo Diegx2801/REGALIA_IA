@@ -1,0 +1,297 @@
+package com.regalia.backend.checkout.application;
+
+import com.regalia.backend.checkout.api.dto.CheckoutItemRequest;
+import com.regalia.backend.checkout.api.dto.CheckoutSessionRequest;
+import com.regalia.backend.checkout.api.dto.CheckoutSessionResponse;
+import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
+import com.regalia.backend.pago.application.gateway.PaymentGatewayRegistry;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutCommand;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutResult;
+import com.regalia.backend.pago.infrastructure.gateway.PaymentGatewayProperties;
+import com.regalia.backend.politicacomercial.application.PoliticaComercialService;
+import com.regalia.backend.producto.infrastructure.entity.ProductoEntity;
+import com.regalia.backend.producto.infrastructure.repository.ProductoJpaRepository;
+import com.regalia.backend.shared.exception.RecursoDuplicadoException;
+import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
+import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
+import com.regalia.backend.tienda.infrastructure.repository.TiendaJpaRepository;
+import com.regalia.backend.tipoentrega.infrastructure.entity.TipoEntregaEntity;
+import com.regalia.backend.tipoentrega.infrastructure.repository.TipoEntregaJpaRepository;
+import com.regalia.backend.tipopago.infrastructure.entity.TipoPagoEntity;
+import com.regalia.backend.tipopago.infrastructure.repository.TipoPagoJpaRepository;
+import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
+import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * Prepara sesiones de pago sin persistir pedidos hasta recibir confirmacion confiable.
+ */
+@Service
+@RequiredArgsConstructor
+public class CheckoutService {
+
+    private static final String CODIGO_TIPO_PAGO_SENA = "SENA";
+    private static final String CODIGO_TIPO_PAGO_COMPLETO = "PAGO_COMPLETO";
+    private static final String CODIGO_TIPO_PAGO_RESTANTE = "RESTANTE";
+    private static final String ESTADO_REVISION_APROBADA = "APROBADA";
+    private static final BigDecimal CIEN = new BigDecimal("100.00");
+
+    private final UsuarioJpaRepository usuarioRepository;
+    private final TiendaJpaRepository tiendaRepository;
+    private final TipoEntregaJpaRepository tipoEntregaRepository;
+    private final TipoPagoJpaRepository tipoPagoRepository;
+    private final ProductoJpaRepository productoRepository;
+    private final PoliticaComercialService politicaComercialService;
+    private final PaymentGatewayRegistry paymentGatewayRegistry;
+    private final PaymentGatewayProperties paymentGatewayProperties;
+
+    @Transactional(readOnly = true)
+    public CheckoutSessionResponse crearSesionCheckout(
+            String correoUsuario,
+            CheckoutSessionRequest request
+    ) {
+        UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
+        TiendaEntity tienda = obtenerTiendaActivaPorId(request.idTienda());
+
+        validarTiendaDisponibleParaCompra(tienda);
+        validarUsuarioNoCompraSuPropiaTienda(usuario, tienda);
+
+        TipoEntregaEntity tipoEntrega = obtenerTipoEntregaActivoPorId(request.idTipoEntrega());
+        TipoPagoEntity tipoPago = obtenerTipoPagoActivoPorCodigo(request.codigoTipoPago());
+        String codigoTipoPago = normalizarCodigo(tipoPago.getCodigo());
+
+        validarTipoPagoInicial(codigoTipoPago);
+        validarItemsCheckout(request.items());
+        validarProductosDuplicados(request.items());
+
+        BigDecimal total = calcularTotalCheckout(request.items(), tienda.getIdTienda());
+        BigDecimal montoCheckout = calcularMontoPagoInicial(
+                codigoTipoPago,
+                total,
+                politicaComercialService.obtenerPorcentajeSena()
+        );
+
+        PaymentGatewayCheckoutResult checkoutResult = paymentGatewayRegistry.createCheckout(
+                new PaymentGatewayCheckoutCommand(
+                        PaymentGatewayProvider.from(request.provider()),
+                        montoCheckout,
+                        paymentGatewayProperties.getCurrency(),
+                        usuario.getIdUsuario(),
+                        usuario.getCorreo(),
+                        tienda.getIdTienda(),
+                        tienda.getNombre(),
+                        codigoTipoPago,
+                        buildDescription(tienda, tipoEntrega, codigoTipoPago)
+                )
+        );
+
+        return new CheckoutSessionResponse(
+                checkoutResult.provider().name(),
+                checkoutResult.preferenceId(),
+                checkoutResult.externalReference(),
+                checkoutResult.amount(),
+                checkoutResult.currency(),
+                checkoutResult.initPoint(),
+                checkoutResult.sandboxInitPoint(),
+                checkoutResult.redirectUrl()
+        );
+    }
+
+    private BigDecimal calcularTotalCheckout(List<CheckoutItemRequest> items, Long idTienda) {
+        BigDecimal subtotal = BigDecimal.ZERO;
+
+        for (CheckoutItemRequest item : items) {
+            ProductoEntity producto = obtenerProductoActivoParaCheckout(item.idProducto());
+
+            validarProductoDisponibleParaCheckout(producto, idTienda, item.cantidad());
+
+            BigDecimal subtotalDetalle = producto.getPrecio()
+                    .multiply(BigDecimal.valueOf(item.cantidad()));
+
+            subtotal = subtotal.add(subtotalDetalle);
+        }
+
+        return subtotal.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private UsuarioEntity obtenerUsuarioActivoPorCorreo(String correoUsuario) {
+        return usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrue(correoUsuario)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontro el usuario autenticado"
+                ));
+    }
+
+    private TiendaEntity obtenerTiendaActivaPorId(Long idTienda) {
+        return tiendaRepository.findByIdTiendaAndEstadoTrue(idTienda)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontro la tienda solicitada"
+                ));
+    }
+
+    private TipoEntregaEntity obtenerTipoEntregaActivoPorId(Long idTipoEntrega) {
+        return tipoEntregaRepository.findByIdTipoEntregaAndEstadoTrue(idTipoEntrega)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontro el tipo de entrega solicitado"
+                ));
+    }
+
+    private TipoPagoEntity obtenerTipoPagoActivoPorCodigo(String codigoTipoPago) {
+        String codigoNormalizado = normalizarCodigo(codigoTipoPago);
+
+        return tipoPagoRepository.findByCodigoAndEstadoTrue(codigoNormalizado)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontro la modalidad de pago solicitada"
+                ));
+    }
+
+    private ProductoEntity obtenerProductoActivoParaCheckout(Long idProducto) {
+        return productoRepository.findByIdProductoAndEstadoTrueAndVisibleEnTiendaTrue(idProducto)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontro el producto solicitado"
+                ));
+    }
+
+    private void validarTiendaDisponibleParaCompra(TiendaEntity tienda) {
+        if (tienda.getEstadoRevision() == null
+                || !ESTADO_REVISION_APROBADA.equalsIgnoreCase(tienda.getEstadoRevision())) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontro la tienda solicitada"
+            );
+        }
+    }
+
+    private void validarUsuarioNoCompraSuPropiaTienda(
+            UsuarioEntity usuario,
+            TiendaEntity tienda
+    ) {
+        boolean tiendaPropia = tiendaRepository.existsTiendaPropiaDeUsuario(
+                tienda.getIdTienda(),
+                usuario.getIdUsuario()
+        );
+
+        if (tiendaPropia) {
+            throw new ReglaNegocioException(
+                    "No puedes realizar pedidos sobre productos de tu propia tienda"
+            );
+        }
+    }
+
+    private void validarTipoPagoInicial(String codigoTipoPago) {
+        if (CODIGO_TIPO_PAGO_RESTANTE.equals(codigoTipoPago)) {
+            throw new ReglaNegocioException(
+                    "El pago restante no puede usarse para crear un checkout"
+            );
+        }
+
+        if (!CODIGO_TIPO_PAGO_SENA.equals(codigoTipoPago)
+                && !CODIGO_TIPO_PAGO_COMPLETO.equals(codigoTipoPago)) {
+            throw new ReglaNegocioException(
+                    "El tipo de pago inicial debe ser SENA o PAGO_COMPLETO"
+            );
+        }
+    }
+
+    private void validarItemsCheckout(List<CheckoutItemRequest> items) {
+        if (items == null || items.isEmpty()) {
+            throw new ReglaNegocioException(
+                    "El checkout debe tener al menos un producto"
+            );
+        }
+
+        for (CheckoutItemRequest item : items) {
+            if (item.idProducto() == null) {
+                throw new ReglaNegocioException(
+                        "Cada item del checkout debe tener un producto"
+                );
+            }
+
+            if (item.cantidad() == null || item.cantidad() <= 0) {
+                throw new ReglaNegocioException(
+                        "La cantidad de cada producto debe ser mayor a cero"
+                );
+            }
+        }
+    }
+
+    private void validarProductosDuplicados(List<CheckoutItemRequest> items) {
+        Set<Long> idsProductos = new HashSet<>();
+
+        for (CheckoutItemRequest item : items) {
+            if (!idsProductos.add(item.idProducto())) {
+                throw new RecursoDuplicadoException(
+                        "No puede haber productos repetidos en el checkout"
+                );
+            }
+        }
+    }
+
+    private void validarProductoDisponibleParaCheckout(
+            ProductoEntity producto,
+            Long idTienda,
+            Integer cantidadSolicitada
+    ) {
+        if (!Objects.equals(producto.getTienda().getIdTienda(), idTienda)) {
+            throw new RecursoNoEncontradoException(
+                    "Uno de los productos no pertenece a la tienda indicada"
+            );
+        }
+
+        if (!Boolean.TRUE.equals(producto.getVisibleEnTienda())) {
+            throw new ReglaNegocioException(
+                    "Uno de los productos no esta visible para compra"
+            );
+        }
+
+        if (producto.getStock() < cantidadSolicitada) {
+            throw new ReglaNegocioException(
+                    "Stock insuficiente para el producto: " + producto.getNombre()
+            );
+        }
+    }
+
+    private BigDecimal calcularMontoPagoInicial(
+            String codigoTipoPago,
+            BigDecimal total,
+            BigDecimal porcentajeSena
+    ) {
+        if (CODIGO_TIPO_PAGO_COMPLETO.equals(codigoTipoPago)) {
+            return total.setScale(2, RoundingMode.HALF_UP);
+        }
+
+        return total.multiply(porcentajeSena)
+                .divide(CIEN, 2, RoundingMode.HALF_UP);
+    }
+
+    private String buildDescription(
+            TiendaEntity tienda,
+            TipoEntregaEntity tipoEntrega,
+            String codigoTipoPago
+    ) {
+        return "Pago inicial %s para reserva en %s con %s".formatted(
+                codigoTipoPago,
+                tienda.getNombre(),
+                tipoEntrega.getNombre()
+        );
+    }
+
+    private String normalizarCodigo(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new ReglaNegocioException(
+                    "El codigo interno requerido no esta configurado correctamente"
+            );
+        }
+
+        return codigo.trim().toUpperCase(Locale.ROOT);
+    }
+}

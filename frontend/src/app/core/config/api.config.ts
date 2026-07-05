@@ -19,6 +19,9 @@ export const API_ENDPOINTS = {
     confirm: `${API_BASE_PATH}/pedidos/confirmar`,
     mine: `${API_BASE_PATH}/pedidos`,
   },
+  checkout: {
+    sessions: `${API_BASE_PATH}/checkout/sessions`,
+  },
   deliveryTypes: {
     list: `${API_BASE_PATH}/tipos-entrega`,
   },

@@ -3,6 +3,8 @@ package com.regalia.backend.pago.infrastructure.gateway;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayClient;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayStatus;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutCommand;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutResult;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationResult;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
@@ -30,6 +32,11 @@ public class ManualPaymentGatewayClient implements PaymentGatewayClient {
     @Override
     public PaymentGatewayProvider provider() {
         return PaymentGatewayProvider.MANUAL;
+    }
+
+    @Override
+    public PaymentGatewayCheckoutResult createCheckout(PaymentGatewayCheckoutCommand command) {
+        throw new ReglaNegocioException("El proveedor manual no crea sesiones externas de checkout");
     }
 
     @Override

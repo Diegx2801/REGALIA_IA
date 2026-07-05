@@ -9,7 +9,8 @@ import java.util.Locale;
  * MANUAL representa el flujo temporal del MVP mientras se integra una pasarela real.
  */
 public enum PaymentGatewayProvider {
-    MANUAL;
+    MANUAL,
+    MERCADO_PAGO;
 
     public static PaymentGatewayProvider from(String value) {
         if (value == null || value.isBlank()) {
