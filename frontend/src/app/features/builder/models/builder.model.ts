@@ -3,57 +3,74 @@ import {
   RegaliaCategory,
   RegaliaOccasion,
   RegaliaSeller,
-  RegaliaRequest,
   ReservationBreakdown,
 } from '../../../shared/models/regalia.model';
 
-export type FaseBuilder = 'need' | 'interpretation' | 'recommendations' | 'reservation';
+export type FaseBuilder = 'necesidad' | 'interpretacion' | 'recomendaciones' | 'reserva';
 
-export type EstadoCargaBuilder = 'idle' | 'loading' | 'success' | 'empty' | 'error';
+export type EstadoCargaConstructor = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 
-export interface PasoBuilder {
-  phase: FaseBuilder;
-  label: string;
-  description: string;
+export interface PasoConstructor {
+  fase: FaseBuilder;
+  etiqueta: string;
+  descripcion: string;
 }
 
-export interface SugerenciaRapidaBuilder {
-  label: string;
-  imageUrl: string;
-  need: string;
-  occasion: RegaliaRequest['occasion'];
-  style: string;
+export interface SugerenciaRapidaConstructor {
+  etiqueta: string;
+  urlImagen: string;
+  necesidad: string;
 }
 
-export interface VistaPreviaSolicitudBuilder {
-  description: string;
-  occasion: string;
-  budget: number;
-  style: string;
-  deliveryDate: string;
-  district: string;
-  urgent: boolean;
+export interface VistaPreviaSolicitudConstructor {
+  descripcion: string;
 }
 
-export interface InterpretacionBuilder {
-  category: RegaliaCategory;
-  occasion: RegaliaOccasion;
-  style: string;
-  urgency: string;
-  budgetFit: string;
+export interface SolicitudBuilderIAConstructor {
+  busqueda: string;
 }
 
-export interface RecomendacionProductoBuilder {
+export interface InterpretacionConstructor {
+  categoria: RegaliaCategory;
+  ocasion: RegaliaOccasion;
+  estilo: string;
+  urgencia: string;
+  ajustePresupuesto: string;
+}
+
+export interface RecomendacionProductoConstructor {
   producto: FixedPriceProduct;
   vendedor: RegaliaSeller | null;
   puntaje: number;
   motivo: string;
-  interpretacion: InterpretacionBuilder;
+  interpretacion: InterpretacionConstructor;
   reserva: ReservationBreakdown;
 }
 
-export interface ResultadoRecomendacionesBuilder {
-  estado: EstadoCargaBuilder;
-  recomendaciones: RecomendacionProductoBuilder[];
+export interface ResultadoRecomendacionesConstructor {
+  estado: EstadoCargaConstructor;
+  recomendaciones: RecomendacionProductoConstructor[];
   mensaje: string | null;
+}
+
+export interface BuilderIAProductoBackend {
+  idProducto: number;
+  nombre: string;
+  descripcion: string | null;
+  precio: number;
+  stock: number;
+  idTienda: number;
+  nombreTienda: string;
+  tipoProducto: string;
+}
+
+export interface BuilderIARecomendacionBackend {
+  respuesta: string;
+  productosRecomendados: BuilderIAProductoBackend[];
+}
+
+export interface ApiResponse<T> {
+  status: 'success' | 'fail' | 'error';
+  data: T;
+  message: string | null;
 }

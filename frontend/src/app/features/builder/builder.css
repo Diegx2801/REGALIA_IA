@@ -354,35 +354,6 @@ textarea.builder-field__control {
   margin: -0.55rem 0 0.8rem;
 }
 
-.builder-form-grid {
-  display: grid;
-  gap: 0.95rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 1.05rem;
-}
-
-.builder-check {
-  align-items: center;
-  background: rgba(247, 238, 231, 0.55);
-  border: 1px solid rgba(234, 219, 208, 0.92);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  cursor: pointer;
-  display: flex;
-  font-size: 0.82rem;
-  font-weight: 850;
-  gap: 0.6rem;
-  min-height: 2.95rem;
-  padding: 0.78rem 0.9rem;
-}
-
-.builder-check input {
-  accent-color: var(--color-primary);
-  flex: 0 0 auto;
-  height: 1rem;
-  width: 1rem;
-}
-
 /* ETIQUETAS */
 
 .builder-suggestions {
@@ -796,6 +767,45 @@ textarea.builder-field__control {
   color: var(--color-text);
 }
 
+.builder-loading {
+  align-items: center;
+  background: rgba(247, 238, 231, 0.5);
+  border: 1px solid rgba(90, 36, 64, 0.14);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.builder-loading strong {
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.builder-loading p {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.builder-loading__spinner {
+  animation: builder-spin 800ms linear infinite;
+  border: 3px solid rgba(90, 36, 64, 0.14);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  height: 2.25rem;
+  width: 2.25rem;
+}
+
+@keyframes builder-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* PANEL LATERAL DEL VENDEDOR */
 
 .builder-seller-summary {
@@ -999,7 +1009,6 @@ textarea.builder-field__control {
     display: none;
   }
 
-  .builder-form-grid,
   .builder-interpretation-grid,
   .builder-reservation-layout {
     grid-template-columns: 1fr;
