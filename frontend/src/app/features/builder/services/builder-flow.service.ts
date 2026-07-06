@@ -1,83 +1,133 @@
 import { Injectable, inject } from '@angular/core';
+import { Observable, map } from 'rxjs';
 import { RegaliaService } from '../../../core/services/data-access/regalia/regalia.service';
 import {
   FixedPriceProduct,
   RegaliaCategory,
-  RegaliaSeller,
-  RegaliaRequest,
+  RegaliaOccasion,
 } from '../../../shared/models/regalia.model';
 import {
-  InterpretacionBuilder,
-  RecomendacionProductoBuilder,
-  ResultadoRecomendacionesBuilder,
+  BuilderIAProductoBackend,
+  InterpretacionConstructor,
+  RecomendacionProductoConstructor,
+  ResultadoRecomendacionesConstructor,
+  SolicitudBuilderIAConstructor,
 } from '../models/builder.model';
+import { BuilderApiService } from './builder-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class BuilderFlowService {
+  private static readonly OCASION_BASE: RegaliaOccasion = 'Cumpleaños';
+  private static readonly ESTILO_BASE = 'personalizado';
+
   private readonly regaliaService = inject(RegaliaService);
+  private readonly builderApiService = inject(BuilderApiService);
 
-  obtenerOcasiones() {
-    return this.regaliaService.getOccasions();
-  }
-
+  /**
+   * Consulta el módulo builderIA del backend y adapta su contrato al modelo visual del builder.
+   */
   obtenerRecomendaciones(
-    solicitud: RegaliaRequest,
-  ): ResultadoRecomendacionesBuilder {
+    solicitud: SolicitudBuilderIAConstructor,
+  ): Observable<ResultadoRecomendacionesConstructor> {
     const interpretacion = this.interpretarSolicitud(solicitud);
-    const vendedores = this.regaliaService.getSellers();
-    const recomendaciones = this.regaliaService
-      .getFixedPriceProducts()
-      .map((producto) =>
-        this.crearRecomendacion(producto, vendedores, solicitud, interpretacion),
-      )
-      .filter((recomendacion) => recomendacion.puntaje >= 55)
-      .sort((a, b) => b.puntaje - a.puntaje)
-      .slice(0, 4);
 
-    return {
-      estado: recomendaciones.length > 0 ? 'success' : 'empty',
-      recomendaciones,
-      mensaje:
-        recomendaciones.length > 0
-          ? `${recomendaciones.length} productos compatibles encontrados.`
-          : 'No encontramos productos compatibles con esos filtros.',
-    };
+    return this.builderApiService.recomendarProductos(solicitud).pipe(
+      map((respuesta) => {
+        const recomendaciones = respuesta.productosRecomendados.map((producto, index) =>
+          this.crearRecomendacion(producto, interpretacion, respuesta.respuesta, index),
+        );
+
+        return {
+          estado: recomendaciones.length > 0 ? 'success' : 'empty',
+          recomendaciones,
+          mensaje:
+            recomendaciones.length > 0
+              ? respuesta.respuesta
+              : respuesta.respuesta || 'No encontramos productos compatibles con esos filtros.',
+        };
+      }),
+    );
   }
 
-  private crearRecomendacion(producto: FixedPriceProduct,vendedores: RegaliaSeller[],solicitud: RegaliaRequest,interpretacion: InterpretacionBuilder,): RecomendacionProductoBuilder {
-    const vendedor = vendedores.find((item) => item.id === producto.sellerId) ?? null;
-    const puntaje = this.calcularPuntaje(producto, vendedor, solicitud, interpretacion.category);
+  private crearRecomendacion(
+    productoBackend: BuilderIAProductoBackend,
+    interpretacion: InterpretacionConstructor,
+    respuestaIA: string,
+    index: number,
+  ): RecomendacionProductoConstructor {
+    const producto = this.toProductoConstructor(productoBackend);
     const reserva = this.regaliaService.calculateReservationBreakdown(producto.price);
 
     return {
       producto,
-      vendedor,
-      puntaje,
-      motivo: this.crearMotivo(producto, solicitud, interpretacion.category),
-      interpretacion: {...interpretacion,budgetFit: producto.price <= solicitud.budget ? 'dentro del presupuesto' : 'requiere ajuste',
+      vendedor: null,
+      puntaje: Math.max(70, 96 - index * 5),
+      motivo: respuestaIA || 'Producto recomendado por el asistente IA de REGALIA.',
+      interpretacion: {
+        ...interpretacion,
+        categoria: producto.sellerCategory,
+        ajustePresupuesto: 'por coordinar',
       },
       reserva,
     };
   }
 
-  private interpretarSolicitud(solicitud: RegaliaRequest): InterpretacionBuilder {
+  private toProductoConstructor(productoBackend: BuilderIAProductoBackend): FixedPriceProduct {
+    const precio = Number(productoBackend.precio);
+    const tipoProducto = productoBackend.tipoProducto || 'Producto recomendado';
+
     return {
-      category: this.inferirCategoria(solicitud),
-      occasion: solicitud.occasion,
-      style: solicitud.style || 'personalizado',
-      urgency: solicitud.urgent ? 'alta' : 'normal',
-      budgetFit: 'por evaluar',
+      id: productoBackend.idProducto,
+      title: productoBackend.nombre,
+      seller: productoBackend.nombreTienda,
+      sellerId: productoBackend.idTienda,
+      sellerCategory: this.mapearCategoria(tipoProducto),
+      occasion: BuilderFlowService.OCASION_BASE,
+      price: Number.isFinite(precio) ? precio : 0,
+      rating: 4.8,
+      reviews: 0,
+      imageUrl: '/images/regalia-hero-gift.png',
+      imagePosition: '50% 50%',
+      verified: true,
+      badges: [tipoProducto],
+      shortDescription: productoBackend.descripcion || 'Producto recomendado por REGALIA.',
+      description: productoBackend.descripcion || 'Producto recomendado por el asistente IA de REGALIA.',
+      includes: ['Producto seleccionado', 'Coordinación con vendedor', 'Reserva desde REGALIA'],
+      deliveryTime: 'Entrega coordinada con vendedor',
+      stockStatus:
+        productoBackend.stock > 0
+          ? `Stock disponible: ${productoBackend.stock}`
+          : 'Consultar disponibilidad',
+      personalization: 'Personalización según disponibilidad del vendedor',
+      maxQuantity: Math.max(productoBackend.stock || 1, 1),
     };
   }
 
-  private inferirCategoria(solicitud: RegaliaRequest): RegaliaCategory {
-    const necesidad = this.normalizarTexto(solicitud.need);
+  /**
+   * Resume la solicitud del usuario en criterios simples que la UI muestra como interpretación.
+   */
+  private interpretarSolicitud(solicitud: SolicitudBuilderIAConstructor): InterpretacionConstructor {
+    return {
+      categoria: this.inferirCategoria(solicitud),
+      ocasion: BuilderFlowService.OCASION_BASE,
+      estilo: BuilderFlowService.ESTILO_BASE,
+      urgencia: 'normal',
+      ajustePresupuesto: 'por evaluar',
+    };
+  }
+
+  /**
+   * Detecta una categoría probable a partir de palabras clave de la necesidad.
+   */
+  private inferirCategoria(solicitud: SolicitudBuilderIAConstructor): RegaliaCategory {
+    const necesidad = this.normalizarTexto(solicitud.busqueda);
 
     if (necesidad.includes('flor') || necesidad.includes('ramo')) return 'Arreglos florales';
     if (
       necesidad.includes('torta') ||
       necesidad.includes('cupcake') ||
-      necesidad.includes('dulce')
+      necesidad.includes('dulce') ||
+      necesidad.includes('chocolate')
     ) {
       return 'Repostería personalizada';
     }
@@ -97,54 +147,18 @@ export class BuilderFlowService {
       return 'Servicios creativos';
     }
 
-    return solicitud.occasion === 'Evento corporativo' ? 'Servicios creativos' : 'Cajas sorpresa';
+    return 'Cajas sorpresa';
   }
 
-  private calcularPuntaje(
-    producto: FixedPriceProduct,
-    vendedor: RegaliaSeller | null,
-    solicitud: RegaliaRequest,
-    categoria: RegaliaCategory,
-  ): number {
-    const textoSolicitud = this.normalizarTexto(`${solicitud.need} ${solicitud.style}`);
-    const textoProducto = this.normalizarTexto(
-      `${producto.title} ${producto.shortDescription} ${producto.description} ${producto.badges.join(' ')} ${producto.personalization}`,
-    );
-    const categoriaScore = producto.sellerCategory === categoria ? 30 : 8;
-    const ocasionScore = producto.occasion === solicitud.occasion ? 22 : 5;
-    const presupuestoScore = producto.price <= solicitud.budget ? 18 : 6;
-    const textoScore = textoProducto
-      .split(' ')
-      .some((palabra) => palabra.length > 4 && textoSolicitud.includes(palabra))
-      ? 10
-      : 4;
-    const urgenciaScore =
-      solicitud.urgent && this.normalizarTexto(producto.deliveryTime).includes('mismo') ? 10 : 6;
-    const reputacionScore = vendedor ? Math.round(vendedor.reputation / 10) : 6;
-    const verificadoScore = producto.verified ? 4 : 0;
+  private mapearCategoria(tipoProducto: string): RegaliaCategory {
+    const tipoNormalizado = this.normalizarTexto(tipoProducto);
 
-    return Math.min(
-      99,
-      categoriaScore +
-        ocasionScore +
-        presupuestoScore +
-        textoScore +
-        urgenciaScore +
-        reputacionScore +
-        verificadoScore,
-    );
-  }
+    if (tipoNormalizado.includes('floral')) return 'Arreglos florales';
+    if (tipoNormalizado.includes('box') || tipoNormalizado.includes('pack')) return 'Cajas sorpresa';
+    if (tipoNormalizado.includes('comestible')) return 'Repostería personalizada';
+    if (tipoNormalizado.includes('accesorio') || tipoNormalizado.includes('personalizado')) return 'Sublimados';
 
-  private crearMotivo(
-    producto: FixedPriceProduct,
-    solicitud: RegaliaRequest,
-    categoria: RegaliaCategory,
-  ): string {
-    if (producto.sellerCategory === categoria && producto.occasion === solicitud.occasion) {
-      return `Coincide con la categoría detectada, está pensado para ${solicitud.occasion.toLowerCase()} y tiene precio fijo para reservar.`;
-    }
-
-    return 'Puede resolver la solicitud por estilo, disponibilidad y precio, aunque conviene validar detalles finales.';
+    return 'Cajas sorpresa';
   }
 
   private normalizarTexto(value: string): string {

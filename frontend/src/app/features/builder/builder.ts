@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { RegaliaRequest } from '../../shared/models/regalia.model';
+import { CartService } from '../../core/services/cart/cart.service';
 import {
   FaseBuilder,
-  PasoBuilder,
-  RecomendacionProductoBuilder,
-  SugerenciaRapidaBuilder,
-  VistaPreviaSolicitudBuilder,
+  PasoConstructor,
+  RecomendacionProductoConstructor,
+  SolicitudBuilderIAConstructor,
+  SugerenciaRapidaConstructor,
+  VistaPreviaSolicitudConstructor,
 } from './models/builder.model';
 import { BuilderFlowService } from './services/builder-flow.service';
 
@@ -19,315 +20,343 @@ import { BuilderFlowService } from './services/builder-flow.service';
   templateUrl: './builder.html',
   styleUrl: './builder.css',
 })
+
 export class BuilderComponent {
+  readonly limiteBusqueda = 200;
+
   private readonly flujoBuilder = inject(BuilderFlowService);
+  private readonly carrito = inject(CartService);
+  private readonly necesidadInicial = 'Necesito una torta elegante para graduación.';
 
   @ViewChild('resultsRegion') private readonly resultsRegion?: ElementRef<HTMLElement>;
 
-  readonly occasions = this.flujoBuilder.obtenerOcasiones();
+  // Estado principal del flujo de cuatro pasos del constructor IA.
+  readonly faseActual = signal<FaseBuilder>('necesidad');
+  readonly recomendaciones = signal<RecomendacionProductoConstructor[]>([]);
+  readonly recomendacionSeleccionada = signal<RecomendacionProductoConstructor | null>(null);
+  readonly recomendacionConfirmada = signal<RecomendacionProductoConstructor | null>(null);
+  readonly mensajeBusqueda = signal<string | null>(null);
+  readonly longitudNecesidad = signal(this.necesidadInicial.length);
+  readonly cargandoRecomendaciones = signal(false);
 
-  readonly currentPhase = signal<FaseBuilder>('need');
-  readonly recommendations = signal<RecomendacionProductoBuilder[]>([]);
-  readonly selectedRecommendation = signal<RecomendacionProductoBuilder | null>(null);
-  readonly confirmedRecommendation = signal<RecomendacionProductoBuilder | null>(null);
-  readonly searchFeedback = signal<string | null>(null);
-
-  readonly steps: PasoBuilder[] = [
+  readonly pasos: PasoConstructor[] = [
     {
-      phase: 'need',
-      label: 'Necesidad',
-      description: 'Cuéntanos qué buscas',
+      fase: 'necesidad',
+      etiqueta: 'Necesidad',
+      descripcion: 'Cuéntanos qué buscas',
     },
     {
-      phase: 'interpretation',
-      label: 'Interpretación IA',
-      description: 'Entendemos tu solicitud',
+      fase: 'interpretacion',
+      etiqueta: 'Interpretación IA',
+      descripcion: 'Entendemos tu solicitud',
     },
     {
-      phase: 'recommendations',
-      label: 'Recomendaciones',
-      description: 'Productos ideales para ti',
+      fase: 'recomendaciones',
+      etiqueta: 'Recomendaciones',
+      descripcion: 'Productos ideales para ti',
     },
     {
-      phase: 'reservation',
-      label: 'Reserva',
-      description: 'Confirmas y coordinamos',
+      fase: 'reserva',
+      etiqueta: 'Reserva',
+      descripcion: 'Confirmas y coordinamos',
     },
   ];
 
-  readonly quickSuggestions: SugerenciaRapidaBuilder[] = [
+  readonly sugerenciasRapidas: SugerenciaRapidaConstructor[] = [
     {
-      label: 'Cumpleaños',
-      imageUrl: '/images/cumpleanios1.PNG',
-      occasion: 'Cumpleaños',
-      style: 'alegre',
-      need: 'Busco un regalo especial para cumpleaños, personalizado, bonito y dentro de mi presupuesto.',
+      etiqueta: 'Cumpleaños',
+      urlImagen: '/images/cumpleanios1.PNG',
+      necesidad: 'Busco un regalo especial para cumpleaños, personalizado y bonito.',
     },
     {
-      label: 'Aniversario',
-      imageUrl: '/images/aniversario.PNG',
-      occasion: 'Aniversario',
-      style: 'romántico',
-      need: 'Quiero un regalo romántico para aniversario, elegante y con algún detalle personalizado.',
+      etiqueta: 'Aniversario',
+      urlImagen: '/images/aniversario.PNG',
+      necesidad: 'Quiero un regalo romántico para aniversario, elegante y con algún detalle personalizado.',
     },
     {
-      label: 'Graduación',
-      imageUrl: '/images/graduacion.PNG',
-      occasion: 'Graduación',
-      style: 'elegante',
-      need: 'Necesito una torta elegante para graduación, presupuesto S/120, entrega sábado.',
+      etiqueta: 'Graduación',
+      urlImagen: '/images/graduacion.PNG',
+      necesidad: 'Necesito una torta elegante para graduación.',
     },
     {
-      label: 'Flores',
-      imageUrl: '/images/flores.PNG',
-      occasion: 'Aniversario',
-      style: 'romántico',
-      need: 'Busco flores bonitas para una sorpresa, con presentación elegante y entrega coordinada.',
+      etiqueta: 'Flores',
+      urlImagen: '/images/flores.PNG',
+      necesidad: 'Busco flores bonitas para una sorpresa, con presentación elegante y entrega coordinada.',
     },
     {
-      label: 'Box personalizado',
-      imageUrl: '/images/boxpersonalizado.PNG',
-      occasion: 'Cumpleaños',
-      style: 'personalizado',
-      need: 'Quiero un box personalizado con detalles dulces, tarjeta y presentación premium.',
+      etiqueta: 'Box personalizado',
+      urlImagen: '/images/boxpersonalizado.PNG',
+      necesidad: 'Quiero un box personalizado con detalles dulces, tarjeta y presentación premium.',
     },
     {
-      label: 'Torta',
-      imageUrl: '/images/torta2.PNG',
-      occasion: 'Cumpleaños',
-      style: 'elegante',
-      need: 'Necesito una torta personalizada, bonita y con entrega para una celebración especial.',
+      etiqueta: 'Torta',
+      urlImagen: '/images/torta2.PNG',
+      necesidad: 'Necesito una torta personalizada, bonita y con entrega para una celebración especial.',
     },
   ];
 
-  readonly requestForm = new FormGroup({
-    need: new FormControl(
-      'Necesito una torta elegante para graduación, presupuesto S/120, entrega sábado.',
+  // Formulario mínimo del builder IA; el backend solo necesita una búsqueda en lenguaje natural.
+  readonly formularioSolicitud = new FormGroup({
+    necesidad: new FormControl(
+      this.necesidadInicial,
       {
         nonNullable: true,
-        validators: [Validators.required, Validators.minLength(12), Validators.maxLength(800)],
+        validators: [
+          Validators.required,
+          Validators.minLength(12),
+          Validators.maxLength(this.limiteBusqueda),
+        ],
       },
     ),
-    occasion: new FormControl<RegaliaRequest['occasion']>('Graduación', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    budget: new FormControl(120, {
-      nonNullable: true,
-      validators: [Validators.required, Validators.min(20), Validators.max(2000)],
-    }),
-    style: new FormControl('elegante', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    deliveryDate: new FormControl('Sábado', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    district: new FormControl('Trujillo', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    urgent: new FormControl(false, { nonNullable: true }),
   });
 
-  readonly interpretedSummary = computed(
-    () => this.selectedRecommendation()?.interpretacion ?? null,
+  // Muestra el resumen interpretado de la recomendación seleccionada.
+  readonly resumenInterpretado = computed(
+    () => this.recomendacionSeleccionada()?.interpretacion ?? null,
   );
 
-  readonly needLength = computed(() => this.requestForm.controls.need.value.length);
-
-  readonly requestPreview = computed<VistaPreviaSolicitudBuilder>(() => {
-    const formValue = this.requestForm.getRawValue();
+  // Mantiene una vista previa reactiva sin esperar a enviar la solicitud.
+  readonly vistaPreviaSolicitud = computed<VistaPreviaSolicitudConstructor>(() => {
+    const valorFormulario = this.formularioSolicitud.getRawValue();
 
     return {
-      description: formValue.need.trim(),
-      occasion: formValue.occasion,
-      budget: formValue.budget,
-      style: formValue.style.trim(),
-      deliveryDate: formValue.deliveryDate.trim(),
-      district: formValue.district.trim(),
-      urgent: formValue.urgent,
+      descripcion: valorFormulario.necesidad.trim(),
     };
   });
 
-  readonly selectedSellerFacts = computed(() => {
-    const selected = this.selectedRecommendation();
+  readonly datosVendedorSeleccionado = computed(() => {
+    const seleccionada = this.recomendacionSeleccionada();
 
-    if (!selected) {
+    if (!seleccionada) {
       return [];
     }
 
-    const vendedor = selected.vendedor;
+    const vendedor = seleccionada.vendedor;
 
     return [
-      selected.producto.deliveryTime,
-      selected.producto.stockStatus,
+      seleccionada.producto.deliveryTime,
+      seleccionada.producto.stockStatus,
       vendedor
         ? `* ${vendedor.rating} · ${vendedor.reviews} reseñas`
-        : `* ${selected.producto.rating} · ${selected.producto.reviews} reseñas`,
+        : `* ${seleccionada.producto.rating} · ${seleccionada.producto.reviews} reseñas`,
     ];
   });
 
-  applySuggestion(suggestion: SugerenciaRapidaBuilder): void {
-    this.requestForm.patchValue({
-      need: suggestion.need,
-      occasion: suggestion.occasion,
-      style: suggestion.style,
+  aplicarSugerencia(sugerencia: SugerenciaRapidaConstructor): void {
+    this.formularioSolicitud.patchValue({
+      necesidad: sugerencia.necesidad,
     });
+    this.actualizarLongitudNecesidad();
 
-    this.searchFeedback.set(null);
-    this.recommendations.set([]);
-    this.selectedRecommendation.set(null);
-    this.confirmedRecommendation.set(null);
-    this.currentPhase.set('need');
+    this.mensajeBusqueda.set(null);
+    this.recomendaciones.set([]);
+    this.recomendacionSeleccionada.set(null);
+    this.recomendacionConfirmada.set(null);
+    this.faseActual.set('necesidad');
   }
 
-  continueToInterpretation(): void {
-    if (!this.validateRequestForm()) {
+  continuarAInterpretacion(): void {
+    if (!this.validarFormularioSolicitud()) {
       return;
     }
 
-    this.generateMatches(false);
-    this.currentPhase.set('interpretation');
+    this.generarRecomendaciones(false);
+    this.faseActual.set('interpretacion');
   }
 
-  continueToRecommendations(): void {
-    if (this.recommendations().length === 0) {
-      this.generateMatches(false);
-    }
-
-    this.currentPhase.set('recommendations');
-    this.focusResults();
-  }
-
-  continueToReservation(): void {
-    if (!this.selectedRecommendation()) {
-      this.searchFeedback.set('Selecciona una recomendación antes de preparar la reserva.');
-      this.currentPhase.set('recommendations');
+  continuarARecomendaciones(): void {
+    if (this.cargandoRecomendaciones()) {
+      this.faseActual.set('recomendaciones');
+      this.enfocarResultados();
       return;
     }
 
-    this.currentPhase.set('reservation');
+    if (this.recomendaciones().length === 0) {
+      this.generarRecomendaciones(false);
+    }
+
+    this.faseActual.set('recomendaciones');
+    this.enfocarResultados();
   }
 
-  goToPhase(phase: FaseBuilder): void {
-    if (!this.canOpenPhase(phase)) {
+  continuarAReserva(): void {
+    if (!this.recomendacionSeleccionada()) {
+      this.mensajeBusqueda.set('Selecciona una recomendación antes de preparar la reserva.');
+      this.faseActual.set('recomendaciones');
       return;
     }
 
-    this.currentPhase.set(phase);
+    this.faseActual.set('reserva');
   }
 
-  isStepActive(phase: FaseBuilder): boolean {
-    return this.currentPhase() === phase;
+  irAFase(fase: FaseBuilder): void {
+    if (!this.puedeAbrirFase(fase)) {
+      return;
+    }
+
+    this.faseActual.set(fase);
   }
 
-  isStepCompleted(phase: FaseBuilder): boolean {
-    return this.phaseIndex(phase) < this.phaseIndex(this.currentPhase());
+  estaPasoActivo(fase: FaseBuilder): boolean {
+    return this.faseActual() === fase;
   }
 
-  canOpenPhase(phase: FaseBuilder): boolean {
-    if (phase === 'need') {
+  estaPasoCompletado(fase: FaseBuilder): boolean {
+    return this.indiceFase(fase) < this.indiceFase(this.faseActual());
+  }
+
+  puedeAbrirFase(fase: FaseBuilder): boolean {
+    if (this.cargandoRecomendaciones()) {
+      return fase === 'necesidad';
+    }
+
+    if (fase === 'necesidad') {
       return true;
     }
 
-    if (phase === 'interpretation') {
-      return this.recommendations().length > 0;
+    if (fase === 'interpretacion') {
+      return this.recomendaciones().length > 0;
     }
 
-    if (phase === 'recommendations') {
-      return this.recommendations().length > 0;
+    if (fase === 'recomendaciones') {
+      return this.recomendaciones().length > 0;
     }
 
-    return this.selectedRecommendation() !== null;
+    return this.recomendacionSeleccionada() !== null;
   }
 
-  phaseIndexText(phase: FaseBuilder): number {
-    return this.phaseIndex(phase) + 1;
+  textoIndiceFase(fase: FaseBuilder): number {
+    return this.indiceFase(fase) + 1;
   }
 
-  generateMatches(shouldFocusResults = true): void {
-    if (!this.validateRequestForm()) {
+  /**
+   * Valida la solicitud y delega la generación de recomendaciones al servicio del flujo.
+   */
+  generarRecomendaciones(debeEnfocarResultados = true): void {
+    if (!this.validarFormularioSolicitud() || this.cargandoRecomendaciones()) {
       return;
     }
 
-    const result = this.flujoBuilder.obtenerRecomendaciones(this.requestForm.getRawValue());
-    const matches = result.recomendaciones;
+    this.cargandoRecomendaciones.set(true);
+    this.mensajeBusqueda.set('Buscando recomendaciones con IA...');
+    this.recomendaciones.set([]);
+    this.recomendacionSeleccionada.set(null);
+    this.recomendacionConfirmada.set(null);
 
-    this.recommendations.set(matches);
-    this.selectedRecommendation.set(matches[0] ?? null);
-    this.confirmedRecommendation.set(null);
-    this.searchFeedback.set(result.mensaje);
+    this.flujoBuilder.obtenerRecomendaciones(this.obtenerSolicitudBuilderIA()).subscribe({
+      next: (resultado) => {
+        const coincidencias = resultado.recomendaciones;
 
-    if (shouldFocusResults) {
-      this.focusResults();
-    }
+        this.recomendaciones.set(coincidencias);
+        this.recomendacionSeleccionada.set(coincidencias[0] ?? null);
+        this.recomendacionConfirmada.set(null);
+        this.mensajeBusqueda.set(resultado.mensaje);
+
+        if (debeEnfocarResultados) {
+          this.enfocarResultados();
+        }
+      },
+      error: () => {
+        this.recomendaciones.set([]);
+        this.recomendacionSeleccionada.set(null);
+        this.recomendacionConfirmada.set(null);
+        this.mensajeBusqueda.set('No se encontraron recomendaciones para esta búsqueda.');
+        this.cargandoRecomendaciones.set(false);
+      },
+      complete: () => {
+        this.cargandoRecomendaciones.set(false);
+      },
+    });
   }
 
-  selectRecommendation(recommendation: RecomendacionProductoBuilder): void {
-    this.selectedRecommendation.set(recommendation);
-    this.confirmedRecommendation.set(null);
+  seleccionarRecomendacion(recomendacion: RecomendacionProductoConstructor): void {
+    this.recomendacionSeleccionada.set(recomendacion);
+    this.recomendacionConfirmada.set(null);
   }
 
-  prepareReservation(): void {
-    const selected = this.selectedRecommendation();
+  prepararReserva(): void {
+    const seleccionada = this.recomendacionSeleccionada();
 
-    if (!selected) {
+    if (!seleccionada) {
       return;
     }
 
-    this.confirmedRecommendation.set(selected);
-    this.currentPhase.set('reservation');
+    this.recomendacionConfirmada.set(seleccionada);
+    this.faseActual.set('reserva');
   }
 
-  clearPreparedReservation(): void {
-    this.confirmedRecommendation.set(null);
-    this.currentPhase.set('recommendations');
+  agregarAlCarrito(): void {
+    const seleccionada = this.recomendacionSeleccionada();
+
+    if (!seleccionada) {
+      this.mensajeBusqueda.set('Selecciona una recomendación antes de agregarla al carrito.');
+      this.faseActual.set('recomendaciones');
+      return;
+    }
+
+    this.carrito.addProduct(seleccionada.producto);
+    this.recomendacionConfirmada.set(seleccionada);
   }
 
-  resetFlow(): void {
-    this.currentPhase.set('need');
-    this.recommendations.set([]);
-    this.selectedRecommendation.set(null);
-    this.confirmedRecommendation.set(null);
-    this.searchFeedback.set(null);
+  limpiarReservaPreparada(): void {
+    this.recomendacionConfirmada.set(null);
+    this.faseActual.set('recomendaciones');
   }
 
-  trackStep(_: number, step: PasoBuilder): FaseBuilder {
-    return step.phase;
+  reiniciarFlujo(): void {
+    this.faseActual.set('necesidad');
+    this.recomendaciones.set([]);
+    this.recomendacionSeleccionada.set(null);
+    this.recomendacionConfirmada.set(null);
+    this.mensajeBusqueda.set(null);
   }
 
-  trackRecommendation(_: number, recommendation: RecomendacionProductoBuilder): number {
-    return recommendation.producto.id;
+  rastrearPaso(_: number, paso: PasoConstructor): FaseBuilder {
+    return paso.fase;
   }
 
-  trackText(_: number, value: string): string {
-    return value;
+  rastrearRecomendacion(_: number, recomendacion: RecomendacionProductoConstructor): number {
+    return recomendacion.producto.id;
   }
 
-  trackSuggestion(_: number, suggestion: SugerenciaRapidaBuilder): string {
-    return suggestion.label;
+  rastrearTexto(_: number, valor: string): string {
+    return valor;
   }
 
-  private validateRequestForm(): boolean {
-    if (this.requestForm.valid) {
-      this.searchFeedback.set(null);
+  rastrearSugerencia(_: number, sugerencia: SugerenciaRapidaConstructor): string {
+    return sugerencia.etiqueta;
+  }
+
+  actualizarLongitudNecesidad(): void {
+    this.longitudNecesidad.set(this.formularioSolicitud.controls.necesidad.value.length);
+  }
+
+  private validarFormularioSolicitud(): boolean {
+    if (this.formularioSolicitud.valid) {
+      this.mensajeBusqueda.set(null);
       return true;
     }
 
-    this.requestForm.markAllAsTouched();
-    this.searchFeedback.set('Completa los datos requeridos para continuar.');
+    this.formularioSolicitud.markAllAsTouched();
+    this.mensajeBusqueda.set('Completa los datos requeridos para continuar.');
     return false;
   }
 
-  private focusResults(): void {
+  private obtenerSolicitudBuilderIA(): SolicitudBuilderIAConstructor {
+    const valorFormulario = this.formularioSolicitud.getRawValue();
+
+    return {
+      busqueda: valorFormulario.necesidad.trim(),
+    };
+  }
+
+  private enfocarResultados(): void {
     window.setTimeout(() => {
       this.resultsRegion?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
-  private phaseIndex(phase: FaseBuilder): number {
-    return this.steps.findIndex((step) => step.phase === phase);
+  private indiceFase(fase: FaseBuilder): number {
+    return this.pasos.findIndex((paso) => paso.fase === fase);
   }
 }
