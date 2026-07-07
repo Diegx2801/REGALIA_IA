@@ -179,7 +179,7 @@ export class DashboardComponent implements OnInit {
       ],
       actions: [
         { label: 'Gestionar pedidos', hint: 'Cotiza, acepta y actualiza estados', route: '/vendedor/pedidos', icon: 'P' },
-        { label: 'Organizar calendario', hint: 'Entregas, cupos y disponibilidad', route: '/vendedor/calendario', icon: 'C' },
+        { label: 'Revisar mi cuenta', hint: 'Datos personales y acceso', route: '/vendedor/cuenta', icon: 'C' },
         { label: 'Mejorar mi perfil', hint: 'Catalogo, portafolio y zonas', route: '/vendedor/perfil', icon: 'M' },
       ],
       activityTitle: 'Oportunidades prioritarias',

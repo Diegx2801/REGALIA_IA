@@ -186,7 +186,8 @@ export class AdminOrdersComponent implements OnInit {
   }
 
   isSelectedOrder(order: OrderApiDto): boolean {
-    return this.selectedOrder()?.idPedido === order.idPedido;
+    const selectedOrder = this.selectedOrder();
+    return selectedOrder !== null && selectedOrder.idPedido === order.idPedido;
   }
 
   refresh(): void {

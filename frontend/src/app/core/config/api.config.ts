@@ -25,6 +25,18 @@ export const API_ENDPOINTS = {
   deliveryTypes: {
     list: `${API_BASE_PATH}/tipos-entrega`,
   },
+  seller: {
+    profile: `${API_BASE_PATH}/vendedores/me`,
+    stores: `${API_BASE_PATH}/vendedores/me/tiendas`,
+    storeById: (storeId: number) => `${API_BASE_PATH}/vendedores/me/tiendas/${storeId}`,
+    productsByStore: (storeId: number) =>
+      `${API_BASE_PATH}/vendedores/me/tiendas/${storeId}/productos`,
+    productByStore: (storeId: number, productId: number) =>
+      `${API_BASE_PATH}/vendedores/me/tiendas/${storeId}/productos/${productId}`,
+    orders: `${API_BASE_PATH}/vendedores/me/pedidos`,
+    ordersByStore: (storeId: number) => `${API_BASE_PATH}/vendedores/me/tiendas/${storeId}/pedidos`,
+    orderById: (orderId: number) => `${API_BASE_PATH}/vendedores/me/pedidos/${orderId}`,
+  },
   admin: {
     orders: `${API_BASE_PATH}/admin/pedidos`,
     orderById: (id: number) => `${API_BASE_PATH}/admin/pedidos/${id}`,

@@ -1,0 +1,14 @@
+<section class="empty-state" [attr.data-tone]="tone()" role="status" aria-live="polite">
+  <span class="empty-state__icon" aria-hidden="true">{{ icon() }}</span>
+  <h2 class="empty-state__title">{{ title() }}</h2>
+
+  @if (text()) {
+    <p class="empty-state__text">{{ text() }}</p>
+  }
+
+  @if (actionLabel()) {
+    <button class="empty-state__action" type="button" (click)="onActionClick()">
+      {{ actionLabel() }}
+    </button>
+  }
+</section>

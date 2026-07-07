@@ -41,11 +41,10 @@ const WORKSPACE_CONFIG: Record<UserRole, WorkspaceConfig> = {
   Vendedor: {
     eyebrow: 'Espacio vendedor',
     title: 'Mi negocio',
-    description: 'Gestiona pedidos, disponibilidad y presencia comercial.',
+    description: 'Gestiona pedidos, tienda y presencia comercial.',
     navItems: [
       { label: 'Resumen', description: 'Actividad principal', route: '/vendedor/resumen', icon: '⌂', exact: true },
       { label: 'Pedidos', description: 'Solicitudes y cotizaciones', route: '/vendedor/pedidos', icon: '◇' },
-      { label: 'Calendario', description: 'Entregas y reservas', route: '/vendedor/calendario', icon: '◫' },
       { label: 'Perfil del negocio', description: 'Catálogo y disponibilidad', route: '/vendedor/perfil', icon: '▦' },
       { label: 'Mi cuenta', description: 'Datos personales', route: '/vendedor/cuenta', icon: '◎' },
     ],

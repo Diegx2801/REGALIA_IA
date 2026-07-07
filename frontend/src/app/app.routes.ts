@@ -167,8 +167,8 @@ export const routes: Routes = [
       },
       {
         path: 'calendario',
-        loadComponent: () =>
-          import('./features/reservations/reservations').then((m) => m.ReservationsComponent),
+        redirectTo: 'pedidos',
+        pathMatch: 'full',
       },
       {
         path: 'perfil',
@@ -274,7 +274,7 @@ export const routes: Routes = [
     data: {
       redirects: {
         Cliente: '/cliente/reservas',
-        Vendedor: '/vendedor/calendario',
+        Vendedor: '/vendedor/pedidos',
         Administrador: '/admin/pedidos',
       },
     },

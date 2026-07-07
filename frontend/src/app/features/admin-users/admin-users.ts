@@ -201,7 +201,8 @@ export class AdminUsersComponent implements OnInit {
   }
 
   isSelectedUser(user: AdminUserApiDto): boolean {
-    return this.selectedUser()?.idUsuario === user.idUsuario;
+    const selectedUser = this.selectedUser();
+    return selectedUser !== null && selectedUser.idUsuario === user.idUsuario;
   }
 
   isPendingStatusChange(user: AdminUserApiDto): boolean {

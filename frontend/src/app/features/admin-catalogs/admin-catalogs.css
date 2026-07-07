@@ -347,39 +347,6 @@
   color: var(--color-text);
 }
 
-.admin-catalogs__empty {
-  align-content: center;
-  display: grid;
-  justify-items: center;
-  min-height: 18rem;
-  padding: 1.5rem;
-  text-align: center;
-}
-
-.admin-catalogs__empty span {
-  align-items: center;
-  background: #f4edf2;
-  border-radius: 18px;
-  color: var(--color-primary);
-  display: inline-flex;
-  font-weight: 950;
-  height: 3.2rem;
-  justify-content: center;
-  margin-bottom: 0.8rem;
-  width: 3.2rem;
-}
-
-.admin-catalogs__empty h2 {
-  color: var(--color-text);
-  font-size: 1.25rem;
-  margin: 0 0 0.35rem;
-}
-
-.admin-catalogs__empty p {
-  color: var(--color-muted);
-  margin: 0;
-}
-
 @media (max-width: 1199.98px) {
   .admin-catalogs__workspace,
   .admin-catalogs__toolbar {

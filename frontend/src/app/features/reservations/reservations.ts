@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { AuthSessionService } from '../../core/services/auth/auth-session.service';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { OrderStatus, RegaliaOrder } from '../../shared/models/regalia.model';
 
@@ -21,18 +20,16 @@ type ReservationPanelMode = 'detail' | 'chat' | 'reschedule' | 'cancel';
   styleUrl: './reservations.css',
 })
 export class ReservationsComponent {
-  private readonly authSession = inject(AuthSessionService);
   private readonly regaliaService = inject(RegaliaService);
   private readonly calendarVersion = signal(0);
   private readonly selectedOrderId = signal<number | null>(null);
 
-  readonly role = this.authSession.role;
   readonly today = this.formatDate(new Date());
   readonly selectedDate = new FormControl(this.today, { nonNullable: true });
   readonly panelMode = signal<ReservationPanelMode>('detail');
   readonly actionNotice = signal('');
 
-  // Datos mock enriquecidos con agenda para validar el calendario antes de usar API real.
+  // Datos temporales enriquecidos con agenda hasta conectar las reservas reales del cliente.
   readonly orders: CalendarOrder[] = this.regaliaService.getOrders().map((order, index) => ({
     ...order,
     scheduledDate: this.offsetDate(index),
@@ -72,31 +69,11 @@ export class ReservationsComponent {
     return this.orders.find((order) => order.id === orderId) ?? null;
   });
 
-  readonly pageCopy = computed(() => {
-    const role = this.role();
-
-    if (role === 'Vendedor') {
-      return {
-        eyebrow: 'Calendario vendedor',
-        title: 'Pedidos recibidos organizados por fecha.',
-        text: 'Selecciona un dia para revisar entregas, estados y senas asociadas a tus pedidos.',
-      };
-    }
-
-    if (role === 'Administrador') {
-      return {
-        eyebrow: 'Calendario operativo',
-        title: 'Reservas y entregas visibles por fecha.',
-        text: 'Controla pedidos activos, vendedores asignados y avance operativo por dia.',
-      };
-    }
-
-    return {
-      eyebrow: 'Mis reservas',
-      title: 'Tus pedidos y entregas en calendario.',
-      text: 'Consulta por fecha el estado de tus reservas y los vendedores seleccionados.',
-    };
-  });
+  readonly pageCopy = computed(() => ({
+    eyebrow: 'Mis reservas',
+    title: 'Tus pedidos y entregas en calendario.',
+    text: 'Consulta por fecha el estado de tus reservas y los vendedores seleccionados.',
+  }));
 
   selectDate(date: string): void {
     this.selectedDate.setValue(date);
