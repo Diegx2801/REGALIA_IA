@@ -11,7 +11,8 @@ import {
 import { OrderCheckoutApiService } from '../../core/services/data-access/orders/services/order-checkout-api.service';
 import { PaymentCheckoutApiService } from '../../core/services/data-access/payments/services/payment-checkout-api.service';
 
-type CheckoutMode = 'cart' | 'confirmation';
+type CheckoutMode = 'cart' | 'confirmation' | 'payment';
+type PaymentReturnStatus = 'success' | 'pending' | 'failure' | null;
 
 interface CheckoutDraft {
   idTipoEntrega: number | null;
@@ -49,6 +50,7 @@ export class CartComponent implements OnInit {
   readonly isLoggedIn = this.authSession.isLoggedIn;
   readonly checkoutMode = signal<CheckoutMode>('cart');
   readonly checkoutMessage = signal('');
+  readonly paymentReturnStatus = signal<PaymentReturnStatus>(null);
   readonly checkoutDraft = signal<CheckoutDraft>(this.initialCheckoutDraft());
   readonly deliveryOptions = signal<DeliveryTypeApiDto[]>([]);
   readonly paymentOptions = signal<InitialPaymentOptionApiDto[]>([]);
@@ -56,6 +58,24 @@ export class CartComponent implements OnInit {
   readonly isCreatingPaymentSession = signal(false);
   readonly summary = this.cartService.summary;
   readonly hasCheckoutContent = computed(() => this.hasItems());
+  readonly hasCompletedPaymentReturn = computed(() => {
+    const status = this.paymentReturnStatus();
+
+    return status === 'success' || status === 'pending';
+  });
+  readonly paymentResultEyebrow = computed(() =>
+    this.paymentReturnStatus() === 'pending' ? 'Pago en revision' : 'Pago recibido',
+  );
+  readonly paymentResultTitle = computed(() =>
+    this.paymentReturnStatus() === 'pending'
+      ? 'Estamos validando tu reserva'
+      : 'Tu reserva esta en marcha',
+  );
+  readonly paymentResultText = computed(() =>
+    this.paymentReturnStatus() === 'pending'
+      ? 'Cuando el pago sea confirmado, REGALIA preparara tu reserva y podras darle seguimiento desde tu cuenta.'
+      : 'Recibimos la confirmacion del pago. REGALIA coordinara con el vendedor la personalizacion, horario y entrega.',
+  );
   readonly primaryCheckoutLabel = computed(() =>
     this.isLoggedIn() ? 'Revisar condiciones' : 'Iniciar sesion para reservar',
   );
@@ -84,6 +104,10 @@ export class CartComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    if (this.handlePaymentReturn()) {
+      return;
+    }
+
     const checkoutStep = this.route.snapshot.queryParamMap.get('checkout');
 
     if (checkoutStep === 'confirmacion' && this.hasItems()) {
@@ -212,6 +236,42 @@ export class CartComponent implements OnInit {
   private resetCheckoutDraft(): void {
     this.checkoutMode.set('cart');
     this.checkoutMessage.set('');
+    this.paymentReturnStatus.set(null);
+  }
+
+  private handlePaymentReturn(): boolean {
+    const payment = this.route.snapshot.queryParamMap.get('payment');
+
+    if (payment === 'success') {
+      this.paymentReturnStatus.set('success');
+      this.checkoutMode.set('payment');
+      this.checkoutMessage.set('');
+      this.cartService.clearCart();
+      return true;
+    }
+
+    if (payment === 'pending') {
+      this.paymentReturnStatus.set('pending');
+      this.checkoutMode.set('payment');
+      this.checkoutMessage.set('');
+      return true;
+    }
+
+    if (payment === 'failure') {
+      this.paymentReturnStatus.set('failure');
+      this.checkoutMessage.set(
+        'No pudimos confirmar el pago. Puedes intentarlo nuevamente con otro medio.',
+      );
+
+      if (this.hasItems()) {
+        this.checkoutMode.set('confirmation');
+        this.loadCheckoutOptions();
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   private ensureCheckoutSession(): boolean {

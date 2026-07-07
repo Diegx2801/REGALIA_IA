@@ -1,5 +1,7 @@
 package com.regalia.backend.pedido.application;
 
+import com.regalia.backend.checkout.infrastructure.entity.CheckoutSessionEntity;
+import com.regalia.backend.checkout.infrastructure.entity.CheckoutSessionItemEntity;
 import com.regalia.backend.comision.infrastructure.entity.ComisionEntity;
 import com.regalia.backend.comision.infrastructure.repository.ComisionJpaRepository;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
@@ -209,6 +211,90 @@ public class PedidoService {
                 montoPagado,
                 saldoPendiente
         );
+    }
+
+    @Transactional
+    public PedidoEntity confirmarPedidoDesdeCheckoutSession(
+            CheckoutSessionEntity checkoutSession,
+            PaymentGatewayVerificationResult paymentResult
+    ) {
+        if (checkoutSession.getPedido() != null) {
+            return checkoutSession.getPedido();
+        }
+
+        if (!PaymentGatewayStatus.APPROVED.equals(paymentResult.status())) {
+            throw new ReglaNegocioException(
+                    "El pago no fue aprobado por la pasarela"
+            );
+        }
+
+        validarMontoPagoCheckout(checkoutSession, paymentResult);
+        validarCodigoTransaccionDisponible(paymentResult.transactionCode());
+
+        UsuarioEntity usuario = checkoutSession.getUsuario();
+        TiendaEntity tienda = checkoutSession.getTienda();
+        TipoEntregaEntity tipoEntrega = checkoutSession.getTipoEntrega();
+        TipoPagoEntity tipoPago = checkoutSession.getTipoPago();
+        String codigoTipoPago = normalizarCodigo(checkoutSession.getCodigoTipoPago());
+
+        validarTiendaDisponibleParaCompra(tienda);
+        validarUsuarioNoCompraSuPropiaTienda(usuario, tienda);
+        validarTipoPagoInicial(codigoTipoPago);
+        validarItemsCheckoutSession(checkoutSession.getItems());
+
+        BigDecimal porcentajeComision = politicaComercialService.obtenerPorcentajeComision();
+        List<DetallePedidoEntity> detalles = new ArrayList<>();
+        List<ProductoEntity> productosActualizados = new ArrayList<>();
+
+        for (CheckoutSessionItemEntity item : checkoutSession.getItems()) {
+            ProductoEntity producto = obtenerProductoActivoParaPedido(item.getProducto().getIdProducto());
+
+            validarProductoDisponibleParaPedido(
+                    producto,
+                    tienda.getIdTienda(),
+                    item.getCantidad()
+            );
+
+            DetallePedidoEntity detalle = new DetallePedidoEntity();
+            detalle.setProducto(producto);
+            detalle.setCantidad(item.getCantidad());
+            detalle.setPrecioUnitario(item.getPrecioUnitario());
+            detalle.setEstado(true);
+
+            detalles.add(detalle);
+
+            producto.setStock(producto.getStock() - item.getCantidad());
+            productosActualizados.add(producto);
+        }
+
+        PedidoEntity pedido = new PedidoEntity();
+        pedido.setUsuario(usuario);
+        pedido.setTienda(tienda);
+        pedido.setTipoEntrega(tipoEntrega);
+        pedido.setFechaEntrega(checkoutSession.getFechaEntrega());
+        pedido.setObservacion(normalizarTextoOpcional(checkoutSession.getObservacion()));
+        pedido.setEstadoPedido(PedidoEntity.ESTADO_RESERVADO);
+        pedido.setSubtotal(checkoutSession.getSubtotal().setScale(2, RoundingMode.HALF_UP));
+        pedido.setTotal(checkoutSession.getSubtotal().setScale(2, RoundingMode.HALF_UP));
+        pedido.setEstado(true);
+
+        PedidoEntity pedidoGuardado = pedidoRepository.save(pedido);
+
+        detalles.forEach(detalle -> detalle.setPedido(pedidoGuardado));
+        detallePedidoRepository.saveAll(detalles);
+        productoRepository.saveAll(productosActualizados);
+
+        PagoEntity pago = crearPago(
+                pedidoGuardado,
+                tipoPago,
+                paymentResult
+        );
+        PagoEntity pagoGuardado = pagoRepository.save(pago);
+
+        ComisionEntity comision = crearComision(pagoGuardado, porcentajeComision);
+        comisionRepository.save(comision);
+
+        return pedidoGuardado;
     }
 
     @Transactional(readOnly = true)
@@ -511,6 +597,39 @@ public class PedidoService {
         if (pagoRepository.existsByCodigoTransaccionIgnoreCaseAndEstadoTrue(codigoNormalizado)) {
             throw new RecursoDuplicadoException(
                     "Ya existe un pago registrado con ese código de transacción"
+            );
+        }
+    }
+
+    private void validarMontoPagoCheckout(
+            CheckoutSessionEntity checkoutSession,
+            PaymentGatewayVerificationResult paymentResult
+    ) {
+        BigDecimal montoEsperado = checkoutSession.getMontoInicial()
+                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal montoAprobado = paymentResult.amount()
+                .setScale(2, RoundingMode.HALF_UP);
+
+        if (montoEsperado.compareTo(montoAprobado) != 0) {
+            throw new ReglaNegocioException(
+                    "El monto aprobado no coincide con el checkout solicitado"
+            );
+        }
+
+        String monedaCheckout = normalizarCodigo(checkoutSession.getMoneda());
+        String monedaAprobada = normalizarCodigo(paymentResult.currency());
+
+        if (!monedaCheckout.equals(monedaAprobada)) {
+            throw new ReglaNegocioException(
+                    "La moneda aprobada no coincide con el checkout solicitado"
+            );
+        }
+    }
+
+    private void validarItemsCheckoutSession(List<CheckoutSessionItemEntity> items) {
+        if (items == null || items.isEmpty()) {
+            throw new ReglaNegocioException(
+                    "El checkout no tiene productos para confirmar"
             );
         }
     }

@@ -138,6 +138,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/checkout/sessions").access(clienteAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/webhooks/mercado-pago").permitAll()
 
                         /*
                          * Conversión / perfil vendedor:

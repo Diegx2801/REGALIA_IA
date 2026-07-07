@@ -3,6 +3,9 @@ package com.regalia.backend.checkout.application;
 import com.regalia.backend.checkout.api.dto.CheckoutItemRequest;
 import com.regalia.backend.checkout.api.dto.CheckoutSessionRequest;
 import com.regalia.backend.checkout.api.dto.CheckoutSessionResponse;
+import com.regalia.backend.checkout.infrastructure.entity.CheckoutSessionEntity;
+import com.regalia.backend.checkout.infrastructure.entity.CheckoutSessionItemEntity;
+import com.regalia.backend.checkout.infrastructure.repository.CheckoutSessionJpaRepository;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayRegistry;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutCommand;
@@ -33,6 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Prepara sesiones de pago sin persistir pedidos hasta recibir confirmacion confiable.
@@ -55,8 +59,9 @@ public class CheckoutService {
     private final PoliticaComercialService politicaComercialService;
     private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final PaymentGatewayProperties paymentGatewayProperties;
+    private final CheckoutSessionJpaRepository checkoutSessionRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public CheckoutSessionResponse crearSesionCheckout(
             String correoUsuario,
             CheckoutSessionRequest request
@@ -81,6 +86,19 @@ public class CheckoutService {
                 total,
                 politicaComercialService.obtenerPorcentajeSena()
         );
+        String externalReference = generarExternalReference(usuario, tienda);
+        CheckoutSessionEntity checkoutSession = crearCheckoutSession(
+                usuario,
+                tienda,
+                tipoEntrega,
+                tipoPago,
+                codigoTipoPago,
+                request,
+                total,
+                montoCheckout,
+                externalReference
+        );
+        checkoutSessionRepository.save(checkoutSession);
 
         PaymentGatewayCheckoutResult checkoutResult = paymentGatewayRegistry.createCheckout(
                 new PaymentGatewayCheckoutCommand(
@@ -92,9 +110,12 @@ public class CheckoutService {
                         tienda.getIdTienda(),
                         tienda.getNombre(),
                         codigoTipoPago,
-                        buildDescription(tienda, tipoEntrega, codigoTipoPago)
+                        buildDescription(tienda, tipoEntrega, codigoTipoPago),
+                        externalReference
                 )
         );
+        checkoutSession.setProvider(checkoutResult.provider().name());
+        checkoutSession.setPreferenceId(checkoutResult.preferenceId());
 
         return new CheckoutSessionResponse(
                 checkoutResult.provider().name(),
@@ -106,6 +127,58 @@ public class CheckoutService {
                 checkoutResult.sandboxInitPoint(),
                 checkoutResult.redirectUrl()
         );
+    }
+
+    private CheckoutSessionEntity crearCheckoutSession(
+            UsuarioEntity usuario,
+            TiendaEntity tienda,
+            TipoEntregaEntity tipoEntrega,
+            TipoPagoEntity tipoPago,
+            String codigoTipoPago,
+            CheckoutSessionRequest request,
+            BigDecimal total,
+            BigDecimal montoInicial,
+            String externalReference
+    ) {
+        CheckoutSessionEntity session = new CheckoutSessionEntity();
+        session.setExternalReference(externalReference);
+        session.setProvider(PaymentGatewayProvider.from(request.provider()).name());
+        session.setEstadoCheckout(CheckoutSessionEstado.CREADA.name());
+        session.setUsuario(usuario);
+        session.setTienda(tienda);
+        session.setTipoEntrega(tipoEntrega);
+        session.setTipoPago(tipoPago);
+        session.setCodigoTipoPago(codigoTipoPago);
+        session.setFechaEntrega(request.fechaEntrega());
+        session.setObservacion(normalizarTextoOpcional(request.observacion()));
+        session.setSubtotal(total);
+        session.setMontoInicial(montoInicial);
+        session.setSaldoRestante(total.subtract(montoInicial).setScale(2, RoundingMode.HALF_UP));
+        session.setMoneda(paymentGatewayProperties.getCurrency());
+
+        for (CheckoutItemRequest itemRequest : request.items()) {
+            ProductoEntity producto = obtenerProductoActivoParaCheckout(itemRequest.idProducto());
+            validarProductoDisponibleParaCheckout(producto, tienda.getIdTienda(), itemRequest.cantidad());
+            session.addItem(crearCheckoutSessionItem(producto, itemRequest.cantidad()));
+        }
+
+        return session;
+    }
+
+    private CheckoutSessionItemEntity crearCheckoutSessionItem(
+            ProductoEntity producto,
+            Integer cantidad
+    ) {
+        CheckoutSessionItemEntity item = new CheckoutSessionItemEntity();
+        item.setProducto(producto);
+        item.setNombreProducto(producto.getNombre());
+        item.setCantidad(cantidad);
+        item.setPrecioUnitario(producto.getPrecio());
+        item.setSubtotal(producto.getPrecio()
+                .multiply(BigDecimal.valueOf(cantidad))
+                .setScale(2, RoundingMode.HALF_UP));
+
+        return item;
     }
 
     private BigDecimal calcularTotalCheckout(List<CheckoutItemRequest> items, Long idTienda) {
@@ -283,6 +356,25 @@ public class CheckoutService {
                 tienda.getNombre(),
                 tipoEntrega.getNombre()
         );
+    }
+
+    private String generarExternalReference(
+            UsuarioEntity usuario,
+            TiendaEntity tienda
+    ) {
+        return "REGALIA-U%s-T%s-%s".formatted(
+                usuario.getIdUsuario(),
+                tienda.getIdTienda(),
+                UUID.randomUUID()
+        );
+    }
+
+    private String normalizarTextoOpcional(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+
+        return texto.trim();
     }
 
     private String normalizarCodigo(String codigo) {

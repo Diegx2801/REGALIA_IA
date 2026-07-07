@@ -14,6 +14,8 @@ public record PaymentGatewayVerificationResult(
         String transactionCode,
         BigDecimal amount,
         String currency,
-        PaymentGatewayStatus status
+        PaymentGatewayStatus status,
+        String externalReference,
+        String statusDetail
 ) {
 }
