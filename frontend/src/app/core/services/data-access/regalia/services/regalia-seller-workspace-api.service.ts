@@ -7,8 +7,10 @@ import {
   SellerOrderDetailApiDto,
   SellerOrderSummaryApiDto,
   SellerProductApiDto,
+  SellerProductUpsertRequest,
   SellerProfileApiDto,
   SellerStoreApiDto,
+  SellerStoreUpdateRequest,
 } from '../models/seller-workspace-api.model';
 
 @Injectable({ providedIn: 'root' })
@@ -39,10 +41,44 @@ export class RegaliaSellerWorkspaceApiService {
       .pipe(map((response) => response.data));
   }
 
+  updateStore(storeId: number, request: SellerStoreUpdateRequest): Observable<SellerStoreApiDto> {
+    return this.http
+      .put<ApiResponse<SellerStoreApiDto>>(API_ENDPOINTS.seller.storeById(storeId), request)
+      .pipe(map((response) => response.data));
+  }
+
   getProductsByStore(storeId: number): Observable<SellerProductApiDto[]> {
     return this.http
       .get<ApiResponse<SellerProductApiDto[]>>(API_ENDPOINTS.seller.productsByStore(storeId))
       .pipe(map((response) => response.data ?? []));
+  }
+
+  createProduct(
+    storeId: number,
+    request: SellerProductUpsertRequest,
+  ): Observable<SellerProductApiDto> {
+    return this.http
+      .post<ApiResponse<SellerProductApiDto>>(API_ENDPOINTS.seller.productsByStore(storeId), request)
+      .pipe(map((response) => response.data));
+  }
+
+  updateProduct(
+    storeId: number,
+    productId: number,
+    request: SellerProductUpsertRequest,
+  ): Observable<SellerProductApiDto> {
+    return this.http
+      .put<ApiResponse<SellerProductApiDto>>(
+        API_ENDPOINTS.seller.productByStore(storeId, productId),
+        request,
+      )
+      .pipe(map((response) => response.data));
+  }
+
+  deactivateProduct(storeId: number, productId: number): Observable<void> {
+    return this.http
+      .delete<ApiResponse<void>>(API_ENDPOINTS.seller.productByStore(storeId, productId))
+      .pipe(map(() => undefined));
   }
 
   getOrders(): Observable<SellerOrderSummaryApiDto[]> {

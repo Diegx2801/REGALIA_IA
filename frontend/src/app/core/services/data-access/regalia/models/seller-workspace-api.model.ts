@@ -37,6 +37,14 @@ export interface SellerStoreApiDto {
   fechaActualizacion: string | null;
 }
 
+export interface SellerStoreUpdateRequest {
+  nombre: string;
+  descripcion: string | null;
+  direccionReferencia: string | null;
+  idDocumentoFiscal: number | null;
+  idsRubros: number[];
+}
+
 export interface SellerProductImageApiDto {
   idImagenProducto: number;
   urlImagen: string | null;
@@ -60,6 +68,21 @@ export interface SellerProductApiDto {
   estado: boolean | null;
   fechaCreacion: string | null;
   fechaActualizacion: string | null;
+}
+
+export interface SellerProductUpsertRequest {
+  idTipoProducto: number;
+  nombre: string;
+  descripcion: string | null;
+  precio: number;
+  stock: number;
+  visibleEnTienda: boolean;
+  imagenes: SellerProductImageUpsertRequest[];
+}
+
+export interface SellerProductImageUpsertRequest {
+  urlImagen: string;
+  orden: number;
 }
 
 export interface SellerOrderSummaryApiDto {
