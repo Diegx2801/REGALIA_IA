@@ -82,7 +82,7 @@ export class AuthSessionService {
       return '/vendedor/resumen';
     }
 
-    return '/cliente/inicio';
+    return '/cliente/reservas';
   }
 
   canAccess(roles: UserRole[], requiredContext?: AuthContext): boolean {

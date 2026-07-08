@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { catchError, finalize, Observable, of, switchMap } from 'rxjs';
+import { catchError, finalize, Observable, of, switchMap, throwError } from 'rxjs';
 import {
   MarketplaceRubroApiDto,
   SellerProfileApiDto,
@@ -93,7 +93,7 @@ export class SellerApplicationComponent implements OnInit {
     return store ? this.toApplicationStatus(store.estadoRevision) : this.application()?.status ?? 'draft';
   });
   readonly hasReviewState = computed(() => this.status() !== 'draft' && !this.isEditingReviewChanges());
-  readonly isLocked = computed(() => ['submitted', 'under_review', 'approved'].includes(this.status()));
+  readonly isLocked = computed(() => this.hasReviewState());
   readonly canEdit = computed(() => !this.isLocked() || this.isEditingReviewChanges());
   readonly progress = computed(() => `${Math.max(1, this.currentStep()) * 20}%`);
 
@@ -261,18 +261,53 @@ export class SellerApplicationComponent implements OnInit {
     if (!user || !this.validateAll()) return;
 
     this.isSaving.set(true);
-    const application = this.applicationService.submit(user.id, this.payload());
-    this.application.set(application);
-    this.isSaving.set(false);
-    this.scrollToTop();
+    this.saveMessage.set('');
+    const payload = this.payload();
+    const idsRubros = this.resolveSelectedRubroIds();
+
+    if (idsRubros.length === 0) {
+      this.isSaving.set(false);
+      this.saveMessage.set('Selecciona al menos una categoria valida para tu tienda.');
+      return;
+    }
+
+    this.applicationService.saveDraft(user.id, payload, this.currentStep());
+
+    this.ensureSellerProfile()
+      .pipe(
+        switchMap((profile) => {
+          this.sellerProfile.set(profile);
+          const request = this.toStoreRequest(payload, idsRubros);
+          const store = this.sellerStore();
+          return store
+            ? this.sellerWorkspaceApi.updateStore(store.idTienda, request)
+            : this.sellerWorkspaceApi.createStore(request);
+        }),
+        finalize(() => this.isSaving.set(false)),
+      )
+      .subscribe({
+        next: (store) => {
+          this.sellerStore.set(store);
+          this.application.set(this.applicationService.submit(user.id, payload));
+          this.isEditingReviewChanges.set(false);
+          this.currentStep.set(5);
+          this.saveMessage.set('Solicitud enviada. Tu tienda queda pendiente de revision.');
+          this.scrollToTop();
+        },
+        error: () => {
+          this.saveMessage.set('No pudimos enviar la solicitud. Revisa tus datos o intenta nuevamente.');
+        },
+      });
   }
 
   editRequestedChanges(): void {
     const user = this.authSession.currentUser();
-    if (!user || this.status() !== 'changes_requested') return;
+    if (!user || !['changes_requested', 'rejected'].includes(this.status())) return;
     this.applicationService.reopenForChanges(user.id);
     this.application.set(this.applicationService.getByUser(user.id));
+    this.isEditingReviewChanges.set(true);
     this.currentStep.set(1);
+    this.saveMessage.set('Puedes actualizar tu informacion y reenviarla para una nueva revision.');
     this.scrollToTop();
   }
 
@@ -351,6 +386,153 @@ export class SellerApplicationComponent implements OnInit {
       portfolioUrl: value.portfolioUrl.trim(),
       differentiator: value.differentiator.trim(),
     };
+  }
+
+  private loadRubros(): void {
+    this.sellerWorkspaceApi
+      .getRubros()
+      .pipe(catchError(() => of([] as MarketplaceRubroApiDto[])))
+      .subscribe((rubros) => this.rubros.set(rubros.filter((rubro) => rubro.estado !== false)));
+  }
+
+  private loadSellerState(): void {
+    this.sellerWorkspaceApi
+      .getProfile()
+      .pipe(
+        switchMap((profile) => {
+          this.sellerProfile.set(profile);
+          return this.sellerWorkspaceApi.getStores();
+        }),
+        catchError((error: unknown) => {
+          if (error instanceof HttpErrorResponse && error.status === 404) {
+            this.sellerProfile.set(null);
+            this.sellerStore.set(null);
+            return of([] as SellerStoreApiDto[]);
+          }
+
+          this.saveMessage.set('No pudimos cargar tu estado de vendedor. Intenta actualizar en unos minutos.');
+          return of([] as SellerStoreApiDto[]);
+        }),
+      )
+      .subscribe((stores) => {
+        const store = stores[0] ?? null;
+        this.sellerStore.set(store);
+
+        if (store) {
+          this.patchFormFromStore(store);
+        }
+      });
+  }
+
+  private ensureSellerProfile(): Observable<SellerProfileApiDto> {
+    const profile = this.sellerProfile();
+    if (profile) return of(profile);
+
+    return this.sellerWorkspaceApi.getProfile().pipe(
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          return this.sellerWorkspaceApi.createProfile();
+        }
+
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  private toStoreRequest(
+    payload: SellerApplicationPayload,
+    idsRubros: number[],
+  ): SellerStoreUpdateRequest {
+    return {
+      nombre: payload.businessName,
+      descripcion: payload.description,
+      direccionReferencia: payload.district,
+      idDocumentoFiscal: null,
+      idsRubros,
+    };
+  }
+
+  private resolveSelectedRubroIds(): number[] {
+    const rubrosByName = new Map<string, number>();
+    this.rubros().forEach((rubro) => {
+      const normalizedName = this.normalizeText(rubro.nombre);
+      if (!normalizedName) return;
+
+      rubrosByName.set(normalizedName, rubro.idRubro);
+    });
+
+    const ids = this.selectedCategories()
+      .map((category) => this.apiRubroNameForCategory(category))
+      .map((name) => rubrosByName.get(this.normalizeText(name)))
+      .filter((id): id is number => typeof id === 'number');
+
+    return Array.from(new Set(ids));
+  }
+
+  private apiRubroNameForCategory(category: string): string {
+    const alias = this.categoryAliases.get(category);
+    if (alias) return alias;
+
+    const normalized = this.normalizeText(category);
+    if (normalized.includes('CAJAS')) return 'BOXES Y CANASTAS';
+    if (normalized.includes('ARREGLOS') || normalized.includes('FLORES')) return 'FLORES Y ARREGLOS';
+    if (normalized.includes('REPOSTER')) return 'REPOSTERIA PERSONALIZADA';
+    if (normalized.includes('MANUAL')) return 'MANUALIDADES';
+    if (normalized.includes('SUBLIM')) return 'SUBLIMADOS';
+    if (normalized.includes('DECORACI')) return 'DECORACION DE EVENTOS';
+    if (normalized.includes('CARPINTER')) return 'CARPINTERIA PERSONALIZADA';
+    return 'SERVICIOS CREATIVOS';
+  }
+
+  private patchFormFromStore(store: SellerStoreApiDto): void {
+    const categories =
+      store.rubros
+        ?.map((rubro) => this.toCategoryLabel(rubro.nombre))
+        .filter((category): category is string => Boolean(category)) ?? [];
+
+    this.form.patchValue({
+      businessName: store.nombre ?? '',
+      description: store.descripcion ?? '',
+      district: store.direccionReferencia ?? '',
+    });
+
+    if (categories.length > 0) {
+      this.selectedCategories.set(categories);
+    }
+  }
+
+  private toCategoryLabel(rubroName: string | null | undefined): string | null {
+    const normalized = this.normalizeText(rubroName);
+    if (!normalized) return null;
+
+    if (normalized.includes('BOXES') || normalized.includes('CANASTAS')) return this.categories[0] ?? null;
+    if (normalized.includes('FLORES') || normalized.includes('ARREGLOS')) return this.categories[1] ?? null;
+    if (normalized.includes('REPOSTER')) return this.categories[2] ?? null;
+    if (normalized.includes('MANUAL')) return this.categories[3] ?? null;
+    if (normalized.includes('SUBLIM')) return this.categories[4] ?? null;
+    if (normalized.includes('DECORACI')) return this.categories[5] ?? null;
+    if (normalized.includes('CARPINTER')) return this.categories[6] ?? null;
+    if (normalized.includes('SERVICIOS')) return this.categories[8] ?? null;
+    return null;
+  }
+
+  private toApplicationStatus(status: SellerStoreReviewStatus): SellerApplicationStatus {
+    const statuses: Record<SellerStoreReviewStatus, SellerApplicationStatus> = {
+      PENDIENTE: 'under_review',
+      APROBADA: 'approved',
+      OBSERVADA: 'changes_requested',
+      RECHAZADA: 'rejected',
+    };
+
+    return statuses[status];
+  }
+
+  private normalizeText(value: string | null | undefined): string {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .trim();
   }
 
   private scrollToTop(): void {

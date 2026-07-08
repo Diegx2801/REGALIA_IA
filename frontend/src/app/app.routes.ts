@@ -237,7 +237,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleRedirectGuard],
     data: {
       redirects: {
-        Cliente: '/cliente/inicio',
+        Cliente: '/cliente/reservas',
         Vendedor: '/vendedor/resumen',
         Administrador: '/admin/resumen',
       },
@@ -249,7 +249,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleRedirectGuard],
     data: {
       redirects: {
-        Cliente: '/cliente/inicio',
+        Cliente: '/cliente/reservas',
         Vendedor: '/vendedor/pedidos',
         Administrador: '/admin/pedidos',
       },
@@ -273,7 +273,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleRedirectGuard],
     data: {
       redirects: {
-        Cliente: '/cliente/inicio',
+        Cliente: '/cliente/reservas',
         Vendedor: '/vendedor/perfil',
         Administrador: '/admin/resumen',
       },

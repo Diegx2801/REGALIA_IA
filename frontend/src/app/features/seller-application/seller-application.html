@@ -1,7 +1,7 @@
 <section class="seller-onboarding">
   <header class="seller-onboarding__hero">
     <div>
-      <a class="seller-onboarding__back" routerLink="/cliente/inicio">← Volver a mi espacio</a>
+      <a class="seller-onboarding__back" routerLink="/cliente/reservas">← Volver a mi espacio</a>
       <span class="seller-onboarding__eyebrow">Programa de vendedores REGALIA</span>
       <h1>Convierte tu talento en una experiencia que inspire confianza.</h1>
       <p>
@@ -19,7 +19,7 @@
     </aside>
   </header>
 
-  @if (isLocked()) {
+  @if (hasReviewState()) {
     <article class="application-status" [attr.data-status]="status()">
       <div class="application-status__icon" aria-hidden="true">
         @switch (status()) {
@@ -39,6 +39,10 @@
             <h2>Tu negocio está siendo evaluado.</h2>
             <p>Estamos validando la información, cobertura y señales de confianza que compartiste.</p>
           }
+          @case ('changes_requested') {
+            <h2>Necesitamos que ajustes algunos datos.</h2>
+            <p>Revisa las observaciones y vuelve a enviar tu informacion cuando este completa.</p>
+          }
           @case ('approved') {
             <h2>Tu solicitud fue aprobada.</h2>
             <p>Tu negocio cumple los criterios de ingreso. La activación del rol de vendedor se completará desde administración.</p>
@@ -51,14 +55,17 @@
       </div>
       <div class="application-status__meta">
         <small>Última actualización</small>
-        <strong>{{ application()?.updatedAt | date: 'd MMM y, h:mm a' }}</strong>
+        <strong>{{ applicationSummary().updatedAt | date: 'd MMM y, h:mm a' }}</strong>
       </div>
+      @if (status() === 'changes_requested' || status() === 'rejected') {
+        <button type="button" class="application-status__action" (click)="editRequestedChanges()">Editar solicitud</button>
+      }
     </article>
 
-    @if (application()?.adminNotes) {
+    @if (applicationSummary().adminNotes) {
       <article class="review-note">
         <span>Observaciones del equipo</span>
-        <p>{{ application()?.adminNotes }}</p>
+        <p>{{ applicationSummary().adminNotes }}</p>
       </article>
     }
 
@@ -66,32 +73,22 @@
       <div class="submitted-summary__heading">
         <div>
           <span>Resumen enviado</span>
-          <h2>{{ application()?.businessName }}</h2>
+          <h2>{{ applicationSummary().businessName }}</h2>
         </div>
-        <span class="submitted-summary__badge">{{ application()?.categories?.length }} categorías</span>
+        <span class="submitted-summary__badge">{{ applicationSummary().categories.length }} categorías</span>
       </div>
       <div class="submitted-summary__grid">
-        <div><small>Responsable</small><strong>{{ application()?.responsibleName }}</strong></div>
-        <div><small>WhatsApp</small><strong>{{ application()?.whatsapp }}</strong></div>
-        <div><small>Distrito base</small><strong>{{ application()?.district }}</strong></div>
-        <div><small>Preparación</small><strong>{{ application()?.preparationTime }}</strong></div>
+        <div><small>Responsable</small><strong>{{ applicationSummary().responsibleName }}</strong></div>
+        <div><small>WhatsApp</small><strong>{{ applicationSummary().whatsapp }}</strong></div>
+        <div><small>Distrito base</small><strong>{{ applicationSummary().district }}</strong></div>
+        <div><small>Preparación</small><strong>{{ applicationSummary().preparationTime }}</strong></div>
       </div>
       <div class="submitted-summary__categories">
-        @for (category of application()?.categories ?? []; track category) {
+        @for (category of applicationSummary().categories; track category) {
           <span>{{ category }}</span>
         }
       </div>
     </section>
-  } @else if (status() === 'changes_requested') {
-    <article class="application-status" data-status="changes_requested">
-      <div class="application-status__icon" aria-hidden="true">↻</div>
-      <div class="application-status__copy">
-        <span>{{ statusLabel(status()) }}</span>
-        <h2>Necesitamos que ajustes algunos datos.</h2>
-        <p>{{ application()?.adminNotes || 'Revisa tu información y vuelve a enviarla cuando esté completa.' }}</p>
-      </div>
-      <button type="button" class="application-status__action" (click)="editRequestedChanges()">Editar solicitud</button>
-    </article>
   } @else {
     <div class="onboarding-layout">
       <aside class="onboarding-steps" aria-label="Progreso de la solicitud">
