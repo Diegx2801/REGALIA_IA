@@ -24,6 +24,9 @@ Abrir `http://localhost:4200/`.
 npm run build
 npm test -- --watch=false
 ```
+
+<!-- DESPLIEGUE FRONTEND: el build genera archivos estaticos listos para publicarse en hosting web. -->
+
 ### Desarrollo local con ngrok
 
 Para probar flujos externos como Mercado Pago usando Angular con ngrok, no agregar el dominio temporal en `angular.json`.

@@ -21,6 +21,7 @@
 }
 
 .catalog-hero__container {
+  /* CSS GRID: divide hero en contenido y visual para mantener una portada ordenada. */
   align-items: stretch;
   display: grid;
   gap: clamp(1.8rem, 4vw, 4.5rem);
@@ -37,6 +38,7 @@
 }
 
 .catalog-breadcrumb {
+  /* FLEXBOX: alinea enlaces del breadcrumb y permite salto de linea cuando falta espacio. */
   align-items: center;
   color: rgba(116, 104, 121, 0.88);
   display: flex;
@@ -450,6 +452,7 @@
 
 .product-grid,
 .seller-grid {
+  /* CSS GRID: reparte tarjetas automaticamente sin fijar una cantidad rigida de columnas. */
   display: grid;
   gap: clamp(0.9rem, 1.35vw, 1.15rem);
 }
@@ -703,6 +706,7 @@
 }
 
 @media (max-width: 760px) {
+  /* RESPONSIVE: en mobile simplifica la composicion para priorizar lectura y toque. */
   .catalog-hero__container,
   .catalog-page__container {
     padding-inline: 1rem;

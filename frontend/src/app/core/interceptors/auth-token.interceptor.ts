@@ -32,6 +32,7 @@ function authContextForApiUrl(url: string): AuthContext {
 }
 
 export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
+  // SEGURIDAD: evita enviar token a rutas publicas y protege las llamadas privadas con Authorization.
   if (
     !isApiRequestUrl(request.url) ||
     isPublicEndpoint(request) ||

@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 export class HeroSearchComponent {
   private readonly router = inject(Router);
 
-  // Buscador de portada: captura la intencion inicial antes de entrar al flujo IA.
+  // FORMULARIO ANGULAR: captura la necesidad inicial antes de entrar al flujo IA.
   readonly searchForm = new FormGroup({
     occasion: new FormControl('Dia de la Madre', { nonNullable: true }),
     budget: new FormControl('S/ 50 - S/ 300+', { nonNullable: true }),
@@ -21,7 +21,7 @@ export class HeroSearchComponent {
   });
 
   submitSearch(): void {
-    // Navega al builder con los criterios iniciales para precontextualizar la solicitud.
+    // QUERY PARAMS: envia los filtros en la URL para que otra vista reciba ese contexto.
     void this.router.navigate(['/pedir-con-ia'], {
       queryParams: this.searchForm.getRawValue(),
     });

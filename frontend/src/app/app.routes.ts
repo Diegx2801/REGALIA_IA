@@ -10,10 +10,12 @@ import { devPreviewGuard } from './core/guards/dev-preview.guard';
 
 // En este archivo se concentra el flujo principal de navegación de Angular:
 // rutas públicas, áreas privadas por rol y redirecciones según permisos.
+// ROUTING EN ANGULAR: aqui se define que componente se carga segun la URL y el rol.
 export const routes: Routes = [
   {
     path: 'login',
     canActivate: [guestGuard],
+    // CARGA DE COMPONENTES: loadComponent crea y muestra el componente cuando se entra a la ruta.
     loadComponent: () => import('./features/auth/auth').then((m) => m.AuthComponent),
   },
   {

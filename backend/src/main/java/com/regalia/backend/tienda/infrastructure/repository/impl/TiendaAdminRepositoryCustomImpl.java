@@ -22,9 +22,11 @@ import java.util.Map;
  * Implementacion con EntityManager para consultas administrativas paginadas de tiendas.
  */
 @RequiredArgsConstructor
+// @Repository: marca esta clase como componente de acceso a datos administrado por Spring.
 @Repository
 public class TiendaAdminRepositoryCustomImpl implements TiendaAdminRepositoryCustom {
 
+    // ENTITY MANAGER: permite construir consultas JPA dinamicas cuando JpaRepository no alcanza.
     private final EntityManager entityManager;
 
     @Override
@@ -54,6 +56,7 @@ public class TiendaAdminRepositoryCustomImpl implements TiendaAdminRepositoryCus
                 LEFT JOIN FETCH t.documentoFiscal df
                 """;
 
+        // PAGINACION: setFirstResult y setMaxResults recortan el resultado por pagina.
         TypedQuery<TiendaEntity> query = entityManager.createQuery(
                 select + where + construirOrden(sortField, sortDirection),
                 TiendaEntity.class

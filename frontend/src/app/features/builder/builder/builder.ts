@@ -14,6 +14,7 @@ import {
 import { BuilderFlowService } from './services/builder-flow.service';
 
 @Component({
+  // PATRON DECORATOR: @Component registra este builder como componente usable dentro de Angular.
   selector: 'app-builder',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
@@ -96,6 +97,7 @@ export class BuilderComponent {
   ];
 
   // Formulario mínimo del builder IA; el backend solo necesita una búsqueda en lenguaje natural.
+  // FORMULARIOS WEB: el builder valida la necesidad del cliente antes de consultar recomendaciones.
   readonly formularioSolicitud = new FormGroup({
     necesidad: new FormControl(
       this.necesidadInicial,

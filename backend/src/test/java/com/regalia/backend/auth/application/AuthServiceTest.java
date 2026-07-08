@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+// PRUEBA UNITARIA: Mockito aísla dependencias para validar reglas de negocio sin levantar toda la app.
 class AuthServiceTest {
 
     private static final String CORREO = "usuario@regalia.com";

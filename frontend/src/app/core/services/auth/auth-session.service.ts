@@ -19,6 +19,7 @@ type LoginEndpoint = typeof API_ENDPOINTS.auth.login | typeof API_ENDPOINTS.auth
 
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
+  // PATRON SINGLETON: una sola sesion centraliza usuario, rol y token para todo el frontend.
   private readonly http = inject(HttpClient);
   private readonly authStorage = inject(AuthStorageService);
   private readonly activeContextSignal = signal<AuthContext>('PUBLIC');
@@ -111,6 +112,7 @@ export class AuthSessionService {
     remember: boolean,
     expectedContext: AuthContext,
   ): Observable<SessionUser> {
+    // GET y POST: primero autentica con POST y luego consulta el perfil con GET para enriquecer la sesion.
     return this.http.post<ApiResponse<LoginResponse>>(endpoint, request).pipe(
       map((response) => this.toSession(response.data, expectedContext)),
       tap((session) => this.persistSession(session, remember)),

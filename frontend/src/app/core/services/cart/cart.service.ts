@@ -7,6 +7,7 @@ const PLATFORM_RATE_FROM_RESERVATION = 0.3;
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
+  // PATRON SINGLETON: Angular comparte una sola instancia del carrito en toda la app.
   private readonly itemsSignal = signal<CartItem[]>(this.restoreCart());
 
   readonly items = this.itemsSignal.asReadonly();

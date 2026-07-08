@@ -10,11 +10,13 @@ import java.util.Optional;
 
 /**
  * Repositorio JPA para operaciones sobre la tabla tienda.
+ * SPRING DATA JPA: JpaRepository aporta CRUD base sin escribir SQL manual para operaciones comunes.
  */
 public interface TiendaJpaRepository extends JpaRepository<TiendaEntity, Long>, TiendaAdminRepositoryCustom {
 
     List<TiendaEntity> findByVendedorIdVendedorAndEstadoTrueOrderByIdTiendaAsc(Long idVendedor);
 
+    // JPQL: @Query consulta entidades y campos del modelo Java, no tablas SQL directas.
     @Query("""
             SELECT t
             FROM TiendaEntity t
@@ -26,6 +28,7 @@ public interface TiendaJpaRepository extends JpaRepository<TiendaEntity, Long>, 
 
     Optional<TiendaEntity> findByIdTiendaAndEstadoTrue(Long idTienda);
 
+    // PARAMETROS NOMBRADOS: @Param une valores Java con nombres legibles dentro de la consulta JPQL.
     @Query("""
             SELECT t
             FROM TiendaEntity t

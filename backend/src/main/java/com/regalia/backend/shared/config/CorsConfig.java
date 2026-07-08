@@ -20,6 +20,7 @@ public class CorsConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // CORS: define que origenes del frontend pueden llamar a la API desde otro dominio.
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(normalizarLista(corsProperties.getAllowedOrigins()));
         configuration.setAllowedMethods(normalizarLista(corsProperties.getAllowedMethods()));

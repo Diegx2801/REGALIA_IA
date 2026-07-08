@@ -8,6 +8,7 @@
       <div class="auth-story__veil"></div>
       <div class="auth-story__content">
         <span class="auth-story__eyebrow">Regalos con intención</span>
+        <!-- INTERPOLACION: muestra texto dinamico del componente dentro del HTML. -->
         <h1>{{ activeTitle() }}</h1>
         <p>{{ activeText() }}</p>
 
@@ -39,6 +40,7 @@
     <main class="auth-panel">
       <div class="auth-panel__inner">
         <div class="auth-tabs" role="tablist" aria-label="Acceso a REGALIA">
+          <!-- PROPERTY BINDING: activa una clase segun el estado actual del modo. -->
           <button
             type="button"
             role="tab"
@@ -59,6 +61,7 @@
           </button>
         </div>
 
+        <!-- DIRECTIVAS / CONTROL FLOW: @if renderiza bloques solo cuando la condicion es verdadera. -->
         @if (sellerIntent()) {
           <aside class="auth-seller-note">
             <span aria-hidden="true">✦</span>

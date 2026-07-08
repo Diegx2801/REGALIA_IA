@@ -44,6 +44,7 @@ public class SecurityConfig {
     private final SecurityHeadersProperties securityHeadersProperties;
 
     @Bean
+    // SECURITY FILTER CHAIN: define el flujo de seguridad que se ejecuta en cada request.
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -75,6 +76,7 @@ public class SecurityConfig {
                     }
                 })
 
+                // JWT: la API es stateless; cada request se valida con token y no con sesion servidor.
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )

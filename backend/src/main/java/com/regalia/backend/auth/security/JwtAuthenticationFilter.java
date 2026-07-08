@@ -20,6 +20,7 @@ import java.util.List;
 /**
  * Filtro que intercepta cada solicitud HTTP para validar el JWT enviado en Authorization.
  */
+// JWT FILTER: intercepta cada request para validar el Bearer token antes de entrar al endpoint.
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -46,6 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authorizationHeader.substring(PREFIX_BEARER.length());
 
         if (jwtService.esTokenValido(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // AUTORIZACION JWT: convierte roles del token en authorities que luego protegen las rutas.
             String correo = jwtService.obtenerCorreo(token);
             AuthContext authContext = jwtService.obtenerAuthContext(token);
 

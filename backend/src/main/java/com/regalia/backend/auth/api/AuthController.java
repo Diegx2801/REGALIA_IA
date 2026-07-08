@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controlador REST para exponer endpoints de autenticacion.
+ * API REST: un controlador expone endpoints HTTP y devuelve respuestas JSON para el cliente.
  */
 @RestController
 @RequestMapping("/api/auth")

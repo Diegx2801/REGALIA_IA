@@ -8,7 +8,9 @@ import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // PETICIONES HTTP: HttpClient queda disponible globalmente y usa el interceptor de token.
     provideHttpClient(withInterceptors([authTokenInterceptor])),
+    // ROUTING: provideRouter conecta la navegacion de toda la app con app.routes.ts.
     provideRouter(routes),
   ],
 };

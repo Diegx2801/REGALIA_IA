@@ -44,6 +44,7 @@ public class UsuarioService {
     private final RolService rolService;
     private final UsuarioRolJpaRepository usuarioRolRepository;
 
+    // @Transactional: controla la transaccion; readOnly evita escritura accidental en consultas.
     @Transactional(readOnly = true)
     public List<UsuarioResponse> listarActivos() {
         return usuarioRepository.findByEstadoTrueOrderByIdUsuarioAsc()
@@ -68,6 +69,7 @@ public class UsuarioService {
         Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
         int pagina = normalizarPagina(page);
         int tamanioPagina = normalizarTamanioPagina(size);
+        // PAGINACION SPRING: PageRequest define pagina, tamanio y orden para consultas grandes.
         Pageable pageable = PageRequest.of(
                 pagina,
                 tamanioPagina,

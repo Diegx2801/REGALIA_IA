@@ -9,6 +9,7 @@ import {
 } from '../../core/services/data-access/user/user-profile.service';
 
 @Component({
+  // PATRON DECORATOR: @Component le agrega metadatos al perfil para que Angular lo renderice.
   selector: 'app-account-profile',
   standalone: true,
   imports: [ReactiveFormsModule],
@@ -40,6 +41,7 @@ export class AccountProfileComponent implements OnInit {
       .join('');
   });
 
+  // PATRON FACTORY: FormBuilder crea el formulario reactivo siguiendo la estructura del perfil.
   readonly form = this.formBuilder.nonNullable.group({
     nombres: ['', [Validators.required, Validators.maxLength(100)]],
     apellidos: ['', [Validators.required, Validators.maxLength(100)]],

@@ -14,6 +14,7 @@ export const authGuard: CanActivateFn = (_route, state) => {
 
   authSession.setActiveContext(authContext);
 
+  // AUTENTICACION: valida si existe sesion activa antes de dejar entrar a una ruta privada.
   return authSession.isLoggedInFor(authContext)
     ? true
     : router.createUrlTree([loginRouteFor(state.url)], {
@@ -70,6 +71,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
     });
   }
 
+  // AUTORIZACION: despues de autenticar, compara el rol requerido con el rol real del usuario.
   return authSession.canAccess(roles, authContext)
     ? true
     : router.createUrlTree(['/acceso-denegado'], {

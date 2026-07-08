@@ -1,5 +1,6 @@
 <section class="cart-page">
   <div class="container rg-page__container rg-page__container--retail cart-page__container">
+    <!-- BOOTSTRAP + HTML: la grilla row/col organiza el encabezado del carrito de forma responsive. -->
     <header class="cart-hero row g-4 align-items-center">
       <div class="col-12 col-lg-8">
         <span class="cart-hero__eyebrow">Carrito REGALIA</span>
@@ -58,6 +59,7 @@
         </span>
       </nav>
 
+      <!-- BOOTSTRAP: esta fila distribuye listado y resumen en dos columnas segun el ancho de pantalla. -->
       <div class="row g-3 g-xxl-4 align-items-start">
         <main class="col-12 col-xl-8 col-xxl-9" aria-label="Productos del carrito">
           <section class="cart-list card border-0 shadow-sm">
@@ -75,6 +77,7 @@
               </button>
             </div>
 
+            <!-- BOOTSTRAP GRID UTILITIES: d-grid y gap-3 separan visualmente cada item del carrito. -->
             <div class="d-grid gap-3">
               @for (item of items(); track trackItem($index, item)) {
                 <article class="cart-item row g-3 align-items-stretch">
@@ -266,6 +269,7 @@
           Agrega productos con precio fijo desde el catalogo o crea una solicitud personalizada con
           IA.
         </p>
+        <!-- FLEXBOX: d-flex cambia de columna a fila para adaptar las acciones en mobile y desktop. -->
         <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
           <a class="btn btn-primary rounded-pill px-4" routerLink="/catalogo">Ver catalogo</a>
           <a class="btn btn-outline-primary rounded-pill px-4" routerLink="/pedir-con-ia">

@@ -15,9 +15,10 @@ const FALLBACK_PRODUCT_IMAGE = '/images/regalia-hero-gift.png';
 
 @Injectable({ providedIn: 'root' })
 export class RegaliaPublicCatalogApiService {
+  // SERVICIO ANGULAR: concentra logica reutilizable para consumir productos del marketplace.
   private readonly http = inject(HttpClient);
 
-  // Servicio de datos: consume el backend por GET y adapta la respuesta al modelo del frontend.
+  // DATA SERVICE: obtiene datos remotos y los transforma al modelo que usa la interfaz.
   getPublicProducts(): Observable<FixedPriceProduct[]> {
     return this.http
       .get<ApiResponse<PublicProductApiDto[]>>(API_ENDPOINTS.marketplace.products)

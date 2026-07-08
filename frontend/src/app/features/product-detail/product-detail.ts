@@ -22,6 +22,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly regaliaService = inject(RegaliaService);
   private readonly publicCatalogApiService = inject(RegaliaPublicCatalogApiService);
+  // COMUNICACION ENTRE COMPONENTES: CartService comparte el estado del carrito entre vistas distintas.
   private readonly cartService = inject(CartService);
 
   readonly productId = Number(this.route.snapshot.paramMap.get('id'));
@@ -47,6 +48,7 @@ export class ProductDetailComponent implements OnInit {
     }
 
     this.publicCatalogApiService
+      // PETICIONES HTTP: el detalle consulta el producto al backend cuando la vista se abre.
       .getPublicProductById(this.productId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
