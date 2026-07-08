@@ -27,15 +27,11 @@ const WORKSPACE_CONFIG: Record<UserRole, WorkspaceConfig> = {
   Cliente: {
     eyebrow: 'Espacio cliente',
     title: 'Mis regalos',
-    description: 'Solicitudes, reservas y vendedores favoritos en un solo lugar.',
+    description: 'Reservas, cuenta y acceso comercial sin mezclarlo con el marketplace público.',
     navItems: [
-      { label: 'Inicio', description: 'Resumen personal', route: '/cliente/inicio', icon: '⌂', exact: true },
-      { label: 'Explorar', description: 'Catálogo y vendedores', route: '/cliente/explorar', icon: '◇' },
-      { label: 'Carrito', description: 'Productos con precio fijo', route: '/cliente/carrito', icon: '◈' },
-      { label: 'Crear solicitud', description: 'Matching con IA', route: '/cliente/solicitud', icon: '✦' },
-      { label: 'Mis reservas', description: 'Seguimiento y fechas', route: '/cliente/reservas', icon: '◫' },
-      { label: 'Vender en REGALIA', description: 'Solicitud para vender', route: '/cliente/solicitud-vendedor', icon: '✧' },
+      { label: 'Mis reservas', description: 'Seguimiento y fechas', route: '/cliente/reservas', icon: '◫', exact: true },
       { label: 'Mi perfil', description: 'Datos y contacto', route: '/cliente/perfil', icon: '◎' },
+      { label: 'Vender en REGALIA', description: 'Solicitud para vender', route: '/cliente/solicitud-vendedor', icon: '✧' },
     ],
   },
   Vendedor: {

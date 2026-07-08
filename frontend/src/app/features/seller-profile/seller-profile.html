@@ -149,15 +149,27 @@
                   </label>
 
                   <label class="seller-form__field">
-                    <span>ID tipo de producto</span>
-                    <input
+                    <span>Tipo de producto</span>
+                    <select
                       class="seller-form__control"
-                      type="number"
                       name="productType"
-                      min="1"
+                      [disabled]="isLoadingProductTypes() || productTypes().length === 0"
                       [(ngModel)]="productForm.idTipoProducto"
-                      placeholder="Ej. 3"
-                    />
+                    >
+                      <option [ngValue]="null">
+                        {{ isLoadingProductTypes() ? 'Cargando tipos...' : 'Selecciona un tipo' }}
+                      </option>
+                      @for (productType of productTypes(); track trackProductType($index, productType)) {
+                        <option [ngValue]="productType.idTipoProducto">
+                          {{ productType.nombre || 'Tipo sin nombre' }}
+                        </option>
+                      }
+                    </select>
+                    @if (productTypeErrorMessage()) {
+                      <small class="seller-form__hint seller-form__hint--error">
+                        {{ productTypeErrorMessage() }}
+                      </small>
+                    }
                   </label>
 
                   <label class="seller-form__field">

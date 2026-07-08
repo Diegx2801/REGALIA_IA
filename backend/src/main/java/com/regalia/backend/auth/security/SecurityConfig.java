@@ -143,11 +143,15 @@ public class SecurityConfig {
                         /*
                          * Conversión / perfil vendedor:
                          * Un usuario autenticado en contexto público puede crear o consultar
-                         * su perfil vendedor. Los endpoints anidados pertenecen al panel
-                         * vendedor y requieren rol VENDEDOR.
+                         * su perfil vendedor y registrar su primera tienda. Productos,
+                         * pedidos y demas acciones operativas requieren rol VENDEDOR.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/vendedores/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas").access(publicAccess())
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").access(publicAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*").access(publicAccess())
                         .requestMatchers("/api/vendedores/me/**").access(vendedorAccess())
 
                         /*

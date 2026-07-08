@@ -111,7 +111,7 @@ export class DashboardComponent implements OnInit {
       title: `Hola, ${this.firstName()}. Encuentra un detalle que se sienta realmente personal.`,
       text: 'Explora vendedores locales, publica una necesidad y compara propuestas con total claridad antes de reservar.',
       primaryLabel: 'Crear una solicitud',
-      primaryRoute: '/cliente/solicitud',
+      primaryRoute: '/pedir-con-ia',
       metrics: [
         {
           label: 'Solicitudes activas',
@@ -135,8 +135,8 @@ export class DashboardComponent implements OnInit {
         },
       ],
       actions: [
-        { label: 'Explorar regalos', hint: 'Catalogo y vendedores verificados', route: '/cliente/explorar', icon: 'E' },
-        { label: 'Pedir con IA', hint: 'Describe lo que necesitas en tus palabras', route: '/cliente/solicitud', icon: 'IA' },
+        { label: 'Explorar regalos', hint: 'Catalogo y vendedores verificados', route: '/catalogo', icon: 'E' },
+        { label: 'Pedir con IA', hint: 'Describe lo que necesitas en tus palabras', route: '/pedir-con-ia', icon: 'IA' },
         { label: 'Ver mis reservas', hint: 'Fechas, estados y seguimiento', route: '/cliente/reservas', icon: 'R' },
         { label: 'Vender en REGALIA', hint: 'Postula tu negocio y crea tu perfil comercial', route: '/cliente/solicitud-vendedor', icon: 'V' },
       ],

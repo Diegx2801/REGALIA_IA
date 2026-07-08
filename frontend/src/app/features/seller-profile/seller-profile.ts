@@ -6,6 +6,7 @@ import { finalize, forkJoin } from 'rxjs';
 import {
   SellerProductApiDto,
   SellerProductImageUpsertRequest,
+  SellerProductTypeApiDto,
   SellerProductUpsertRequest,
   SellerProfileApiDto,
   SellerStoreApiDto,
@@ -45,10 +46,13 @@ export class SellerProfileComponent {
   readonly stores = signal<SellerStoreApiDto[]>([]);
   readonly selectedStore = signal<SellerStoreApiDto | null>(null);
   readonly products = signal<SellerProductApiDto[]>([]);
+  readonly productTypes = signal<SellerProductTypeApiDto[]>([]);
   readonly isLoadingWorkspace = signal(false);
   readonly isLoadingProducts = signal(false);
+  readonly isLoadingProductTypes = signal(false);
   readonly errorMessage = signal('');
   readonly productErrorMessage = signal('');
+  readonly productTypeErrorMessage = signal('');
   readonly actionMessage = signal('');
   readonly actionErrorMessage = signal('');
   readonly isEditingStore = signal(false);
@@ -79,6 +83,7 @@ export class SellerProfileComponent {
   });
 
   ngOnInit(): void {
+    this.loadProductTypes();
     this.loadWorkspace();
   }
 
@@ -389,8 +394,31 @@ export class SellerProfileComponent {
     return product.idProducto;
   }
 
+  trackProductType(_: number, productType: SellerProductTypeApiDto): number {
+    return productType.idTipoProducto;
+  }
+
   trackRubro(_: number, rubro: SellerStoreRubroApiDto): number {
     return rubro.idRubro;
+  }
+
+  private loadProductTypes(): void {
+    this.productTypeErrorMessage.set('');
+    this.isLoadingProductTypes.set(true);
+
+    this.sellerApi
+      .getProductTypes()
+      .pipe(
+        finalize(() => this.isLoadingProductTypes.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (productTypes) => this.productTypes.set(productTypes),
+        error: () => {
+          this.productTypes.set([]);
+          this.productTypeErrorMessage.set('No se pudieron cargar los tipos de producto.');
+        },
+      });
   }
 
   private loadProducts(storeId: number): void {

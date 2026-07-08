@@ -103,20 +103,8 @@ export const routes: Routes = [
     children: [
       {
         path: 'inicio',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-      },
-      {
-        path: 'explorar',
-        loadComponent: () => import('./features/catalog/catalog').then((m) => m.CatalogComponent),
-      },
-      {
-        path: 'carrito',
-        loadComponent: () => import('./features/cart/cart').then((m) => m.CartComponent),
-      },
-      {
-        path: 'solicitud',
-        loadComponent: () => import('./features/builder/builder').then((m) => m.BuilderComponent),
+        redirectTo: 'reservas',
+        pathMatch: 'full',
       },
       {
         path: 'reservas',
@@ -137,7 +125,7 @@ export const routes: Routes = [
             (m) => m.AccountProfileComponent,
           ),
       },
-      { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+      { path: '', redirectTo: 'reservas', pathMatch: 'full' },
     ],
   },
 

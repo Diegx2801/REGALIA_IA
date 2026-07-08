@@ -15,6 +15,13 @@ export interface SellerStoreRubroApiDto {
   nombre: string;
 }
 
+export interface MarketplaceRubroApiDto {
+  idRubro: number;
+  nombre: string | null;
+  descripcion: string | null;
+  estado: boolean | null;
+}
+
 export type SellerStoreReviewStatus = 'PENDIENTE' | 'APROBADA' | 'OBSERVADA' | 'RECHAZADA';
 
 export interface SellerStoreApiDto {
@@ -51,6 +58,12 @@ export interface SellerProductImageApiDto {
   textoAlternativo: string | null;
   principal: boolean | null;
   orden: number | null;
+}
+
+export interface SellerProductTypeApiDto {
+  idTipoProducto: number;
+  nombre: string | null;
+  estado: boolean | null;
 }
 
 export interface SellerProductApiDto {

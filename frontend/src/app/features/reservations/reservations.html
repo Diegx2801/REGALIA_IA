@@ -1,241 +1,172 @@
-<section class="reservations-page">
-  <div class="container rg-page__container rg-page__container--retail reservations-page__container">
-    <!-- Calendario del cliente; vendedor y admin tienen modulos operativos separados. -->
-    @if (pageCopy(); as copy) {
-      <header class="reservations-header">
-        <span class="reservations-header__eyebrow">{{ copy.eyebrow }}</span>
-        <h1 class="reservations-header__title">{{ copy.title }}</h1>
-        <p class="reservations-header__text">{{ copy.text }}</p>
-      </header>
-    }
+<section class="client-reservations">
+  <div class="container rg-page__container rg-page__container--retail client-reservations__container">
+    <header class="client-reservations__hero">
+      <div>
+        <span class="client-reservations__eyebrow">Area cliente</span>
+        <h1>Mis reservas</h1>
+        <p>
+          Consulta tus pedidos confirmados, pagos registrados y saldo pendiente desde tu cuenta.
+        </p>
+      </div>
 
-    <section class="reservation-metrics row g-3" aria-label="Resumen de reservas del día">
-      <article class="reservation-metric col-6 col-xl-3">
-        <span class="reservation-metric__label">Reservas activas</span>
-        <strong>{{ selectedDateActiveCount() }}</strong>
-      </article>
-      <article class="reservation-metric col-6 col-xl-3">
-        <span class="reservation-metric__label">Listas para entrega</span>
-        <strong>{{ selectedDateReadyCount() }}</strong>
-      </article>
-      <article class="reservation-metric col-6 col-xl-3">
-        <span class="reservation-metric__label">Señas pagadas</span>
-        <strong>S/ {{ selectedDateReservationTotal() }}</strong>
-      </article>
-      <article class="reservation-metric col-6 col-xl-3">
-        <span class="reservation-metric__label">Total del día</span>
-        <strong>S/ {{ selectedDateTotal() }}</strong>
-      </article>
+      <div class="client-reservations__hero-actions" aria-label="Acciones de cliente">
+        <a routerLink="/catalogo">Explorar catalogo</a>
+        <button type="button" (click)="loadOrders()">Actualizar</button>
+      </div>
+    </header>
+
+    <section class="client-reservations__metrics" aria-label="Resumen de reservas">
+      @for (metric of metrics(); track metric.label) {
+        <article class="client-reservations__metric">
+          <span>{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+          <small>{{ metric.helper }}</small>
+        </article>
+      }
     </section>
 
-    <!-- Selector de fecha y accesos rapidos para cambiar el dia visible. -->
-    <div class="calendar-toolbar">
-      <label class="calendar-field" for="reservation-date">
-        <span class="calendar-field__label">Fecha</span>
-        <input
-          id="reservation-date"
-          class="calendar-field__control"
-          type="date"
-          [formControl]="selectedDate"
-          (change)="onDateChanged()"
-        />
-      </label>
-
-      <nav class="calendar-strip" aria-label="Selección rápida por fecha">
-        @for (day of weekDays; track trackDay($index, day)) {
+    <section class="client-reservations__toolbar" aria-label="Filtros de reservas">
+      <nav class="client-reservations__filters" aria-label="Estado de reserva">
+        @for (filter of filters; track filter.value) {
           <button
-            class="calendar-strip__day"
             type="button"
-            [class.calendar-strip__day--active]="selectedDate.value === day.date"
-            (click)="selectDate(day.date)"
+            [class.client-reservations__filter--active]="activeFilter() === filter.value"
+            (click)="setFilter(filter.value)"
           >
-            {{ day.label }}
+            {{ filter.label }}
           </button>
         }
       </nav>
-    </div>
+    </section>
 
-    <div class="reservations-layout row g-3 g-xl-4 align-items-start">
-      <main
-        class="reservation-list col-12 col-xl-8 col-xxl-9"
-        aria-label="Reservas filtradas por fecha"
-      >
-        @for (order of filteredOrders(); track trackOrder($index, order)) {
-          <article class="reservation-card">
-            <header class="reservation-card__head">
-              <span class="reservation-card__id">#{{ order.id }}</span>
-              <span class="reservation-card__status" [ngClass]="statusClass(order.status)">
-                {{ order.status }}
+    @if (errorMessage()) {
+      <div class="client-reservations__message client-reservations__message--error" role="alert">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <div class="client-reservations__workspace">
+      <main class="client-reservations__list" aria-label="Listado de reservas">
+        @if (isLoading()) {
+          <app-empty-state
+            icon="R"
+            title="Cargando reservas"
+            text="Estamos consultando tus pedidos registrados en la API."
+          />
+        } @else if (filteredOrders().length === 0) {
+          <app-empty-state
+            icon="R"
+            title="No hay reservas para este filtro"
+            text="Cambia el estado visible o vuelve al catalogo para crear una nueva reserva."
+            [actionLabel]="activeFilter() !== 'TODOS' ? 'Ver todas' : ''"
+            (actionClick)="clearFilter()"
+          />
+        } @else {
+          @for (order of filteredOrders(); track trackOrder($index, order)) {
+            <button
+              class="reservation-card"
+              type="button"
+              [class.reservation-card--selected]="selectedOrderId() === order.idPedido"
+              (click)="selectOrder(order)"
+            >
+              <span
+                class="reservation-card__status"
+                [class.reservation-card__status--success]="paymentTone(order) === 'success'"
+                [class.reservation-card__status--warning]="paymentTone(order) === 'warning'"
+                [class.reservation-card__status--error]="paymentTone(order) === 'error'"
+              >
+                {{ paymentLabel(order) }}
               </span>
-            </header>
-
-            <div class="reservation-card__main">
-              <span class="reservation-card__category">{{ order.category }}</span>
-              <h2 class="reservation-card__title">{{ order.occasion }}</h2>
-              <p class="reservation-card__text">
-                {{ order.clientName }} · {{ order.sellerName }}
-              </p>
-            </div>
-            <div class="reservation-card__details" aria-label="Detalle de reserva">
-              <span>
-                <small>Entrega</small>
-                <strong>{{ order.dueDate }}</strong>
+              <span class="reservation-card__body">
+                <strong>#{{ order.idPedido }} - {{ order.nombreTienda }}</strong>
+                <small>{{ orderStatusLabel(order) }} - {{ formatDate(order.fechaEntrega) }}</small>
+                <small>{{ order.tipoEntrega }}</small>
               </span>
-              <span>
-                <small>Hora pactada</small>
-                <strong>{{ order.scheduledTime }}</strong>
+              <span class="reservation-card__amount">
+                <strong>{{ formatCurrency(getTotalAmount(order)) }}</strong>
+                <small>Saldo {{ formatCurrency(getRemainingAmount(order)) }}</small>
               </span>
-            </div>
+              <span class="reservation-card__arrow" aria-hidden="true">&rsaquo;</span>
+            </button>
+          }
 
-            <div class="reservation-card__amount">
-              <small>Total</small>
-              <strong>S/ {{ order.total }}</strong>
-              <span>Seña S/ {{ order.reservation }}</span>
-            </div>
-
-            <div class="reservation-card__actions" aria-label="Acciones de reserva">
-              <button type="button" (click)="openPanel(order, 'detail')">Ver detalle</button>
-              <button type="button" (click)="openPanel(order, 'chat')">Chat vendedor</button>
-              @if (canReschedule(order)) {
-                <button type="button" (click)="openPanel(order, 'reschedule')">Reprogramar</button>
-              }
-              @if (canCancel(order)) {
-                <button
-                  type="button"
-                  class="reservation-card__action--danger"
-                  (click)="openPanel(order, 'cancel')"
-                >
-                  Cancelar
-                </button>
-              }
-            </div>
-          </article>
-        } @empty {
-          <article class="empty-calendar">
-            <h2 class="empty-calendar__title">No hay reservas para esta fecha</h2>
-            <p class="empty-calendar__text">
-              Selecciona otro día del calendario o crea una nueva solicitud.
-            </p>
-          </article>
+          <footer class="client-reservations__list-footer">
+            Mostrando {{ filteredOrders().length }} de {{ orders().length }} reserva(s).
+          </footer>
         }
       </main>
 
-      <aside class="calendar-summary col-12 col-xl-4 col-xxl-3">
-        <span class="calendar-summary__label">Fecha seleccionada</span>
-        <strong>{{ selectedDateLabel() }}</strong>
-        <p>{{ filteredOrders().length }} reserva(s) programada(s).</p>
+      <aside class="reservation-detail" aria-label="Detalle de reserva seleccionada">
+        @if (selectedOrder(); as selected) {
+          <span
+            class="reservation-detail__badge"
+            [class.reservation-detail__badge--success]="paymentTone(selected) === 'success'"
+            [class.reservation-detail__badge--warning]="paymentTone(selected) === 'warning'"
+            [class.reservation-detail__badge--error]="paymentTone(selected) === 'error'"
+          >
+            {{ paymentLabel(selected) }}
+          </span>
 
-        <div class="calendar-summary__box">
-          <span>Total estimado</span>
-          <strong>S/ {{ selectedDateTotal() }}</strong>
-        </div>
-        <div class="calendar-summary__box">
-          <span>Señas confirmadas</span>
-          <strong>S/ {{ selectedDateReservationTotal() }}</strong>
-        </div>
+          <h2>Reserva #{{ selected.idPedido }}</h2>
+          <p>{{ selected.nombreTienda }} - {{ orderStatusLabel(selected) }}</p>
+
+          <div class="reservation-detail__amounts" aria-label="Resumen de pago">
+            <span>
+              <small>Total</small>
+              <strong>{{ formatCurrency(getTotalAmount(selected)) }}</strong>
+            </span>
+            <span>
+              <small>Pagado</small>
+              <strong>{{ formatCurrency(getPaidAmount(selected)) }}</strong>
+            </span>
+            <span>
+              <small>Saldo</small>
+              <strong>{{ formatCurrency(getRemainingAmount(selected)) }}</strong>
+            </span>
+          </div>
+
+          <dl class="reservation-detail__data">
+            <div>
+              <dt>Fecha de entrega</dt>
+              <dd>{{ formatDate(selected.fechaEntrega) }}</dd>
+            </div>
+            <div>
+              <dt>Tipo de entrega</dt>
+              <dd>{{ selected.tipoEntrega }}</dd>
+            </div>
+            <div>
+              <dt>Observacion</dt>
+              <dd>{{ selected.observacion || 'Sin observacion registrada' }}</dd>
+            </div>
+          </dl>
+
+          <section class="reservation-detail__items" aria-label="Productos de la reserva">
+            <h3>Productos reservados</h3>
+            @for (detail of selected.detalles; track trackDetail($index, detail)) {
+              <article class="reservation-detail__item">
+                <span>
+                  <strong>{{ detail.nombreProducto }}</strong>
+                  <small>{{ detail.cantidad }} unidad(es) - {{ formatCurrency(detail.precioUnitario) }}</small>
+                </span>
+                <strong>{{ formatCurrency(detail.subtotal) }}</strong>
+              </article>
+            } @empty {
+              <p>No hay productos asociados a esta reserva.</p>
+            }
+          </section>
+
+          <div class="reservation-detail__actions">
+            <a routerLink="/catalogo">Seguir explorando</a>
+            <a routerLink="/carrito">Ir al carrito</a>
+          </div>
+        } @else {
+          <app-empty-state
+            icon="R"
+            title="Selecciona una reserva"
+            text="El detalle de pago, entrega y productos aparecera aqui."
+          />
+        }
       </aside>
     </div>
-
-    @if (selectedOrder(); as selected) {
-      <aside class="reservation-drawer" aria-label="Panel de reserva seleccionada">
-        <header class="reservation-drawer__header">
-          <div>
-            <span class="reservation-drawer__eyebrow">Reserva #{{ selected.id }}</span>
-            <h2>{{ selected.occasion }}</h2>
-            <p>{{ selected.sellerName }}</p>
-          </div>
-          <button type="button" aria-label="Cerrar panel" (click)="closePanel()">×</button>
-        </header>
-
-        @if (actionNotice()) {
-          <p class="reservation-drawer__notice" role="status">{{ actionNotice() }}</p>
-        }
-
-        @if (panelMode() === 'detail') {
-          <section class="reservation-drawer__section">
-            <span class="reservation-drawer__label">Resumen</span>
-            <div class="reservation-drawer__grid">
-              <span>Estado</span><strong>{{ selected.status }}</strong> <span>Entrega</span
-              ><strong>{{ selected.dueDate }}</strong> <span>Hora</span
-              ><strong>{{ selected.scheduledTime }}</strong> <span>Total</span
-              ><strong>S/ {{ selected.total }}</strong> <span>Seña</span
-              ><strong>S/ {{ selected.reservation }}</strong>
-            </div>
-          </section>
-        }
-
-        @if (panelMode() === 'chat') {
-          <section class="reservation-chat">
-            <span class="reservation-drawer__label">Chat con vendedor</span>
-            <div class="reservation-chat__body">
-              <p class="reservation-chat__bubble reservation-chat__bubble--seller">
-                Hola, soy {{ selected.sellerName }}. Confirmo tu pedido para
-                {{ selected.dueDate }}.
-              </p>
-              <p class="reservation-chat__bubble reservation-chat__bubble--client">
-                Perfecto, por favor avísame cuando esté listo para entrega.
-              </p>
-            </div>
-            <form class="reservation-chat__composer">
-              <input
-                type="text"
-                value="Mensaje simulado del MVP"
-                aria-label="Mensaje para vendedor"
-                readonly
-              />
-              <button type="button" (click)="sendChatMessage(selected)">Enviar</button>
-            </form>
-          </section>
-        }
-
-        @if (panelMode() === 'reschedule') {
-          <section class="reservation-drawer__section">
-            <span class="reservation-drawer__label">Reprogramación</span>
-            <p>
-              En el MVP esta acción queda preparada para coordinar una nueva fecha con el vendedor
-              antes de confirmar cambios.
-            </p>
-            <div class="reservation-drawer__grid">
-              <span>Fecha actual</span><strong>{{ selected.dueDate }}</strong> <span>Vendedor</span
-              ><strong>{{ selected.sellerName }}</strong>
-            </div>
-            <div class="reservation-drawer__inputs">
-              <label>
-                <span>Nueva fecha sugerida</span>
-                <input type="date" [value]="selected.scheduledDate" />
-              </label>
-              <label>
-                <span>Horario preferido</span>
-                <input type="text" value="6:00 p.m." />
-              </label>
-            </div>
-            <button
-              class="reservation-drawer__primary"
-              type="button"
-              (click)="requestReschedule(selected)"
-            >
-              Solicitar nueva fecha
-            </button>
-          </section>
-        }
-
-        @if (panelMode() === 'cancel') {
-          <section class="reservation-drawer__section reservation-drawer__section--danger">
-            <span class="reservation-drawer__label">Cancelación</span>
-            <p>
-              Cancela solo si el vendedor aún no inició la preparación. La seña puede quedar
-              sujeta a revisión operativa.
-            </p>
-            <button
-              class="reservation-drawer__danger"
-              type="button"
-              (click)="requestCancellation(selected)"
-            >
-              Solicitar cancelación
-            </button>
-          </section>
-        }
-      </aside>
-    }
   </div>
 </section>

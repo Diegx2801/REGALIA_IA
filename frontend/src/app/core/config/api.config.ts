@@ -13,6 +13,8 @@ export const API_ENDPOINTS = {
     products: `${API_BASE_PATH}/productos`,
     productById: (id: number) => `${API_BASE_PATH}/productos/${id}`,
     stores: `${API_BASE_PATH}/tiendas`,
+    rubros: `${API_BASE_PATH}/rubros`,
+    productTypes: `${API_BASE_PATH}/tipos-producto`,
   },
   orders: {
     initialPaymentOptions: `${API_BASE_PATH}/pedidos/opciones/pago-inicial`,

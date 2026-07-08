@@ -1,7 +1,17 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { catchError, finalize, Observable, of, switchMap } from 'rxjs';
+import {
+  MarketplaceRubroApiDto,
+  SellerProfileApiDto,
+  SellerStoreApiDto,
+  SellerStoreReviewStatus,
+  SellerStoreUpdateRequest,
+} from '../../core/services/data-access/regalia/models/seller-workspace-api.model';
+import { RegaliaSellerWorkspaceApiService } from '../../core/services/data-access/regalia/services/regalia-seller-workspace-api.service';
 import {
   SellerApplication,
   SellerApplicationPayload,
@@ -41,7 +51,20 @@ const DELIVERY_OPTIONS = ['Recojo en tienda', 'Delivery propio', 'Courier extern
 export class SellerApplicationComponent implements OnInit {
   private readonly authSession = inject(AuthSessionService);
   private readonly applicationService = inject(SellerApplicationService);
+  private readonly sellerWorkspaceApi = inject(RegaliaSellerWorkspaceApiService);
   private readonly router = inject(Router);
+
+  private readonly categoryAliases = new Map<string, string>([
+    ['Cajas sorpresa', 'BOXES Y CANASTAS'],
+    ['Arreglos florales', 'FLORES Y ARREGLOS'],
+    ['ReposterÃ­a personalizada', 'REPOSTERIA PERSONALIZADA'],
+    ['Manualidades', 'MANUALIDADES'],
+    ['Sublimados', 'SUBLIMADOS'],
+    ['DecoraciÃ³n de eventos', 'DECORACION DE EVENTOS'],
+    ['CarpinterÃ­a personalizada', 'CARPINTERIA PERSONALIZADA'],
+    ['FotografÃ­a y video', 'SERVICIOS CREATIVOS'],
+    ['DiseÃ±o y servicios creativos', 'SERVICIOS CREATIVOS'],
+  ]);
 
   readonly steps: OnboardingStep[] = [
     { number: 1, label: 'Datos del negocio', shortLabel: 'Negocio', description: 'Cuéntanos quién eres y cómo contactarte.' },
@@ -57,13 +80,21 @@ export class SellerApplicationComponent implements OnInit {
   readonly selectedCategories = signal<string[]>([]);
   readonly selectedDeliveryMethods = signal<string[]>([]);
   readonly application = signal<SellerApplication | null>(null);
+  readonly sellerProfile = signal<SellerProfileApiDto | null>(null);
+  readonly sellerStore = signal<SellerStoreApiDto | null>(null);
+  readonly rubros = signal<MarketplaceRubroApiDto[]>([]);
+  readonly isEditingReviewChanges = signal(false);
   readonly saveMessage = signal('');
   readonly isSaving = signal(false);
   readonly showValidationSummary = signal(false);
 
-  readonly status = computed<SellerApplicationStatus>(() => this.application()?.status ?? 'draft');
-  readonly isLocked = computed(() => ['submitted', 'under_review', 'approved', 'rejected'].includes(this.status()));
-  readonly canEdit = computed(() => !this.isLocked());
+  readonly status = computed<SellerApplicationStatus>(() => {
+    const store = this.sellerStore();
+    return store ? this.toApplicationStatus(store.estadoRevision) : this.application()?.status ?? 'draft';
+  });
+  readonly hasReviewState = computed(() => this.status() !== 'draft' && !this.isEditingReviewChanges());
+  readonly isLocked = computed(() => ['submitted', 'under_review', 'approved'].includes(this.status()));
+  readonly canEdit = computed(() => !this.isLocked() || this.isEditingReviewChanges());
   readonly progress = computed(() => `${Math.max(1, this.currentStep()) * 20}%`);
 
   readonly form = new FormGroup({
@@ -120,6 +151,24 @@ export class SellerApplicationComponent implements OnInit {
     }),
   });
 
+  readonly applicationSummary = computed(() => {
+    const application = this.application();
+    const store = this.sellerStore();
+    const storeCategories =
+      store?.rubros?.map((rubro) => rubro.nombre).filter((name): name is string => Boolean(name)) ?? [];
+
+    return {
+      businessName: store?.nombre ?? application?.businessName ?? 'Tienda registrada',
+      updatedAt: store?.fechaActualizacion ?? store?.fechaCreacion ?? application?.updatedAt ?? '',
+      categories: storeCategories.length > 0 ? storeCategories : application?.categories ?? [],
+      responsibleName: application?.responsibleName ?? this.form.controls.responsibleName.value,
+      whatsapp: application?.whatsapp ?? this.form.controls.whatsapp.value,
+      district: store?.direccionReferencia ?? application?.district ?? this.form.controls.district.value,
+      preparationTime: application?.preparationTime ?? this.form.controls.preparationTime.value,
+      adminNotes: application?.adminNotes ?? '',
+    };
+  });
+
   ngOnInit(): void {
     const user = this.authSession.currentUser();
     if (!user) {
@@ -137,13 +186,15 @@ export class SellerApplicationComponent implements OnInit {
       this.selectedCategories.set([...existing.categories]);
       this.selectedDeliveryMethods.set([...existing.deliveryMethods]);
       this.form.patchValue(existing);
-      return;
+    } else {
+      this.form.patchValue({
+        responsibleName: user.fullName,
+        email: user.email,
+      });
     }
 
-    this.form.patchValue({
-      responsibleName: user.fullName,
-      email: user.email,
-    });
+    this.loadRubros();
+    this.loadSellerState();
   }
 
   toggleCategory(category: string): void {
@@ -184,7 +235,7 @@ export class SellerApplicationComponent implements OnInit {
   }
 
   goToStep(step: number): void {
-    if (this.isLocked()) return;
+    if (!this.canEdit()) return;
     if (step > this.currentStep() && !this.validateStep(this.currentStep())) return;
     this.currentStep.set(step);
     this.scrollToTop();

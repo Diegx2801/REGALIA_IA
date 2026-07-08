@@ -306,6 +306,17 @@
   outline: 0;
 }
 
+.seller-form__hint {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.seller-form__hint--error {
+  color: var(--color-alert);
+  font-weight: 800;
+}
+
 .seller-form__control--textarea {
   min-height: 6rem;
   resize: vertical;

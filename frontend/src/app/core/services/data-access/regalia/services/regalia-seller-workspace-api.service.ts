@@ -4,9 +4,11 @@ import { Observable, map } from 'rxjs';
 import { API_ENDPOINTS } from '../../../../config/api.config';
 import { ApiResponse } from '../../../../../shared/models/api-response.model';
 import {
+  MarketplaceRubroApiDto,
   SellerOrderDetailApiDto,
   SellerOrderSummaryApiDto,
   SellerProductApiDto,
+  SellerProductTypeApiDto,
   SellerProductUpsertRequest,
   SellerProfileApiDto,
   SellerStoreApiDto,
@@ -35,9 +37,21 @@ export class RegaliaSellerWorkspaceApiService {
       .pipe(map((response) => response.data ?? []));
   }
 
+  getRubros(): Observable<MarketplaceRubroApiDto[]> {
+    return this.http
+      .get<ApiResponse<MarketplaceRubroApiDto[]>>(API_ENDPOINTS.marketplace.rubros)
+      .pipe(map((response) => response.data ?? []));
+  }
+
   getStoreById(storeId: number): Observable<SellerStoreApiDto> {
     return this.http
       .get<ApiResponse<SellerStoreApiDto>>(API_ENDPOINTS.seller.storeById(storeId))
+      .pipe(map((response) => response.data));
+  }
+
+  createStore(request: SellerStoreUpdateRequest): Observable<SellerStoreApiDto> {
+    return this.http
+      .post<ApiResponse<SellerStoreApiDto>>(API_ENDPOINTS.seller.stores, request)
       .pipe(map((response) => response.data));
   }
 
@@ -50,6 +64,12 @@ export class RegaliaSellerWorkspaceApiService {
   getProductsByStore(storeId: number): Observable<SellerProductApiDto[]> {
     return this.http
       .get<ApiResponse<SellerProductApiDto[]>>(API_ENDPOINTS.seller.productsByStore(storeId))
+      .pipe(map((response) => response.data ?? []));
+  }
+
+  getProductTypes(): Observable<SellerProductTypeApiDto[]> {
+    return this.http
+      .get<ApiResponse<SellerProductTypeApiDto[]>>(API_ENDPOINTS.marketplace.productTypes)
       .pipe(map((response) => response.data ?? []));
   }
 
