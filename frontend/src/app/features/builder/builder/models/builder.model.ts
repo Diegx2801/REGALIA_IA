@@ -4,7 +4,7 @@ import {
   RegaliaOccasion,
   RegaliaSeller,
   ReservationBreakdown,
-} from '../../../shared/models/regalia.model';
+} from '../../../../shared/models/regalia.model';
 
 export type FaseBuilder = 'necesidad' | 'interpretacion' | 'recomendaciones' | 'reserva';
 
@@ -71,6 +71,6 @@ export interface BuilderIARecomendacionBackend {
 
 export interface ApiResponse<T> {
   status: 'success' | 'fail' | 'error';
-  data: T;
+  data: T | null;
   message: string | null;
 }

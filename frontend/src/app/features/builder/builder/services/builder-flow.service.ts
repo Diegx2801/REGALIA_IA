@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { RegaliaService } from '../../../core/services/data-access/regalia/regalia.service';
+import { RegaliaService } from '../../../../core/services/data-access/regalia/regalia.service';
 import {
   FixedPriceProduct,
   RegaliaCategory,
   RegaliaOccasion,
-} from '../../../shared/models/regalia.model';
+} from '../../../../shared/models/regalia.model';
 import {
   BuilderIAProductoBackend,
   InterpretacionConstructor,

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CartService } from '../../core/services/cart/cart.service';
+import { CartService } from '../../../core/services/cart/cart.service';
 import {
   FaseBuilder,
   PasoConstructor,

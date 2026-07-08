@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, timeout } from 'rxjs';
+import { API_ENDPOINTS } from '../../../../core/config/api.config';
 import {
   ApiResponse,
   BuilderIARecomendacionBackend,
@@ -10,19 +11,24 @@ import {
 @Injectable({ providedIn: 'root' })
 export class BuilderApiService {
   private readonly http = inject(HttpClient);
-  private readonly endpoint = '/api/builder-ia';
 
   recomendarProductos(
     solicitud: SolicitudBuilderIAConstructor,
   ): Observable<BuilderIARecomendacionBackend> {
     return this.http
       .post<ApiResponse<BuilderIARecomendacionBackend>>(
-        `${this.endpoint}/recomendar-productos`,
+        API_ENDPOINTS.builderIa.recommendations,
         solicitud,
       )
       .pipe(
         timeout(20000),
-        map((response) => response.data),
+        map((response) => {
+          if (response.status !== 'success' || !response.data) {
+            throw new Error(response.message ?? 'No se pudieron obtener recomendaciones.');
+          }
+
+          return response.data;
+        }),
       );
   }
 }

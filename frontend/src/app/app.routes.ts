@@ -293,7 +293,8 @@ export const routes: Routes = [
       },
       {
         path: 'pedir-con-ia',
-        loadComponent: () => import('./features/builder/builder').then((m) => m.BuilderComponent),
+        loadComponent: () =>
+          import('./features/builder/builder/builder').then((m) => m.BuilderComponent),
       },
       {
         path: 'catalogo',

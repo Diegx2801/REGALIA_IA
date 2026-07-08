@@ -24,6 +24,9 @@ export const API_ENDPOINTS = {
   checkout: {
     sessions: `${API_BASE_PATH}/checkout/sessions`,
   },
+  builderIa: {
+    recommendations: `${API_BASE_PATH}/builder-ia/recomendar-productos`,
+  },
   deliveryTypes: {
     list: `${API_BASE_PATH}/tipos-entrega`,
   },
