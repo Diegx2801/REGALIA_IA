@@ -3,6 +3,7 @@ package com.regalia.backend.pago.infrastructure.gateway;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayClient;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
+import com.regalia.backend.pago.application.gateway.PaymentGatewayStatus;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutResult;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationCommand;
@@ -20,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Adaptador de Mercado Pago Checkout Pro.
@@ -72,8 +72,19 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
 
     @Override
     public PaymentGatewayVerificationResult verifyPayment(PaymentGatewayVerificationCommand command) {
-        throw new ReglaNegocioException(
-                "La verificacion de Mercado Pago se implementara mediante webhook"
+        String accessToken = normalizeAccessToken();
+        String paymentId = normalizePaymentId(command.transactionCode());
+        MercadoPagoPaymentResponse response = getPayment(accessToken, paymentId);
+
+        return new PaymentGatewayVerificationResult(
+                PaymentGatewayProvider.MERCADO_PAGO,
+                normalizePaymentMethod(response.paymentMethodId()),
+                normalizePaymentId(response.id()),
+                normalizeAmount(response.transactionAmount()),
+                normalizeCurrency(response.currencyId()),
+                mapStatus(response.status()),
+                normalizeOptional(response.externalReference()),
+                normalizeOptional(response.statusDetail())
         );
     }
 
@@ -102,6 +113,24 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
             return response;
         } catch (RestClientResponseException exception) {
             throw new ReglaNegocioException("No se pudo crear la preferencia de Mercado Pago");
+        }
+    }
+
+    private MercadoPagoPaymentResponse getPayment(String accessToken, String paymentId) {
+        try {
+            MercadoPagoPaymentResponse response = restClient.get()
+                    .uri("/v1/payments/{paymentId}", paymentId)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .retrieve()
+                    .body(MercadoPagoPaymentResponse.class);
+
+            if (response == null || response.id() == null) {
+                throw new ReglaNegocioException("Mercado Pago no devolvio un pago valido");
+            }
+
+            return response;
+        } catch (RestClientResponseException exception) {
+            throw new ReglaNegocioException("No se pudo verificar el pago de Mercado Pago");
         }
     }
 
@@ -211,17 +240,72 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
     }
 
     private String buildExternalReference(PaymentGatewayCheckoutCommand command) {
-        return "REGALIA-U%s-T%s-%s".formatted(
-                command.idUsuario(),
-                command.idTienda(),
-                UUID.randomUUID()
-        );
+        if (!StringUtils.hasText(command.externalReference())) {
+            throw new ReglaNegocioException("La referencia externa del checkout es obligatoria");
+        }
+
+        return command.externalReference().trim();
+    }
+
+    private String normalizePaymentId(String paymentId) {
+        if (!StringUtils.hasText(paymentId)) {
+            throw new ReglaNegocioException("El identificador del pago de Mercado Pago es obligatorio");
+        }
+
+        return paymentId.trim();
+    }
+
+    private String normalizePaymentId(Object paymentId) {
+        if (paymentId == null) {
+            throw new ReglaNegocioException("El identificador del pago de Mercado Pago es obligatorio");
+        }
+
+        return normalizePaymentId(String.valueOf(paymentId));
+    }
+
+    private String normalizePaymentMethod(String paymentMethod) {
+        if (!StringUtils.hasText(paymentMethod)) {
+            return "MERCADO_PAGO";
+        }
+
+        return paymentMethod.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeOptional(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+
+        return value.trim();
+    }
+
+    private PaymentGatewayStatus mapStatus(String status) {
+        if (!StringUtils.hasText(status)) {
+            return PaymentGatewayStatus.PENDING;
+        }
+
+        return switch (status.trim().toLowerCase(Locale.ROOT)) {
+            case "approved" -> PaymentGatewayStatus.APPROVED;
+            case "rejected", "cancelled", "refunded", "charged_back" -> PaymentGatewayStatus.REJECTED;
+            default -> PaymentGatewayStatus.PENDING;
+        };
     }
 
     private record MercadoPagoPreferenceResponse(
             @JsonProperty("id") String id,
             @JsonProperty("init_point") String initPoint,
             @JsonProperty("sandbox_init_point") String sandboxInitPoint
+    ) {
+    }
+
+    private record MercadoPagoPaymentResponse(
+            @JsonProperty("id") Object id,
+            @JsonProperty("status") String status,
+            @JsonProperty("status_detail") String statusDetail,
+            @JsonProperty("transaction_amount") BigDecimal transactionAmount,
+            @JsonProperty("currency_id") String currencyId,
+            @JsonProperty("payment_method_id") String paymentMethodId,
+            @JsonProperty("external_reference") String externalReference
     ) {
     }
 }

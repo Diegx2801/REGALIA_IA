@@ -15,7 +15,28 @@
       </div>
     </header>
 
-    @if (hasCheckoutContent()) {
+    @if (hasCompletedPaymentReturn()) {
+      <nav class="checkout-steps" aria-label="Progreso de reserva">
+        <span class="checkout-steps__item">Carrito</span>
+        <span class="checkout-steps__item">Datos de reserva</span>
+        <span class="checkout-steps__item checkout-steps__item--active">Pago seguro</span>
+      </nav>
+
+      <section
+        class="cart-result card border-0 shadow-sm"
+        [class.cart-result--pending]="paymentReturnStatus() === 'pending'"
+      >
+        <span class="cart-result__eyebrow">{{ paymentResultEyebrow() }}</span>
+        <h2>{{ paymentResultTitle() }}</h2>
+        <p>{{ paymentResultText() }}</p>
+        <div class="cart-result__actions">
+          <a class="btn btn-primary rounded-pill px-4" routerLink="/reservas">Ver mis reservas</a>
+          <a class="btn btn-outline-primary rounded-pill px-4" routerLink="/catalogo">
+            Seguir explorando
+          </a>
+        </div>
+      </section>
+    } @else if (hasCheckoutContent()) {
       <nav class="checkout-steps" aria-label="Progreso de reserva">
         <span
           class="checkout-steps__item"
@@ -29,7 +50,12 @@
         >
           Datos de reserva
         </span>
-        <span class="checkout-steps__item">Pago seguro</span>
+        <span
+          class="checkout-steps__item"
+          [class.checkout-steps__item--active]="checkoutMode() === 'payment'"
+        >
+          Pago seguro
+        </span>
       </nav>
 
       <div class="row g-3 g-xxl-4 align-items-start">

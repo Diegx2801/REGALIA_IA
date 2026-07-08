@@ -16,6 +16,7 @@ public record PaymentGatewayCheckoutCommand(
         Long idTienda,
         String storeName,
         String codigoTipoPago,
-        String description
+        String description,
+        String externalReference
 ) {
 }

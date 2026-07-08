@@ -182,7 +182,8 @@ export class AdminSellersComponent implements OnInit {
   }
 
   isSelectedSeller(seller: AdminSellerApiDto): boolean {
-    return this.selectedSeller()?.idVendedor === seller.idVendedor;
+    const selectedSeller = this.selectedSeller();
+    return selectedSeller !== null && selectedSeller.idVendedor === seller.idVendedor;
   }
 
   refresh(): void {

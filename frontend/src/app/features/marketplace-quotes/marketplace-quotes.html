@@ -1,15 +1,19 @@
 <section class="quotes-page">
   <div class="container rg-page__container rg-page__container--wide quotes-page__container">
     <header class="quotes-header">
-      <span class="quotes-header__eyebrow">Panel operativo</span>
-      <h1 class="quotes-header__title">Solicitudes, reservas, estados y comisiones de REGALIA.</h1>
+      <span class="quotes-header__eyebrow">Pedidos recibidos</span>
+      <h1 class="quotes-header__title">Reservas reales asignadas a tu negocio.</h1>
       <p class="quotes-header__text">
-        Vista MVP para monitorear pedidos confirmados, señas, comisiones y avance de vendedores.
+        Consulta pedidos confirmados, pagos registrados y saldos pendientes desde tu cuenta de
+        vendedor.
       </p>
+      <button class="order-detail__button quotes-header__button" type="button" (click)="loadOrders()">
+        Actualizar pedidos
+      </button>
     </header>
 
     <div class="metrics-grid">
-      @for (metric of metrics; track trackMetric($index, metric)) {
+      @for (metric of metrics(); track trackMetric($index, metric)) {
         <article class="metric-card">
           <span class="metric-card__label">{{ metric.label }}</span>
           <strong class="metric-card__value">{{ metric.value }}</strong>
@@ -18,66 +22,122 @@
       }
     </div>
 
+    @if (errorMessage()) {
+      <p class="quotes-alert" role="alert">{{ errorMessage() }}</p>
+    }
+
     <div class="quotes-layout">
-      <main class="order-list" aria-label="Pedidos activos">
-        @for (order of orders(); track trackOrder($index, order)) {
-          <button
-            class="order-row"
-            type="button"
-            [class.order-row--selected]="selectedOrder().id === order.id"
-            (click)="selectOrder(order)"
-          >
-            <span class="order-row__id">#{{ order.id }}</span>
-            <span class="order-row__main">
-              <strong>{{ order.clientName }} · {{ order.occasion }}</strong>
-              <small>{{ order.sellerName }} · {{ order.category }}</small>
-            </span>
-            <em class="order-row__status">{{ order.status }}</em>
-            <strong class="order-row__total">S/ {{ order.total }}</strong>
-          </button>
+      <main class="order-list" aria-label="Pedidos del vendedor">
+        @if (isLoadingOrders()) {
+          <app-empty-state
+            icon="P"
+            title="Cargando pedidos"
+            text="Estamos consultando tus reservas asignadas."
+          />
+        } @else if (orders().length === 0) {
+          <app-empty-state
+            icon="P"
+            title="Aun no tienes pedidos asignados"
+            text="Cuando un cliente confirme una reserva para tu tienda, aparecera aqui."
+          />
+        } @else {
+          @for (order of orders(); track trackOrder($index, order)) {
+            <button
+              class="order-row"
+              type="button"
+              [class.order-row--selected]="isSelectedOrder(order)"
+              (click)="selectOrder(order)"
+            >
+              <span class="order-row__id">#{{ order.idPedido }}</span>
+              <span class="order-row__main">
+                <strong>{{ order.nombreTienda || 'Tienda REGALIA' }}</strong>
+                <small>
+                  {{ order.estadoPedido || 'Sin estado' }} -
+                  {{ order.fechaEntrega ? (order.fechaEntrega | date: 'dd MMM yyyy') : 'Sin fecha' }}
+                </small>
+              </span>
+              <em class="order-row__status">{{ paymentStatus(order) }}</em>
+              <strong class="order-row__total">S/ {{ formatAmount(order.total) }}</strong>
+            </button>
+          }
         }
       </main>
 
       <aside class="order-detail">
-        @if (selectedOrder(); as order) {
-          <span class="order-detail__eyebrow">Pedido seleccionado</span>
-          <h2 class="order-detail__title">#{{ order.id }} · {{ order.occasion }}</h2>
+        @if (isLoadingDetail()) {
+          <app-empty-state
+            icon="P"
+            title="Cargando pedido"
+            text="Consultando productos y pagos asociados."
+          />
+        } @else if (selectedOrderDetail(); as order) {
+          <span class="order-detail__eyebrow">{{ paymentStatus(order) }}</span>
+          <h2 class="order-detail__title">Pedido #{{ order.idPedido }}</h2>
           <p class="order-detail__text">
-            {{ order.clientName }} eligió a {{ order.sellerName }} para {{ order.category }}.
+            {{ order.nombreTienda || 'Tienda REGALIA' }} -
+            {{ order.tipoEntrega || 'Entrega por coordinar' }}
           </p>
 
-          <div class="status-flow" aria-label="Estado del pedido">
-            @for (status of statuses; track trackStatus($index, status)) {
-              <span
-                class="status-flow__step"
-                [class.status-flow__step--active]="order.status === status"
-              >
-                {{ status }}
-              </span>
-            }
-          </div>
-
           <section class="commission-box">
-            <h3 class="commission-box__title">Reserva y comisión</h3>
+            <h3 class="commission-box__title">Resumen operativo</h3>
             <div class="commission-box__row">
-              <span>Total pedido</span><strong>S/ {{ selectedBreakdown().estimatedOrder }}</strong>
+              <span>Total</span><strong>S/ {{ formatAmount(order.total) }}</strong>
             </div>
             <div class="commission-box__row">
-              <span>Seña cliente</span><strong>S/ {{ selectedBreakdown().reservation }}</strong>
+              <span>Pagado</span><strong>S/ {{ formatAmount(order.montoPagado) }}</strong>
             </div>
             <div class="commission-box__row">
-              <span>Comisión REGALIA</span
-              ><strong>S/ {{ selectedBreakdown().platformCommission }}</strong>
+              <span>Saldo restante</span><strong>S/ {{ formatAmount(order.saldoPendiente) }}</strong>
             </div>
             <div class="commission-box__row">
-              <span>Vendedor recibe</span
-              ><strong>S/ {{ selectedBreakdown().sellerCredit }}</strong>
+              <span>Cliente</span><strong>{{ order.correoCliente || 'No registrado' }}</strong>
+            </div>
+            <div class="commission-box__row">
+              <span>Entrega</span>
+              <strong>{{ order.fechaEntrega ? (order.fechaEntrega | date: 'dd MMM yyyy') : 'Sin fecha' }}</strong>
             </div>
           </section>
 
-          <button class="order-detail__button" type="button" (click)="advanceSelectedOrderStatus()">
-            Actualizar estado
-          </button>
+          <section class="commission-box">
+            <h3 class="commission-box__title">Productos</h3>
+            @if (detailProducts(order).length) {
+              @for (product of detailProducts(order); track trackDetailProduct($index, product)) {
+                <div class="commission-box__row">
+                  <span>{{ product.cantidad }} x {{ product.nombreProducto || 'Producto' }}</span>
+                  <strong>S/ {{ formatAmount(product.subtotal) }}</strong>
+                </div>
+              }
+            } @else {
+              <p class="order-detail__text">Este pedido no tiene productos visibles.</p>
+            }
+          </section>
+
+          <section class="commission-box">
+            <h3 class="commission-box__title">Pagos</h3>
+            @if (detailPayments(order).length) {
+              @for (payment of detailPayments(order); track trackPayment($index, payment)) {
+                <div class="commission-box__row">
+                  <span>{{ payment.metodoPagoPasarela || 'Pago' }} - {{ payment.estadoPago || 'Sin estado' }}</span>
+                  <strong>S/ {{ formatAmount(payment.monto) }}</strong>
+                </div>
+              }
+            } @else {
+              <p class="order-detail__text">Aun no hay pagos registrados para este pedido.</p>
+            }
+          </section>
+
+          @if (order.observacion) {
+            <section class="commission-box">
+              <h3 class="commission-box__title">Observacion del cliente</h3>
+              <p class="order-detail__text">{{ order.observacion }}</p>
+            </section>
+          }
+        } @else {
+          <app-empty-state
+            icon="P"
+            title="Selecciona un pedido"
+            text="El detalle operativo aparecera en este panel."
+          />
         }
       </aside>
     </div>

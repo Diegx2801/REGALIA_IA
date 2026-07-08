@@ -69,17 +69,19 @@
     <div class="admin-catalogs__workspace">
       <main class="admin-catalogs__list" aria-label="Registros del catalogo seleccionado">
         @if (isLoading()) {
-          <div class="admin-catalogs__empty">
-            <span aria-hidden="true">C</span>
-            <h2>Cargando catalogos</h2>
-            <p>Estamos consultando los mantenedores reales del backend.</p>
-          </div>
+          <app-empty-state
+            icon="C"
+            title="Cargando catalogos"
+            text="Estamos consultando los mantenedores reales del backend."
+          />
         } @else if (filteredItems().length === 0) {
-          <div class="admin-catalogs__empty">
-            <span aria-hidden="true">C</span>
-            <h2>No hay registros para esta busqueda</h2>
-            <p>Cambia el texto de busqueda, selecciona otro catalogo o actualiza la informacion.</p>
-          </div>
+          <app-empty-state
+            icon="C"
+            title="No hay registros para esta busqueda"
+            text="Cambia el texto de busqueda, selecciona otro catalogo o actualiza la informacion."
+            [actionLabel]="searchTerm() ? 'Limpiar busqueda' : ''"
+            (actionClick)="clearSearch()"
+          />
         } @else {
           @for (item of filteredItems(); track trackItem($index, item)) {
             <button
@@ -137,11 +139,11 @@
             </p>
           </section>
         } @else {
-          <div class="admin-catalogs__empty">
-            <span aria-hidden="true">C</span>
-            <h2>Selecciona un registro</h2>
-            <p>El detalle del mantenedor aparecera aqui.</p>
-          </div>
+          <app-empty-state
+            icon="C"
+            title="Selecciona un registro"
+            text="El detalle del mantenedor aparecera aqui."
+          />
         }
       </aside>
     </div>

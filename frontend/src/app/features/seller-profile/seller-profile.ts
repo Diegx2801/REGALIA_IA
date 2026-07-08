@@ -1,158 +1,497 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
-import { RegaliaSeller } from '../../shared/models/regalia.model';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { finalize, forkJoin } from 'rxjs';
+import {
+  SellerProductApiDto,
+  SellerProductImageUpsertRequest,
+  SellerProductTypeApiDto,
+  SellerProductUpsertRequest,
+  SellerProfileApiDto,
+  SellerStoreApiDto,
+  SellerStoreRubroApiDto,
+  SellerStoreUpdateRequest,
+} from '../../core/services/data-access/regalia/models/seller-workspace-api.model';
+import { RegaliaSellerWorkspaceApiService } from '../../core/services/data-access/regalia/services/regalia-seller-workspace-api.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
 
-// Producto publicado localmente por el vendedor antes de conectar persistencia backend.
-interface SellerCatalogItem {
-  id: number;
-  name: string;
-  price: number;
-  status: 'Activo' | 'Pausado';
-  category: string;
-  imageName: string;
-  imagePreview: string;
+interface StoreFormState {
+  nombre: string;
+  descripcion: string;
+  direccionReferencia: string;
+}
+
+interface ProductFormState {
+  idTipoProducto: number | null;
+  nombre: string;
+  descripcion: string;
+  precio: number | null;
+  stock: number | null;
+  visibleEnTienda: boolean;
 }
 
 @Component({
   selector: 'app-seller-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, EmptyStateComponent],
   templateUrl: './seller-profile.html',
   styleUrl: './seller-profile.css',
 })
 export class SellerProfileComponent {
-  private readonly regaliaService = inject(RegaliaService);
+  private readonly sellerApi = inject(RegaliaSellerWorkspaceApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly seller = signal<RegaliaSeller>(this.regaliaService.getSellers()[0]);
-  readonly saved = signal(false);
-  readonly productSaved = signal(false);
-  // Identifica si el formulario está creando un producto nuevo o editando uno existente.
-  readonly editingProductId = signal<number | null>(null);
-  // URL local en memoria para previsualizar la imagen antes de persistirla.
-  readonly imagePreview = signal('');
-  private nextProductId = 4;
+  readonly profile = signal<SellerProfileApiDto | null>(null);
+  readonly stores = signal<SellerStoreApiDto[]>([]);
+  readonly selectedStore = signal<SellerStoreApiDto | null>(null);
+  readonly products = signal<SellerProductApiDto[]>([]);
+  readonly productTypes = signal<SellerProductTypeApiDto[]>([]);
+  readonly isLoadingWorkspace = signal(false);
+  readonly isLoadingProducts = signal(false);
+  readonly isLoadingProductTypes = signal(false);
+  readonly errorMessage = signal('');
+  readonly productErrorMessage = signal('');
+  readonly productTypeErrorMessage = signal('');
+  readonly actionMessage = signal('');
+  readonly actionErrorMessage = signal('');
+  readonly isEditingStore = signal(false);
+  readonly isSavingStore = signal(false);
+  readonly isProductFormOpen = signal(false);
+  readonly isSavingProduct = signal(false);
+  readonly editingProduct = signal<SellerProductApiDto | null>(null);
 
-  readonly profileForm = new FormGroup({
-    businessName: new FormControl(this.seller().businessName, { nonNullable: true }),
-    ownerName: new FormControl(this.seller().ownerName, { nonNullable: true }),
-    district: new FormControl(this.seller().district, { nonNullable: true }),
-    whatsapp: new FormControl(this.seller().whatsapp, { nonNullable: true }),
-    availability: new FormControl(this.seller().availability, { nonNullable: true }),
-    deliveryTime: new FormControl(this.seller().deliveryTime, { nonNullable: true }),
-    description: new FormControl(this.seller().description, { nonNullable: true }),
+  storeForm: StoreFormState = this.emptyStoreForm();
+  productForm: ProductFormState = this.emptyProductForm();
+
+  readonly metrics = computed(() => {
+    const stores = this.stores();
+    const products = this.products();
+    const approvedStores = stores.filter((store) => store.estadoRevision === 'APROBADA').length;
+    const visibleProducts = products.filter((product) => product.visibleEnTienda !== false).length;
+
+    return [
+      { label: 'Tiendas', value: String(stores.length), hint: `${approvedStores} aprobadas` },
+      { label: 'Productos', value: String(products.length), hint: `${visibleProducts} visibles` },
+      { label: 'Stock total', value: String(this.totalStock(products)), hint: 'Unidades publicadas' },
+      {
+        label: 'Perfil',
+        value: this.profile()?.vendedorVerificado ? 'Verificado' : 'Pendiente',
+        hint: this.profile()?.estado === false ? 'Cuenta inactiva' : 'Cuenta activa',
+      },
+    ];
   });
 
-  readonly catalogItems = signal<SellerCatalogItem[]>([
-    { id: 1, name: 'Box premium personalizado', price: 129, status: 'Activo', category: 'Cajas sorpresa', imageName: 'box-premium.jpg', imagePreview: '/images/regalia-hero-gift.png' },
-    { id: 2, name: 'Detalle express', price: 75, status: 'Activo', category: 'Regalos personalizados', imageName: 'detalle-express.jpg', imagePreview: '/images/regalia-hero-gift.png' },
-    { id: 3, name: 'Pack corporativo', price: 180, status: 'Pausado', category: 'Evento corporativo', imageName: 'pack-corporativo.jpg', imagePreview: '/images/regalia-hero-gift.png' },
-  ]);
-
-  readonly productForm = new FormGroup({
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] }),
-    category: new FormControl('Cajas sorpresa', { nonNullable: true }),
-    price: new FormControl(80, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
-    status: new FormControl<'Activo' | 'Pausado'>('Activo', { nonNullable: true }),
-    imageName: new FormControl('', { nonNullable: true }),
-    description: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(10)] }),
-  });
-
-  saveProfile(): void {
-    this.saved.set(false);
-    this.seller.update((seller) => ({ ...seller, ...this.profileForm.getRawValue() }));
-    this.saved.set(true);
+  ngOnInit(): void {
+    this.loadProductTypes();
+    this.loadWorkspace();
   }
 
-  publishProduct(): void {
-    // Valida el formulario y luego crea o actualiza el producto en el catálogo simulado local.
-    this.productSaved.set(false);
-    const product = this.productForm.getRawValue();
+  loadWorkspace(): void {
+    this.errorMessage.set('');
+    this.productErrorMessage.set('');
+    this.clearActionMessages();
+    this.closeStoreForm();
+    this.closeProductForm();
+    this.isLoadingWorkspace.set(true);
 
-    if (this.productForm.invalid) {
-      this.productForm.markAllAsTouched();
+    forkJoin({
+      profile: this.sellerApi.getProfile(),
+      stores: this.sellerApi.getStores(),
+    })
+      .pipe(
+        finalize(() => this.isLoadingWorkspace.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: ({ profile, stores }) => {
+          this.profile.set(profile);
+          this.stores.set(stores);
+          const nextStore = stores[0] ?? null;
+          this.selectedStore.set(nextStore);
+
+          if (nextStore) {
+            this.loadProducts(nextStore.idTienda);
+          } else {
+            this.products.set([]);
+          }
+        },
+        error: () => {
+          this.profile.set(null);
+          this.stores.set([]);
+          this.selectedStore.set(null);
+          this.products.set([]);
+          this.errorMessage.set('No se pudo cargar tu espacio vendedor.');
+        },
+      });
+  }
+
+  createProfile(): void {
+    this.errorMessage.set('');
+    this.isLoadingWorkspace.set(true);
+
+    this.sellerApi
+      .createProfile()
+      .pipe(
+        finalize(() => this.isLoadingWorkspace.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => this.loadWorkspace(),
+        error: () => this.errorMessage.set('No se pudo activar el perfil vendedor.'),
+      });
+  }
+
+  selectStore(store: SellerStoreApiDto): void {
+    this.selectedStore.set(store);
+    this.clearActionMessages();
+    this.closeStoreForm();
+    this.closeProductForm();
+    this.loadProducts(store.idTienda);
+  }
+
+  openStoreForm(store: SellerStoreApiDto | null = this.selectedStore()): void {
+    if (!store) {
       return;
     }
 
-    const productPayload: SellerCatalogItem = {
-      id: this.editingProductId() ?? this.nextProductId++,
-      name: product.name,
-      price: product.price,
-      status: product.status,
-      category: product.category,
-      imageName: product.imageName || 'imagen-pendiente.jpg',
-      imagePreview: this.imagePreview() || '/images/regalia-hero-gift.png',
+    this.clearActionMessages();
+    this.storeForm = {
+      nombre: store.nombre ?? '',
+      descripcion: store.descripcion ?? '',
+      direccionReferencia: store.direccionReferencia ?? '',
+    };
+    this.isEditingStore.set(true);
+  }
+
+  closeStoreForm(): void {
+    this.storeForm = this.emptyStoreForm();
+    this.isEditingStore.set(false);
+  }
+
+  saveStore(): void {
+    const store = this.selectedStore();
+    const nombre = this.storeForm.nombre.trim();
+
+    if (!store || !nombre) {
+      this.actionErrorMessage.set('El nombre de la tienda es obligatorio.');
+      return;
+    }
+
+    const request: SellerStoreUpdateRequest = {
+      nombre,
+      descripcion: this.normalizeOptionalText(this.storeForm.descripcion),
+      direccionReferencia: this.normalizeOptionalText(this.storeForm.direccionReferencia),
+      idDocumentoFiscal: store.idDocumentoFiscal ?? null,
+      idsRubros: (store.rubros ?? []).map((rubro) => rubro.idRubro),
     };
 
-    this.catalogItems.update((items) =>
-      this.editingProductId()
-        ? items.map((item) => (item.id === productPayload.id ? productPayload : item))
-        : [productPayload, ...items],
-    );
-    this.resetProductForm();
-    this.productSaved.set(true);
+    this.clearActionMessages();
+    this.isSavingStore.set(true);
+
+    this.sellerApi
+      .updateStore(store.idTienda, request)
+      .pipe(
+        finalize(() => this.isSavingStore.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (updatedStore) => {
+          this.syncUpdatedStore(updatedStore);
+          this.closeStoreForm();
+          this.actionMessage.set('Tienda actualizada correctamente.');
+        },
+        error: () => this.actionErrorMessage.set('No se pudo actualizar la tienda.'),
+      });
   }
 
-  editProduct(item: SellerCatalogItem): void {
-    // Carga un producto publicado al formulario para editarlo sin salir de la pantalla.
-    this.editingProductId.set(item.id);
-    this.imagePreview.set(item.imagePreview);
-    this.productForm.setValue({
-      name: item.name,
-      category: item.category,
-      price: item.price,
-      status: item.status,
-      imageName: item.imageName,
-      description: 'Producto publicado en catalogo del vendedor.',
-    });
-  }
-
-  deleteProduct(item: SellerCatalogItem): void {
-    // Elimina solo del estado local; el backend se conectará después.
-    this.catalogItems.update((items) => items.filter((currentItem) => currentItem.id !== item.id));
-
-    if (this.editingProductId() === item.id) {
-      this.resetProductForm();
+  openCreateProductForm(): void {
+    if (!this.selectedStore()) {
+      this.actionErrorMessage.set('Selecciona una tienda antes de agregar productos.');
+      return;
     }
+
+    this.clearActionMessages();
+    this.editingProduct.set(null);
+    this.productForm = this.emptyProductForm();
+    this.isProductFormOpen.set(true);
   }
 
-  onImageSelected(event: Event): void {
-    // Convierte la imagen seleccionada en vista previa local para mejorar la revision del vendedor.
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (!file) return;
-
-    this.productForm.controls.imageName.setValue(file.name);
-    const reader = new FileReader();
-    reader.onload = () => this.imagePreview.set(String(reader.result));
-    reader.readAsDataURL(file);
+  openEditProductForm(product: SellerProductApiDto): void {
+    this.clearActionMessages();
+    this.editingProduct.set(product);
+    this.productForm = {
+      idTipoProducto: product.idTipoProducto,
+      nombre: product.nombre ?? '',
+      descripcion: product.descripcion ?? '',
+      precio: product.precio,
+      stock: product.stock,
+      visibleEnTienda: product.visibleEnTienda !== false,
+    };
+    this.isProductFormOpen.set(true);
   }
 
-  resetProductForm(): void {
-    this.productForm.reset({
-      name: '',
-      category: 'Cajas sorpresa',
-      price: 80,
-      status: 'Activo',
-      imageName: '',
-      description: '',
-    });
-    this.editingProductId.set(null);
-    this.imagePreview.set('');
+  closeProductForm(): void {
+    this.productForm = this.emptyProductForm();
+    this.editingProduct.set(null);
+    this.isProductFormOpen.set(false);
   }
 
-  hasProductError(controlName: keyof typeof this.productForm.controls): boolean {
-    const control = this.productForm.controls[controlName];
-    return control.invalid && (control.touched || control.dirty);
+  saveProduct(): void {
+    const store = this.selectedStore();
+    const editingProduct = this.editingProduct();
+    const nombre = this.productForm.nombre.trim();
+
+    if (
+      !nombre ||
+      this.productForm.idTipoProducto === null ||
+      this.productForm.precio === null ||
+      this.productForm.stock === null
+    ) {
+      this.actionErrorMessage.set('Completa nombre, tipo, precio y stock con valores validos.');
+      return;
+    }
+
+    const idTipoProducto = Number(this.productForm.idTipoProducto);
+    const precio = Number(this.productForm.precio);
+    const stock = Number(this.productForm.stock);
+
+    if (!store) {
+      this.actionErrorMessage.set('Selecciona una tienda antes de guardar productos.');
+      return;
+    }
+
+    if (!Number.isInteger(idTipoProducto) || idTipoProducto <= 0 || precio <= 0 || stock < 0) {
+      this.actionErrorMessage.set('Completa nombre, tipo, precio y stock con valores validos.');
+      return;
+    }
+
+    const request: SellerProductUpsertRequest = {
+      idTipoProducto,
+      nombre,
+      descripcion: this.normalizeOptionalText(this.productForm.descripcion),
+      precio,
+      stock,
+      visibleEnTienda: this.productForm.visibleEnTienda,
+      imagenes: this.buildProductImages(editingProduct),
+    };
+
+    this.clearActionMessages();
+    this.isSavingProduct.set(true);
+
+    const operation = editingProduct
+      ? this.sellerApi.updateProduct(store.idTienda, editingProduct.idProducto, request)
+      : this.sellerApi.createProduct(store.idTienda, request);
+
+    operation
+      .pipe(
+        finalize(() => this.isSavingProduct.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (savedProduct) => {
+          const nextProducts = editingProduct
+            ? this.products().map((product) =>
+                product.idProducto === savedProduct.idProducto ? savedProduct : product,
+              )
+            : [...this.products(), savedProduct];
+
+          this.products.set(this.sortProducts(nextProducts));
+          this.closeProductForm();
+          this.actionMessage.set(
+            editingProduct ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.',
+          );
+        },
+        error: () => this.actionErrorMessage.set('No se pudo guardar el producto.'),
+      });
   }
 
-  trackText(_: number, value: string): string {
-    return value;
+  deactivateProduct(product: SellerProductApiDto): void {
+    const store = this.selectedStore();
+
+    if (!store) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Desactivar "${product.nombre ?? 'este producto'}"?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.clearActionMessages();
+
+    this.sellerApi
+      .deactivateProduct(store.idTienda, product.idProducto)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.products.set(
+            this.products().filter((currentProduct) => currentProduct.idProducto !== product.idProducto),
+          );
+
+          if (this.editingProduct()?.idProducto === product.idProducto) {
+            this.closeProductForm();
+          }
+
+          this.actionMessage.set('Producto desactivado correctamente.');
+        },
+        error: () => this.actionErrorMessage.set('No se pudo desactivar el producto.'),
+      });
   }
 
-  trackCatalog(_: number, item: SellerCatalogItem): string {
-    return String(item.id);
+  formatAmount(value: number | null | undefined): string {
+    return Number(value ?? 0).toFixed(2);
+  }
+
+  sellerName(profile: SellerProfileApiDto | null): string {
+    const fullName = [profile?.nombreUsuario, profile?.apellidoUsuario]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+
+    return fullName || profile?.correoUsuario || 'Vendedor REGALIA';
+  }
+
+  rubrosLabel(store: SellerStoreApiDto | null): string {
+    const rubros = store?.rubros ?? [];
+    return rubros.length > 0 ? rubros.map((rubro) => rubro.nombre).join(', ') : 'Sin rubros asignados';
+  }
+
+  storeRubros(store: SellerStoreApiDto): SellerStoreRubroApiDto[] {
+    return store.rubros ?? [];
+  }
+
+  isSelectedStore(store: SellerStoreApiDto): boolean {
+    const selectedStore = this.selectedStore();
+    return selectedStore !== null && selectedStore.idTienda === store.idTienda;
+  }
+
+  selectedStoreName(): string {
+    return this.selectedStore()?.nombre || 'Catalogo de tienda';
+  }
+
+  storeReviewLabel(status: string | null | undefined): string {
+    const labels: Record<string, string> = {
+      PENDIENTE: 'Pendiente',
+      APROBADA: 'Aprobada',
+      OBSERVADA: 'Observada',
+      RECHAZADA: 'Rechazada',
+    };
+
+    return labels[status ?? ''] ?? 'Sin revision';
+  }
+
+  trackMetric(_: number, metric: { label: string }): string {
+    return metric.label;
+  }
+
+  trackStore(_: number, store: SellerStoreApiDto): number {
+    return store.idTienda;
+  }
+
+  trackProduct(_: number, product: SellerProductApiDto): number {
+    return product.idProducto;
+  }
+
+  trackProductType(_: number, productType: SellerProductTypeApiDto): number {
+    return productType.idTipoProducto;
+  }
+
+  trackRubro(_: number, rubro: SellerStoreRubroApiDto): number {
+    return rubro.idRubro;
+  }
+
+  private loadProductTypes(): void {
+    this.productTypeErrorMessage.set('');
+    this.isLoadingProductTypes.set(true);
+
+    this.sellerApi
+      .getProductTypes()
+      .pipe(
+        finalize(() => this.isLoadingProductTypes.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (productTypes) => this.productTypes.set(productTypes),
+        error: () => {
+          this.productTypes.set([]);
+          this.productTypeErrorMessage.set('No se pudieron cargar los tipos de producto.');
+        },
+      });
+  }
+
+  private loadProducts(storeId: number): void {
+    this.productErrorMessage.set('');
+    this.isLoadingProducts.set(true);
+
+    this.sellerApi
+      .getProductsByStore(storeId)
+      .pipe(
+        finalize(() => this.isLoadingProducts.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (products) => this.products.set(products),
+        error: () => {
+          this.products.set([]);
+          this.productErrorMessage.set('No se pudieron cargar los productos de la tienda.');
+        },
+      });
+  }
+
+  private totalStock(products: SellerProductApiDto[]): number {
+    return products.reduce((total, product) => total + Number(product.stock ?? 0), 0);
+  }
+
+  private emptyStoreForm(): StoreFormState {
+    return {
+      nombre: '',
+      descripcion: '',
+      direccionReferencia: '',
+    };
+  }
+
+  private emptyProductForm(): ProductFormState {
+    return {
+      idTipoProducto: null,
+      nombre: '',
+      descripcion: '',
+      precio: null,
+      stock: null,
+      visibleEnTienda: true,
+    };
+  }
+
+  private normalizeOptionalText(value: string): string | null {
+    const normalizedValue = value.trim();
+    return normalizedValue.length > 0 ? normalizedValue : null;
+  }
+
+  private syncUpdatedStore(updatedStore: SellerStoreApiDto): void {
+    this.stores.set(
+      this.stores().map((store) =>
+        store.idTienda === updatedStore.idTienda ? updatedStore : store,
+      ),
+    );
+    this.selectedStore.set(updatedStore);
+  }
+
+  private buildProductImages(product: SellerProductApiDto | null): SellerProductImageUpsertRequest[] {
+    return (product?.imagenes ?? [])
+      .map((image, index) => ({
+        urlImagen: image.urlImagen?.trim() ?? '',
+        orden: image.orden ?? index + 1,
+      }))
+      .filter((image) => image.urlImagen.length > 0);
+  }
+
+  private sortProducts(products: SellerProductApiDto[]): SellerProductApiDto[] {
+    return [...products].sort((firstProduct, secondProduct) => firstProduct.idProducto - secondProduct.idProducto);
+  }
+
+  private clearActionMessages(): void {
+    this.actionMessage.set('');
+    this.actionErrorMessage.set('');
   }
 }

@@ -19,6 +19,10 @@
   max-width: 62rem;
 }
 
+.quotes-header__button {
+  max-width: 15rem;
+}
+
 .quotes-header__eyebrow,
 .metric-card__label,
 .order-row__id,
@@ -75,6 +79,16 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: 1fr minmax(20rem, 28rem);
+}
+
+.quotes-alert {
+  background: rgba(255, 247, 247, 0.96);
+  border: 1px solid rgba(196, 60, 60, 0.24);
+  border-radius: 14px;
+  color: var(--color-alert);
+  font-weight: 900;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
 }
 
 .order-list {

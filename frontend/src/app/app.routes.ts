@@ -103,20 +103,8 @@ export const routes: Routes = [
     children: [
       {
         path: 'inicio',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-      },
-      {
-        path: 'explorar',
-        loadComponent: () => import('./features/catalog/catalog').then((m) => m.CatalogComponent),
-      },
-      {
-        path: 'carrito',
-        loadComponent: () => import('./features/cart/cart').then((m) => m.CartComponent),
-      },
-      {
-        path: 'solicitud',
-        loadComponent: () => import('./features/builder/builder').then((m) => m.BuilderComponent),
+        redirectTo: 'reservas',
+        pathMatch: 'full',
       },
       {
         path: 'reservas',
@@ -137,7 +125,7 @@ export const routes: Routes = [
             (m) => m.AccountProfileComponent,
           ),
       },
-      { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+      { path: '', redirectTo: 'reservas', pathMatch: 'full' },
     ],
   },
 
@@ -167,8 +155,8 @@ export const routes: Routes = [
       },
       {
         path: 'calendario',
-        loadComponent: () =>
-          import('./features/reservations/reservations').then((m) => m.ReservationsComponent),
+        redirectTo: 'pedidos',
+        pathMatch: 'full',
       },
       {
         path: 'perfil',
@@ -274,7 +262,7 @@ export const routes: Routes = [
     data: {
       redirects: {
         Cliente: '/cliente/reservas',
-        Vendedor: '/vendedor/calendario',
+        Vendedor: '/vendedor/pedidos',
         Administrador: '/admin/pedidos',
       },
     },

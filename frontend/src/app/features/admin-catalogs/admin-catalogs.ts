@@ -8,6 +8,7 @@ import {
   AdminCatalogType,
 } from '../../core/services/data-access/regalia/models/admin-catalog-api.model';
 import { RegaliaAdminCatalogApiService } from '../../core/services/data-access/regalia/services/regalia-admin-catalog-api.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
 
 interface AdminCatalogDetailRow {
   label: string;
@@ -17,7 +18,7 @@ interface AdminCatalogDetailRow {
 @Component({
   selector: 'app-admin-catalogs',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent],
   templateUrl: './admin-catalogs.html',
   styleUrl: './admin-catalogs.css',
 })
@@ -113,7 +114,8 @@ export class AdminCatalogsComponent implements OnInit {
   }
 
   isSelectedItem(item: AdminCatalogItem): boolean {
-    return this.selectedItem()?.id === item.id;
+    const selectedItem = this.selectedItem();
+    return selectedItem !== null && selectedItem.id === item.id;
   }
 
   refresh(): void {

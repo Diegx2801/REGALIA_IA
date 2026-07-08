@@ -52,7 +52,9 @@ public class ManualPaymentGatewayClient implements PaymentGatewayClient {
                 transactionCode,
                 amount,
                 normalizeCurrency(command.currency()),
-                PaymentGatewayStatus.APPROVED
+                PaymentGatewayStatus.APPROVED,
+                null,
+                null
         );
     }
 

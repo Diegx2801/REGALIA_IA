@@ -1,262 +1,414 @@
 <section class="seller-profile-page">
-  <div
-    class="container rg-page__container rg-page__container--wide seller-profile-page__container"
-  >
+  <div class="container rg-page__container rg-page__container--wide seller-profile-page__container">
     <header class="seller-profile-header">
-      <span class="seller-profile-header__eyebrow">Perfil vendedor</span>
-      <h1 class="seller-profile-header__title">
-        Gestiona tu negocio y catálogo visible en REGALIA.
-      </h1>
+      <span class="seller-profile-header__eyebrow">Espacio vendedor</span>
+      <h1 class="seller-profile-header__title">Tu tienda, productos y estado comercial.</h1>
       <p class="seller-profile-header__text">
-        Mantén datos, disponibilidad y productos actualizados para mejorar la compatibilidad con
-        solicitudes.
+        Consulta tu perfil vendedor, revisa tus tiendas y valida que tus productos sigan visibles
+        para los clientes.
       </p>
+      <button class="seller-profile-header__button" type="button" (click)="loadWorkspace()">
+        Actualizar espacio
+      </button>
     </header>
 
+    @if (errorMessage()) {
+      <p class="seller-profile-alert" role="alert">{{ errorMessage() }}</p>
+    }
+
+    @if (actionErrorMessage()) {
+      <p class="seller-profile-alert" role="alert">{{ actionErrorMessage() }}</p>
+    }
+
+    @if (actionMessage()) {
+      <p class="seller-profile-alert seller-profile-alert--success" role="status">
+        {{ actionMessage() }}
+      </p>
+    }
+
+    <div class="seller-summary-grid">
+      @for (metric of metrics(); track trackMetric($index, metric)) {
+        <article class="seller-summary-card">
+          <span>{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+          <small>{{ metric.hint }}</small>
+        </article>
+      }
+    </div>
+
     <div class="seller-profile-layout">
-      <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-        <div class="profile-form__head">
-          <span class="profile-form__eyebrow">Datos comerciales</span>
-          <h2 class="profile-form__title">Informacion del vendedor</h2>
-        </div>
+      <main class="profile-panel">
+        @if (isLoadingWorkspace()) {
+          <app-empty-state
+            icon="V"
+            title="Cargando espacio vendedor"
+            text="Estamos consultando tu perfil y tiendas asignadas."
+          />
+        } @else if (profile(); as sellerProfile) {
+          <section class="profile-section">
+            <div class="profile-section__head">
+              <span class="profile-section__eyebrow">Cuenta comercial</span>
+              <h2 class="profile-section__title">{{ sellerName(sellerProfile) }}</h2>
+            </div>
 
-        <div class="profile-form__grid">
-          <label class="profile-field" for="businessName">
-            <span class="profile-field__label">Negocio</span>
-            <input
-              id="businessName"
-              class="profile-field__control"
-              type="text"
-              formControlName="businessName"
-            />
-          </label>
+            <div class="profile-data-grid">
+              <div class="profile-data-card">
+                <span>Correo</span>
+                <strong>{{ sellerProfile.correoUsuario || 'No registrado' }}</strong>
+              </div>
+              <div class="profile-data-card">
+                <span>Verificacion</span>
+                <strong>{{ sellerProfile.vendedorVerificado ? 'Verificado' : 'Pendiente' }}</strong>
+              </div>
+              <div class="profile-data-card">
+                <span>Estado</span>
+                <strong>{{ sellerProfile.estado === false ? 'Inactivo' : 'Activo' }}</strong>
+              </div>
+              <div class="profile-data-card">
+                <span>ID vendedor</span>
+                <strong>#{{ sellerProfile.idVendedor }}</strong>
+              </div>
+            </div>
+          </section>
 
-          <label class="profile-field" for="ownerName">
-            <span class="profile-field__label">Responsable</span>
-            <input
-              id="ownerName"
-              class="profile-field__control"
-              type="text"
-              formControlName="ownerName"
-            />
-          </label>
+          <section class="profile-section">
+            <div class="profile-section__head">
+              <span class="profile-section__eyebrow">Tiendas</span>
+              <h2 class="profile-section__title">Selecciona una tienda</h2>
+            </div>
 
-          <label class="profile-field" for="district">
-            <span class="profile-field__label">Distrito</span>
-            <input
-              id="district"
-              class="profile-field__control"
-              type="text"
-              formControlName="district"
-            />
-          </label>
+            @if (stores().length === 0) {
+              <app-empty-state
+                icon="T"
+                title="Aun no tienes tiendas registradas"
+                text="Cuando crees una tienda, aparecera aqui para gestionar sus productos."
+              />
+            } @else {
+              <div class="seller-store-list" aria-label="Tiendas del vendedor">
+                @for (store of stores(); track trackStore($index, store)) {
+                  <button
+                    class="seller-store-card"
+                    type="button"
+                    [class.seller-store-card--selected]="isSelectedStore(store)"
+                    (click)="selectStore(store)"
+                  >
+                    <span class="seller-status">{{ storeReviewLabel(store.estadoRevision) }}</span>
+                    <strong>{{ store.nombre || 'Tienda sin nombre' }}</strong>
+                    <small>{{ rubrosLabel(store) }}</small>
+                  </button>
+                }
+              </div>
+            }
+          </section>
 
-          <label class="profile-field" for="whatsapp">
-            <span class="profile-field__label">WhatsApp</span>
-            <input
-              id="whatsapp"
-              class="profile-field__control"
-              type="tel"
-              formControlName="whatsapp"
-            />
-          </label>
+          <section class="profile-section">
+            <div class="profile-section__head profile-section__head--split">
+              <div>
+                <span class="profile-section__eyebrow">Productos</span>
+                <h2 class="profile-section__title">
+                  {{ selectedStoreName() }}
+                </h2>
+              </div>
+              @if (selectedStore()) {
+                <button
+                  class="seller-inline-action"
+                  type="button"
+                  (click)="openCreateProductForm()"
+                >
+                  Agregar producto
+                </button>
+              }
+            </div>
 
-          <label class="profile-field" for="availability">
-            <span class="profile-field__label">Disponibilidad</span>
-            <input
-              id="availability"
-              class="profile-field__control"
-              type="text"
-              formControlName="availability"
-            />
-          </label>
+            @if (productErrorMessage()) {
+              <p class="seller-profile-alert" role="alert">{{ productErrorMessage() }}</p>
+            }
 
-          <label class="profile-field" for="deliveryTime">
-            <span class="profile-field__label">Tiempo de entrega</span>
-            <input
-              id="deliveryTime"
-              class="profile-field__control"
-              type="text"
-              formControlName="deliveryTime"
-            />
-          </label>
-        </div>
+            @if (isProductFormOpen()) {
+              <form class="seller-form" (ngSubmit)="saveProduct()" novalidate>
+                <div class="seller-form__head">
+                  <span class="profile-section__eyebrow">
+                    {{ editingProduct() ? 'Editar producto' : 'Nuevo producto' }}
+                  </span>
+                  <p>
+                    Gestiona productos listos para reservar sin salir del espacio vendedor.
+                  </p>
+                </div>
 
-        <label class="profile-field" for="description">
-          <span class="profile-field__label">Descripción</span>
-          <textarea
-            id="description"
-            class="profile-field__control"
-            rows="4"
-            formControlName="description"
-          ></textarea>
-        </label>
+                <div class="seller-form__grid">
+                  <label class="seller-form__field seller-form__field--full">
+                    <span>Nombre</span>
+                    <input
+                      class="seller-form__control"
+                      type="text"
+                      name="productName"
+                      maxlength="150"
+                      [(ngModel)]="productForm.nombre"
+                      placeholder="Ej. Box romantico personalizado"
+                    />
+                  </label>
 
-        <button class="profile-form__button" type="submit">Guardar cambios</button>
+                  <label class="seller-form__field">
+                    <span>Tipo de producto</span>
+                    <select
+                      class="seller-form__control"
+                      name="productType"
+                      [disabled]="isLoadingProductTypes() || productTypes().length === 0"
+                      [(ngModel)]="productForm.idTipoProducto"
+                    >
+                      <option [ngValue]="null">
+                        {{ isLoadingProductTypes() ? 'Cargando tipos...' : 'Selecciona un tipo' }}
+                      </option>
+                      @for (productType of productTypes(); track trackProductType($index, productType)) {
+                        <option [ngValue]="productType.idTipoProducto">
+                          {{ productType.nombre || 'Tipo sin nombre' }}
+                        </option>
+                      }
+                    </select>
+                    @if (productTypeErrorMessage()) {
+                      <small class="seller-form__hint seller-form__hint--error">
+                        {{ productTypeErrorMessage() }}
+                      </small>
+                    }
+                  </label>
 
-        @if (saved()) {
-          <p class="profile-form__success">
-            Perfil actualizado localmente. Listo para conectar a backend.
-          </p>
+                  <label class="seller-form__field">
+                    <span>Precio</span>
+                    <input
+                      class="seller-form__control"
+                      type="number"
+                      name="productPrice"
+                      min="0"
+                      step="0.1"
+                      [(ngModel)]="productForm.precio"
+                      placeholder="Ej. 89.9"
+                    />
+                  </label>
+
+                  <label class="seller-form__field">
+                    <span>Stock</span>
+                    <input
+                      class="seller-form__control"
+                      type="number"
+                      name="productStock"
+                      min="0"
+                      step="1"
+                      [(ngModel)]="productForm.stock"
+                      placeholder="Ej. 6"
+                    />
+                  </label>
+
+                  <label class="seller-form__checkbox">
+                    <input
+                      type="checkbox"
+                      name="productVisible"
+                      [(ngModel)]="productForm.visibleEnTienda"
+                    />
+                    <span>Visible en tienda</span>
+                  </label>
+
+                  <label class="seller-form__field seller-form__field--full">
+                    <span>Descripcion</span>
+                    <textarea
+                      class="seller-form__control seller-form__control--textarea"
+                      name="productDescription"
+                      maxlength="1000"
+                      [(ngModel)]="productForm.descripcion"
+                      placeholder="Describe materiales, personalizacion y condiciones relevantes."
+                    ></textarea>
+                  </label>
+                </div>
+
+                <div class="seller-action-row">
+                  <button
+                    class="seller-inline-action seller-inline-action--primary"
+                    type="submit"
+                    [disabled]="isSavingProduct()"
+                  >
+                    {{ isSavingProduct() ? 'Guardando...' : 'Guardar producto' }}
+                  </button>
+                  <button
+                    class="seller-inline-action seller-inline-action--ghost"
+                    type="button"
+                    [disabled]="isSavingProduct()"
+                    (click)="closeProductForm()"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            }
+
+            @if (isLoadingProducts()) {
+              <app-empty-state
+                icon="P"
+                title="Cargando productos"
+                text="Estamos consultando el catalogo de esta tienda."
+              />
+            } @else if (products().length === 0 && !isProductFormOpen()) {
+              <app-empty-state
+                icon="P"
+                title="No hay productos registrados"
+                text="Agrega productos listos para reservar y mantener tu catalogo actualizado."
+                actionLabel="Agregar producto"
+                (actionClick)="openCreateProductForm()"
+              />
+            } @else {
+              <div class="seller-product-list" aria-label="Productos de la tienda">
+                @for (product of products(); track trackProduct($index, product)) {
+                  <article class="seller-product-card">
+                    <span class="seller-status">
+                      {{ product.estado === false ? 'Inactivo' : 'Activo' }}
+                    </span>
+                    <div>
+                      <strong>{{ product.nombre || 'Producto sin nombre' }}</strong>
+                      <small>{{ product.tipoProducto || 'Tipo no registrado' }}</small>
+                    </div>
+                    <div class="seller-product-card__meta">
+                      <span>S/ {{ formatAmount(product.precio) }}</span>
+                      <span>Stock {{ product.stock }}</span>
+                      <span>{{ product.visibleEnTienda === false ? 'Oculto' : 'Visible' }}</span>
+                    </div>
+                    <div class="seller-product-card__actions">
+                      <button
+                        class="seller-inline-action seller-inline-action--ghost"
+                        type="button"
+                        (click)="openEditProductForm(product)"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        class="seller-inline-action seller-inline-action--danger"
+                        type="button"
+                        (click)="deactivateProduct(product)"
+                      >
+                        Desactivar
+                      </button>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        } @else {
+          <app-empty-state
+            icon="V"
+            title="No encontramos tu perfil vendedor"
+            text="Activa tu perfil para empezar a registrar tiendas y productos."
+            actionLabel="Activar perfil vendedor"
+            (actionClick)="createProfile()"
+          />
         }
-      </form>
+      </main>
 
       <aside class="seller-preview">
-        @if (seller(); as seller) {
-          <span class="seller-preview__eyebrow">{{ seller.category }}</span>
-          <h2 class="seller-preview__title">{{ seller.businessName }}</h2>
-          <p class="seller-preview__text">{{ seller.description }}</p>
+        @if (selectedStore(); as store) {
+          <span class="seller-preview__eyebrow">{{ storeReviewLabel(store.estadoRevision) }}</span>
+          <h2 class="seller-preview__title">{{ store.nombre || 'Tienda sin nombre' }}</h2>
+          <p class="seller-preview__text">{{ store.descripcion || 'Sin descripcion comercial.' }}</p>
 
           <div class="seller-preview__score">
-            <strong>{{ seller.rating }}</strong>
-            <span>{{ seller.reviews }} reseñas · reputación {{ seller.reputation }}%</span>
+            <strong>{{ products().length }}</strong>
+            <span>productos asociados a esta tienda</span>
           </div>
 
-          <div class="seller-preview__tags">
-            @for (style of seller.styles; track trackText($index, style)) {
-              <span>{{ style }}</span>
-            }
+          <div class="seller-preview__facts">
+            <div>
+              <span>Direccion</span>
+              <strong>{{ store.direccionReferencia || 'No registrada' }}</strong>
+            </div>
+            <div>
+              <span>Rubros</span>
+              <strong>{{ rubrosLabel(store) }}</strong>
+            </div>
+            <div>
+              <span>Formalizacion</span>
+              <strong>{{ store.tiendaFormalizada ? 'Formalizada' : 'Pendiente' }}</strong>
+            </div>
+            <div>
+              <span>Documento fiscal</span>
+              <strong>{{ store.numeroDocumentoFiscal || 'No registrado' }}</strong>
+            </div>
           </div>
+
+          <button class="seller-inline-action seller-inline-action--primary" type="button" (click)="openStoreForm(store)">
+            Editar tienda
+          </button>
+
+          @if (isEditingStore()) {
+            <form class="seller-form seller-form--compact" (ngSubmit)="saveStore()" novalidate>
+              <div class="seller-form__head">
+                <span class="profile-section__eyebrow">Datos publicos</span>
+                <p>Actualiza la informacion visible de esta tienda.</p>
+              </div>
+
+              <label class="seller-form__field">
+                <span>Nombre</span>
+                <input
+                  class="seller-form__control"
+                  type="text"
+                  name="storeName"
+                  maxlength="150"
+                  [(ngModel)]="storeForm.nombre"
+                />
+              </label>
+
+              <label class="seller-form__field">
+                <span>Direccion referencial</span>
+                <input
+                  class="seller-form__control"
+                  type="text"
+                  name="storeReference"
+                  maxlength="255"
+                  [(ngModel)]="storeForm.direccionReferencia"
+                />
+              </label>
+
+              <label class="seller-form__field">
+                <span>Descripcion</span>
+                <textarea
+                  class="seller-form__control seller-form__control--textarea"
+                  name="storeDescription"
+                  maxlength="1000"
+                  [(ngModel)]="storeForm.descripcion"
+                ></textarea>
+              </label>
+
+              <div class="seller-action-row">
+                <button
+                  class="seller-inline-action seller-inline-action--primary"
+                  type="submit"
+                  [disabled]="isSavingStore()"
+                >
+                  {{ isSavingStore() ? 'Guardando...' : 'Guardar tienda' }}
+                </button>
+                <button
+                  class="seller-inline-action seller-inline-action--ghost"
+                  type="button"
+                  [disabled]="isSavingStore()"
+                  (click)="closeStoreForm()"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          }
+
+          @if (storeRubros(store).length) {
+            <div class="seller-preview__tags">
+              @for (rubro of storeRubros(store); track trackRubro($index, rubro)) {
+                <span>{{ rubro.nombre }}</span>
+              }
+            </div>
+          }
+        } @else {
+          <app-empty-state
+            icon="T"
+            title="Selecciona una tienda"
+            text="El estado comercial y sus productos apareceran aqui."
+          />
         }
       </aside>
     </div>
-
-    <section class="seller-upload">
-      <!-- Formulario mock para publicar productos; luego se conectara a persistencia backend. -->
-      <form class="product-form" [formGroup]="productForm" (ngSubmit)="publishProduct()">
-        <div class="product-form__head">
-          <span class="product-form__eyebrow">Publicar producto</span>
-          <h2 class="product-form__title">Sube lo que quieres vender</h2>
-          <p class="product-form__text">
-            Registra nombre, precio, categoría, estado e imagen referencial para mostrarlo en tu
-            catálogo.
-          </p>
-        </div>
-
-        <div class="product-form__grid">
-          <label class="profile-field" for="productName">
-            <span class="profile-field__label">Nombre del producto</span>
-            <input
-              id="productName"
-              class="profile-field__control"
-              type="text"
-              formControlName="name"
-            />
-          </label>
-          @if (hasProductError('name')) {
-            <p class="profile-field__error">Ingresa un nombre de al menos 3 caracteres.</p>
-          }
-
-          <label class="profile-field" for="productCategory">
-            <span class="profile-field__label">Categoría</span>
-            <select id="productCategory" class="profile-field__control" formControlName="category">
-              <option>Cajas sorpresa</option>
-              <option>Arreglos florales</option>
-              <option>Repostería personalizada</option>
-              <option>Sublimados</option>
-              <option>Evento corporativo</option>
-            </select>
-          </label>
-
-          <label class="profile-field" for="productPrice">
-            <span class="profile-field__label">Precio desde</span>
-            <input
-              id="productPrice"
-              class="profile-field__control"
-              type="number"
-              min="1"
-              formControlName="price"
-            />
-          </label>
-          @if (hasProductError('price')) {
-            <p class="profile-field__error">El precio debe ser mayor a cero.</p>
-          }
-
-          <label class="profile-field" for="productStatus">
-            <span class="profile-field__label">Estado</span>
-            <select id="productStatus" class="profile-field__control" formControlName="status">
-              <option>Activo</option>
-              <option>Pausado</option>
-            </select>
-          </label>
-        </div>
-
-        <label class="profile-field" for="productImage">
-          <span class="profile-field__label">Imagen referencial</span>
-          <input
-            id="productImage"
-            class="profile-field__control"
-            type="file"
-            accept="image/*"
-            (change)="onImageSelected($event)"
-          />
-        </label>
-
-        <label class="profile-field" for="productDescription">
-          <span class="profile-field__label">Descripción comercial</span>
-          <textarea
-            id="productDescription"
-            class="profile-field__control"
-            rows="3"
-            formControlName="description"
-          ></textarea>
-        </label>
-        @if (hasProductError('description')) {
-          <p class="profile-field__error">Describe el producto con al menos 10 caracteres.</p>
-        }
-
-        @if (imagePreview()) {
-          <figure class="product-preview">
-            <img [src]="imagePreview()" alt="Vista previa del producto" />
-            <figcaption>{{ productForm.controls.imageName.value }}</figcaption>
-          </figure>
-        }
-
-        <div class="product-form__actions">
-          <button class="product-form__button" type="submit">
-            {{ editingProductId() ? 'Guardar producto' : 'Publicar producto' }}
-          </button>
-          @if (editingProductId()) {
-            <button
-              class="product-form__button product-form__button--ghost"
-              type="button"
-              (click)="resetProductForm()"
-            >
-              Cancelar edición
-            </button>
-          }
-        </div>
-
-        @if (productSaved()) {
-          <p class="profile-form__success">
-            Producto agregado localmente al catalogo del vendedor.
-          </p>
-        }
-      </form>
-    </section>
-
-    <section class="seller-catalog">
-      <!-- Catalogo local con acciones de editar/eliminar para validar el flujo del vendedor. -->
-      <div class="seller-catalog__head">
-        <span class="seller-catalog__eyebrow">Catálogo propio</span>
-        <h2 class="seller-catalog__title">Productos publicados</h2>
-      </div>
-
-      <div class="seller-catalog__grid">
-        @for (item of catalogItems(); track trackCatalog($index, item)) {
-          <article class="catalog-item">
-            <img class="catalog-item__image" [src]="item.imagePreview" [alt]="item.name" />
-            <span class="catalog-item__status">{{ item.status }}</span>
-            <strong>{{ item.name }}</strong>
-            <small>{{ item.category }} · Desde S/ {{ item.price }}</small>
-            <em>{{ item.imageName }}</em>
-            <div class="catalog-item__actions">
-              <button type="button" (click)="editProduct(item)">Editar</button>
-              <button type="button" (click)="deleteProduct(item)">Eliminar</button>
-            </div>
-          </article>
-        }
-      </div>
-    </section>
   </div>
 </section>
