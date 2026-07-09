@@ -40,8 +40,8 @@
             <span>productos</span>
           </div>
           <div>
-            <strong>{{ filteredSellers().length }}</strong>
-            <span>vendedores</span>
+            <strong>{{ filteredStores().length }}</strong>
+            <span>tiendas</span>
           </div>
         </div>
       </div>
@@ -236,41 +236,41 @@
         <section class="catalog-section catalog-section--sellers">
           <div class="catalog-toolbar catalog-toolbar--compact">
             <div class="catalog-toolbar__summary">
-              <span>Vendedores locales</span>
-              <h2>{{ filteredSellers().length }} perfiles compatibles</h2>
+              <span>Tiendas visibles</span>
+              <h2>{{ filteredStores().length }} perfiles comerciales publicados</h2>
             </div>
             <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
           </div>
 
           <div class="seller-grid">
-            @for (seller of filteredSellers(); track trackSeller($index, seller)) {
+            @for (store of filteredStores(); track trackStore($index, store)) {
               <article class="seller-card">
                 <div class="seller-card__head">
                   <span class="seller-card__badge">{{
-                    seller.featured ? 'Destacado' : 'Verificado'
+                    store.formalized ? 'Formalizada' : 'Visible'
                   }}</span>
-                  <span class="seller-card__rating">★ {{ seller.rating }}</span>
+                  <span class="seller-card__rating">{{ store.reviewStatus }}</span>
                 </div>
-                <span class="seller-card__category">{{ seller.category }}</span>
-                <h3 class="seller-card__title">{{ seller.businessName }}</h3>
-                <p class="seller-card__text">{{ seller.description }}</p>
+                <span class="seller-card__category">{{ store.categories[0] }}</span>
+                <h3 class="seller-card__title">{{ store.businessName }}</h3>
+                <p class="seller-card__text">{{ store.description }}</p>
 
                 <div class="seller-card__tags">
-                  @for (style of seller.styles; track trackText($index, style)) {
-                    <span>{{ style }}</span>
+                  @for (category of store.categories; track trackText($index, category)) {
+                    <span>{{ category }}</span>
                   }
                 </div>
 
                 <div class="seller-card__footer">
-                  <span>{{ seller.district }} · {{ seller.distanceKm }} km</span>
-                  <strong>S/ {{ seller.priceFrom }} - {{ seller.priceTo }}</strong>
+                  <span>{{ store.districtLabel }}</span>
+                  <strong>{{ store.formalized ? 'Documento fiscal registrado' : 'Pendiente de formalizacion' }}</strong>
                 </div>
               </article>
             } @empty {
               <div class="empty-state">
-                <h2 class="empty-state__title">No hay vendedores con esos filtros</h2>
+                <h2 class="empty-state__title">No hay tiendas con esos filtros</h2>
                 <p class="empty-state__text">
-                  Ajusta categoría, ocasión o presupuesto para mostrar nuevas opciones.
+                  Ajusta la búsqueda o la categoría para mostrar nuevas opciones publicadas.
                 </p>
               </div>
             }

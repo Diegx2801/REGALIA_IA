@@ -6,12 +6,13 @@ import { RouterLink } from '@angular/router';
 import { CartService } from '../../core/services/cart/cart.service';
 import { RegaliaService } from '../../core/services/data-access/regalia/regalia.service';
 import { RegaliaPublicCatalogApiService } from '../../core/services/data-access/regalia/services/regalia-public-catalog-api.service';
+import { MarketplaceStoreCard } from '../../core/services/data-access/regalia/models/public-store-api.model';
+import { RegaliaPublicStoreApiService } from '../../core/services/data-access/regalia/services/regalia-public-store-api.service';
 import {
   FixedPriceProduct,
   SellerFilter,
   RegaliaCategory,
   RegaliaOccasion,
-  RegaliaSeller,
 } from '../../shared/models/regalia.model';
 
 type CatalogSortOption = 'recommended' | 'priceAsc' | 'priceDesc' | 'ratingDesc';
@@ -28,6 +29,7 @@ export class CatalogComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly regaliaService = inject(RegaliaService);
   private readonly publicCatalogApiService = inject(RegaliaPublicCatalogApiService);
+  private readonly publicStoreApiService = inject(RegaliaPublicStoreApiService);
   private readonly cartService = inject(CartService);
 
   readonly categories: Array<RegaliaCategory | 'Todas'> = [
@@ -38,7 +40,7 @@ export class CatalogComponent implements OnInit {
     'Todas',
     ...this.regaliaService.getOccasions(),
   ];
-  readonly sellers = signal(this.regaliaService.getSellers());
+  readonly stores = signal<MarketplaceStoreCard[]>([]);
   readonly products = signal<FixedPriceProduct[]>([]);
   readonly catalogLoadState = signal<CatalogLoadState>('loading');
   readonly addedProductId = signal<number | null>(null);
@@ -69,8 +71,11 @@ export class CatalogComponent implements OnInit {
   readonly filteredProducts = computed(() =>
     this.regaliaService.filterFixedPriceProducts(this.currentFilters(), this.products()),
   );
-  readonly filteredSellers = computed(() =>
-    this.regaliaService.filterSellers(this.currentFilters()),
+  readonly filteredStores = computed(() =>
+    this.publicStoreApiService.filterStores(this.stores(), {
+      search: this.currentFilters().search,
+      category: this.currentFilters().category,
+    }),
   );
   readonly sortedProducts = computed(() => {
     this.sortVersion();
@@ -106,6 +111,14 @@ export class CatalogComponent implements OnInit {
           this.catalogLoadState.set('fallback');
         },
       });
+
+    this.publicStoreApiService
+      .getPublicStores()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stores) => this.stores.set(stores),
+        error: () => this.stores.set([]),
+      });
   }
 
   applyCategory(category: RegaliaCategory | 'Todas'): void {
@@ -138,8 +151,8 @@ export class CatalogComponent implements OnInit {
     this.sortVersion.update((value) => value + 1);
   }
 
-  trackSeller(_: number, seller: RegaliaSeller): number {
-    return seller.id;
+  trackStore(_: number, store: MarketplaceStoreCard): number {
+    return store.id;
   }
 
   trackProduct(_: number, product: FixedPriceProduct): number {

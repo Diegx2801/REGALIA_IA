@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { RegaliaService } from '../../../../core/services/data-access/regalia/regalia.service';
+import { RegaliaPricingService } from '../../../../core/services/data-access/regalia/services/regalia-pricing.service';
 import {
   FixedPriceProduct,
   RegaliaCategory,
@@ -20,7 +20,7 @@ export class BuilderFlowService {
   private static readonly OCASION_BASE: RegaliaOccasion = 'Cumpleaños';
   private static readonly ESTILO_BASE = 'personalizado';
 
-  private readonly regaliaService = inject(RegaliaService);
+  private readonly pricingService = inject(RegaliaPricingService);
   private readonly builderApiService = inject(BuilderApiService);
 
   /**
@@ -56,7 +56,7 @@ export class BuilderFlowService {
     index: number,
   ): RecomendacionProductoConstructor {
     const producto = this.toProductoConstructor(productoBackend);
-    const reserva = this.regaliaService.calculateReservationBreakdown(producto.price);
+    const reserva = this.pricingService.calculateReservationBreakdown(producto.price);
 
     return {
       producto,
