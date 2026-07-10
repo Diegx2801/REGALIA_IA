@@ -11,12 +11,12 @@
         <span class="catalog-hero__eyebrow">Marketplace local</span>
         <h1 class="catalog-hero__title">Regalos listos para reservar con vendedores verificados.</h1>
         <p class="catalog-hero__text">
-          Explora productos personalizados, compara estilos y agrega opciones al carrito antes de
-          coordinar tu solicitud.
+          Explora productos reales del backend, compara estilos y agrega opciones al carrito antes
+          de coordinar tu solicitud.
         </p>
 
         <label class="catalog-search" aria-label="Buscar regalos en catalogo">
-          <span class="catalog-search__icon" aria-hidden="true">⌕</span>
+          <span class="catalog-search__icon" aria-hidden="true">&#8981;</span>
           <input
             class="catalog-search__control"
             type="search"
@@ -30,8 +30,8 @@
 
       <aside class="catalog-hero__visual" aria-label="Resumen comercial del catalogo">
         <div class="catalog-hero__visual-card">
-          <span>Curaduria REGALIA</span>
-          <strong>Productos con entrega local y personalizacion clara.</strong>
+          <span>Catalogo REGALIA</span>
+          <strong>Productos sincronizados con la API REST.</strong>
         </div>
         <div class="catalog-hero__summary">
           <div>
@@ -99,20 +99,6 @@
           </select>
         </label>
 
-        <label class="filter-field" for="occasion">
-          <span class="filter-field__label">Ocasion</span>
-          <select
-            id="occasion"
-            class="filter-field__control"
-            [ngModel]="ocasionSeleccionada()"
-            (ngModelChange)="actualizarOcasion($event)"
-          >
-            @for (ocasion of ocasiones; track ocasion) {
-              <option [value]="ocasion">{{ ocasion }}</option>
-            }
-          </select>
-        </label>
-
         <label class="filter-field" for="maxPrice">
           <span class="filter-field__label">
             Precio maximo
@@ -158,7 +144,6 @@
                 <option value="recommended">Recomendados</option>
                 <option value="priceAsc">Menor precio</option>
                 <option value="priceDesc">Mayor precio</option>
-                <option value="ratingDesc">Mejor valorados</option>
               </select>
             </label>
           </div>
@@ -166,9 +151,6 @@
           <div class="active-filters" aria-label="Filtros activos">
             @if (tipoSeleccionado() !== 'Todas') {
               <span class="active-filters__chip">{{ tipoSeleccionado() }}</span>
-            }
-            @if (ocasionSeleccionada() !== 'Todas') {
-              <span class="active-filters__chip">{{ ocasionSeleccionada() }}</span>
             }
             <span class="active-filters__chip">Hasta S/ {{ precioMaximo() }}</span>
             @if (soloDisponibles()) {
@@ -187,9 +169,9 @@
               }
             </div>
           } @else {
-            @if (usandoProductosReferencia() && mensajeError()) {
-              <div class="catalog-status catalog-status--warning" role="status">
-                {{ mensajeError() }}
+            @if (mensajeErrorProductos()) {
+              <div class="catalog-status catalog-status--warning" role="alert">
+                {{ mensajeErrorProductos() }}
               </div>
             }
 
@@ -197,7 +179,7 @@
               <div class="empty-state">
                 <span>Sin resultados</span>
                 <h2>No encontramos regalos con esos filtros.</h2>
-                <p>Prueba con otra busqueda o limpia los filtros para ver todo el catalogo.</p>
+                <p>Prueba con otra busqueda o limpia los filtros para ver todo el catalogo real.</p>
                 <button class="catalog-search__action" type="button" (click)="limpiarFiltros()">
                   Ver todo
                 </button>
@@ -205,50 +187,7 @@
             } @else {
               <div class="product-grid">
                 @for (producto of productosFiltrados(); track identificarProducto($index, producto)) {
-                  <article class="product-card">
-                    <a
-                      class="product-card__media"
-                      [routerLink]="['/catalogo', producto.idProducto]"
-                      [attr.aria-label]="'Ver detalle de ' + producto.nombre"
-                      [style.background-image]="'url(' + obtenerImagenProducto(producto) + ')'"
-                    >
-                      <span class="product-card__badge">{{ obtenerBadgeProducto($index, producto) }}</span>
-                    </a>
-
-                    <div class="product-card__body">
-                      <div class="product-card__topline">
-                        <span class="product-card__category">{{ producto.tipoProducto }}</span>
-                        <span class="product-card__rating">&starf; 4.8</span>
-                      </div>
-
-                      <h3 class="product-card__title">
-                        <a [routerLink]="['/catalogo', producto.idProducto]">{{ producto.nombre }}</a>
-                      </h3>
-                      <p class="product-card__description">{{ producto.descripcion }}</p>
-
-                      <div class="product-card__meta">
-                        <span>{{ producto.nombreTienda }}</span>
-                        <span>Entrega desde 24 horas</span>
-                      </div>
-
-                      <div class="product-card__footer">
-                        <div class="product-card__price">
-                          <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</strong>
-                          @if (obtenerPrecioAnterior(producto); as precioAnterior) {
-                            <small>{{ precioAnterior | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</small>
-                          }
-                        </div>
-                        <button
-                          class="product-card__button"
-                          type="button"
-                          [disabled]="!producto.disponible"
-                          (click)="agregarAlCarrito(producto)"
-                        >
-                          Agregar
-                        </button>
-                      </div>
-                    </div>
-                  </article>
+                  <app-tarjeta-producto [producto]="producto" (agregar)="agregarAlCarrito($event)" />
                 }
               </div>
             }
@@ -259,33 +198,58 @@
           <div class="catalog-toolbar catalog-toolbar--compact">
             <div class="catalog-toolbar__summary">
               <span>Vendedores locales</span>
-              <h2>{{ vendedores.length }} perfiles compatibles</h2>
+              <h2>{{ tiendas().length }} tiendas publicas</h2>
             </div>
             <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
           </div>
 
-          <div class="seller-grid">
-            @for (vendedor of vendedores; track vendedor.nombre) {
-              <article class="seller-card">
-                <div class="seller-card__head">
-                  <span class="seller-card__badge">{{ vendedor.etiqueta }}</span>
-                  <span class="seller-card__rating">&starf; {{ vendedor.calificacion }}</span>
-                </div>
-                <span class="seller-card__category">{{ vendedor.categoria }}</span>
-                <h3 class="seller-card__title">{{ vendedor.nombre }}</h3>
-                <p class="seller-card__text">{{ vendedor.descripcion }}</p>
-                <div class="seller-card__tags">
-                  @for (tag of vendedor.tags; track tag) {
-                    <span>{{ tag }}</span>
-                  }
-                </div>
-                <div class="seller-card__footer">
-                  <span>{{ vendedor.ubicacion }}</span>
-                  <strong>{{ vendedor.rangoPrecio }}</strong>
-                </div>
-              </article>
-            }
-          </div>
+          @if (cargandoTiendas()) {
+            <div class="seller-grid">
+              @for (item of [1, 2, 3, 4]; track item) {
+                <article class="seller-card seller-card--skeleton">
+                  <span></span>
+                  <div></div>
+                  <div></div>
+                </article>
+              }
+            </div>
+          } @else if (mensajeErrorTiendas()) {
+            <div class="catalog-status catalog-status--warning" role="alert">
+              {{ mensajeErrorTiendas() }}
+            </div>
+          } @else if (tiendas().length === 0) {
+            <div class="empty-state">
+              <span>Sin tiendas</span>
+              <h2>No hay tiendas publicas disponibles.</h2>
+              <p>Cuando el backend publique tiendas aprobadas, apareceran en esta seccion.</p>
+            </div>
+          } @else {
+            <div class="seller-grid">
+              @for (tienda of tiendas(); track identificarTienda($index, tienda)) {
+                <article class="seller-card">
+                  <div class="seller-card__head">
+                    <span class="seller-card__badge">
+                      {{ tienda.tiendaFormalizada ? 'Formalizada' : tienda.estadoRevision }}
+                    </span>
+                  </div>
+                  <span class="seller-card__category">
+                    {{ tienda.rubros[0]?.nombre ?? 'Tienda REGALIA' }}
+                  </span>
+                  <h3 class="seller-card__title">{{ tienda.nombre }}</h3>
+                  <p class="seller-card__text">{{ tienda.descripcion }}</p>
+                  <div class="seller-card__tags">
+                    @for (rubro of tienda.rubros; track rubro.idRubro) {
+                      <span>{{ rubro.nombre }}</span>
+                    }
+                  </div>
+                  <div class="seller-card__footer">
+                    <span>{{ tienda.direccionReferencia }}</span>
+                    <strong>{{ tienda.estadoRevision }}</strong>
+                  </div>
+                </article>
+              }
+            </div>
+          }
         </section>
       </main>
     </div>

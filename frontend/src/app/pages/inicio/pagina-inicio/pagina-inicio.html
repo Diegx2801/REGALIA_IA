@@ -117,27 +117,45 @@
       <span class="eyebrow eyebrow--dark">Destacados para ti</span>
       <h2>Ideas listas para convertir una ocasion en reserva.</h2>
 
-      <div class="featured-products">
-        @for (producto of productosDestacados; track producto.titulo) {
-          <article class="featured-product">
-            <img
-              [src]="producto.imagen"
-              [alt]="producto.titulo"
-              [style.object-position]="producto.posicionImagen"
-            />
-            <div class="featured-product__body">
-              <h3>{{ producto.titulo }}</h3>
-              <p>{{ producto.vendedor }}</p>
-              <strong>{{ producto.precio }}</strong>
-              <div class="featured-product__meta">
-                <span>&starf; {{ producto.calificacion }}</span>
-                <mark>&check; Verificado</mark>
+      @if (cargandoProductosDestacados()) {
+        <div class="featured-products">
+          @for (item of [1, 2, 3, 4]; track item) {
+            <article class="featured-product featured-product--skeleton">
+              <span></span>
+              <div></div>
+              <div></div>
+            </article>
+          }
+        </div>
+      } @else if (mensajeErrorProductosDestacados()) {
+        <div class="landing-empty-state">
+          <strong>{{ mensajeErrorProductosDestacados() }}</strong>
+          <a routerLink="/catalogo">Ir al catalogo</a>
+        </div>
+      } @else if (productosDestacados().length === 0) {
+        <div class="landing-empty-state">
+          <strong>No hay productos destacados disponibles.</strong>
+          <a routerLink="/catalogo">Explorar catalogo</a>
+        </div>
+      } @else {
+        <div class="featured-products">
+          @for (producto of productosDestacados(); track identificarProducto($index, producto)) {
+            <article class="featured-product">
+              <img [src]="obtenerImagenProducto(producto)" [alt]="producto.nombre" />
+              <div class="featured-product__body">
+                <h3>{{ producto.nombre }}</h3>
+                <p>{{ producto.nombreTienda }}</p>
+                <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+                <div class="featured-product__meta">
+                  <span>{{ producto.tipoProducto }}</span>
+                  <mark>{{ producto.disponible ? 'Disponible' : 'Agotado' }}</mark>
+                </div>
+                <a routerLink="/catalogo" [queryParams]="{ busqueda: producto.nombre }">Reservar con se&ntilde;a</a>
               </div>
-              <a routerLink="/catalogo" [queryParams]="{ busqueda: producto.titulo }">Reservar con se&ntilde;a</a>
-            </div>
-          </article>
-        }
-      </div>
+            </article>
+          }
+        </div>
+      }
     </div>
 
     <aside class="landing-section__aside" aria-label="Confianza y campanas">

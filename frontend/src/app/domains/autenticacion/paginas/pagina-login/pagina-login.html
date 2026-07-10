@@ -139,6 +139,10 @@
               <p class="auth-message" role="alert">{{ mensajeError() }}</p>
             }
 
+            @if (mensajeRegistro()) {
+              <p class="auth-message auth-message--success" role="status">{{ mensajeRegistro() }}</p>
+            }
+
             <button class="auth-submit" type="submit" [disabled]="estaEnviando()">
               @if (estaEnviando()) {
                 <span class="auth-submit__spinner" aria-hidden="true"></span>
@@ -257,7 +261,14 @@
               <p class="auth-message auth-message--success" role="status">{{ mensajeRegistro() }}</p>
             }
 
-            <button class="auth-submit" type="submit">Crear mi cuenta</button>
+            <button class="auth-submit" type="submit" [disabled]="estaEnviando()">
+              @if (estaEnviando()) {
+                <span class="auth-submit__spinner" aria-hidden="true"></span>
+                Creando cuenta...
+              } @else {
+                Crear mi cuenta
+              }
+            </button>
 
             <a class="auth-seller-link" routerLink="/login" [queryParams]="{ origen: 'vendedor' }">
               <span aria-hidden="true">&#10022;</span>

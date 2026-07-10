@@ -1,6 +1,11 @@
+import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
+import { CarritoCheckoutService } from '../../../core/carrito/carrito-checkout.service';
+import { Producto } from '../../../domains/catalogo/modelos/producto.model';
+import { BuilderIaApiService } from '../acceso-datos/builder-ia-api.service';
 
 interface PasoBuilder {
   readonly numero: number;
@@ -8,105 +13,37 @@ interface PasoBuilder {
   readonly descripcion: string;
 }
 
-interface SugerenciaRapida {
-  readonly etiqueta: string;
-  readonly imagen: string;
-  readonly texto: string;
-}
-
-interface RecomendacionRegalo {
-  readonly titulo: string;
-  readonly vendedor: string;
-  readonly descripcion: string;
-  readonly precio: string;
-  readonly compatibilidad: string;
-  readonly etiquetas: readonly string[];
-}
-
 @Component({
   selector: 'app-pagina-pedir-con-ia',
-  imports: [ReactiveFormsModule],
+  imports: [CurrencyPipe, ReactiveFormsModule],
   templateUrl: './pagina-pedir-con-ia.html',
   styleUrl: './pagina-pedir-con-ia.css',
 })
 export class PaginaPedirConIa {
+  private readonly builderIaApi = inject(BuilderIaApiService);
+  private readonly carritoCheckout = inject(CarritoCheckoutService);
   private readonly router = inject(Router);
 
   readonly pasoActual = signal(1);
-  readonly solicitudConfirmada = signal(false);
+  readonly cargandoRecomendaciones = signal(false);
+  readonly mensajeError = signal<string | null>(null);
+  readonly mensajeExito = signal<string | null>(null);
+  readonly respuestaIa = signal<string | null>(null);
+  readonly productosRecomendados = signal<Producto[]>([]);
+  readonly productoSeleccionado = signal<Producto | null>(null);
 
   readonly formulario = new FormGroup({
-    necesidad: new FormControl('Necesito una torta elegante para graduacion.', {
+    necesidad: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(200)],
+      validators: [Validators.required, Validators.maxLength(800)],
     }),
   });
 
   readonly pasos: readonly PasoBuilder[] = [
     { numero: 1, titulo: 'Necesidad', descripcion: 'Cuentanos que buscas' },
-    { numero: 2, titulo: 'Interpretacion IA', descripcion: 'Entendemos tu solicitud' },
-    { numero: 3, titulo: 'Recomendaciones', descripcion: 'Productos ideales para ti' },
-    { numero: 4, titulo: 'Reserva', descripcion: 'Confirmas y coordinamos' },
-  ];
-
-  readonly sugerencias: readonly SugerenciaRapida[] = [
-    {
-      etiqueta: 'Cumpleanos',
-      imagen: '/assets/brand/iconos/cumpleanos-1.png',
-      texto: 'Quiero un regalo personalizado para cumpleanos con flores, torta y entrega en mi distrito.',
-    },
-    {
-      etiqueta: 'Aniversario',
-      imagen: '/assets/brand/iconos/aniversario.png',
-      texto: 'Busco un detalle romantico para aniversario, elegante, personalizado y con presentacion premium.',
-    },
-    {
-      etiqueta: 'Graduacion',
-      imagen: '/assets/brand/iconos/graduacion.png',
-      texto: 'Necesito una torta elegante para graduacion con flores y mensaje personalizado.',
-    },
-    {
-      etiqueta: 'Flores',
-      imagen: '/assets/brand/iconos/flores.png',
-      texto: 'Quiero un arreglo floral delicado, con tarjeta personalizada y entrega segura.',
-    },
-    {
-      etiqueta: 'Box personalizado',
-      imagen: '/assets/brand/iconos/box-personalizado.png',
-      texto: 'Busco un box personalizado con dulces, flores, carta y estilo premium.',
-    },
-    {
-      etiqueta: 'Torta',
-      imagen: '/assets/brand/iconos/torta-2.png',
-      texto: 'Necesito una torta personalizada con decoracion elegante y entrega puntual.',
-    },
-  ];
-
-  readonly recomendaciones: readonly RecomendacionRegalo[] = [
-    {
-      titulo: 'Box celebracion premium',
-      vendedor: 'Dulce Detalle',
-      descripcion: 'Torta mini, flores y tarjeta personalizada para entrega coordinada.',
-      precio: 'S/ 129',
-      compatibilidad: '96%',
-      etiquetas: ['Premium', 'Entrega local', 'Personalizable'],
-    },
-    {
-      titulo: 'Arreglo floral con detalle dulce',
-      vendedor: 'Floralia Studio',
-      descripcion: 'Ramo curado, chocolates artesanales y empaque elegante.',
-      precio: 'S/ 99',
-      compatibilidad: '92%',
-      etiquetas: ['Flores', 'Verificado', 'Reserva con sena'],
-    },
-    {
-      titulo: 'Torta tematica personalizada',
-      vendedor: 'Momentos Deco',
-      descripcion: 'Torta a medida con mensaje, color y decoracion segun ocasion.',
-      precio: 'S/ 115',
-      compatibilidad: '89%',
-      etiquetas: ['Torta', 'Graduacion', 'Hecho a pedido'],
-    },
+    { numero: 2, titulo: 'Interpretacion IA', descripcion: 'Respuesta del backend' },
+    { numero: 3, titulo: 'Recomendaciones', descripcion: 'Productos reales' },
+    { numero: 4, titulo: 'Reserva', descripcion: 'Confirmas tu eleccion' },
   ];
 
   readonly caracteresUsados = computed(() => this.formulario.controls.necesidad.value.length);
@@ -116,19 +53,22 @@ export class PaginaPedirConIa {
   });
   readonly pasoActivo = computed(() => this.pasos.find((paso) => paso.numero === this.pasoActual()));
 
-  aplicarSugerencia(sugerencia: SugerenciaRapida): void {
-    this.formulario.controls.necesidad.setValue(sugerencia.texto);
-    this.formulario.controls.necesidad.markAsDirty();
-  }
-
   irAPaso(numeroPaso: number): void {
     if (numeroPaso > this.pasoActual()) return;
     this.pasoActual.set(numeroPaso);
   }
 
   continuar(): void {
-    if (this.pasoActual() === 1 && this.formulario.invalid) {
-      this.formulario.markAllAsTouched();
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    if (this.pasoActual() === 1) {
+      this.solicitarRecomendaciones();
+      return;
+    }
+
+    if (this.pasoActual() === 3 && !this.productoSeleccionado()) {
+      this.mensajeError.set('Selecciona un producto recomendado antes de preparar la reserva.');
       return;
     }
 
@@ -136,8 +76,15 @@ export class PaginaPedirConIa {
   }
 
   volver(): void {
-    this.solicitudConfirmada.set(false);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
     this.pasoActual.update((paso) => Math.max(paso - 1, 1));
+  }
+
+  seleccionarProducto(producto: Producto): void {
+    if (!producto.disponible) return;
+    this.productoSeleccionado.set(producto);
+    this.mensajeError.set(null);
   }
 
   buscarEnCatalogo(): void {
@@ -147,7 +94,55 @@ export class PaginaPedirConIa {
   }
 
   confirmarSolicitud(): void {
-    // Flujo frontend: la confirmacion real se conectara al backend cuando exista el endpoint IA.
-    this.solicitudConfirmada.set(true);
+    const producto = this.productoSeleccionado();
+    if (!producto) {
+      this.mensajeError.set('Selecciona un producto real antes de continuar.');
+      return;
+    }
+
+    this.carritoCheckout.agregarProducto(producto);
+    this.mensajeExito.set('Producto agregado al carrito. Puedes continuar con el checkout real.');
+  }
+
+  irAlCarrito(): void {
+    void this.router.navigateByUrl('/carrito');
+  }
+
+  identificarProducto(_indice: number, producto: Producto): number {
+    return producto.idProducto;
+  }
+
+  private solicitarRecomendaciones(): void {
+    if (this.formulario.invalid) {
+      this.formulario.markAllAsTouched();
+      return;
+    }
+
+    this.cargandoRecomendaciones.set(true);
+    this.respuestaIa.set(null);
+    this.productosRecomendados.set([]);
+    this.productoSeleccionado.set(null);
+
+    this.builderIaApi
+      .recomendarProductos({ busqueda: this.formulario.controls.necesidad.value })
+      .pipe(finalize(() => this.cargandoRecomendaciones.set(false)))
+      .subscribe({
+        next: (resultado) => {
+          this.respuestaIa.set(resultado.respuesta);
+          this.productosRecomendados.set(resultado.productosRecomendados);
+          this.pasoActual.set(2);
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorIa(error)),
+      });
+  }
+
+  private obtenerMensajeErrorIa(error: unknown): string {
+    const mensaje = error instanceof Error ? error.message : '';
+
+    if (mensaje.includes('Http failure response') || mensaje.includes('Unknown Error')) {
+      return 'No pudimos conectar con el servicio IA del backend.';
+    }
+
+    return mensaje || 'No se pudo generar recomendaciones.';
   }
 }

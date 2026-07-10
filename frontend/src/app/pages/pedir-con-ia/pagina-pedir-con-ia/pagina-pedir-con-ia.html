@@ -6,7 +6,7 @@
         <div>
           <h1 class="builder-hero__title">Describe tu regalo ideal</h1>
           <p class="builder-hero__text">
-            Cuentanos que necesitas y REGALIA entendera tu solicitud paso a paso.
+            REGALIA consulta el backend IA y devuelve productos reales del marketplace.
           </p>
         </div>
         <div class="builder-hero__badge" aria-hidden="true">Asistente REGALIA</div>
@@ -38,6 +38,10 @@
       }
     </nav>
 
+    @if (mensajeError()) {
+      <div class="builder-status builder-status--error" role="alert">{{ mensajeError() }}</div>
+    }
+
     <div class="builder-shell">
       @if (pasoActual() === 1) {
         <section class="builder-phase builder-phase--need" aria-labelledby="need-title">
@@ -49,22 +53,22 @@
                   Asistente de busqueda inteligente
                 </h2>
                 <p class="builder-card__text">
-                  Describe el regalo que tienes en mente. Mientras mas detalles agregues,
-                  mejores seran las recomendaciones.
+                  Describe la ocasion, presupuesto, estilo y cualquier detalle importante. Esta
+                  informacion se envia al endpoint IA del backend.
                 </p>
               </div>
-              <span class="builder-card__pill">Solo tomara un minuto</span>
+              <span class="builder-card__pill">API REST</span>
             </div>
 
             <label for="need" class="builder-field builder-field--textarea">
               <span class="builder-field__top">
                 <strong>&iquest;Que regalo tienes en mente?</strong>
-                <small>{{ caracteresUsados() }}/200</small>
+                <small>{{ caracteresUsados() }}/800</small>
               </span>
               <textarea
                 id="need"
                 rows="6"
-                maxlength="200"
+                maxlength="800"
                 formControlName="necesidad"
                 class="builder-field__control"
                 placeholder="Ejemplo: Quiero un regalo elegante para graduacion, con una torta personalizada y flores."
@@ -75,20 +79,17 @@
               <p class="builder-field__error">Describe tu necesidad para continuar.</p>
             }
 
-            <div class="builder-suggestions" aria-label="Sugerencias rapidas">
-              <span class="builder-suggestions__label">Sugerencias rapidas</span>
-              <div class="builder-suggestions__list">
-                @for (sugerencia of sugerencias; track sugerencia.etiqueta) {
-                  <button type="button" class="builder-chip" (click)="aplicarSugerencia(sugerencia)">
-                    <img [src]="sugerencia.imagen" [alt]="sugerencia.etiqueta" />
-                    {{ sugerencia.etiqueta }}
-                  </button>
-                }
-              </div>
-            </div>
-
-            <button type="button" class="builder-primary-action" (click)="continuar()">
-              Continuar a interpretacion IA <span aria-hidden="true">-&gt;</span>
+            <button
+              type="button"
+              class="builder-primary-action"
+              [disabled]="cargandoRecomendaciones()"
+              (click)="continuar()"
+            >
+              @if (cargandoRecomendaciones()) {
+                Consultando IA...
+              } @else {
+                Consultar recomendaciones <span aria-hidden="true">-&gt;</span>
+              }
             </button>
           </form>
 
@@ -109,7 +110,8 @@
               <img src="/assets/brand/ilustraciones/hero-regalia-home.png" alt="Regalo REGALIA" />
             </div>
             <p class="builder-preview__safe">
-              Tu informacion se usa solo para encontrar recomendaciones compatibles.
+              El frontend no inventa recomendaciones; si el backend no devuelve productos, se
+              mostrara un estado vacio.
             </p>
           </aside>
         </section>
@@ -122,34 +124,24 @@
               <span class="builder-card__eyebrow">Fase 2 de 4</span>
               <h2 id="interpretacion-title" class="builder-card__title">Interpretacion IA</h2>
               <p class="builder-card__text">
-                REGALIA organiza tu solicitud en criterios claros para recomendar opciones.
+                Respuesta generada por el servicio IA del backend para tu solicitud.
               </p>
             </div>
-            <span class="builder-card__pill builder-card__pill--success">Solicitud entendida</span>
+            <span class="builder-card__pill builder-card__pill--success">Backend conectado</span>
           </div>
 
-          <div class="builder-interpretation-grid">
+          <div class="builder-interpretation-grid builder-interpretation-grid--single">
             <article>
-              <span>Ocasion detectada</span>
-              <strong>Celebracion especial</strong>
-              <p>Se priorizan detalles personalizables, presentacion premium y entrega coordinada.</p>
-            </article>
-            <article>
-              <span>Estilo</span>
-              <strong>Elegante y memorable</strong>
-              <p>La busqueda favorece flores, tortas, box curados y mensajes personalizados.</p>
-            </article>
-            <article>
-              <span>Solicitud original</span>
-              <strong>{{ descripcionActual() }}</strong>
-              <p>Este resumen sera usado para filtrar vendedores compatibles.</p>
+              <span>Respuesta IA</span>
+              <strong>{{ respuestaIa() }}</strong>
+              <p>Solicitud original: {{ descripcionActual() }}</p>
             </article>
           </div>
 
           <div class="builder-phase-actions">
             <button type="button" class="builder-secondary-action" (click)="volver()">Volver</button>
             <button type="button" class="builder-primary-action" (click)="continuar()">
-              Ver recomendaciones <span aria-hidden="true">-&gt;</span>
+              Ver productos reales <span aria-hidden="true">-&gt;</span>
             </button>
           </div>
         </section>
@@ -163,57 +155,77 @@
                 <span class="builder-card__eyebrow">Fase 3 de 4</span>
                 <h2 id="recommendations-title" class="builder-card__title">Recomendaciones para ti</h2>
                 <p class="builder-card__text">
-                  Opciones simuladas para validar experiencia. Luego se conectaran al servicio real.
+                  Productos devueltos por el backend IA. Selecciona uno para enviarlo al carrito.
                 </p>
               </div>
             </div>
 
-            <div class="builder-recommendations">
-              @for (recomendacion of recomendaciones; track recomendacion.titulo) {
-                <article class="builder-recommendation-card">
-                  <div class="builder-recommendation-card__image">
-                    <img src="/assets/brand/ilustraciones/hero-regalia-home.png" [alt]="recomendacion.titulo" />
-                  </div>
-                  <div>
-                    <h3>{{ recomendacion.titulo }}</h3>
-                    <p>{{ recomendacion.descripcion }}</p>
-                    <div class="builder-recommendation-card__tags">
-                      @for (etiqueta of recomendacion.etiquetas; track etiqueta) {
-                        <span>{{ etiqueta }}</span>
-                      }
+            @if (productosRecomendados().length === 0) {
+              <div class="builder-empty-state">
+                <span>Sin productos</span>
+                <h3>El backend IA no devolvio productos recomendados.</h3>
+                <p>Puedes buscar manualmente en el catalogo usando la misma descripcion.</p>
+                <button type="button" class="builder-secondary-action" (click)="buscarEnCatalogo()">
+                  Buscar en catalogo
+                </button>
+              </div>
+            } @else {
+              <div class="builder-recommendations">
+                @for (producto of productosRecomendados(); track identificarProducto($index, producto)) {
+                  <article
+                    class="builder-recommendation-card"
+                    [class.builder-recommendation-card--selected]="productoSeleccionado()?.idProducto === producto.idProducto"
+                  >
+                    <div class="builder-recommendation-card__image">
+                      <img [src]="producto.imagenes[0].urlImagen" [alt]="producto.nombre" />
                     </div>
-                  </div>
-                  <div class="builder-recommendation-card__meta">
-                    <small>{{ recomendacion.compatibilidad }} compatible</small>
-                    <strong>{{ recomendacion.precio }}</strong>
-                  </div>
-                  <span class="builder-recommendation-card__arrow" aria-hidden="true">-&gt;</span>
-                </article>
-              }
-            </div>
+                    <div>
+                      <h3>{{ producto.nombre }}</h3>
+                      <p>{{ producto.descripcion }}</p>
+                      <div class="builder-recommendation-card__tags">
+                        <span>{{ producto.tipoProducto }}</span>
+                        <span>{{ producto.nombreTienda }}</span>
+                      </div>
+                    </div>
+                    <div class="builder-recommendation-card__meta">
+                      <small>{{ producto.disponible ? 'Disponible' : 'Agotado' }}</small>
+                      <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+                    </div>
+                    <button
+                      type="button"
+                      class="builder-recommendation-card__select"
+                      [disabled]="!producto.disponible"
+                      (click)="seleccionarProducto(producto)"
+                    >
+                      Seleccionar
+                    </button>
+                  </article>
+                }
+              </div>
+            }
 
             <div class="builder-phase-actions">
               <button type="button" class="builder-secondary-action" (click)="volver()">Volver</button>
-              <button type="button" class="builder-primary-action" (click)="continuar()">
+              <button
+                type="button"
+                class="builder-primary-action"
+                [disabled]="productosRecomendados().length === 0 || !productoSeleccionado()"
+                (click)="continuar()"
+              >
                 Preparar reserva <span aria-hidden="true">-&gt;</span>
               </button>
             </div>
           </div>
 
           <aside class="builder-card builder-seller-summary">
-            <h2 class="builder-seller-summary__title">Vendedores compatibles</h2>
+            <h2 class="builder-seller-summary__title">Criterio de integracion</h2>
             <p class="builder-seller-summary__text">
-              La experiencia prioriza reputacion, disponibilidad, cercania y estilo antes de mostrar resultados.
+              Esta pantalla solo muestra productos que llegan desde el backend. La reserva real
+              continua por carrito y checkout para reutilizar el flujo existente.
             </p>
-            <div class="builder-seller-facts">
-              <span>Perfiles verificados</span>
-              <span>Reserva con sena</span>
-              <span>Precios referenciales</span>
-            </div>
             <div class="builder-mini-reservation">
-              <div><span>Coincidencias</span><strong>3</strong></div>
-              <div><span>Rango estimado</span><strong>S/ 99 - S/ 129</strong></div>
-              <div><span>Tiempo</span><strong>24 - 48 h</strong></div>
+              <div><span>Productos IA</span><strong>{{ productosRecomendados().length }}</strong></div>
+              <div><span>Seleccion</span><strong>{{ productoSeleccionado()?.nombre ?? 'Pendiente' }}</strong></div>
             </div>
           </aside>
         </section>
@@ -224,45 +236,49 @@
           <div class="builder-card__header">
             <div>
               <span class="builder-card__eyebrow">Fase 4 de 4</span>
-              <h2 id="reservation-title" class="builder-card__title">Confirma tu solicitud</h2>
+              <h2 id="reservation-title" class="builder-card__title">Confirma tu seleccion</h2>
               <p class="builder-card__text">
-                Revisa el resumen antes de continuar al catalogo o registrar una reserva real.
+                REGALIA agregara el producto real seleccionado al carrito para continuar con checkout.
               </p>
             </div>
           </div>
 
-          <div class="builder-reservation-layout">
-            <article class="builder-seller-final">
-              <span>Seleccion recomendado</span>
-              <h3>Box celebracion premium</h3>
-              <p>
-                Opcion ideal segun la descripcion ingresada. Incluye detalle personalizado,
-                vendedor verificado y coordinacion local.
-              </p>
-              <button type="button" class="builder-secondary-action" (click)="buscarEnCatalogo()">
-                Buscar en catalogo
-              </button>
-            </article>
+          @if (productoSeleccionado(); as producto) {
+            <div class="builder-reservation-layout">
+              <article class="builder-seller-final">
+                <span>Producto recomendado</span>
+                <h3>{{ producto.nombre }}</h3>
+                <p>{{ producto.descripcion }}</p>
+                <button type="button" class="builder-secondary-action" (click)="buscarEnCatalogo()">
+                  Buscar mas opciones
+                </button>
+              </article>
 
-            <aside class="builder-reservation-box">
-              <div><span>Solicitud</span><strong>{{ descripcionActual() }}</strong></div>
-              <div><span>Reserva estimada</span><strong>S/ 30</strong></div>
-              <div class="builder-reservation-box__total"><span>Total referencial</span><strong>S/ 129</strong></div>
-            </aside>
-          </div>
+              <aside class="builder-reservation-box">
+                <div><span>Tienda</span><strong>{{ producto.nombreTienda }}</strong></div>
+                <div><span>Stock</span><strong>{{ producto.stock }}</strong></div>
+                <div class="builder-reservation-box__total">
+                  <span>Total producto</span>
+                  <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+                </div>
+              </aside>
+            </div>
+          }
 
           <div class="builder-phase-actions">
             <button type="button" class="builder-secondary-action" (click)="volver()">Volver</button>
             <button type="button" class="builder-primary-action" (click)="confirmarSolicitud()">
-              Crear solicitud
+              Agregar al carrito
             </button>
           </div>
 
-          @if (solicitudConfirmada()) {
+          @if (mensajeExito()) {
             <div class="builder-confirmation">
-              <span>Solicitud preparada</span>
-              <strong>El flujo visual esta listo para conectarse al backend IA.</strong>
-              <p>Por ahora puedes buscar opciones reales desde el catalogo de REGALIA.</p>
+              <span>Producto agregado</span>
+              <strong>{{ mensajeExito() }}</strong>
+              <button type="button" class="builder-secondary-action" (click)="irAlCarrito()">
+                Ir al carrito
+              </button>
             </div>
           }
         </section>

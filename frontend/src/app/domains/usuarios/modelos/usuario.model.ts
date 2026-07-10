@@ -15,3 +15,11 @@ export interface SolicitudActualizarPerfilUsuario {
   apellidos: string;
   telefono: string | null;
 }
+
+export interface SolicitudCrearUsuario {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  telefono: string | null;
+  contrasena: string;
+}

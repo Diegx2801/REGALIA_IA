@@ -5,6 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { RolUsuario, SesionAutenticacion } from '../../../../core/autenticacion/sesion-autenticacion.model';
 import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
+import { UsuarioApiService } from '../../../usuarios/acceso-datos/usuario-api.service';
+import { SolicitudCrearUsuario } from '../../../usuarios/modelos/usuario.model';
 import { AutenticacionApiService } from '../../acceso-datos/autenticacion-api.service';
 import { CredencialesLogin, ResultadoLogin } from '../../modelos/autenticacion.model';
 
@@ -18,6 +20,7 @@ type ModoAutenticacion = 'login' | 'registro';
 })
 export class PaginaLogin implements OnInit {
   private readonly autenticacionApi = inject(AutenticacionApiService);
+  private readonly usuarioApi = inject(UsuarioApiService);
   private readonly sesionAutenticacion = inject(SesionAutenticacionService);
   private readonly rutaActiva = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -110,6 +113,7 @@ export class PaginaLogin implements OnInit {
   }
 
   enviarRegistro(): void {
+    this.mensajeError.set('');
     this.mensajeRegistro.set('');
 
     if (this.formularioRegistro.invalid || !this.contrasenasRegistroCoinciden()) {
@@ -117,10 +121,21 @@ export class PaginaLogin implements OnInit {
       return;
     }
 
-    // El backend actual no expone registro publico en el frontend; dejamos la UI lista sin inventar endpoint.
-    this.mensajeRegistro.set(
-      'La interfaz de registro esta lista. Falta conectar el endpoint publico de creacion de cuenta.',
-    );
+    this.estaEnviando.set(true);
+
+    this.usuarioApi
+      .crearUsuario(this.obtenerSolicitudRegistro())
+      .pipe(finalize(() => this.estaEnviando.set(false)))
+      .subscribe({
+        next: () => {
+          this.formularioLogin.controls.correo.setValue(this.formularioRegistro.controls.correo.value);
+          this.formularioLogin.controls.contrasena.setValue('');
+          this.formularioRegistro.reset();
+          this.modo.set('login');
+          this.mensajeRegistro.set('Cuenta creada correctamente. Ahora puedes iniciar sesion.');
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorRegistro(error)),
+      });
   }
 
   alternarVisibilidadContrasena(): void {
@@ -159,6 +174,18 @@ export class PaginaLogin implements OnInit {
 
     return {
       correo: valor.correo,
+      contrasena: valor.contrasena,
+    };
+  }
+
+  private obtenerSolicitudRegistro(): SolicitudCrearUsuario {
+    const valor = this.formularioRegistro.getRawValue();
+
+    return {
+      nombres: valor.nombres,
+      apellidos: valor.apellidos,
+      correo: valor.correo,
+      telefono: valor.telefono || null,
       contrasena: valor.contrasena,
     };
   }
@@ -209,5 +236,15 @@ export class PaginaLogin implements OnInit {
     }
 
     return mensaje || 'No se pudo iniciar sesion.';
+  }
+
+  private obtenerMensajeErrorRegistro(error: unknown): string {
+    const mensaje = error instanceof Error ? error.message : '';
+
+    if (mensaje.includes('Http failure response') || mensaje.includes('Unknown Error')) {
+      return 'No pudimos conectar con el backend de REGALIA para crear la cuenta.';
+    }
+
+    return mensaje || 'No se pudo crear la cuenta.';
   }
 }

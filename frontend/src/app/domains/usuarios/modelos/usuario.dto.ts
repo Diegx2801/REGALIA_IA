@@ -14,3 +14,11 @@ export interface UsuarioActualizarRequestDto {
   apellidos: string;
   telefono: string | null;
 }
+
+export interface UsuarioCrearRequestDto {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  telefono: string | null;
+  contrasena: string;
+}

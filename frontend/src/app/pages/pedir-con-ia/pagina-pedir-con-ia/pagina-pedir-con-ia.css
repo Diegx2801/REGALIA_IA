@@ -394,6 +394,12 @@
   width: 100%;
 }
 
+.builder-primary-action:disabled,
+.builder-recommendation-card__select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .builder-secondary-action {
   background: #fff;
   border: 1px solid rgba(90, 36, 64, 0.16);
@@ -470,6 +476,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.builder-interpretation-grid--single {
+  grid-template-columns: 1fr;
+}
+
 .builder-interpretation-grid article,
 .builder-seller-final {
   background: rgba(255, 250, 245, 0.8);
@@ -519,6 +529,11 @@
   gap: 0.9rem;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   padding: 0.8rem;
+}
+
+.builder-recommendation-card--selected {
+  border-color: rgba(90, 36, 64, 0.42);
+  box-shadow: 0 16px 34px rgba(90, 36, 64, 0.12);
 }
 
 .builder-recommendation-card__image {
@@ -587,6 +602,17 @@
   color: var(--rg-color-primary);
   font-size: 2rem;
   line-height: 1;
+}
+
+.builder-recommendation-card__select {
+  background: var(--rg-color-primary);
+  border: 0;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 950;
+  min-height: 2.45rem;
+  padding: 0.5rem 0.82rem;
 }
 
 .builder-seller-summary {
@@ -665,6 +691,50 @@
   gap: 0.35rem;
   margin-top: 1rem;
   padding: 1rem;
+}
+
+.builder-status,
+.builder-empty-state {
+  border-radius: 0.95rem;
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+}
+
+.builder-status {
+  margin-inline: auto;
+  width: min(100%, 1280px);
+}
+
+.builder-status--error {
+  background: rgba(201, 95, 81, 0.1);
+  border: 1px solid rgba(201, 95, 81, 0.26);
+  color: var(--rg-color-rose);
+  font-weight: 900;
+}
+
+.builder-empty-state {
+  background: rgba(255, 250, 245, 0.8);
+  border: 1px solid rgba(234, 219, 208, 0.9);
+  justify-items: start;
+}
+
+.builder-empty-state span {
+  color: var(--rg-color-primary);
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.builder-empty-state h3 {
+  color: var(--rg-color-ink);
+  margin: 0;
+}
+
+.builder-empty-state p {
+  color: var(--rg-color-muted);
+  margin: 0;
 }
 
 .builder-confirmation span {

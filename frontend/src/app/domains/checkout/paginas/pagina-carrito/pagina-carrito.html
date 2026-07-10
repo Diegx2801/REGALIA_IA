@@ -158,8 +158,8 @@
 
           @if (cantidadTiendas() > 1) {
             <div class="cart-summary__notice">
-              El checkout real trabaja mejor con productos de una misma tienda. Si mezclas tiendas,
-              separa tu compra para evitar rechazo del backend.
+              El checkout real solo prepara pedidos de una misma tienda. Separa tu compra para
+              continuar sin rechazo del backend.
             </div>
           }
 
@@ -175,10 +175,6 @@
             <div>
               <span>Subtotal</span>
               <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-            </div>
-            <div>
-              <span>Reserva sugerida</span>
-              <strong>{{ montoReserva() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
             </div>
             <div class="cart-summary__total">
               <span>Total referencial</span>

@@ -19,9 +19,8 @@ export class PaginaCarrito implements OnInit {
 
   readonly estadoPago = signal<string | null>(null);
   readonly vieneDeCheckout = signal(false);
-  readonly puedePrepararCheckout = computed(() => !this.carrito.estaVacio());
-  readonly montoReserva = computed(() => this.carrito.total() * 0.3);
   readonly cantidadTiendas = computed(() => new Set(this.carrito.items().map((item) => item.idTienda)).size);
+  readonly puedePrepararCheckout = computed(() => !this.carrito.estaVacio() && this.cantidadTiendas() <= 1);
 
   ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {

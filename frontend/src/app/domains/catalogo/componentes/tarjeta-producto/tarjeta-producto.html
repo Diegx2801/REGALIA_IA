@@ -1,35 +1,41 @@
-<article class="tarjeta-producto" [class.tarjeta-producto--agotado]="!producto().disponible">
-  <a class="tarjeta-producto__imagen" [routerLink]="['/catalogo', producto().idProducto]">
+<article class="product-card" [class.product-card--agotado]="!producto().disponible">
+  <a
+    class="product-card__media"
+    [routerLink]="['/catalogo', producto().idProducto]"
+    [attr.aria-label]="'Ver detalle de ' + producto().nombre"
+  >
     <img [src]="imagenPrincipal()" [alt]="producto().nombre" loading="lazy" />
-    <span class="tarjeta-producto__estado">
-      @if (producto().disponible) {
-        Disponible
-      } @else {
-        Agotado
-      }
-    </span>
+    <span class="product-card__badge">{{ etiquetaEstado() }}</span>
   </a>
 
-  <div class="tarjeta-producto__contenido">
-    <div class="tarjeta-producto__cabecera">
-      <span class="tarjeta-producto__tipo">{{ producto().tipoProducto }}</span>
-      <strong class="tarjeta-producto__precio">
-        {{ producto().precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
-      </strong>
+  <div class="product-card__body">
+    <div class="product-card__topline">
+      <span class="product-card__category">{{ producto().tipoProducto }}</span>
+      <span class="product-card__stock">Stock {{ producto().stock }}</span>
     </div>
 
-    <h3 class="tarjeta-producto__nombre">
+    <h3 class="product-card__title">
       <a [routerLink]="['/catalogo', producto().idProducto]">{{ producto().nombre }}</a>
     </h3>
-    <p class="tarjeta-producto__descripcion">{{ producto().descripcion }}</p>
+    <p class="product-card__description">{{ producto().descripcion }}</p>
 
-    <footer class="tarjeta-producto__pie">
+    <div class="product-card__meta">
       <span>{{ producto().nombreTienda }}</span>
-      <span [class.tarjeta-producto__stock--alerta]="stockBajo()">Stock {{ producto().stock }}</span>
-    </footer>
+      <span>{{ producto().disponible ? 'Listo para reservar' : 'Sin stock disponible' }}</span>
+    </div>
 
-    <a appBoton appBotonBloque class="tarjeta-producto__accion" [routerLink]="['/catalogo', producto().idProducto]">
-      Ver detalle
-    </a>
+    <div class="product-card__footer">
+      <div class="product-card__price">
+        <strong>{{ producto().precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+      </div>
+      <button
+        class="product-card__button"
+        type="button"
+        [disabled]="!producto().disponible"
+        (click)="agregarAlCarrito()"
+      >
+        Agregar
+      </button>
+    </div>
   </div>
 </article>

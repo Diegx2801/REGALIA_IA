@@ -1,6 +1,11 @@
-import { AfterViewInit, Component, inject, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { AfterViewInit, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { ProductoApiService } from '../../../domains/catalogo/acceso-datos/producto-api.service';
+import { Producto } from '../../../domains/catalogo/modelos/producto.model';
 
 interface CategoriaInicio {
   readonly etiqueta: string;
@@ -15,15 +20,6 @@ interface CampanaComercial {
   readonly sugerencias: readonly string[];
 }
 
-interface ProductoDestacadoInicio {
-  readonly titulo: string;
-  readonly vendedor: string;
-  readonly precio: string;
-  readonly calificacion: string;
-  readonly imagen: string;
-  readonly posicionImagen: string;
-}
-
 interface PasoModeloNegocio {
   readonly numero: string;
   readonly descripcion: string;
@@ -31,12 +27,14 @@ interface PasoModeloNegocio {
 
 @Component({
   selector: 'app-pagina-inicio',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [CurrencyPipe, ReactiveFormsModule, RouterLink],
   templateUrl: './pagina-inicio.html',
   styleUrl: './pagina-inicio.css',
 })
-export class PaginaInicio implements AfterViewInit {
+export class PaginaInicio implements AfterViewInit, OnInit {
   private readonly router = inject(Router);
+  private readonly productoApiService = inject(ProductoApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly formularioBusqueda = new FormGroup({
     ocasion: new FormControl('Dia de la Madre', { nonNullable: true }),
@@ -46,8 +44,10 @@ export class PaginaInicio implements AfterViewInit {
   });
 
   readonly mesActivo = signal('FEB');
+  readonly productosDestacados = signal<Producto[]>([]);
+  readonly cargandoProductosDestacados = signal(true);
+  readonly mensajeErrorProductosDestacados = signal<string | null>(null);
 
-  // Contenido curado para la portada: evita llamadas innecesarias y mantiene la landing independiente del backend.
   readonly categorias: readonly CategoriaInicio[] = [
     { etiqueta: 'Cumpleanos', tipoIcono: 'cuadro', busqueda: 'cumpleanos' },
     { etiqueta: 'Dia de la Madre', tipoIcono: 'circulo', busqueda: 'madre' },
@@ -100,41 +100,6 @@ export class PaginaInicio implements AfterViewInit {
     },
   ];
 
-  readonly productosDestacados: readonly ProductoDestacadoInicio[] = [
-    {
-      titulo: 'Box mama edicion especial',
-      vendedor: 'Bienestar Natural',
-      precio: 'Desde S/ 129',
-      calificacion: '4.9 (128)',
-      imagen: '/assets/brand/ilustraciones/hero-regalia-home.png',
-      posicionImagen: 'center',
-    },
-    {
-      titulo: 'Arreglo floral radiante',
-      vendedor: 'Floralia Studio',
-      precio: 'Desde S/ 99',
-      calificacion: '4.8 (96)',
-      imagen: '/assets/brand/ilustraciones/hero-regalia-home.png',
-      posicionImagen: '60% 38%',
-    },
-    {
-      titulo: 'Torta eres unica',
-      vendedor: 'Dulce Detalle',
-      precio: 'Desde S/ 85',
-      calificacion: '4.9 (76)',
-      imagen: '/assets/brand/ilustraciones/hero-regalia-home.png',
-      posicionImagen: '75% 54%',
-    },
-    {
-      titulo: 'Detalle relax personalizado',
-      vendedor: 'Momentos Deco',
-      precio: 'Desde S/ 119',
-      calificacion: '4.8 (64)',
-      imagen: '/assets/brand/ilustraciones/hero-regalia-home.png',
-      posicionImagen: '78% 68%',
-    },
-  ];
-
   readonly pasosModeloNegocio: readonly PasoModeloNegocio[] = [
     { numero: '01', descripcion: 'El cliente describe ocasion, presupuesto, fecha y distrito.' },
     { numero: '02', descripcion: 'REGALIA compara disponibilidad, reputacion, cercania y estilo.' },
@@ -146,6 +111,10 @@ export class PaginaInicio implements AfterViewInit {
     if (this.router.url.startsWith('/modelo')) {
       setTimeout(() => document.querySelector('#modelo')?.scrollIntoView({ behavior: 'smooth' }));
     }
+  }
+
+  ngOnInit(): void {
+    this.cargarProductosDestacados();
   }
 
   buscarDetalles(): void {
@@ -164,5 +133,35 @@ export class PaginaInicio implements AfterViewInit {
     void this.router.navigate(['/catalogo'], {
       queryParams: categoria.busqueda ? { busqueda: categoria.busqueda } : undefined,
     });
+  }
+
+  obtenerImagenProducto(producto: Producto): string {
+    return producto.imagenes[0]?.urlImagen ?? '/assets/brand/producto-fallback.svg';
+  }
+
+  identificarProducto(_indice: number, producto: Producto): number {
+    return producto.idProducto;
+  }
+
+  private cargarProductosDestacados(): void {
+    this.cargandoProductosDestacados.set(true);
+    this.mensajeErrorProductosDestacados.set(null);
+
+    this.productoApiService
+      .obtenerProductos()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.cargandoProductosDestacados.set(false)),
+      )
+      .subscribe({
+        next: (productos) => {
+          const destacados = productos.filter((producto) => producto.disponible).slice(0, 4);
+          this.productosDestacados.set(destacados);
+        },
+        error: () => {
+          this.productosDestacados.set([]);
+          this.mensajeErrorProductosDestacados.set('No pudimos cargar productos destacados reales.');
+        },
+      });
   }
 }

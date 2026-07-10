@@ -1,5 +1,13 @@
-import { UsuarioActualizarRequestDto, UsuarioPerfilDto } from '../modelos/usuario.dto';
-import { SolicitudActualizarPerfilUsuario, UsuarioPerfil } from '../modelos/usuario.model';
+import {
+  UsuarioActualizarRequestDto,
+  UsuarioCrearRequestDto,
+  UsuarioPerfilDto,
+} from '../modelos/usuario.dto';
+import {
+  SolicitudActualizarPerfilUsuario,
+  SolicitudCrearUsuario,
+  UsuarioPerfil,
+} from '../modelos/usuario.model';
 
 export function mapearUsuarioPerfilDesdeDto(dto: UsuarioPerfilDto): UsuarioPerfil {
   const nombres = dto.nombres?.trim() || 'Cliente';
@@ -25,5 +33,17 @@ export function mapearSolicitudActualizarPerfilADto(
     nombres: solicitud.nombres,
     apellidos: solicitud.apellidos,
     telefono: solicitud.telefono,
+  };
+}
+
+export function mapearSolicitudCrearUsuarioADto(
+  solicitud: SolicitudCrearUsuario,
+): UsuarioCrearRequestDto {
+  return {
+    nombres: solicitud.nombres.trim(),
+    apellidos: solicitud.apellidos.trim(),
+    correo: solicitud.correo.trim().toLowerCase(),
+    telefono: solicitud.telefono?.trim() || null,
+    contrasena: solicitud.contrasena,
   };
 }

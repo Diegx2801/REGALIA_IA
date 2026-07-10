@@ -7,6 +7,7 @@ export const ENDPOINTS_API = {
     loginAdministracion: `${RUTA_BASE_API}/admin/auth/login`,
   },
   usuarios: {
+    crear: `${RUTA_BASE_API}/usuarios`,
     perfilActual: `${RUTA_BASE_API}/usuarios/me`,
   },
   catalogo: {
