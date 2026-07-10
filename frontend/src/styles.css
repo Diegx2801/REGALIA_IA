@@ -59,6 +59,12 @@ a {
   color: inherit;
 }
 
+.rg-page__container--retail {
+  margin-inline: auto;
+  max-width: min(100% - clamp(1rem, 4vw, 3rem), 1600px);
+  width: 100%;
+}
+
 button,
 input,
 select,

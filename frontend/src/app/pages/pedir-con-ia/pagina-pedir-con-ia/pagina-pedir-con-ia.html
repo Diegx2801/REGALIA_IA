@@ -1,0 +1,33 @@
+<main class="pedido-ia rg-page__container--retail">
+  <section class="pedido-ia__hero">
+    <div>
+      <span>Pedir con IA</span>
+      <h1>Describe el regalo ideal y REGALIA prepara opciones para comparar.</h1>
+      <p>
+        Esta vista deja listo el punto de entrada para recomendaciones inteligentes. Por ahora
+        transforma tu solicitud en filtros de catalogo sin tocar contratos del backend.
+      </p>
+    </div>
+
+    <form class="pedido-ia__formulario" [formGroup]="formulario" (ngSubmit)="buscarOpciones()">
+      <label>
+        <span>Ocasion</span>
+        <input type="text" formControlName="ocasion" />
+      </label>
+      <label>
+        <span>Presupuesto</span>
+        <input type="text" formControlName="presupuesto" />
+      </label>
+      <label>
+        <span>Distrito</span>
+        <input type="text" formControlName="distrito" />
+      </label>
+      <label class="pedido-ia__campo-amplio">
+        <span>Descripcion</span>
+        <textarea rows="4" formControlName="descripcion" placeholder="Ejemplo: regalo elegante para mama, entrega este fin de semana"></textarea>
+      </label>
+      <button type="submit">Buscar detalles</button>
+      <a routerLink="/catalogo">Ver catalogo completo</a>
+    </form>
+  </section>
+</main>

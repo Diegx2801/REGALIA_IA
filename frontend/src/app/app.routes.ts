@@ -27,6 +27,25 @@ export const routes: Routes = [
           import('./domains/catalogo/catalogo.routes').then((m) => m.CATALOGO_ROUTES),
       },
       {
+        path: 'pedir-con-ia',
+        loadComponent: () =>
+          import('./pages/pedir-con-ia/pagina-pedir-con-ia/pagina-pedir-con-ia').then(
+            (m) => m.PaginaPedirConIa,
+          ),
+      },
+      {
+        path: 'vendedores',
+        loadComponent: () =>
+          import('./domains/catalogo/paginas/pagina-catalogo/pagina-catalogo').then(
+            (m) => m.PaginaCatalogo,
+          ),
+      },
+      {
+        path: 'modelo',
+        loadComponent: () =>
+          import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),
+      },
+      {
         path: 'checkout',
         loadChildren: () =>
           import('./domains/checkout/checkout.routes').then((m) => m.CHECKOUT_ROUTES),

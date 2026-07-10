@@ -1,12 +1,16 @@
-import { Component, computed, inject } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { BotonDirective } from '../../../shared/directivas/boton.directive';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SesionAutenticacionService } from '../../autenticacion/sesion-autenticacion.service';
 import { CarritoCheckoutService } from '../../carrito/carrito-checkout.service';
 
+interface EnlaceNavegacionPublica {
+  readonly etiqueta: string;
+  readonly ruta: string;
+}
+
 @Component({
   selector: 'app-layout-publico',
-  imports: [RouterLink, RouterOutlet, BotonDirective],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './layout-publico.html',
   styleUrl: './layout-publico.css',
 })
@@ -20,6 +24,14 @@ export class LayoutPublico {
     if (rol === 'VENDEDOR') return '/vendedor';
     return '/cliente';
   });
+  readonly menuMovilAbierto = signal(false);
+  readonly enlacesNavegacion: readonly EnlaceNavegacionPublica[] = [
+    { etiqueta: 'Inicio', ruta: '/' },
+    { etiqueta: 'Pedir con IA', ruta: '/pedir-con-ia' },
+    { etiqueta: 'Catálogo', ruta: '/catalogo' },
+    { etiqueta: 'Vendedores', ruta: '/vendedores' },
+    { etiqueta: 'Cómo funciona', ruta: '/modelo' },
+  ];
 
   private readonly router = inject(Router);
 
@@ -33,5 +45,13 @@ export class LayoutPublico {
   cerrarSesion(): void {
     this.sesion.cerrarSesion();
     void this.router.navigateByUrl('/');
+  }
+
+  alternarMenuMovil(): void {
+    this.menuMovilAbierto.update((abierto) => !abierto);
+  }
+
+  cerrarMenuMovil(): void {
+    this.menuMovilAbierto.set(false);
   }
 }

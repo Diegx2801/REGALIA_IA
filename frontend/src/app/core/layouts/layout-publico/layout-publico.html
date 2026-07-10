@@ -1,59 +1,72 @@
-<div class="layout-publico">
-  <header class="layout-publico__header">
-    <div class="layout-publico__topbar">
-      <strong>Entrega coordinada para regalos personalizados en Peru</strong>
-      <span>Marketplace boutique para clientes, vendedores y empresas</span>
-    </div>
-
-    <div class="layout-publico__barra">
-      <a class="layout-publico__marca" routerLink="/">
-        REGALIA
-        <span>Marketplace premium</span>
+<div class="public-shell">
+  <header class="public-shell__header">
+    <div class="public-shell__bar rg-page__container--retail">
+      <a class="public-shell__brand" routerLink="/" (click)="cerrarMenuMovil()" aria-label="Ir al inicio de REGALIA">
+        <img src="/assets/brand/logos/logo-principal.png" alt="REGALIA" />
       </a>
 
-      <form
-        class="layout-publico__buscador"
-        (submit)="buscarProductos(busquedaCatalogo.value); $event.preventDefault()"
+      <button
+        type="button"
+        class="public-shell__toggle"
+        (click)="alternarMenuMovil()"
+        [attr.aria-expanded]="menuMovilAbierto()"
+        aria-label="Abrir menu principal"
       >
-        <input
-          #busquedaCatalogo
-          type="search"
-          placeholder="Buscar regalos, ocasiones o tiendas"
-          aria-label="Buscar productos en catalogo"
-        />
-        <button appBoton appBotonTamano="sm" type="submit">Buscar</button>
-      </form>
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
 
-      <nav class="layout-publico__navegacion" aria-label="Navegacion publica">
-        <a routerLink="/catalogo">Catalogo</a>
-        <a
-          class="layout-publico__carrito"
-          routerLink="/carrito"
-          aria-label="Abrir carrito de compras"
-        >
-          Carrito
-          @if (carrito.cantidadItems() > 0) {
-            <span class="layout-publico__contador-carrito">{{ carrito.cantidadItems() }}</span>
-          }
-        </a>
-        @if (sesion.estaAutenticado()) {
-          <a [routerLink]="rutaPanel()">Mi panel</a>
-          <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="cerrarSesion()">Salir</button>
-        } @else {
-          <a routerLink="/login">Ingresar</a>
+      <nav class="public-shell__nav" [class.is-open]="menuMovilAbierto()" aria-label="Navegacion publica principal">
+        @for (enlace of enlacesNavegacion; track enlace.ruta) {
+          <a
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: enlace.ruta === '/' }"
+            [routerLink]="enlace.ruta"
+            (click)="cerrarMenuMovil()"
+          >
+            {{ enlace.etiqueta }}
+          </a>
         }
       </nav>
-    </div>
 
-    <nav class="layout-publico__categorias" aria-label="Categorias destacadas">
-      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'cumpleanos' }">Cumpleanos</a>
-      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'aniversario' }">Aniversario</a>
-      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'flores' }">Flores</a>
-      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'corporativo' }">Corporativo</a>
-    </nav>
+      <div class="public-shell__actions">
+        <a class="public-shell__cart" routerLink="/carrito" aria-label="Abrir carrito">
+          <img src="/assets/brand/iconos/carrito.png" alt="" />
+          <span>Carrito</span>
+          @if (carrito.cantidadItems() > 0) {
+            <strong>{{ carrito.cantidadItems() }}</strong>
+          }
+        </a>
+
+        @if (sesion.estaAutenticado()) {
+          <a class="public-shell__secondary" [routerLink]="rutaPanel()">Mi panel</a>
+          <button class="public-shell__secondary public-shell__secondary--button" type="button" (click)="cerrarSesion()">
+            Salir
+          </button>
+        } @else {
+          <a class="public-shell__secondary" routerLink="/login">Ingresar</a>
+          <a class="public-shell__primary" routerLink="/pedir-con-ia"><span>&#10022;</span> Crear solicitud</a>
+        }
+      </div>
+    </div>
   </header>
 
-  <main class="layout-publico__contenido">
+  <main class="public-shell__content">
     <router-outlet />
   </main>
+
+  <footer class="public-shell__footer">
+    <div class="public-shell__footer-grid rg-page__container--retail">
+      <div>
+        <strong>REGALIA</strong>
+        <p>Marketplace local para regalos personalizados, reservas con se&ntilde;a y vendedores verificados.</p>
+      </div>
+      <div class="public-shell__footer-meta">
+        <span>Reservas con se&ntilde;a</span>
+        <span>Vendedores verificados</span>
+        <span>Comisiones transparentes</span>
+      </div>
+    </div>
+  </footer>
 </div>

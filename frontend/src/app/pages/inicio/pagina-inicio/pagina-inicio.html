@@ -1,57 +1,195 @@
-<main class="landing">
-  <section class="landing__hero">
-    <div class="landing__content">
-      <span class="landing__eyebrow">REGALIA marketplace premium</span>
-      <h1 class="landing__title">Regalos personalizados con experiencia de boutique digital.</h1>
-      <p class="landing__text">
-        Conectamos clientes con vendedores creativos para crear detalles memorables: catalogo,
-        pedidos, tiendas, pagos y recomendaciones preparadas para escalar.
-      </p>
-      <div class="landing__actions">
-        <a appBoton appBotonTamano="lg" class="landing__button" routerLink="/catalogo">Explorar catalogo</a>
-        <a appBoton="secundario" appBotonTamano="lg" class="landing__button" routerLink="/vendedor">Soy vendedor</a>
-      </div>
-      <div class="landing__confianza" aria-label="Ventajas principales">
-        <span>Vendedores verificados</span>
-        <span>Pedidos personalizados</span>
-        <span>Pagos preparados</span>
+<main class="landing-page">
+  <section class="landing-hero rg-page__container--retail" aria-labelledby="titulo-inicio">
+    <div class="landing-hero__frame">
+      <div class="landing-hero__overlay"></div>
+      <div class="landing-hero__content">
+        <h1 id="titulo-inicio">Regalos personalizados en tu ciudad, sin perder tiempo.</h1>
+        <p>
+          Descubre emprendedores locales, compara opciones y reserva con una se&ntilde;a clara y
+          segura.
+        </p>
+
+        <form
+          class="hero-search"
+          [formGroup]="formularioBusqueda"
+          (ngSubmit)="buscarDetalles()"
+          aria-label="Busqueda rapida de regalos"
+        >
+          <label>
+            <span>Ocasion</span>
+            <input type="text" formControlName="ocasion" />
+          </label>
+          <label>
+            <span>Presupuesto</span>
+            <input type="text" formControlName="presupuesto" />
+          </label>
+          <label>
+            <span>Fecha</span>
+            <input type="date" formControlName="fecha" aria-label="Fecha de entrega" />
+          </label>
+          <label>
+            <span>Distrito</span>
+            <input type="text" formControlName="distrito" />
+          </label>
+          <button type="submit">Buscar detalles</button>
+        </form>
       </div>
     </div>
 
-    <aside class="landing__showcase" aria-label="Experiencia REGALIA">
-      <div class="landing__gift">
-        <span>Entrega curada</span>
-        <strong>S/ 129.90</strong>
+    <nav class="occasion-strip" aria-label="Categorias destacadas">
+      @for (categoria of categorias; track categoria.etiqueta) {
+        <button type="button" class="occasion-strip__item" (click)="buscarCategoria(categoria)">
+          <span
+            class="occasion-strip__icon"
+            [class.occasion-strip__icon--cuadro]="categoria.tipoIcono === 'cuadro'"
+            [class.occasion-strip__icon--circulo]="categoria.tipoIcono === 'circulo'"
+            [class.occasion-strip__icon--anillo]="categoria.tipoIcono === 'anillo'"
+            [class.occasion-strip__icon--tarjeta]="categoria.tipoIcono === 'tarjeta'"
+            [class.occasion-strip__icon--hoja]="categoria.tipoIcono === 'hoja'"
+            [class.occasion-strip__icon--mas]="categoria.tipoIcono === 'mas'"
+          ></span>
+          <strong>{{ categoria.etiqueta }}</strong>
+        </button>
+      }
+    </nav>
+  </section>
+
+  <section class="festive-calendar rg-page__container--retail" aria-labelledby="titulo-calendario">
+    <article class="festive-calendar__campaign">
+      <span class="eyebrow">Calendario comercial</span>
+      <strong class="festive-calendar__status">Campana activa</strong>
+      <h2 id="titulo-calendario">{{ campanas[0].titulo }}</h2>
+      <b>{{ campanas[0].fecha }}</b>
+      <p>{{ campanas[0].descripcion }}</p>
+      <a class="landing-button landing-button--light" routerLink="/catalogo" [queryParams]="{ busqueda: campanas[0].titulo }">
+        Preparar campana
+      </a>
+
+      <div class="festive-calendar__suggestions">
+        <span>Productos sugeridos</span>
+        <div>
+          @for (sugerencia of campanas[0].sugerencias; track sugerencia) {
+            <strong>{{ sugerencia }}</strong>
+          }
+        </div>
       </div>
-      <div class="landing__gift-card">
-        <span>Personalizacion</span>
-        <strong>Nombre + mensaje</strong>
+
+      <div class="festive-calendar__events">
+        @for (campana of campanas; track campana.fecha) {
+          <button type="button" [class.is-active]="$index === 0">
+            <span>{{ campana.fecha }}</span>
+            <strong>{{ campana.titulo }}</strong>
+          </button>
+        }
       </div>
+    </article>
+
+    <article class="festive-calendar__month" aria-label="Calendario de temporadas">
+      <header>
+        <h2>2026</h2>
+        <span>Temporadas de regalos</span>
+      </header>
+
+      <div class="festive-calendar__months" role="tablist" aria-label="Meses">
+        @for (mes of meses; track mes) {
+          <button type="button" [class.is-active]="mesActivo() === mes" (click)="mesActivo.set(mes)">
+            {{ mes }}
+          </button>
+        }
+      </div>
+
+      <div class="festive-calendar__week">
+        @for (dia of diasSemana; track dia) {
+          <span>{{ dia }}</span>
+        }
+      </div>
+
+      <div class="festive-calendar__days">
+        @for (dia of diasFebrero; track dia) {
+          <button type="button" [class.is-event]="dia === 14">{{ dia }}</button>
+        }
+      </div>
+    </article>
+  </section>
+
+  <section class="landing-section landing-section--featured rg-page__container--retail">
+    <div class="landing-section__main">
+      <span class="eyebrow eyebrow--dark">Destacados para ti</span>
+      <h2>Ideas listas para convertir una ocasion en reserva.</h2>
+
+      <div class="featured-products">
+        @for (producto of productosDestacados; track producto.titulo) {
+          <article class="featured-product">
+            <img
+              [src]="producto.imagen"
+              [alt]="producto.titulo"
+              [style.object-position]="producto.posicionImagen"
+            />
+            <div class="featured-product__body">
+              <h3>{{ producto.titulo }}</h3>
+              <p>{{ producto.vendedor }}</p>
+              <strong>{{ producto.precio }}</strong>
+              <div class="featured-product__meta">
+                <span>&starf; {{ producto.calificacion }}</span>
+                <mark>&check; Verificado</mark>
+              </div>
+              <a routerLink="/catalogo" [queryParams]="{ busqueda: producto.titulo }">Reservar con se&ntilde;a</a>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+
+    <aside class="landing-section__aside" aria-label="Confianza y campanas">
+      <article class="trust-card">
+        <span aria-hidden="true">&check;</span>
+        <div>
+          <h3>Vendedores confiables</h3>
+          <p>Perfiles verificados, precios referenciales y rese&ntilde;as reales para que reserves con confianza y claridad.</p>
+          <a routerLink="/vendedores">Conoce mas &rarr;</a>
+        </div>
+      </article>
+
+      <article class="season-card">
+        <span>Campana de temporada</span>
+        <h3>Dia de la Madre</h3>
+        <p>Sorprende a mama con algo unico, hecho con amor.</p>
+        <a routerLink="/catalogo" [queryParams]="{ busqueda: 'dia de la madre' }">Ver ideas</a>
+        <div aria-hidden="true"></div>
+      </article>
     </aside>
   </section>
 
-  <section class="landing__seccion">
-    <div class="landing__seccion-cabecera">
-      <span class="landing__eyebrow">Como crece la plataforma</span>
-      <h2>Base lista para marketplace, ecommerce y SaaS.</h2>
+  <section class="business-model rg-page__container--retail" id="modelo">
+    <div class="business-model__copy">
+      <span class="eyebrow eyebrow--dark">Modelo de negocio</span>
+      <h2>REGALIA conecta clientes con emprendedores locales.</h2>
+      <p>
+        No fabricamos productos: ordenamos la busqueda, filtramos vendedores compatibles y
+        habilitamos reservas con se&ntilde;a.
+      </p>
     </div>
 
-    <div class="landing__pilares">
-      <article>
-        <span>01</span>
-        <h3>Compra guiada</h3>
-        <p>Catalogo, filtros, detalle de producto y solicitudes con estados claros.</p>
-      </article>
-      <article>
-        <span>02</span>
-        <h3>Vendedores independientes</h3>
-        <p>Tiendas, productos, pedidos recibidos y metricas para cada negocio creativo.</p>
-      </article>
-      <article>
-        <span>03</span>
-        <h3>Operacion escalable</h3>
-        <p>Panel administrativo, pagos, notificaciones y recomendaciones con IA.</p>
-      </article>
+    <div class="business-model__steps">
+      @for (paso of pasosModeloNegocio; track paso.numero) {
+        <article>
+          <strong>{{ paso.numero }}</strong>
+          <p>{{ paso.descripcion }}</p>
+        </article>
+      }
     </div>
+  </section>
+
+  <section class="seller-cta rg-page__container--retail" id="vendedores">
+    <div class="seller-cta__icon" aria-hidden="true">
+      <span></span>
+      <span></span>
+    </div>
+    <div>
+      <span>&iquest;Tienes un emprendimiento?</span>
+      <h2>Unete a REGALIA</h2>
+    </div>
+    <p>Publica tus productos, llega a mas clientes y haz crecer tu marca con nosotros.</p>
+    <a routerLink="/login">Quiero vender en REGALIA &rarr;</a>
   </section>
 </main>
