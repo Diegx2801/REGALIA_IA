@@ -1,117 +1,293 @@
-<main class="catalogo">
-  <section class="catalogo__hero">
-    <div class="catalogo__hero-contenido">
-      <span class="catalogo__etiqueta">Catalogo REGALIA</span>
-      <h1>Regalos personalizados listos para momentos importantes.</h1>
-      <p>
-        Explora productos publicados por tiendas creativas. Esta pantalla ya consume la API real
-        del backend y mantiene estados claros para carga, errores y catalogo vacio.
-      </p>
+<section class="catalog-page">
+  <header class="catalog-hero">
+    <div class="rg-page__container--retail catalog-hero__container">
+      <div class="catalog-hero__content">
+        <nav class="catalog-breadcrumb" aria-label="Ruta de navegacion">
+          <a routerLink="/">Inicio</a>
+          <span>/</span>
+          <strong>Catalogo</strong>
+        </nav>
+
+        <span class="catalog-hero__eyebrow">Marketplace local</span>
+        <h1 class="catalog-hero__title">Regalos listos para reservar con vendedores verificados.</h1>
+        <p class="catalog-hero__text">
+          Explora productos personalizados, compara estilos y agrega opciones al carrito antes de
+          coordinar tu solicitud.
+        </p>
+
+        <label class="catalog-search" aria-label="Buscar regalos en catalogo">
+          <span class="catalog-search__icon" aria-hidden="true">⌕</span>
+          <input
+            class="catalog-search__control"
+            type="search"
+            placeholder="flores, torta, box, taza..."
+            [ngModel]="terminoBusqueda()"
+            (ngModelChange)="actualizarBusqueda($event)"
+          />
+          <button class="catalog-search__action" type="button">Buscar detalles</button>
+        </label>
+      </div>
+
+      <aside class="catalog-hero__visual" aria-label="Resumen comercial del catalogo">
+        <div class="catalog-hero__visual-card">
+          <span>Curaduria REGALIA</span>
+          <strong>Productos con entrega local y personalizacion clara.</strong>
+        </div>
+        <div class="catalog-hero__summary">
+          <div>
+            <strong>{{ productos().length }}</strong>
+            <span>productos</span>
+          </div>
+          <div>
+            <strong>{{ productosDisponibles() }}</strong>
+            <span>disponibles</span>
+          </div>
+        </div>
+      </aside>
     </div>
+  </header>
 
-    <aside class="catalogo__resumen" aria-label="Resumen del catalogo">
-      <span>{{ productos().length }}</span>
-      <p>productos disponibles en la plataforma</p>
-      <strong>{{ productosDisponibles() }} listos para solicitar</strong>
-    </aside>
-  </section>
-
-  <section class="catalogo__panel" aria-label="Filtros de catalogo">
-    <label class="catalogo__campo">
-      <span>Buscar regalo</span>
-      <input
-        type="search"
-        placeholder="Ej. taza personalizada, flores, aniversario"
-        [ngModel]="terminoBusqueda()"
-        (ngModelChange)="actualizarBusqueda($event)"
-      />
-    </label>
-
-    <label class="catalogo__campo catalogo__campo--select">
-      <span>Categoria</span>
-      <select [ngModel]="tipoSeleccionado()" (ngModelChange)="actualizarTipo($event)">
-        <option value="todos">Todas las categorias</option>
-        @for (tipo of tiposProducto(); track tipo) {
-          <option [value]="tipo">{{ tipo }}</option>
-        }
-      </select>
-    </label>
-
-    <label class="catalogo__campo catalogo__campo--select">
-      <span>Ordenar</span>
-      <select [ngModel]="ordenSeleccionado()" (ngModelChange)="actualizarOrden($event)">
-        <option value="relevancia">Relevancia</option>
-        <option value="precio-menor">Precio menor</option>
-        <option value="precio-mayor">Precio mayor</option>
-        <option value="stock">Mayor stock</option>
-      </select>
-    </label>
-
-    <button appBoton class="catalogo__limpiar" type="button" (click)="limpiarFiltros()">Limpiar</button>
-  </section>
-
-  @if (tiposProducto().length > 0) {
-    <section class="catalogo__atajos" aria-label="Categorias rapidas">
-      <button
-        appBoton="secundario"
-        appBotonTamano="sm"
-        type="button"
-        [class.catalogo__atajo--activo]="tipoSeleccionado() === 'todos'"
-        (click)="actualizarTipo('todos')"
-      >
-        Todo
-      </button>
-      @for (tipo of tiposProducto(); track tipo) {
+  <div class="rg-page__container--retail catalog-page__container">
+    <nav class="category-strip" aria-label="Categorias destacadas">
+      @for (categoria of categorias(); track categoria) {
         <button
-          appBoton="secundario"
-          appBotonTamano="sm"
           type="button"
-          [class.catalogo__atajo--activo]="tipoSeleccionado() === tipo"
-          (click)="actualizarTipo(tipo)"
+          class="category-strip__chip"
+          [class.category-strip__chip--active]="tipoSeleccionado() === categoria"
+          (click)="actualizarTipo(categoria)"
         >
-          {{ tipo }}
+          {{ categoria }}
         </button>
       }
-    </section>
-  }
+    </nav>
 
-  @if (cargandoProductos()) {
-    <section class="catalogo__grid" aria-label="Cargando productos">
-      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
-        <article class="catalogo__skeleton">
-          <span></span>
-          <div></div>
-          <div></div>
-        </article>
-      }
-    </section>
-  } @else if (mensajeError()) {
-    <section class="catalogo__estado catalogo__estado--error">
-      <span>No se pudo conectar con el catalogo</span>
-      <h2>{{ mensajeError() }}</h2>
-      <p>Levanta el backend en el puerto 8080 y vuelve a intentarlo.</p>
-      <button appBoton type="button" (click)="cargarProductos()">Reintentar</button>
-    </section>
-  } @else if (productosFiltrados().length === 0) {
-    <section class="catalogo__estado">
-      <span>Sin resultados</span>
-      <h2>No encontramos regalos con esos filtros.</h2>
-      <p>Prueba con otro termino o revisa todas las categorias disponibles.</p>
-      <button appBoton type="button" (click)="limpiarFiltros()">Ver todo el catalogo</button>
-    </section>
-  } @else {
-    <section class="catalogo__cabecera-listado">
-      <div>
-        <span class="catalogo__etiqueta">Resultados</span>
-        <h2>{{ productosFiltrados().length }} regalos encontrados</h2>
-      </div>
-      <p>Seleccion ordenada para compra personalizada y solicitudes especiales.</p>
-    </section>
+    <div class="catalog-layout">
+      <aside class="catalog-filters" aria-label="Filtros del catalogo">
+        <div class="catalog-filters__head">
+          <div>
+            <span class="catalog-filters__eyebrow">Explorar</span>
+            <h2 class="catalog-filters__title">Filtros</h2>
+          </div>
+          <button class="catalog-filters__clear" type="button" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+        </div>
 
-    <section class="catalogo__grid" aria-label="Listado de productos">
-      @for (producto of productosFiltrados(); track identificarProducto($index, producto)) {
-        <app-tarjeta-producto [producto]="producto" />
-      }
-    </section>
-  }
-</main>
+        <label class="filter-field" for="search">
+          <span class="filter-field__label">Buscar</span>
+          <input
+            id="search"
+            class="filter-field__control"
+            type="search"
+            placeholder="flores, torta, box, taza..."
+            [ngModel]="terminoBusqueda()"
+            (ngModelChange)="actualizarBusqueda($event)"
+          />
+        </label>
+
+        <label class="filter-field" for="category">
+          <span class="filter-field__label">Categoria</span>
+          <select
+            id="category"
+            class="filter-field__control"
+            [ngModel]="tipoSeleccionado()"
+            (ngModelChange)="actualizarTipo($event)"
+          >
+            @for (categoria of categorias(); track categoria) {
+              <option [value]="categoria">{{ categoria }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="filter-field" for="occasion">
+          <span class="filter-field__label">Ocasion</span>
+          <select
+            id="occasion"
+            class="filter-field__control"
+            [ngModel]="ocasionSeleccionada()"
+            (ngModelChange)="actualizarOcasion($event)"
+          >
+            @for (ocasion of ocasiones; track ocasion) {
+              <option [value]="ocasion">{{ ocasion }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="filter-field" for="maxPrice">
+          <span class="filter-field__label">
+            Precio maximo
+            <strong>S/ {{ precioMaximo() }}</strong>
+          </span>
+          <input
+            id="maxPrice"
+            class="filter-field__range"
+            type="range"
+            min="20"
+            max="700"
+            step="10"
+            [ngModel]="precioMaximo()"
+            (ngModelChange)="actualizarPrecioMaximo($event)"
+          />
+        </label>
+
+        <label class="catalog-filters__check">
+          <input
+            type="checkbox"
+            [ngModel]="soloDisponibles()"
+            (ngModelChange)="actualizarDisponibilidad($event)"
+          />
+          <span>Disponibles para reservar</span>
+        </label>
+      </aside>
+
+      <main class="catalog-results" aria-label="Resultados del catalogo">
+        <section class="catalog-section">
+          <div class="catalog-toolbar">
+            <div class="catalog-toolbar__summary">
+              <span>Productos listos</span>
+              <h2>{{ productosFiltrados().length }} resultados para regalar</h2>
+            </div>
+            <label class="catalog-sort" for="sortProducts">
+              <span>Ordenar</span>
+              <select
+                id="sortProducts"
+                class="catalog-sort__control"
+                [ngModel]="ordenSeleccionado()"
+                (ngModelChange)="actualizarOrden($event)"
+              >
+                <option value="recommended">Recomendados</option>
+                <option value="priceAsc">Menor precio</option>
+                <option value="priceDesc">Mayor precio</option>
+                <option value="ratingDesc">Mejor valorados</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="active-filters" aria-label="Filtros activos">
+            @if (tipoSeleccionado() !== 'Todas') {
+              <span class="active-filters__chip">{{ tipoSeleccionado() }}</span>
+            }
+            @if (ocasionSeleccionada() !== 'Todas') {
+              <span class="active-filters__chip">{{ ocasionSeleccionada() }}</span>
+            }
+            <span class="active-filters__chip">Hasta S/ {{ precioMaximo() }}</span>
+            @if (soloDisponibles()) {
+              <span class="active-filters__chip">Disponibles para reservar</span>
+            }
+          </div>
+
+          @if (cargandoProductos()) {
+            <div class="product-grid" aria-label="Cargando productos">
+              @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+                <article class="product-card product-card--skeleton">
+                  <span></span>
+                  <div></div>
+                  <div></div>
+                </article>
+              }
+            </div>
+          } @else {
+            @if (usandoProductosReferencia() && mensajeError()) {
+              <div class="catalog-status catalog-status--warning" role="status">
+                {{ mensajeError() }}
+              </div>
+            }
+
+            @if (productosFiltrados().length === 0) {
+              <div class="empty-state">
+                <span>Sin resultados</span>
+                <h2>No encontramos regalos con esos filtros.</h2>
+                <p>Prueba con otra busqueda o limpia los filtros para ver todo el catalogo.</p>
+                <button class="catalog-search__action" type="button" (click)="limpiarFiltros()">
+                  Ver todo
+                </button>
+              </div>
+            } @else {
+              <div class="product-grid">
+                @for (producto of productosFiltrados(); track identificarProducto($index, producto)) {
+                  <article class="product-card">
+                    <a
+                      class="product-card__media"
+                      [routerLink]="['/catalogo', producto.idProducto]"
+                      [attr.aria-label]="'Ver detalle de ' + producto.nombre"
+                      [style.background-image]="'url(' + obtenerImagenProducto(producto) + ')'"
+                    >
+                      <span class="product-card__badge">{{ obtenerBadgeProducto($index, producto) }}</span>
+                    </a>
+
+                    <div class="product-card__body">
+                      <div class="product-card__topline">
+                        <span class="product-card__category">{{ producto.tipoProducto }}</span>
+                        <span class="product-card__rating">&starf; 4.8</span>
+                      </div>
+
+                      <h3 class="product-card__title">
+                        <a [routerLink]="['/catalogo', producto.idProducto]">{{ producto.nombre }}</a>
+                      </h3>
+                      <p class="product-card__description">{{ producto.descripcion }}</p>
+
+                      <div class="product-card__meta">
+                        <span>{{ producto.nombreTienda }}</span>
+                        <span>Entrega desde 24 horas</span>
+                      </div>
+
+                      <div class="product-card__footer">
+                        <div class="product-card__price">
+                          <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</strong>
+                          @if (obtenerPrecioAnterior(producto); as precioAnterior) {
+                            <small>{{ precioAnterior | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</small>
+                          }
+                        </div>
+                        <button
+                          class="product-card__button"
+                          type="button"
+                          [disabled]="!producto.disponible"
+                          (click)="agregarAlCarrito(producto)"
+                        >
+                          Agregar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          }
+        </section>
+
+        <section class="catalog-section catalog-section--sellers">
+          <div class="catalog-toolbar catalog-toolbar--compact">
+            <div class="catalog-toolbar__summary">
+              <span>Vendedores locales</span>
+              <h2>{{ vendedores.length }} perfiles compatibles</h2>
+            </div>
+            <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
+          </div>
+
+          <div class="seller-grid">
+            @for (vendedor of vendedores; track vendedor.nombre) {
+              <article class="seller-card">
+                <div class="seller-card__head">
+                  <span class="seller-card__badge">{{ vendedor.etiqueta }}</span>
+                  <span class="seller-card__rating">&starf; {{ vendedor.calificacion }}</span>
+                </div>
+                <span class="seller-card__category">{{ vendedor.categoria }}</span>
+                <h3 class="seller-card__title">{{ vendedor.nombre }}</h3>
+                <p class="seller-card__text">{{ vendedor.descripcion }}</p>
+                <div class="seller-card__tags">
+                  @for (tag of vendedor.tags; track tag) {
+                    <span>{{ tag }}</span>
+                  }
+                </div>
+                <div class="seller-card__footer">
+                  <span>{{ vendedor.ubicacion }}</span>
+                  <strong>{{ vendedor.rangoPrecio }}</strong>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</section>
