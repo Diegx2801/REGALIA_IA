@@ -4,15 +4,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CarritoCheckoutService } from '../../../../core/carrito/carrito-checkout.service';
-import { BotonDirective } from '../../../../shared/directivas/boton.directive';
-import {
-  CampoFormularioDirective,
-  ErrorCampoDirective,
-} from '../../../../shared/directivas/formulario-panel.directive';
 
 @Component({
   selector: 'app-pagina-carrito',
-  imports: [CurrencyPipe, FormsModule, RouterLink, BotonDirective, CampoFormularioDirective, ErrorCampoDirective],
+  imports: [CurrencyPipe, FormsModule, RouterLink],
   templateUrl: './pagina-carrito.html',
   styleUrl: './pagina-carrito.css',
 })
@@ -24,12 +19,9 @@ export class PaginaCarrito implements OnInit {
 
   readonly estadoPago = signal<string | null>(null);
   readonly vieneDeCheckout = signal(false);
-  readonly itemsSinPersonalizacion = computed(() =>
-    this.carrito.items().filter((item) => !item.observacion?.trim()),
-  );
-  readonly puedePrepararCheckout = computed(
-    () => !this.carrito.estaVacio() && this.itemsSinPersonalizacion().length === 0,
-  );
+  readonly puedePrepararCheckout = computed(() => !this.carrito.estaVacio());
+  readonly montoReserva = computed(() => this.carrito.total() * 0.3);
+  readonly cantidadTiendas = computed(() => new Set(this.carrito.items().map((item) => item.idTienda)).size);
 
   ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {

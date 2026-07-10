@@ -1,114 +1,209 @@
-<main class="carrito">
-  <section class="carrito__hero">
-    <div>
-      <span>Carrito REGALIA</span>
-      <h1>Revisa tus regalos antes de preparar el pago.</h1>
-      <p>El carrito se conserva en este navegador y se envia al backend al confirmar checkout.</p>
-    </div>
-
-    <aside>
-      <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-      <small>{{ carrito.cantidadItems() }} item(s)</small>
-    </aside>
-  </section>
-
-  @if (vieneDeCheckout()) {
-    <section class="carrito__estado-pago" [class.carrito__estado-pago--exito]="estadoPago() === 'success'">
-      @switch (estadoPago()) {
-        @case ('success') {
-          <strong>Pago aprobado</strong>
-          <p>Limpiamos el carrito local. El backend confirma el pedido mediante la pasarela configurada.</p>
-        }
-        @case ('failure') {
-          <strong>Pago rechazado</strong>
-          <p>Puedes revisar el carrito e intentar nuevamente.</p>
-        }
-        @case ('pending') {
-          <strong>Pago pendiente</strong>
-          <p>El pedido se actualizara cuando la pasarela confirme el resultado.</p>
-        }
-        @default {
-          <strong>Retorno de checkout</strong>
-          <p>Revisa el estado de tu operacion antes de continuar.</p>
-        }
-      }
-    </section>
-  }
-
-  @if (carrito.estaVacio()) {
-    <section class="carrito__vacio">
-      <span>Carrito vacio</span>
-      <h2>Aun no agregaste regalos personalizados.</h2>
-      <a appBoton routerLink="/catalogo">Explorar catalogo</a>
-    </section>
-  } @else {
-    <section class="carrito__contenido">
-      <div class="carrito__items">
-        @for (item of carrito.items(); track item.idProducto) {
-          <article class="carrito__item">
-            <img [src]="item.urlImagen" [alt]="item.nombre" />
-
-            <div class="carrito__detalle">
-              <span>{{ item.tipoProducto }}</span>
-              <h2>{{ item.nombre }}</h2>
-              <p>{{ item.nombreTienda }}</p>
-
-              <label appCampoFormulario>
-                Personalizacion
-                <textarea
-                  rows="3"
-                  [ngModel]="item.observacion ?? ''"
-                  (ngModelChange)="actualizarObservacion(item.idProducto, $event)"
-                  placeholder="Nombre, dedicatoria, colores, ocasion o detalles especiales"
-                ></textarea>
-                @if (!item.observacion?.trim()) {
-                  <small appErrorCampo>Agrega una indicacion para que el vendedor pueda preparar el regalo.</small>
-                }
-              </label>
-            </div>
-
-            <div class="carrito__controles">
-              <strong>{{ item.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-              <small>
-                Subtotal {{ item.precioUnitario * item.cantidad | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
-              </small>
-              <label appCampoFormulario>
-                Cantidad
-                <input
-                  type="number"
-                  min="1"
-                  [max]="item.stockDisponible"
-                  [ngModel]="item.cantidad"
-                  (ngModelChange)="actualizarCantidad(item.idProducto, $event)"
-                />
-              </label>
-              <button appBoton="peligro" appBotonTamano="sm" type="button" (click)="carrito.quitarProducto(item.idProducto)">Quitar</button>
-            </div>
-          </article>
-        }
+<section class="cart-page">
+  <div class="rg-page__container--retail cart-page__container">
+    <header class="cart-hero">
+      <div>
+        <span class="cart-hero__eyebrow">Carrito REGALIA</span>
+        <h1>Reserva productos con precio fijo sin mezclarlo con cotizaciones personalizadas.</h1>
+        <p>
+          Este carrito es para regalos listos para reservar. Si necesitas algo unico o todavia no
+          tienes claro que pedir, usa el apartado de solicitud con IA.
+        </p>
       </div>
 
-      <aside class="carrito__resumen">
-        <span>Resumen</span>
-        <h2>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</h2>
-        <p>El pago final se prepara contra el backend para validar stock, tienda, entrega y monto real.</p>
-        @if (!puedePrepararCheckout()) {
-          <p class="carrito__alerta">
-            Completa la personalizacion de {{ itemsSinPersonalizacion().length }} producto(s) antes de continuar.
-          </p>
+      <div class="cart-hero__media">
+        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" />
+        <a class="cart-button cart-button--primary" routerLink="/pedir-con-ia">Cotizar con IA</a>
+      </div>
+    </header>
+
+    <nav class="checkout-steps" aria-label="Progreso del checkout">
+      <span class="checkout-steps__item checkout-steps__item--active">1. Carrito</span>
+      <span class="checkout-steps__item">2. Datos de entrega</span>
+      <span class="checkout-steps__item">3. Pago seguro</span>
+    </nav>
+
+    @if (vieneDeCheckout()) {
+      <section class="cart-result" [class.cart-result--pending]="estadoPago() === 'pending'">
+        <span class="cart-result__eyebrow">Resultado de checkout</span>
+        @switch (estadoPago()) {
+          @case ('success') {
+            <h2>Pago aprobado</h2>
+            <p>Limpiamos el carrito local. El backend confirma el pedido mediante la pasarela configurada.</p>
+          }
+          @case ('failure') {
+            <h2>Pago rechazado</h2>
+            <p>Puedes revisar el carrito e intentar nuevamente con la misma solicitud.</p>
+          }
+          @case ('pending') {
+            <h2>Pago pendiente</h2>
+            <p>El pedido se actualizara cuando la pasarela confirme el resultado.</p>
+          }
+          @default {
+            <h2>Retorno de checkout</h2>
+            <p>Revisa el estado de tu operacion antes de continuar.</p>
+          }
         }
-        <button
-          appBoton
-          appBotonBloque
-          class="carrito__checkout"
-          type="button"
-          [disabled]="!puedePrepararCheckout()"
-          (click)="prepararCheckout()"
-        >
-          Preparar checkout
-        </button>
-        <button appBoton="secundario" appBotonBloque type="button" (click)="carrito.limpiarCarrito()">Vaciar carrito</button>
-      </aside>
-    </section>
-  }
-</main>
+        <div class="cart-result__actions">
+          <a class="cart-button cart-button--primary" routerLink="/catalogo">Volver al catalogo</a>
+          <a class="cart-button cart-button--secondary" routerLink="/cliente/pedidos">Ver pedidos</a>
+        </div>
+      </section>
+    }
+
+    @if (carrito.estaVacio() && !vieneDeCheckout()) {
+      <section class="cart-empty">
+        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" />
+        <h2>Tu carrito esta vacio</h2>
+        <p>
+          Agrega productos con precio fijo desde el catalogo o crea una solicitud personalizada con IA.
+        </p>
+        <div class="cart-empty__actions">
+          <a class="cart-button cart-button--primary" routerLink="/catalogo">Ver catalogo</a>
+          <a class="cart-button cart-button--secondary" routerLink="/pedir-con-ia">Cotizar con IA</a>
+        </div>
+      </section>
+    } @else if (!carrito.estaVacio()) {
+      <section class="cart-layout">
+        <div class="cart-list">
+          <header class="cart-list__head">
+            <div>
+              <span>Productos seleccionados</span>
+              <strong>{{ carrito.cantidadItems() }} item(s) en tu carrito</strong>
+            </div>
+            <button class="cart-item__remove" type="button" (click)="carrito.limpiarCarrito()">
+              Vaciar carrito
+            </button>
+          </header>
+
+          <div class="cart-list__items">
+            @for (item of carrito.items(); track item.idProducto) {
+              <article class="cart-item">
+                <div
+                  class="cart-item__media"
+                  [style.background-image]="'url(' + item.urlImagen + ')'"
+                  role="img"
+                  [attr.aria-label]="item.nombre"
+                ></div>
+
+                <div class="cart-item__body">
+                  <div class="cart-item__top">
+                    <div>
+                      <span class="cart-item__seller">{{ item.nombreTienda }}</span>
+                      <h2>{{ item.nombre }}</h2>
+                    </div>
+                    <strong>{{ item.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+                  </div>
+
+                  <p>
+                    Producto de {{ item.tipoProducto }} listo para reservar. Puedes agregar una nota
+                    corta para personalizacion o coordinacion con el vendedor.
+                  </p>
+
+                  <div class="cart-item__meta">
+                    <span>{{ item.tipoProducto }}</span>
+                    <span>Stock {{ item.stockDisponible }}</span>
+                    <span>Subtotal {{ item.precioUnitario * item.cantidad | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span>
+                  </div>
+
+                  <label class="cart-checkout-field cart-checkout-field--full">
+                    <span>Nota para el vendedor</span>
+                    <textarea
+                      rows="2"
+                      [ngModel]="item.observacion ?? ''"
+                      (ngModelChange)="actualizarObservacion(item.idProducto, $event)"
+                      placeholder="Nombre, dedicatoria, colores u ocasion"
+                    ></textarea>
+                  </label>
+
+                  <div class="cart-item__actions">
+                    <div class="quantity-control" aria-label="Control de cantidad">
+                      <button
+                        type="button"
+                        (click)="actualizarCantidad(item.idProducto, item.cantidad - 1)"
+                        [disabled]="item.cantidad <= 1"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        [max]="item.stockDisponible"
+                        [ngModel]="item.cantidad"
+                        (ngModelChange)="actualizarCantidad(item.idProducto, $event)"
+                        aria-label="Cantidad"
+                      />
+                      <button
+                        type="button"
+                        (click)="actualizarCantidad(item.idProducto, item.cantidad + 1)"
+                        [disabled]="item.cantidad >= item.stockDisponible"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button class="cart-item__remove" type="button" (click)="carrito.quitarProducto(item.idProducto)">
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+
+        <aside class="cart-summary">
+          <span class="cart-summary__eyebrow">Resumen</span>
+          <h2>Solicitud de compra</h2>
+          <p>Validaremos stock, tienda, entrega y monto real antes de enviar el checkout al backend.</p>
+
+          @if (cantidadTiendas() > 1) {
+            <div class="cart-summary__notice">
+              El checkout real trabaja mejor con productos de una misma tienda. Si mezclas tiendas,
+              separa tu compra para evitar rechazo del backend.
+            </div>
+          }
+
+          <div class="cart-summary__rows">
+            <div>
+              <span>Productos</span>
+              <strong>{{ carrito.cantidadItems() }}</strong>
+            </div>
+            <div>
+              <span>Tiendas</span>
+              <strong>{{ cantidadTiendas() }}</strong>
+            </div>
+            <div>
+              <span>Subtotal</span>
+              <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </div>
+            <div>
+              <span>Reserva sugerida</span>
+              <strong>{{ montoReserva() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </div>
+            <div class="cart-summary__total">
+              <span>Total referencial</span>
+              <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <button
+            class="cart-button cart-button--primary cart-button--block"
+            type="button"
+            [disabled]="!puedePrepararCheckout()"
+            (click)="prepararCheckout()"
+          >
+            Preparar checkout
+          </button>
+          <a class="cart-button cart-button--secondary cart-button--block" routerLink="/catalogo">
+            Seguir comprando
+          </a>
+
+          <div class="cart-confirmation">
+            <strong>Compra protegida por REGALIA</strong>
+            <p>La reserva se confirma despues de validar disponibilidad y condiciones de entrega.</p>
+          </div>
+        </aside>
+      </section>
+    }
+  </div>
+</section>

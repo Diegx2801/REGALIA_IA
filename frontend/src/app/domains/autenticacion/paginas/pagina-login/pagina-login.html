@@ -1,81 +1,280 @@
-<section class="login">
-  <aside class="login__presentacion" aria-label="Beneficios REGALIA">
-    <span>REGALIA</span>
-    <h2>Acceso seguro para comprar, vender y administrar regalos personalizados.</h2>
-    <p>Autenticacion con JWT, roles separados y sesiones locales controladas por expiracion.</p>
-  </aside>
+<section class="auth-page">
+  <a class="auth-brand" routerLink="/" aria-label="Volver al inicio de REGALIA">
+    <img src="/assets/brand/logos/logo-principal.png" alt="REGALIA" />
+  </a>
 
-  <div class="login__panel">
-    <a class="login__marca" routerLink="/">REGALIA</a>
+  <div class="auth-shell">
+    <section class="auth-story" aria-label="Experiencia REGALIA">
+      <div class="auth-story__veil"></div>
+      <div class="auth-story__content">
+        <span class="auth-story__eyebrow">Regalos con intencion</span>
+        <h1>
+          @if (modo() === 'registro') {
+            Tu proxima historia empieza aqui
+          } @else {
+            Vuelve a regalar momentos memorables
+          }
+        </h1>
+        <p>
+          @if (modo() === 'registro') {
+            Crea una cuenta personal para descubrir, solicitar y reservar regalos unicos con total confianza.
+          } @else {
+            Accede a tus solicitudes, reservas, favoritos y conversaciones con vendedores locales.
+          }
+        </p>
 
-    <header class="login__cabecera">
-      <span class="login__etiqueta">
-        {{ esLoginAdministracion() ? 'Acceso administrativo' : 'Acceso cliente y vendedor' }}
-      </span>
-      <h1>Ingresa a tu cuenta</h1>
-      <p>
-        {{
-          esLoginAdministracion()
-            ? 'Gestiona usuarios, tiendas, pedidos y catalogos internos.'
-            : 'Continua con tus pedidos, tienda o reservas personalizadas.'
-        }}
-      </p>
-    </header>
+        <div class="auth-story__trust" aria-label="Beneficios de REGALIA">
+          <article>
+            <span class="auth-story__icon" aria-hidden="true">&#10022;</span>
+            <div>
+              <strong>Vendedores verificados</strong>
+              <small>Perfiles, portafolios y reputacion antes de reservar.</small>
+            </div>
+          </article>
+          <article>
+            <span class="auth-story__icon" aria-hidden="true">&#9671;</span>
+            <div>
+              <strong>Reservas transparentes</strong>
+              <small>Conoce el precio, la fecha y el estado de tu pedido.</small>
+            </div>
+          </article>
+        </div>
+      </div>
 
-    <form appFormularioPanel appFormularioUnaColumna class="login__formulario" [formGroup]="formularioLogin" (ngSubmit)="enviarLogin()">
-      <label appCampoFormulario class="login__campo" for="correo">
-        <span>Correo</span>
-        <input
-          id="correo"
-          type="email"
-          autocomplete="email"
-          formControlName="correo"
-          placeholder="correo@regalia.pe"
-        />
-        @if (campoTieneError('correo')) {
-          <small appErrorCampo>Ingresa un correo valido.</small>
-        }
-      </label>
+      <div class="auth-story__floating-card" aria-hidden="true">
+        <span class="auth-story__floating-badge">Seleccion REGALIA</span>
+        <strong>Detalles unicos, creados cerca de ti</strong>
+        <small>Trujillo - vendedores locales</small>
+      </div>
+    </section>
 
-      <label appCampoFormulario class="login__campo" for="contrasena">
-        <span>Contrasena</span>
-        <div class="login__contrasena">
-          <input
-            id="contrasena"
-            [type]="mostrarContrasena() ? 'text' : 'password'"
-            autocomplete="current-password"
-            formControlName="contrasena"
-            placeholder="Tu contrasena"
-          />
-          <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="alternarVisibilidadContrasena()">
-            {{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}
+    <main class="auth-panel">
+      <div class="auth-panel__inner">
+        <div class="auth-tabs" role="tablist" aria-label="Acceso a REGALIA">
+          <button
+            type="button"
+            role="tab"
+            [class.auth-tabs__button--active]="modo() === 'login'"
+            [attr.aria-selected]="modo() === 'login'"
+            (click)="cambiarModo('login')"
+          >
+            Iniciar sesion
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [class.auth-tabs__button--active]="modo() === 'registro'"
+            [attr.aria-selected]="modo() === 'registro'"
+            (click)="cambiarModo('registro')"
+          >
+            Crear cuenta
           </button>
         </div>
-        @if (campoTieneError('contrasena')) {
-          <small appErrorCampo>La contrasena es obligatoria.</small>
+
+        @if (esLoginAdministracion() && modo() === 'login') {
+          <div class="auth-seller-note">
+            <span aria-hidden="true">&#10022;</span>
+            <p>Acceso administrativo activo. Este formulario validara contra el endpoint protegido del backoffice.</p>
+          </div>
         }
-      </label>
 
-      <label class="login__recordar">
-        <input type="checkbox" formControlName="recordarSesion" />
-        <span>Recordar sesion en este equipo</span>
-      </label>
+        @if (modo() === 'login') {
+          <form class="auth-form" [formGroup]="formularioLogin" (ngSubmit)="enviarLogin()">
+            <header class="auth-form__header">
+              <span>Bienvenido de nuevo</span>
+              <h2>Ingresa a tu cuenta</h2>
+              <p>Tu espacio se abrira automaticamente segun los permisos de tu cuenta.</p>
+            </header>
 
-      @if (mensajeError()) {
-        <p class="login__error" role="alert">{{ mensajeError() }}</p>
-      }
+            <div class="auth-field">
+              <label for="login-email">Correo electronico</label>
+              <div class="auth-field__control">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 5h16v14H4zM4 7l8 6 8-6"></path>
+                </svg>
+                <input
+                  id="login-email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="nombre@correo.com"
+                  formControlName="correo"
+                />
+              </div>
+              @if (campoLoginTieneError('correo')) {
+                <small class="auth-field__error">Ingresa un correo valido.</small>
+              }
+            </div>
 
-      <button appBoton appBotonBloque [appBotonCargando]="estaEnviando()" class="login__boton" type="submit" [disabled]="estaEnviando()">
-        {{ estaEnviando() ? 'Validando...' : 'Ingresar' }}
-      </button>
-    </form>
+            <div class="auth-field">
+              <div class="auth-field__label-row">
+                <label for="login-password">Contrasena</label>
+                <a routerLink="/login">Olvidaste tu contrasena?</a>
+              </div>
+              <div class="auth-field__control">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5z"></path>
+                </svg>
+                <input
+                  id="login-password"
+                  [type]="mostrarContrasena() ? 'text' : 'password'"
+                  autocomplete="current-password"
+                  placeholder="Tu contrasena"
+                  formControlName="contrasena"
+                />
+                <button class="auth-field__toggle" type="button" (click)="alternarVisibilidadContrasena()">
+                  {{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}
+                </button>
+              </div>
+              @if (campoLoginTieneError('contrasena')) {
+                <small class="auth-field__error">La contrasena es obligatoria.</small>
+              }
+            </div>
 
-    <footer class="login__pie">
-      @if (esLoginAdministracion()) {
-        <a routerLink="/login">Ir al acceso publico</a>
-      } @else {
-        <a routerLink="/login" [queryParams]="{ contexto: 'admin' }">Acceso administrativo</a>
-      }
-    </footer>
+            <label class="auth-check">
+              <input type="checkbox" formControlName="recordarSesion" />
+              <span>Recordar mi sesion en este dispositivo</span>
+            </label>
+
+            @if (mensajeError()) {
+              <p class="auth-message" role="alert">{{ mensajeError() }}</p>
+            }
+
+            <button class="auth-submit" type="submit" [disabled]="estaEnviando()">
+              @if (estaEnviando()) {
+                <span class="auth-submit__spinner" aria-hidden="true"></span>
+                Validando...
+              } @else {
+                Ingresar a REGALIA
+              }
+            </button>
+
+            <p class="auth-form__switch">
+              Aun no tienes cuenta?
+              <button type="button" (click)="cambiarModo('registro')">Creala gratis</button>
+            </p>
+          </form>
+        } @else {
+          <form class="auth-form" [formGroup]="formularioRegistro" (ngSubmit)="enviarRegistro()">
+            <header class="auth-form__header">
+              <span>Cuenta personal</span>
+              <h2>Crea tu cuenta</h2>
+              <p>Todos empiezan como clientes. Los perfiles de vendedor pasan por una solicitud independiente.</p>
+            </header>
+
+            <div class="auth-form__grid">
+              <div class="auth-field">
+                <label for="register-first-name">Nombres</label>
+                <div class="auth-field__control">
+                  <input id="register-first-name" type="text" autocomplete="given-name" placeholder="Tus nombres" formControlName="nombres" />
+                </div>
+                @if (campoRegistroTieneError('nombres')) {
+                  <small class="auth-field__error">Ingresa tus nombres.</small>
+                }
+              </div>
+
+              <div class="auth-field">
+                <label for="register-last-name">Apellidos</label>
+                <div class="auth-field__control">
+                  <input id="register-last-name" type="text" autocomplete="family-name" placeholder="Tus apellidos" formControlName="apellidos" />
+                </div>
+                @if (campoRegistroTieneError('apellidos')) {
+                  <small class="auth-field__error">Ingresa tus apellidos.</small>
+                }
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="register-email">Correo electronico</label>
+              <div class="auth-field__control">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 5h16v14H4zM4 7l8 6 8-6"></path>
+                </svg>
+                <input id="register-email" type="email" autocomplete="email" placeholder="nombre@correo.com" formControlName="correo" />
+              </div>
+              @if (campoRegistroTieneError('correo')) {
+                <small class="auth-field__error">Ingresa un correo valido.</small>
+              }
+            </div>
+
+            <div class="auth-field">
+              <label for="register-phone">Telefono <span>(opcional)</span></label>
+              <div class="auth-field__control auth-field__control--phone">
+                <span class="auth-field__prefix">+51</span>
+                <input id="register-phone" type="tel" autocomplete="tel" placeholder="999 999 999" formControlName="telefono" />
+              </div>
+            </div>
+
+            <div class="auth-form__grid">
+              <div class="auth-field">
+                <label for="register-password">Contrasena</label>
+                <div class="auth-field__control">
+                  <input
+                    id="register-password"
+                    [type]="mostrarContrasenaRegistro() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    placeholder="Minimo 8 caracteres"
+                    formControlName="contrasena"
+                  />
+                  <button class="auth-field__toggle" type="button" (click)="alternarVisibilidadContrasenaRegistro()">
+                    {{ mostrarContrasenaRegistro() ? 'Ocultar' : 'Ver' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="auth-field">
+                <label for="register-confirm-password">Confirmar</label>
+                <div class="auth-field__control">
+                  <input
+                    id="register-confirm-password"
+                    [type]="mostrarConfirmacionRegistro() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    placeholder="Repite la contrasena"
+                    formControlName="confirmarContrasena"
+                  />
+                  <button class="auth-field__toggle" type="button" (click)="alternarVisibilidadConfirmacionRegistro()">
+                    {{ mostrarConfirmacionRegistro() ? 'Ocultar' : 'Ver' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            @if (
+              (campoRegistroTieneError('contrasena') || campoRegistroTieneError('confirmarContrasena')) ||
+              (!contrasenasRegistroCoinciden() && formularioRegistro.controls.confirmarContrasena.touched)
+            ) {
+              <small class="auth-field__error">La contrasena debe tener minimo 8 caracteres y coincidir.</small>
+            }
+
+            <label class="auth-check auth-check--terms">
+              <input type="checkbox" formControlName="aceptaTerminos" />
+              <span>Acepto los terminos de uso y la politica de privacidad de REGALIA.</span>
+            </label>
+            @if (campoRegistroTieneError('aceptaTerminos')) {
+              <small class="auth-field__error">Debes aceptar los terminos para continuar.</small>
+            }
+
+            @if (mensajeRegistro()) {
+              <p class="auth-message auth-message--success" role="status">{{ mensajeRegistro() }}</p>
+            }
+
+            <button class="auth-submit" type="submit">Crear mi cuenta</button>
+
+            <a class="auth-seller-link" routerLink="/login" [queryParams]="{ origen: 'vendedor' }">
+              <span aria-hidden="true">&#10022;</span>
+              Quiero vender mis productos o servicios
+            </a>
+
+            <p class="auth-form__switch">
+              Ya tienes una cuenta?
+              <button type="button" (click)="cambiarModo('login')">Inicia sesion</button>
+            </p>
+          </form>
+        }
+      </div>
+
+      <p class="auth-panel__legal">
+        Al continuar, aceptas que REGALIA gestione tus datos de acuerdo con su politica de privacidad.
+      </p>
+    </main>
   </div>
 </section>
