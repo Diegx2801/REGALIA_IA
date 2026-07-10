@@ -1,0 +1,81 @@
+<section class="login">
+  <aside class="login__presentacion" aria-label="Beneficios REGALIA">
+    <span>REGALIA</span>
+    <h2>Acceso seguro para comprar, vender y administrar regalos personalizados.</h2>
+    <p>Autenticacion con JWT, roles separados y sesiones locales controladas por expiracion.</p>
+  </aside>
+
+  <div class="login__panel">
+    <a class="login__marca" routerLink="/">REGALIA</a>
+
+    <header class="login__cabecera">
+      <span class="login__etiqueta">
+        {{ esLoginAdministracion() ? 'Acceso administrativo' : 'Acceso cliente y vendedor' }}
+      </span>
+      <h1>Ingresa a tu cuenta</h1>
+      <p>
+        {{
+          esLoginAdministracion()
+            ? 'Gestiona usuarios, tiendas, pedidos y catalogos internos.'
+            : 'Continua con tus pedidos, tienda o reservas personalizadas.'
+        }}
+      </p>
+    </header>
+
+    <form appFormularioPanel appFormularioUnaColumna class="login__formulario" [formGroup]="formularioLogin" (ngSubmit)="enviarLogin()">
+      <label appCampoFormulario class="login__campo" for="correo">
+        <span>Correo</span>
+        <input
+          id="correo"
+          type="email"
+          autocomplete="email"
+          formControlName="correo"
+          placeholder="correo@regalia.pe"
+        />
+        @if (campoTieneError('correo')) {
+          <small appErrorCampo>Ingresa un correo valido.</small>
+        }
+      </label>
+
+      <label appCampoFormulario class="login__campo" for="contrasena">
+        <span>Contrasena</span>
+        <div class="login__contrasena">
+          <input
+            id="contrasena"
+            [type]="mostrarContrasena() ? 'text' : 'password'"
+            autocomplete="current-password"
+            formControlName="contrasena"
+            placeholder="Tu contrasena"
+          />
+          <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="alternarVisibilidadContrasena()">
+            {{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}
+          </button>
+        </div>
+        @if (campoTieneError('contrasena')) {
+          <small appErrorCampo>La contrasena es obligatoria.</small>
+        }
+      </label>
+
+      <label class="login__recordar">
+        <input type="checkbox" formControlName="recordarSesion" />
+        <span>Recordar sesion en este equipo</span>
+      </label>
+
+      @if (mensajeError()) {
+        <p class="login__error" role="alert">{{ mensajeError() }}</p>
+      }
+
+      <button appBoton appBotonBloque [appBotonCargando]="estaEnviando()" class="login__boton" type="submit" [disabled]="estaEnviando()">
+        {{ estaEnviando() ? 'Validando...' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <footer class="login__pie">
+      @if (esLoginAdministracion()) {
+        <a routerLink="/login">Ir al acceso publico</a>
+      } @else {
+        <a routerLink="/login" [queryParams]="{ contexto: 'admin' }">Acceso administrativo</a>
+      }
+    </footer>
+  </div>
+</section>

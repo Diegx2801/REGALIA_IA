@@ -1,0 +1,91 @@
+:host {
+  display: block;
+}
+
+.panel-cliente {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel-cliente__perfil,
+.panel-cliente__bloque,
+.panel-cliente__detalle {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.25rem;
+  box-shadow: 0 14px 34px rgba(35, 25, 39, 0.08);
+  padding: 1rem;
+}
+
+.panel-cliente__perfil,
+.panel-cliente__layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel-cliente__perfil strong {
+  justify-self: end;
+}
+
+.panel-cliente span,
+.panel-cliente__bloque header span,
+.panel-cliente__detalle header span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panel-cliente p,
+.panel-cliente small {
+  color: var(--rg-color-muted);
+}
+
+.panel-cliente__detalle-grid article {
+  background: #fff;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 1rem;
+  padding: 0.85rem;
+}
+
+.panel-cliente__detalle-grid {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.panel-cliente__detalle {
+  background: rgba(255, 248, 242, 0.72);
+}
+
+.panel-cliente__formulario-pago,
+.panel-cliente__pago-completo {
+  background: #fff;
+  border: 1px solid rgba(174, 116, 65, 0.18);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.panel-cliente__formulario-pago {
+  --rg-formulario-columnas: repeat(2, minmax(0, 1fr));
+}
+
+.panel-cliente__formulario-pago header,
+.panel-cliente__formulario-pago .rg-boton {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 899.98px) {
+  .panel-cliente__perfil,
+  .panel-cliente__layout,
+  .panel-cliente__detalle-grid,
+  .panel-cliente__formulario-pago {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-cliente__perfil strong {
+    justify-self: start;
+  }
+}

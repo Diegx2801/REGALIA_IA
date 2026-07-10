@@ -2,12 +2,11 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm",
-    "analytics": false
+    "packageManager": "npm"
   },
   "newProjectRoot": "projects",
   "projects": {
-    "Regalia": {
+    "frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -26,9 +25,6 @@
               }
             ],
             "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap-reboot.min.css",
-              "node_modules/bootstrap/dist/css/bootstrap-grid.min.css",
-              "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css",
               "src/styles.css"
             ]
           },
@@ -37,13 +33,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "520kB",
                   "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "18kB",
-                  "maximumError": "24kB"
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
                 }
               ],
               "outputHashing": "all"
@@ -60,10 +56,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Regalia:build:production"
+              "buildTarget": "frontend:build:production"
             },
             "development": {
-              "buildTarget": "Regalia:build:development"
+              "buildTarget": "frontend:build:development"
             }
           },
           "defaultConfiguration": "development"

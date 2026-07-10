@@ -1,0 +1,59 @@
+<div class="layout-publico">
+  <header class="layout-publico__header">
+    <div class="layout-publico__topbar">
+      <strong>Entrega coordinada para regalos personalizados en Peru</strong>
+      <span>Marketplace boutique para clientes, vendedores y empresas</span>
+    </div>
+
+    <div class="layout-publico__barra">
+      <a class="layout-publico__marca" routerLink="/">
+        REGALIA
+        <span>Marketplace premium</span>
+      </a>
+
+      <form
+        class="layout-publico__buscador"
+        (submit)="buscarProductos(busquedaCatalogo.value); $event.preventDefault()"
+      >
+        <input
+          #busquedaCatalogo
+          type="search"
+          placeholder="Buscar regalos, ocasiones o tiendas"
+          aria-label="Buscar productos en catalogo"
+        />
+        <button appBoton appBotonTamano="sm" type="submit">Buscar</button>
+      </form>
+
+      <nav class="layout-publico__navegacion" aria-label="Navegacion publica">
+        <a routerLink="/catalogo">Catalogo</a>
+        <a
+          class="layout-publico__carrito"
+          routerLink="/carrito"
+          aria-label="Abrir carrito de compras"
+        >
+          Carrito
+          @if (carrito.cantidadItems() > 0) {
+            <span class="layout-publico__contador-carrito">{{ carrito.cantidadItems() }}</span>
+          }
+        </a>
+        @if (sesion.estaAutenticado()) {
+          <a [routerLink]="rutaPanel()">Mi panel</a>
+          <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="cerrarSesion()">Salir</button>
+        } @else {
+          <a routerLink="/login">Ingresar</a>
+        }
+      </nav>
+    </div>
+
+    <nav class="layout-publico__categorias" aria-label="Categorias destacadas">
+      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'cumpleanos' }">Cumpleanos</a>
+      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'aniversario' }">Aniversario</a>
+      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'flores' }">Flores</a>
+      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'corporativo' }">Corporativo</a>
+    </nav>
+  </header>
+
+  <main class="layout-publico__contenido">
+    <router-outlet />
+  </main>
+</div>

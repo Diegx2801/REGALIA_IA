@@ -1,0 +1,80 @@
+<section class="admin-seccion">
+  <header class="rg-panel__hero">
+    <span>Pedidos</span>
+    <h2>Seguimiento operativo</h2>
+    <p>Vista administrativa de pedidos globales y saldos pendientes.</p>
+  </header>
+
+  <form app-filtros-panel [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
+    <label>
+      Estado de pago
+      <select formControlName="estadoPago">
+        <option value="">Todos</option>
+        <option value="PENDIENTE">Pendiente</option>
+        <option value="PAGADO">Pagado</option>
+        <option value="PARCIAL">Parcial</option>
+      </select>
+    </label>
+    <label>
+      Buscar tienda
+      <input type="search" formControlName="busqueda" placeholder="Nombre de tienda" />
+    </label>
+    <button type="submit">Aplicar filtros</button>
+  </form>
+
+  @if (cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando pedidos." />
+  } @else if (mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="mensajeError() ?? 'No pudimos cargar pedidos.'"
+      textoAccion="Reintentar"
+      (accion)="cargarPedidos()"
+    />
+  } @else {
+    <app-grupo-metricas-panel ariaEtiqueta="Resumen de pedidos">
+      <app-tarjeta-metrica
+        etiqueta="Total pedidos"
+        [valor]="totalPedidos()"
+        [descripcion]="'Mostrando ' + pedidos().length + ' pedido(s) recientes.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Pagado"
+        [valor]="montoPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        descripcion="Monto pagado en esta pagina."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Saldo"
+        [valor]="saldoPendiente() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        descripcion="Saldo pendiente en esta pagina."
+      />
+    </app-grupo-metricas-panel>
+
+    <app-lista-panel class="admin-seccion__lista" ariaEtiqueta="Pedidos administrativos">
+      @for (pedido of pedidos(); track pedido.idPedido) {
+        <app-fila-panel [ariaEtiqueta]="'Pedido ' + pedido.idPedido">
+          <div>
+            <strong>#{{ pedido.idPedido }} - {{ pedido.estadoPedido }}</strong>
+            <small>{{ pedido.nombreTienda }} - {{ pedido.tipoEntrega }}</small>
+            <p>Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }} - {{ pedido.cantidadItems }} item(s)</p>
+          </div>
+          <div>
+            <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+            <small>Saldo {{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+          </div>
+        </app-fila-panel>
+      } @empty {
+        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay pedidos registrados." />
+      }
+    </app-lista-panel>
+
+    <app-paginacion-panel
+      ariaEtiqueta="Paginacion de pedidos"
+      [paginaActual]="paginaActual()"
+      [totalPaginas]="totalPaginas()"
+      (anterior)="paginaAnterior()"
+      (siguiente)="paginaSiguiente()"
+    />
+  }
+</section>

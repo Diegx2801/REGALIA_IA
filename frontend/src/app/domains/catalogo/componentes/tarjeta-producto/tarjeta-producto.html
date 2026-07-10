@@ -1,0 +1,35 @@
+<article class="tarjeta-producto" [class.tarjeta-producto--agotado]="!producto().disponible">
+  <a class="tarjeta-producto__imagen" [routerLink]="['/catalogo', producto().idProducto]">
+    <img [src]="imagenPrincipal()" [alt]="producto().nombre" loading="lazy" />
+    <span class="tarjeta-producto__estado">
+      @if (producto().disponible) {
+        Disponible
+      } @else {
+        Agotado
+      }
+    </span>
+  </a>
+
+  <div class="tarjeta-producto__contenido">
+    <div class="tarjeta-producto__cabecera">
+      <span class="tarjeta-producto__tipo">{{ producto().tipoProducto }}</span>
+      <strong class="tarjeta-producto__precio">
+        {{ producto().precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
+      </strong>
+    </div>
+
+    <h3 class="tarjeta-producto__nombre">
+      <a [routerLink]="['/catalogo', producto().idProducto]">{{ producto().nombre }}</a>
+    </h3>
+    <p class="tarjeta-producto__descripcion">{{ producto().descripcion }}</p>
+
+    <footer class="tarjeta-producto__pie">
+      <span>{{ producto().nombreTienda }}</span>
+      <span [class.tarjeta-producto__stock--alerta]="stockBajo()">Stock {{ producto().stock }}</span>
+    </footer>
+
+    <a appBoton appBotonBloque class="tarjeta-producto__accion" [routerLink]="['/catalogo', producto().idProducto]">
+      Ver detalle
+    </a>
+  </div>
+</article>

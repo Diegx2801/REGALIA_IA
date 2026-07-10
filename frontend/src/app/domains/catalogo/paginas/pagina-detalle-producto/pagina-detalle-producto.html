@@ -1,0 +1,100 @@
+<main class="detalle-producto">
+  <a appBoton="fantasma" appBotonTamano="sm" class="detalle-producto__volver" routerLink="/catalogo">Volver al catalogo</a>
+
+  @if (cargandoProducto()) {
+    <section class="detalle-producto__skeleton" aria-label="Cargando detalle del producto">
+      <span></span>
+      <div>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </section>
+  } @else if (mensajeError()) {
+    <section class="detalle-producto__estado">
+      <span>Detalle no disponible</span>
+      <h1>{{ mensajeError() }}</h1>
+      <p>Verifica que el backend este activo en el puerto 8080 o vuelve al catalogo.</p>
+      <a appBoton routerLink="/catalogo">Explorar catalogo</a>
+    </section>
+  } @else if (producto(); as productoActual) {
+    <section class="detalle-producto__principal">
+      <div class="detalle-producto__galeria">
+        <div class="detalle-producto__imagen-principal">
+          <img [src]="imagenActiva()" [alt]="productoActual.nombre" />
+          <span [class.detalle-producto__estado-stock--agotado]="!productoActual.disponible">
+            {{ stockTexto() }}
+          </span>
+        </div>
+
+        @if (productoActual.imagenes.length > 1) {
+          <div class="detalle-producto__miniaturas" aria-label="Imagenes del producto">
+            @for (imagen of productoActual.imagenes; track imagen.urlImagen; let indice = $index) {
+              <button
+                type="button"
+                [class.detalle-producto__miniatura--activa]="indiceImagenActiva() === indice"
+                (click)="seleccionarImagen(indice)"
+              >
+                <img [src]="imagen.urlImagen" [alt]="productoActual.nombre + ' imagen ' + (indice + 1)" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <article class="detalle-producto__informacion">
+        <span class="detalle-producto__categoria">{{ productoActual.tipoProducto }}</span>
+        <h1>{{ productoActual.nombre }}</h1>
+        <p class="detalle-producto__descripcion">{{ productoActual.descripcion }}</p>
+
+        <div class="detalle-producto__precio">
+          <span>Precio desde</span>
+          <strong>{{ productoActual.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        </div>
+
+        @if (productoActual.disponible) {
+          <div class="detalle-producto__cantidad" aria-label="Seleccion de cantidad">
+            <span>Cantidad</span>
+            <div>
+              <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="disminuirCantidad(productoActual)">-</button>
+              <strong>{{ cantidadSeleccionada() }}</strong>
+              <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="aumentarCantidad(productoActual)">+</button>
+            </div>
+            <small>Total estimado {{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+          </div>
+        }
+
+        <dl class="detalle-producto__datos">
+          <div>
+            <dt>Tienda</dt>
+            <dd>{{ productoActual.nombreTienda }}</dd>
+          </div>
+          <div>
+            <dt>Disponibilidad</dt>
+            <dd>{{ stockTexto() }}</dd>
+          </div>
+          <div>
+            <dt>Personalizacion</dt>
+            <dd>Mensaje, ocasion y preferencias del cliente.</dd>
+          </div>
+        </dl>
+
+        <div class="detalle-producto__acciones">
+          <a
+            appBoton
+            class="detalle-producto__accion-principal"
+            [class.detalle-producto__accion-principal--deshabilitada]="!productoActual.disponible"
+            [routerLink]="productoActual.disponible ? ['/checkout/solicitud', productoActual.idProducto] : null"
+          >
+            Solicitar personalizacion
+          </a>
+          <button appBoton="secundario" type="button" [disabled]="!productoActual.disponible" (click)="agregarAlCarrito(productoActual)">
+            Agregar al carrito
+          </button>
+          <a appBoton="fantasma" routerLink="/catalogo">Seguir explorando</a>
+        </div>
+      </article>
+    </section>
+
+  }
+</main>

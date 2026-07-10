@@ -1,0 +1,39 @@
+.rg-filtros-panel {
+  align-items: end;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: var(--rg-filtros-columna-inicial, 12rem) minmax(0, 1fr) auto;
+  padding: 1rem;
+}
+
+.rg-filtros-panel label {
+  display: grid;
+  font-weight: 900;
+  gap: 0.35rem;
+}
+
+.rg-filtros-panel input,
+.rg-filtros-panel select {
+  border: 1px solid var(--rg-color-border);
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.rg-filtros-panel button {
+  background: var(--rg-color-primary);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 900;
+  min-height: 2.6rem;
+  padding-inline: 1rem;
+}
+
+@media (max-width: 699.98px) {
+  .rg-filtros-panel {
+    grid-template-columns: 1fr;
+  }
+}

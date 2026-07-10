@@ -1,0 +1,11 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="720" rx="44" fill="#F8EFE6"/>
+  <rect x="84" y="76" width="792" height="568" rx="38" fill="#FFFDF9" stroke="#EADBD0" stroke-width="2"/>
+  <circle cx="740" cy="174" r="68" fill="#F1D9B8"/>
+  <path d="M206 500C283 389 345 341 421 379C480 409 513 500 584 484C644 471 673 412 744 430C790 442 822 476 842 511V588H132V566C153 546 177 529 206 500Z" fill="#E8C98F"/>
+  <rect x="336" y="188" width="288" height="238" rx="28" fill="#5A2440"/>
+  <path d="M480 188V426" stroke="#D7AD4B" stroke-width="18"/>
+  <path d="M336 292H624" stroke="#D7AD4B" stroke-width="18"/>
+  <path d="M480 190C430 126 365 141 360 190C357 219 389 239 480 242C571 239 603 219 600 190C595 141 530 126 480 190Z" stroke="#D7AD4B" stroke-width="18" stroke-linejoin="round"/>
+  <text x="480" y="616" text-anchor="middle" fill="#5A2440" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">REGALIA</text>
+</svg>

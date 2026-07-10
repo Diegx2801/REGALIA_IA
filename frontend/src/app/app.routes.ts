@@ -1,335 +1,84 @@
 import { Routes } from '@angular/router';
-import {
-  adminGuestGuard,
-  authGuard,
-  guestGuard,
-  roleGuard,
-  roleRedirectGuard,
-} from './core/guards/auth.guard';
-import { devPreviewGuard } from './core/guards/dev-preview.guard';
+import { autenticacionGuard } from './core/guards/autenticacion.guard';
+import { rolGuard } from './core/guards/rol.guard';
 
-// En este archivo se concentra el flujo principal de navegación de Angular:
-// rutas públicas, áreas privadas por rol y redirecciones según permisos.
-// ROUTING EN ANGULAR: aqui se define que componente se carga segun la URL y el rol.
 export const routes: Routes = [
   {
-    path: 'login',
-    canActivate: [guestGuard],
-    // CARGA DE COMPONENTES: loadComponent crea y muestra el componente cuando se entra a la ruta.
-    loadComponent: () => import('./features/auth/auth').then((m) => m.AuthComponent),
-  },
-  {
-    path: 'registro',
-    canActivate: [guestGuard],
-    loadComponent: () => import('./features/auth/auth').then((m) => m.AuthComponent),
-  },
-
-  {
-    path: 'admin/login',
-    canActivate: [adminGuestGuard],
-    loadComponent: () =>
-      import('./features/admin-login/admin-login').then((m) => m.AdminLoginComponent),
-  },
-
-  {
-    path: 'vista-previa',
-    canActivate: [devPreviewGuard],
-    loadComponent: () =>
-      import('./features/role-preview/role-preview').then((m) => m.RolePreviewComponent),
-  },
-  {
-    path: 'vista-previa/cliente',
-    canActivate: [devPreviewGuard],
-    data: { previewRole: 'Cliente' },
-    loadComponent: () =>
-      import('./core/layouts/workspace-layout/workspace-layout').then(
-        (m) => m.WorkspaceLayoutComponent,
-      ),
-    children: [
-      {
-        path: '',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-      },
-    ],
-  },
-  {
-    path: 'vista-previa/vendedor',
-    canActivate: [devPreviewGuard],
-    data: { previewRole: 'Vendedor' },
-    loadComponent: () =>
-      import('./core/layouts/workspace-layout/workspace-layout').then(
-        (m) => m.WorkspaceLayoutComponent,
-      ),
-    children: [
-      {
-        path: '',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-      },
-    ],
-  },
-  {
-    path: 'vista-previa/admin',
-    canActivate: [devPreviewGuard],
-    data: { previewRole: 'Administrador' },
-    loadComponent: () =>
-      import('./core/layouts/workspace-layout/workspace-layout').then(
-        (m) => m.WorkspaceLayoutComponent,
-      ),
-    children: [
-      {
-        path: '',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-      },
-    ],
-  },
-  {
-    path: 'acceso-denegado',
-    loadComponent: () =>
-      import('./features/access-denied/access-denied').then((m) => m.AccessDeniedComponent),
-  },
-
-  {
-    path: 'cliente',
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['Cliente'],
-      authContext: 'PUBLIC',
-    },
-    loadComponent: () =>
-      import('./core/layouts/workspace-layout/workspace-layout').then(
-        (m) => m.WorkspaceLayoutComponent,
-      ),
-    children: [
-      {
-        path: 'inicio',
-        redirectTo: 'reservas',
-        pathMatch: 'full',
-      },
-      {
-        path: 'reservas',
-        loadComponent: () =>
-          import('./features/reservations/reservations').then((m) => m.ReservationsComponent),
-      },
-      {
-        path: 'solicitud-vendedor',
-        loadComponent: () =>
-          import('./features/seller-application/seller-application').then(
-            (m) => m.SellerApplicationComponent,
-          ),
-      },
-      {
-        path: 'perfil',
-        loadComponent: () =>
-          import('./features/account-profile/account-profile').then(
-            (m) => m.AccountProfileComponent,
-          ),
-      },
-      { path: '', redirectTo: 'reservas', pathMatch: 'full' },
-    ],
-  },
-
-  {
-    path: 'vendedor',
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['Vendedor'],
-      authContext: 'PUBLIC',
-    },
-    loadComponent: () =>
-      import('./core/layouts/workspace-layout/workspace-layout').then(
-        (m) => m.WorkspaceLayoutComponent,
-      ),
-    children: [
-      {
-        path: 'resumen',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-      },
-      {
-        path: 'pedidos',
-        loadComponent: () =>
-          import('./features/marketplace-quotes/marketplace-quotes').then(
-            (m) => m.MarketplaceQuotesComponent,
-          ),
-      },
-      {
-        path: 'calendario',
-        redirectTo: 'pedidos',
-        pathMatch: 'full',
-      },
-      {
-        path: 'perfil',
-        loadComponent: () =>
-          import('./features/seller-profile/seller-profile').then(
-            (m) => m.SellerProfileComponent,
-          ),
-      },
-      {
-        path: 'cuenta',
-        loadComponent: () =>
-          import('./features/account-profile/account-profile').then(
-            (m) => m.AccountProfileComponent,
-          ),
-      },
-      { path: '', redirectTo: 'resumen', pathMatch: 'full' },
-    ],
-  },
-
-  {
-    path: 'admin',
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['Administrador'],
-      authContext: 'ADMIN',
-    },
-    loadComponent: () =>
-      import('./core/layouts/workspace-layout/workspace-layout').then(
-        (m) => m.WorkspaceLayoutComponent,
-      ),
-    children: [
-      {
-        path: 'resumen',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-      },
-      { path: 'operacion', redirectTo: 'pedidos', pathMatch: 'full' },
-      { path: 'solicitudes-vendedores', redirectTo: 'tiendas', pathMatch: 'full' },
-      { path: 'calendario', redirectTo: 'pedidos', pathMatch: 'full' },
-      {
-        path: 'pedidos',
-        loadComponent: () =>
-          import('./features/admin-orders/admin-orders').then((m) => m.AdminOrdersComponent),
-      },
-      {
-        path: 'tiendas',
-        loadComponent: () =>
-          import('./features/admin-stores/admin-stores').then((m) => m.AdminStoresComponent),
-      },
-      {
-        path: 'vendedores',
-        loadComponent: () =>
-          import('./features/admin-sellers/admin-sellers').then((m) => m.AdminSellersComponent),
-      },
-      {
-        path: 'usuarios',
-        loadComponent: () =>
-          import('./features/admin-users/admin-users').then((m) => m.AdminUsersComponent),
-      },
-      {
-        path: 'catalogos',
-        loadComponent: () =>
-          import('./features/admin-catalogs/admin-catalogs').then((m) => m.AdminCatalogsComponent),
-      },
-      {
-        path: 'perfil',
-        loadComponent: () =>
-          import('./features/account-profile/account-profile').then(
-            (m) => m.AccountProfileComponent,
-          ),
-      },
-      { path: '', redirectTo: 'resumen', pathMatch: 'full' },
-    ],
-  },
-
-  {
-    path: 'dashboard',
-    canActivate: [authGuard, roleRedirectGuard],
-    data: {
-      redirects: {
-        Cliente: '/cliente/reservas',
-        Vendedor: '/vendedor/resumen',
-        Administrador: '/admin/resumen',
-      },
-    },
-    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-  },
-  {
-    path: 'panel',
-    canActivate: [authGuard, roleRedirectGuard],
-    data: {
-      redirects: {
-        Cliente: '/cliente/reservas',
-        Vendedor: '/vendedor/pedidos',
-        Administrador: '/admin/pedidos',
-      },
-    },
-    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-  },
-  {
-    path: 'mis-reservas',
-    canActivate: [authGuard, roleRedirectGuard],
-    data: {
-      redirects: {
-        Cliente: '/cliente/reservas',
-        Vendedor: '/vendedor/pedidos',
-        Administrador: '/admin/pedidos',
-      },
-    },
-    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-  },
-  {
-    path: 'perfil-vendedor',
-    canActivate: [authGuard, roleRedirectGuard],
-    data: {
-      redirects: {
-        Cliente: '/cliente/reservas',
-        Vendedor: '/vendedor/perfil',
-        Administrador: '/admin/resumen',
-      },
-    },
-    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
-  },
-  { path: 'marketplace-quotes', redirectTo: 'panel', pathMatch: 'full' },
-
-  {
     path: '',
+    // Layout publico: landing, catalogo y login comparten navegacion comercial.
     loadComponent: () =>
-      import('./core/layouts/public-layout/public-layout').then((m) => m.PublicLayoutComponent),
+      import('./core/layouts/layout-publico/layout-publico').then((m) => m.LayoutPublico),
     children: [
       {
         path: '',
-        loadComponent: () => import('./features/landing/landing').then((m) => m.LandingComponent),
+        loadComponent: () =>
+          import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),
       },
       {
-        path: 'pedir-con-ia',
-        loadComponent: () =>
-          import('./features/builder/builder/builder').then((m) => m.BuilderComponent),
+        path: 'login',
+        loadChildren: () =>
+          import('./domains/autenticacion/autenticacion.routes').then(
+            (m) => m.AUTENTICACION_ROUTES,
+          ),
       },
       {
         path: 'catalogo',
-        loadComponent: () => import('./features/catalog/catalog').then((m) => m.CatalogComponent),
+        loadChildren: () =>
+          import('./domains/catalogo/catalogo.routes').then((m) => m.CATALOGO_ROUTES),
       },
       {
-        path: 'producto/:id',
-        loadComponent: () =>
-          import('./features/product-detail/product-detail').then((m) => m.ProductDetailComponent),
+        path: 'checkout',
+        loadChildren: () =>
+          import('./domains/checkout/checkout.routes').then((m) => m.CHECKOUT_ROUTES),
       },
       {
         path: 'carrito',
-        loadComponent: () => import('./features/cart/cart').then((m) => m.CartComponent),
-      },
-      {
-        path: 'vendedores',
-        loadComponent: () => import('./features/catalog/catalog').then((m) => m.CatalogComponent),
-      },
-      {
-        path: 'manual',
         loadComponent: () =>
-          import('./features/manual-builder/manual-builder').then((m) => m.ManualBuilderComponent),
+          import('./domains/checkout/paginas/pagina-carrito/pagina-carrito').then(
+            (m) => m.PaginaCarrito,
+          ),
       },
-      {
-        path: 'modelo',
-        loadComponent: () => import('./features/landing/landing').then((m) => m.LandingComponent),
-      },
-      { path: 'match', redirectTo: 'pedir-con-ia', pathMatch: 'full' },
-      { path: 'builder', redirectTo: 'pedir-con-ia', pathMatch: 'full' },
-      { path: 'catalog', redirectTo: 'catalogo', pathMatch: 'full' },
-      { path: 'manual-builder', redirectTo: 'manual', pathMatch: 'full' },
     ],
   },
-
-  { path: '**', redirectTo: '' },
+  {
+    path: 'cliente',
+    // Rutas privadas: primero validan sesion y luego rol permitido.
+    canActivate: [autenticacionGuard, rolGuard],
+    data: { roles: ['CLIENTE'] },
+    loadComponent: () =>
+      import('./core/layouts/layout-cliente/layout-cliente').then((m) => m.LayoutCliente),
+    loadChildren: () =>
+      import('./domains/usuarios/usuarios.routes').then((m) => m.USUARIOS_ROUTES),
+  },
+  {
+    path: 'vendedor',
+    // El dominio vendedor queda separado para crecer sin acoplarse al panel cliente.
+    canActivate: [autenticacionGuard, rolGuard],
+    data: { roles: ['VENDEDOR'] },
+    loadComponent: () =>
+      import('./core/layouts/layout-vendedor/layout-vendedor').then((m) => m.LayoutVendedor),
+    loadChildren: () =>
+      import('./domains/vendedores/vendedores.routes').then((m) => m.VENDEDORES_ROUTES),
+  },
+  {
+    path: 'admin',
+    // Backoffice aislado: consume endpoints /api/admin y tendra UI mas densa.
+    canActivate: [autenticacionGuard, rolGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./core/layouts/layout-administracion/layout-administracion').then(
+        (m) => m.LayoutAdministracion,
+      ),
+    loadChildren: () =>
+      import('./domains/administracion/administracion.routes').then(
+        (m) => m.ADMINISTRACION_ROUTES,
+      ),
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./pages/no-encontrado/pagina-no-encontrado/pagina-no-encontrado').then(
+        (m) => m.PaginaNoEncontrado,
+      ),
+  },
 ];

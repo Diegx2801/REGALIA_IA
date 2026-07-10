@@ -1,16 +1,22 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
+import { errorApiInterceptor } from './core/http/interceptors/error-api.interceptor';
+import { tokenAutenticacionInterceptor } from './core/http/interceptors/token-autenticacion.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    // PETICIONES HTTP: HttpClient queda disponible globalmente y usa el interceptor de token.
-    provideHttpClient(withInterceptors([authTokenInterceptor])),
-    // ROUTING: provideRouter conecta la navegacion de toda la app con app.routes.ts.
+    // Angular moderno: la deteccion de cambios se activa sin zone.js mediante Signals/eventos.
+    provideZonelessChangeDetection(),
     provideRouter(routes),
+    // HTTP global: los interceptores centralizan token JWT y errores de API.
+    provideHttpClient(withInterceptors([tokenAutenticacionInterceptor, errorApiInterceptor])),
   ],
 };

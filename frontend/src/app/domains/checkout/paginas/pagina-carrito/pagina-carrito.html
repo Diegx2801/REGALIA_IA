@@ -1,0 +1,114 @@
+<main class="carrito">
+  <section class="carrito__hero">
+    <div>
+      <span>Carrito REGALIA</span>
+      <h1>Revisa tus regalos antes de preparar el pago.</h1>
+      <p>El carrito se conserva en este navegador y se envia al backend al confirmar checkout.</p>
+    </div>
+
+    <aside>
+      <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+      <small>{{ carrito.cantidadItems() }} item(s)</small>
+    </aside>
+  </section>
+
+  @if (vieneDeCheckout()) {
+    <section class="carrito__estado-pago" [class.carrito__estado-pago--exito]="estadoPago() === 'success'">
+      @switch (estadoPago()) {
+        @case ('success') {
+          <strong>Pago aprobado</strong>
+          <p>Limpiamos el carrito local. El backend confirma el pedido mediante la pasarela configurada.</p>
+        }
+        @case ('failure') {
+          <strong>Pago rechazado</strong>
+          <p>Puedes revisar el carrito e intentar nuevamente.</p>
+        }
+        @case ('pending') {
+          <strong>Pago pendiente</strong>
+          <p>El pedido se actualizara cuando la pasarela confirme el resultado.</p>
+        }
+        @default {
+          <strong>Retorno de checkout</strong>
+          <p>Revisa el estado de tu operacion antes de continuar.</p>
+        }
+      }
+    </section>
+  }
+
+  @if (carrito.estaVacio()) {
+    <section class="carrito__vacio">
+      <span>Carrito vacio</span>
+      <h2>Aun no agregaste regalos personalizados.</h2>
+      <a appBoton routerLink="/catalogo">Explorar catalogo</a>
+    </section>
+  } @else {
+    <section class="carrito__contenido">
+      <div class="carrito__items">
+        @for (item of carrito.items(); track item.idProducto) {
+          <article class="carrito__item">
+            <img [src]="item.urlImagen" [alt]="item.nombre" />
+
+            <div class="carrito__detalle">
+              <span>{{ item.tipoProducto }}</span>
+              <h2>{{ item.nombre }}</h2>
+              <p>{{ item.nombreTienda }}</p>
+
+              <label appCampoFormulario>
+                Personalizacion
+                <textarea
+                  rows="3"
+                  [ngModel]="item.observacion ?? ''"
+                  (ngModelChange)="actualizarObservacion(item.idProducto, $event)"
+                  placeholder="Nombre, dedicatoria, colores, ocasion o detalles especiales"
+                ></textarea>
+                @if (!item.observacion?.trim()) {
+                  <small appErrorCampo>Agrega una indicacion para que el vendedor pueda preparar el regalo.</small>
+                }
+              </label>
+            </div>
+
+            <div class="carrito__controles">
+              <strong>{{ item.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+              <small>
+                Subtotal {{ item.precioUnitario * item.cantidad | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
+              </small>
+              <label appCampoFormulario>
+                Cantidad
+                <input
+                  type="number"
+                  min="1"
+                  [max]="item.stockDisponible"
+                  [ngModel]="item.cantidad"
+                  (ngModelChange)="actualizarCantidad(item.idProducto, $event)"
+                />
+              </label>
+              <button appBoton="peligro" appBotonTamano="sm" type="button" (click)="carrito.quitarProducto(item.idProducto)">Quitar</button>
+            </div>
+          </article>
+        }
+      </div>
+
+      <aside class="carrito__resumen">
+        <span>Resumen</span>
+        <h2>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</h2>
+        <p>El pago final se prepara contra el backend para validar stock, tienda, entrega y monto real.</p>
+        @if (!puedePrepararCheckout()) {
+          <p class="carrito__alerta">
+            Completa la personalizacion de {{ itemsSinPersonalizacion().length }} producto(s) antes de continuar.
+          </p>
+        }
+        <button
+          appBoton
+          appBotonBloque
+          class="carrito__checkout"
+          type="button"
+          [disabled]="!puedePrepararCheckout()"
+          (click)="prepararCheckout()"
+        >
+          Preparar checkout
+        </button>
+        <button appBoton="secundario" appBotonBloque type="button" (click)="carrito.limpiarCarrito()">Vaciar carrito</button>
+      </aside>
+    </section>
+  }
+</main>

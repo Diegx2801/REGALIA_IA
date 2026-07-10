@@ -1,0 +1,16 @@
+<section
+  class="estado-pantalla"
+  [class.estado-pantalla--carga]="tipo() === 'carga'"
+  [class.estado-pantalla--error]="tipo() === 'error'"
+  [class.estado-pantalla--exito]="tipo() === 'exito'"
+  [class.estado-pantalla--vacio]="tipo() === 'vacio'"
+>
+  <span>{{ etiqueta() }}</span>
+  <h3>{{ titulo() }}</h3>
+  @if (descripcion()) {
+    <p>{{ descripcion() }}</p>
+  }
+  @if (textoAccion()) {
+    <button appBoton type="button" (click)="ejecutarAccion()">{{ textoAccion() }}</button>
+  }
+</section>

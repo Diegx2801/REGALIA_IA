@@ -1,0 +1,142 @@
+.carrito {
+  background:
+    radial-gradient(circle at 18% 14%, rgba(215, 173, 75, 0.18), transparent 28rem),
+    linear-gradient(180deg, #fffaf5 0%, #fbf6f1 100%);
+  min-height: 100vh;
+  padding: clamp(6.4rem, 10vw, 8rem) clamp(1rem, 4vw, 2.4rem) 4rem;
+}
+
+.carrito__hero,
+.carrito__contenido,
+.carrito__vacio,
+.carrito__estado-pago {
+  margin-inline: auto;
+  max-width: 1180px;
+}
+
+.carrito__hero {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr auto;
+}
+
+.carrito span,
+.carrito__vacio span {
+  color: var(--rg-color-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.carrito h1,
+.carrito__vacio h2 {
+  font-size: clamp(2.2rem, 5vw, 4.6rem);
+  letter-spacing: -0.06em;
+  line-height: 0.96;
+  margin: 0.7rem 0 0;
+}
+
+.carrito p {
+  color: var(--rg-color-muted);
+  line-height: 1.7;
+}
+
+.carrito__hero aside,
+.carrito__item,
+.carrito__resumen,
+.carrito__vacio,
+.carrito__estado-pago {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(234, 219, 208, 0.9);
+  border-radius: 28px;
+  box-shadow: 0 24px 60px rgba(35, 25, 39, 0.09);
+  padding: 1.2rem;
+}
+
+.carrito__hero strong,
+.carrito__resumen h2 {
+  color: var(--rg-color-primary);
+  display: block;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+}
+
+.carrito__estado-pago {
+  margin-top: 1.2rem;
+}
+
+.carrito__estado-pago--exito {
+  border-color: rgba(47, 123, 98, 0.34);
+}
+
+.carrito__contenido {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  margin-top: 1.5rem;
+}
+
+.carrito__items {
+  display: grid;
+  gap: 1rem;
+}
+
+.carrito__item {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 150px minmax(0, 1fr) minmax(160px, 220px);
+}
+
+.carrito__item img {
+  aspect-ratio: 1;
+  border-radius: 22px;
+  height: auto;
+  object-fit: cover;
+  width: 100%;
+}
+
+.carrito__detalle h2 {
+  margin: 0.35rem 0;
+}
+
+.carrito small,
+.carrito__alerta {
+  color: var(--rg-color-muted);
+}
+
+.carrito__alerta {
+  background: rgba(201, 95, 81, 0.1);
+  border-radius: 18px;
+  padding: 0.8rem;
+}
+
+.carrito__controles {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.carrito__resumen {
+  align-self: start;
+  display: grid;
+  gap: 1rem;
+  position: sticky;
+  top: 6rem;
+}
+
+.carrito__vacio {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 991.98px) {
+  .carrito__hero,
+  .carrito__contenido,
+  .carrito__item {
+    grid-template-columns: 1fr;
+  }
+
+  .carrito__resumen {
+    position: static;
+  }
+}

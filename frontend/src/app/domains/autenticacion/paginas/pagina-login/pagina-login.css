@@ -1,0 +1,107 @@
+.login {
+  align-items: center;
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 29rem);
+  margin-inline: auto;
+  max-width: 1040px;
+  min-height: 100vh;
+  padding: clamp(6rem, 12vw, 9rem) clamp(1rem, 4vw, 2rem) 3rem;
+}
+
+.login__presentacion {
+  background: var(--rg-gradient-brand);
+  border-radius: 32px;
+  color: #fff;
+  padding: clamp(1.4rem, 4vw, 2.4rem);
+}
+
+.login__presentacion span {
+  color: var(--rg-color-gold);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.login__presentacion h2 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+}
+
+.login__panel {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--rg-color-border);
+  border-radius: var(--rg-radius-md);
+  box-shadow: var(--rg-shadow-soft);
+  max-width: 29rem;
+  padding: clamp(1.4rem, 4vw, 2rem);
+  width: 100%;
+}
+
+.login__marca {
+  color: var(--rg-color-primary);
+  display: inline-flex;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.3rem;
+  text-decoration: none;
+}
+
+.login__cabecera h1 {
+  font-size: 2rem;
+  margin: 0.35rem 0 0.7rem;
+}
+
+.login__cabecera p {
+  color: var(--rg-color-muted);
+  margin: 0;
+}
+
+.login__etiqueta {
+  color: var(--rg-color-primary);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.login__formulario {
+  margin-top: 1.6rem;
+}
+
+.login__campo span,
+.login__recordar {
+  font-weight: 800;
+}
+
+.login__contrasena {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.login__error {
+  color: #b33a4d;
+}
+
+.login__recordar {
+  align-items: center;
+  color: var(--rg-color-muted);
+  display: flex;
+  gap: 0.55rem;
+}
+
+.login__pie {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.login__pie a {
+  color: var(--rg-color-primary);
+  font-weight: 800;
+}
+
+@media (max-width: 899.98px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+}

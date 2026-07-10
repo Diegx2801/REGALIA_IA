@@ -1,0 +1,82 @@
+<section class="admin-seccion">
+  <header class="rg-panel__hero">
+    <span>Tiendas</span>
+    <h2>Revision comercial</h2>
+    <p>Moderacion de tiendas registradas por vendedores de REGALIA.</p>
+  </header>
+
+  <form app-filtros-panel class="admin-seccion__filtros--tiendas" [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
+    <label>
+      Estado de revision
+      <select formControlName="estadoRevision">
+        <option value="">Todos</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="APROBADA">Aprobadas</option>
+        <option value="OBSERVADA">Observadas</option>
+        <option value="RECHAZADA">Rechazadas</option>
+      </select>
+    </label>
+    <label>
+      Buscar tienda
+      <input type="search" formControlName="busqueda" placeholder="Nombre comercial" />
+    </label>
+    <button type="submit">Aplicar filtros</button>
+  </form>
+
+  @if (cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tiendas." />
+  } @else if (mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="mensajeError() ?? 'No pudimos cargar tiendas.'"
+      textoAccion="Reintentar"
+      (accion)="cargarTiendas()"
+    />
+  } @else {
+    @if (mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Operacion correcta" [titulo]="mensajeExito() ?? ''" />
+    }
+
+    <app-grupo-metricas-panel ariaEtiqueta="Resumen de tiendas">
+      <app-tarjeta-metrica
+        etiqueta="Total tiendas"
+        [valor]="totalTiendas()"
+        [descripcion]="'Mostrando ' + tiendas().length + ' tienda(s) recientes.'"
+      />
+    </app-grupo-metricas-panel>
+
+    <app-lista-panel class="admin-seccion__lista" ariaEtiqueta="Tiendas registradas">
+      @for (tienda of tiendas(); track tienda.idTienda) {
+        <app-fila-panel [ariaEtiqueta]="tienda.nombre">
+          <div>
+            <strong>{{ tienda.nombre }}</strong>
+            <small>{{ tienda.vendedor }} - {{ tienda.estadoRevision }}</small>
+            <p>{{ tienda.rubros.length ? tienda.rubros.join(', ') : 'Sin rubros registrados' }}</p>
+          </div>
+          <div class="admin-seccion__acciones">
+            <button appBoton appBotonTamano="sm" type="button" [disabled]="procesandoTienda() === tienda.idTienda" (click)="aprobarTienda(tienda)">
+              Aprobar
+            </button>
+            <button appBoton="secundario" appBotonTamano="sm" type="button" [disabled]="procesandoTienda() === tienda.idTienda" (click)="observarTienda(tienda)">
+              Observar
+            </button>
+            <button appBoton="peligro" appBotonTamano="sm" type="button" [disabled]="procesandoTienda() === tienda.idTienda" (click)="rechazarTienda(tienda)">
+              Rechazar
+            </button>
+          </div>
+        </app-fila-panel>
+      } @empty {
+        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay tiendas registradas." />
+      }
+    </app-lista-panel>
+
+    <app-paginacion-panel
+      ariaEtiqueta="Paginacion de tiendas"
+      [paginaActual]="paginaActual()"
+      [totalPaginas]="totalPaginas()"
+      (anterior)="paginaAnterior()"
+      (siguiente)="paginaSiguiente()"
+    />
+  }
+</section>

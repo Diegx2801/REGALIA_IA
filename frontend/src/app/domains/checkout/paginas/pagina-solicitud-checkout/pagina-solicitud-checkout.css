@@ -1,0 +1,137 @@
+.solicitud-checkout {
+  background:
+    radial-gradient(circle at 18% 14%, rgba(215, 173, 75, 0.18), transparent 28rem),
+    linear-gradient(180deg, #fffaf5 0%, #fbf6f1 100%);
+  min-height: 100vh;
+  padding: clamp(6.4rem, 10vw, 8rem) clamp(1rem, 4vw, 2.4rem) 4rem;
+}
+
+.solicitud-checkout__volver,
+.solicitud-checkout__layout,
+.solicitud-checkout__estado {
+  margin-inline: auto;
+  max-width: 1180px;
+}
+
+.solicitud-checkout__volver {
+  text-decoration: none;
+}
+
+.solicitud-checkout__layout {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1fr);
+  margin-top: 1.2rem;
+}
+
+.solicitud-checkout__producto,
+.solicitud-checkout__formulario,
+.solicitud-checkout__estado {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(234, 219, 208, 0.9);
+  border-radius: 32px;
+  box-shadow: 0 24px 60px rgba(35, 25, 39, 0.09);
+  padding: clamp(1.2rem, 4vw, 2rem);
+}
+
+.solicitud-checkout__producto {
+  align-self: start;
+  position: sticky;
+  top: 6rem;
+}
+
+.solicitud-checkout span,
+.solicitud-checkout__cabecera span {
+  color: var(--rg-color-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.solicitud-checkout h1,
+.solicitud-checkout h2 {
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+  margin: 0.7rem 0 0;
+}
+
+.solicitud-checkout h1 {
+  font-size: clamp(2.1rem, 5vw, 4rem);
+}
+
+.solicitud-checkout h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.solicitud-checkout p {
+  color: var(--rg-color-muted);
+  line-height: 1.7;
+}
+
+.solicitud-checkout__resumen {
+  border-top: 1px solid var(--rg-color-border);
+  display: grid;
+  gap: 0.2rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+}
+
+.solicitud-checkout__resumen strong {
+  color: var(--rg-color-primary);
+  font-size: 2.1rem;
+}
+
+.solicitud-checkout__items {
+  border-top: 1px solid var(--rg-color-border);
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.solicitud-checkout__items div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.solicitud-checkout__formulario {
+  --rg-formulario-columnas: repeat(2, minmax(0, 1fr));
+}
+
+.solicitud-checkout__cabecera,
+.solicitud-checkout__alerta,
+.solicitud-checkout__exito,
+.solicitud-checkout__campo-completo,
+.solicitud-checkout__login,
+.solicitud-checkout__formulario .rg-boton {
+  grid-column: 1 / -1;
+}
+
+.solicitud-checkout__alerta,
+.solicitud-checkout__exito {
+  border-radius: 18px;
+  margin: 0;
+  padding: 1rem;
+}
+
+.solicitud-checkout__alerta {
+  background: rgba(201, 95, 81, 0.1);
+  color: #8a332b !important;
+}
+
+.solicitud-checkout__exito {
+  background: rgba(215, 173, 75, 0.14);
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 991.98px) {
+  .solicitud-checkout__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .solicitud-checkout__producto {
+    position: static;
+  }
+}

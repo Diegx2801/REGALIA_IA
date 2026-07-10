@@ -1,0 +1,66 @@
+<section class="admin-seccion">
+  <header class="rg-panel__hero">
+    <span>Usuarios</span>
+    <h2>Gestion de cuentas</h2>
+    <p>Consulta operativa de usuarios gestionables desde administracion.</p>
+  </header>
+
+  <form app-filtros-panel [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
+    <label>
+      Estado
+      <select formControlName="estado">
+        <option value="ACTIVO">Activos</option>
+        <option value="INACTIVO">Inactivos</option>
+        <option value="TODOS">Todos</option>
+      </select>
+    </label>
+    <label>
+      Buscar por correo
+      <input type="search" formControlName="busqueda" placeholder="correo@ejemplo.com" />
+    </label>
+    <button type="submit">Aplicar filtros</button>
+  </form>
+
+  @if (cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando usuarios." />
+  } @else if (mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="mensajeError() ?? 'No pudimos cargar usuarios.'"
+      textoAccion="Reintentar"
+      (accion)="cargarUsuarios()"
+    />
+  } @else {
+    <app-grupo-metricas-panel ariaEtiqueta="Resumen de usuarios">
+      <app-tarjeta-metrica
+        etiqueta="Total usuarios"
+        [valor]="totalUsuarios()"
+        [descripcion]="'Mostrando ' + usuarios().length + ' cuenta(s) recientes.'"
+      />
+    </app-grupo-metricas-panel>
+
+    <app-lista-panel class="admin-seccion__lista" ariaEtiqueta="Usuarios administrativos">
+      @for (usuario of usuarios(); track usuario.idUsuario) {
+        <app-fila-panel [ariaEtiqueta]="usuario.nombreCompleto">
+          <div>
+            <strong>{{ usuario.nombreCompleto }}</strong>
+            <small>{{ usuario.correo }}</small>
+            <p>{{ usuario.telefono }} - Creado {{ usuario.fechaCreacion | date: 'dd/MM/yyyy' }}</p>
+          </div>
+          <span>{{ usuario.estado ? 'Activo' : 'Inactivo' }}</span>
+        </app-fila-panel>
+      } @empty {
+        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay usuarios registrados." />
+      }
+    </app-lista-panel>
+
+    <app-paginacion-panel
+      ariaEtiqueta="Paginacion de usuarios"
+      [paginaActual]="paginaActual()"
+      [totalPaginas]="totalPaginas()"
+      (anterior)="paginaAnterior()"
+      (siguiente)="paginaSiguiente()"
+    />
+  }
+</section>
