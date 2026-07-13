@@ -7,6 +7,18 @@
   gap: 1rem;
 }
 
+.admin-seccion .rg-panel__hero {
+  /* Cabecera tipo command center para diferenciar administracion de cliente/vendedor. */
+  background:
+    radial-gradient(circle at 88% 16%, rgba(215, 173, 75, 0.2), transparent 8rem),
+    linear-gradient(135deg, #17101b 0%, #3c1730 58%, #5a2440 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.6rem;
+  box-shadow: 0 24px 60px rgba(23, 16, 27, 0.18);
+  color: #fff;
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
 .admin-seccion span {
   color: var(--rg-color-primary);
   font-weight: 950;
@@ -14,9 +26,31 @@
   text-transform: uppercase;
 }
 
+.admin-seccion .rg-panel__hero span,
+.admin-seccion .rg-panel__hero h2,
+.admin-seccion .rg-panel__hero p {
+  color: #fff;
+}
+
+.admin-seccion .rg-panel__hero p {
+  max-width: 44rem;
+  opacity: 0.76;
+}
+
 .admin-seccion p,
 .admin-seccion small {
   color: var(--rg-color-muted);
+}
+
+.admin-seccion__lista {
+  background:
+    linear-gradient(180deg, rgba(255, 250, 245, 0.94), rgba(255, 255, 255, 0.96)),
+    #fff;
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.4rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  min-width: 0;
+  padding: clamp(0.85rem, 1.8vw, 1.1rem);
 }
 
 .admin-seccion__lista app-fila-panel div:last-child {
