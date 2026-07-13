@@ -1,0 +1,161 @@
+<section class="vendedor-resumen">
+  @if (store.cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Preparando tu centro comercial." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Atencion"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar el panel vendedor.'"
+      [textoAccion]="store.debeCrearPerfil() ? (store.guardandoPerfil() ? 'Creando perfil...' : 'Crear perfil vendedor') : 'Reintentar'"
+      (accion)="store.debeCrearPerfil() ? store.crearPerfilVendedor() : store.cargarPanel(true)"
+    />
+  } @else {
+    @if (store.mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Operacion correcta" [titulo]="store.mensajeExito() ?? ''" />
+    }
+
+    <header class="vendedor-resumen__hero" aria-labelledby="titulo-resumen-vendedor">
+      <div class="vendedor-resumen__hero-copy">
+        <span class="vendedor-resumen__eyebrow">Atelier comercial</span>
+        <h2 id="titulo-resumen-vendedor">{{ nombreOperador() }}, tu vitrina REGALIA esta en marcha.</h2>
+        <p>
+          Supervisa tiendas, productos y solicitudes reales desde un tablero pensado para vender con
+          orden, reputacion y respuesta rapida.
+        </p>
+
+        <div class="vendedor-resumen__hero-actions" aria-label="Acciones principales del vendedor">
+          <a appBoton routerLink="/vendedor/productos" ngbTooltip="Administra stock, visibilidad y precios">
+            Publicar producto
+          </a>
+          <a appBoton="secundario" routerLink="/vendedor/tiendas" ngbTooltip="Revisa estado y rubros de tus tiendas">
+            Gestionar tienda
+          </a>
+        </div>
+      </div>
+
+      <aside class="vendedor-resumen__credencial" aria-label="Estado del vendedor">
+        <span>Credencial vendedor</span>
+        <strong>{{ store.perfil()?.verificado ? 'Verificado' : 'En revision' }}</strong>
+        @if (tiendaPrincipal(); as tienda) {
+          <small>{{ tienda.nombre }}</small>
+        } @else {
+          <small>Crea tu primera tienda para publicar productos.</small>
+        }
+      </aside>
+    </header>
+
+    <section class="vendedor-resumen__metricas" aria-label="Indicadores comerciales del vendedor">
+      <app-tarjeta-metrica
+        etiqueta="Tiendas"
+        [valor]="store.tiendas().length"
+        [descripcion]="store.tiendasPendientesRevision() + ' pendiente(s) de revision.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Productos visibles"
+        [valor]="store.productosVisibles()"
+        [descripcion]="stockDisponible() + ' unidad(es) disponibles.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Pedidos con saldo"
+        [valor]="store.pedidosPendientes()"
+        descripcion="Solicitudes recibidas por completar."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Cobrado"
+        [valor]="store.totalPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        [descripcion]="'Por cobrar ' + (store.saldoPendiente() | currency: 'PEN' : 'symbol-narrow' : '1.2-2')"
+      />
+    </section>
+
+    <section class="vendedor-resumen__escenario">
+      <article class="vendedor-resumen__panel vendedor-resumen__panel--principal">
+        <header class="vendedor-resumen__panel-header">
+          <div>
+            <span class="vendedor-resumen__eyebrow">Mesa de solicitudes</span>
+            <h3>Pedidos recientes</h3>
+          </div>
+          <a appBoton="fantasma" appBotonTamano="sm" routerLink="/vendedor/pedidos">Ver todos</a>
+        </header>
+
+        @if (store.pedidosRecientes().length === 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin pedidos"
+            titulo="Aun no recibes pedidos."
+            descripcion="Cuando los clientes confirmen solicitudes, apareceran aqui sin datos simulados."
+          />
+        } @else {
+          <ol class="vendedor-resumen__timeline" aria-label="Pedidos recientes recibidos">
+            @for (pedido of store.pedidosRecientes(); track pedido.idPedido) {
+              <li class="vendedor-resumen__pedido">
+                <div class="vendedor-resumen__pedido-marca" aria-hidden="true"></div>
+                <div class="vendedor-resumen__pedido-cuerpo">
+                  <div>
+                    <strong>#{{ pedido.idPedido }} · {{ pedido.nombreTienda }}</strong>
+                    <small>
+                      {{ pedido.estadoPedido }} · {{ pedido.cantidadItems }} item(s) ·
+                      @if (pedido.fechaCreacion) {
+                        recibido {{ pedido.fechaCreacion | date: 'dd/MM/yyyy' }}
+                      } @else {
+                        fecha no registrada
+                      }
+                    </small>
+                    <small>{{ pedido.correoCliente }}</small>
+                  </div>
+                  <div class="vendedor-resumen__pedido-acciones">
+                    <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+                    <a
+                      appBoton="secundario"
+                      appBotonTamano="sm"
+                      routerLink="/vendedor/pedidos"
+                      ngbTooltip="Abrir gestion de pedidos recibidos"
+                    >
+                      Gestionar
+                    </a>
+                  </div>
+                </div>
+              </li>
+            }
+          </ol>
+        }
+      </article>
+
+      <aside class="vendedor-resumen__columna">
+        <article class="vendedor-resumen__panel vendedor-resumen__cobro">
+          <span class="vendedor-resumen__eyebrow">Cobranza</span>
+          <h3>Avance de cobro</h3>
+          <ngb-progressbar
+            type="success"
+            [value]="porcentajeCobrado()"
+            [striped]="store.saldoPendiente() > 0"
+            [animated]="store.saldoPendiente() > 0"
+            height="0.72rem"
+            aria-label="Porcentaje cobrado de pedidos recibidos"
+          />
+          <p>
+            {{ porcentajeCobrado() }}% cobrado ·
+            {{ store.saldoPendiente() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }} por cobrar.
+          </p>
+          <a appBoton routerLink="/vendedor/pedidos">Revisar saldos</a>
+        </article>
+
+        <article class="vendedor-resumen__panel vendedor-resumen__acciones">
+          <span class="vendedor-resumen__eyebrow">Prioridad operativa</span>
+          @if (store.tiendas().length === 0) {
+            <h3>Registra tu tienda</h3>
+            <p>Sin tienda aprobada no se pueden publicar productos reales.</p>
+            <a appBoton="secundario" routerLink="/vendedor/tiendas">Crear tienda</a>
+          } @else if (store.productosVisibles() === 0) {
+            <h3>Activa tu catalogo</h3>
+            <p>Tu siguiente paso es publicar productos visibles para clientes.</p>
+            <a appBoton="secundario" routerLink="/vendedor/productos">Agregar producto</a>
+          } @else {
+            <h3>Operacion lista</h3>
+            <p>Tu vitrina tiene productos visibles y pedidos listos para seguimiento.</p>
+            <a appBoton="secundario" routerLink="/vendedor/productos">Optimizar catalogo</a>
+          }
+        </article>
+      </aside>
+    </section>
+  }
+</section>

@@ -46,7 +46,7 @@
 
       <div class="public-shell__actions">
         <a class="public-shell__cart" routerLink="/carrito" [attr.aria-label]="'Abrir carrito con ' + carrito.cantidadItems() + ' productos'">
-          <img src="/assets/brand/iconos/carrito.png" alt="" width="20" height="20" loading="lazy" decoding="async" />
+          <span class="public-shell__cart-icon" aria-hidden="true"></span>
           <span>Carrito</span>
           @if (carrito.cantidadItems() > 0) {
             <strong aria-hidden="true">{{ carrito.cantidadItems() }}</strong>

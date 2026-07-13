@@ -1,6 +1,7 @@
 export interface CategoriaInicio {
   readonly etiqueta: string;
   readonly tipoIcono: 'cuadro' | 'circulo' | 'anillo' | 'tarjeta' | 'hoja' | 'mas';
+  readonly iconoUrl?: string;
   readonly busqueda?: string;
 }
 

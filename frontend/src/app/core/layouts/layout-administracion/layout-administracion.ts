@@ -15,13 +15,18 @@ export class LayoutAdministracion {
   readonly enlaces: EnlaceLayoutPrivado[] = [
     {
       etiqueta: 'Resumen',
-      ruta: '/admin',
+      ruta: '/admin/resumen',
       descripcion: 'Control general de plataforma',
     },
     {
       etiqueta: 'Usuarios',
       ruta: '/admin/usuarios',
       descripcion: 'Cuentas y estado de acceso',
+    },
+    {
+      etiqueta: 'Vendedores',
+      ruta: '/admin/vendedores',
+      descripcion: 'Actividad comercial y verificacion',
     },
     {
       etiqueta: 'Tiendas',
@@ -34,13 +39,19 @@ export class LayoutAdministracion {
       descripcion: 'Seguimiento operativo global',
     },
     {
+      etiqueta: 'Datos maestros',
+      ruta: '/admin/datos-maestros',
+      descripcion: 'Catalogos base de la plataforma',
+    },
+    {
       etiqueta: 'Catalogo',
       ruta: '/catalogo',
       descripcion: 'Auditar experiencia publica',
     },
     {
       etiqueta: 'Login admin',
-      ruta: '/login?contexto=admin',
+      ruta: '/login',
+      queryParams: { contexto: 'admin' },
       descripcion: 'Cambiar sesion administrativa',
     },
   ];

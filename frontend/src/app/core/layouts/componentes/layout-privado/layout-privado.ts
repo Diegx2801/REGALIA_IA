@@ -1,5 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { SesionAutenticacionService } from '../../../autenticacion/sesion-autenticacion.service';
 
@@ -9,11 +10,12 @@ export interface EnlaceLayoutPrivado {
   etiqueta: string;
   ruta: string;
   descripcion: string;
+  queryParams?: Record<string, string>;
 }
 
 @Component({
   selector: 'app-layout-privado',
-  imports: [RouterLink, RouterLinkActive, BotonDirective],
+  imports: [RouterLink, RouterLinkActive, NgbTooltip, BotonDirective],
   templateUrl: './layout-privado.html',
   styleUrl: './layout-privado.css',
 })
@@ -34,6 +36,7 @@ export class LayoutPrivadoComponent {
       .map((parte) => parte[0]?.toUpperCase())
       .join('');
   });
+  readonly rolVisible = computed(() => this.sesion.rolActual() ?? 'INVITADO');
 
   private readonly router = inject(Router);
 

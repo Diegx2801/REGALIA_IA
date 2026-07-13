@@ -112,9 +112,11 @@
   color: #5a2440;
 }
 
-.public-shell__cart img {
+.public-shell__cart-icon {
+  background: url('/assets/brand/iconos/carrito.png') center / contain no-repeat;
+  display: inline-block;
+  flex: 0 0 1.25rem;
   height: 1.25rem;
-  object-fit: contain;
   width: 1.25rem;
 }
 

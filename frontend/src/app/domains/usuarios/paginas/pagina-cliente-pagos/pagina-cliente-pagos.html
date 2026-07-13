@@ -1,0 +1,129 @@
+<section class="cliente-pagos">
+  <header class="cliente-pagos__hero">
+    <span>Pagos</span>
+    <h2>Saldos y pagos registrados</h2>
+    <p>Trabaja sobre pedidos reales del backend. No se muestran pagos simulados.</p>
+  </header>
+
+  @if (store.cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando pagos y pedidos." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar tus pagos.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarPanel(true)"
+    />
+  } @else {
+    @if (store.mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Pago registrado" [titulo]="store.mensajeExito() ?? ''" />
+    }
+
+    <section class="cliente-pagos__layout">
+      <article class="cliente-card">
+        <header>
+          <span>Pendientes</span>
+          <h3>{{ store.pedidosPendientesPago().length }} saldos por completar</h3>
+        </header>
+
+        @if (store.pedidosPendientesPago().length === 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin saldos"
+            titulo="No tienes pagos pendientes."
+            descripcion="Cuando un pedido tenga saldo restante, aparecerá en esta sección."
+            textoAccion="Ver pedidos"
+            rutaAccion="/cliente/pedidos"
+          />
+        } @else {
+          <app-lista-panel ariaEtiqueta="Pedidos con saldo pendiente">
+            @for (pedido of store.pedidosPendientesPago(); track pedido.idPedido) {
+              <app-fila-panel tipo="triple" [ariaEtiqueta]="'Saldo pendiente pedido ' + pedido.idPedido">
+                <div>
+                  <strong>#{{ pedido.idPedido }} - {{ pedido.nombreTienda }}</strong>
+                  <small>Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}</small>
+                </div>
+                <b>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+                <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="seleccionarPedido(pedido.idPedido)">
+                  Pagar
+                </button>
+              </app-fila-panel>
+            }
+          </app-lista-panel>
+        }
+      </article>
+
+      <aside class="cliente-card cliente-pagos__formulario-card">
+        @if (pedidoSeleccionado()) {
+          <span>Registrar pago</span>
+          <h3>Pedido #{{ pedidoSeleccionado()?.idPedido }}</h3>
+          <p>Saldo pendiente: {{ pedidoSeleccionado()?.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</p>
+
+          <form appFormularioPanel appFormularioUnaColumna [formGroup]="formularioPago" (ngSubmit)="registrarPago()">
+            <label appCampoFormulario>
+              Método de pago
+              <select formControlName="metodoPagoPasarela">
+                <option value="MERCADO_PAGO">Mercado Pago</option>
+                <option value="TRANSFERENCIA">Transferencia</option>
+                <option value="YAPE">Yape</option>
+                <option value="PLIN">Plin</option>
+              </select>
+              @if (campoTieneError('metodoPagoPasarela')) {
+                <small appErrorCampo>El método de pago es obligatorio.</small>
+              }
+            </label>
+
+            <label appCampoFormulario>
+              Código de transacción
+              <input type="text" formControlName="codigoTransaccion" placeholder="Código aprobado por la pasarela" />
+              @if (campoTieneError('codigoTransaccion')) {
+                <small appErrorCampo>El código de transacción es obligatorio.</small>
+              }
+            </label>
+
+            <button
+              appBoton
+              appBotonBloque
+              [appBotonCargando]="store.registrandoPago()"
+              type="submit"
+              [disabled]="store.registrandoPago()"
+            >
+              {{ store.registrandoPago() ? 'Registrando...' : 'Registrar pago restante' }}
+            </button>
+          </form>
+        } @else {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Selecciona un pedido"
+            titulo="Elige un saldo pendiente para registrar el pago."
+          />
+        }
+      </aside>
+    </section>
+
+    <article class="cliente-card">
+      <header>
+        <span>Pagados</span>
+        <h3>{{ store.pedidosPagados().length }} pedidos sin saldo pendiente</h3>
+      </header>
+
+      @if (store.pedidosPagados().length === 0) {
+        <p class="cliente-pagos__nota">Aún no existen pedidos pagados completamente.</p>
+      } @else {
+        <app-lista-panel ariaEtiqueta="Pedidos pagados completamente">
+          @for (pedido of store.pedidosPagados(); track pedido.idPedido) {
+            <app-fila-panel tipo="triple" [ariaEtiqueta]="'Pedido pagado ' + pedido.idPedido">
+              <div>
+                <strong>#{{ pedido.idPedido }} - {{ pedido.nombreTienda }}</strong>
+                <small>{{ pedido.estadoPedido }}</small>
+              </div>
+              <b>{{ pedido.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+              <a appBoton="fantasma" appBotonTamano="sm" routerLink="/cliente/pedidos">Detalle</a>
+            </app-fila-panel>
+          }
+        </app-lista-panel>
+      }
+    </article>
+  }
+</section>

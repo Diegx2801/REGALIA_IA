@@ -1,0 +1,302 @@
+:host {
+  display: block;
+}
+
+.cliente-resumen {
+  display: grid;
+  gap: clamp(1rem, 2.6vw, 1.5rem);
+}
+
+.cliente-resumen__hero,
+.cliente-resumen__panel {
+  border: 1px solid rgba(90, 36, 64, 0.12);
+  box-shadow: 0 24px 56px rgba(35, 25, 39, 0.1);
+}
+
+.cliente-resumen__hero {
+  align-items: stretch;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(215, 173, 75, 0.3), transparent 8rem),
+    radial-gradient(circle at 10% 100%, rgba(201, 95, 81, 0.2), transparent 12rem),
+    linear-gradient(135deg, #fffdf9 0%, #fff6ed 45%, rgba(90, 36, 64, 0.12) 100%);
+  border-radius: 2rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.34fr);
+  overflow: hidden;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  position: relative;
+}
+
+.cliente-resumen__hero::before {
+  background:
+    linear-gradient(90deg, rgba(90, 36, 64, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(90, 36, 64, 0.06) 1px, transparent 1px);
+  background-size: 3.2rem 3.2rem;
+  content: '';
+  inset: 0;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.52), transparent 72%);
+  pointer-events: none;
+  position: absolute;
+}
+
+.cliente-resumen__hero-copy,
+.cliente-resumen__pasaporte,
+.cliente-resumen__panel {
+  position: relative;
+  z-index: 1;
+}
+
+.cliente-resumen__eyebrow {
+  color: var(--rg-color-primary);
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cliente-resumen__hero h2 {
+  color: var(--rg-color-ink);
+  font-size: clamp(2.3rem, 5.4vw, 4.9rem);
+  font-weight: 950;
+  letter-spacing: -0.075em;
+  line-height: 0.88;
+  margin: 0.55rem 0 0.9rem;
+  max-width: 11ch;
+}
+
+.cliente-resumen__hero p,
+.cliente-resumen__panel p,
+.cliente-resumen__pedido small,
+.cliente-resumen__pasaporte small {
+  color: var(--rg-color-muted);
+}
+
+.cliente-resumen__hero p {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 58ch;
+}
+
+.cliente-resumen__hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+}
+
+.cliente-resumen__pasaporte {
+  align-content: space-between;
+  background:
+    linear-gradient(145deg, rgba(90, 36, 64, 0.94), rgba(59, 23, 44, 0.96)),
+    var(--rg-color-primary);
+  border-radius: 1.5rem;
+  color: #fff;
+  display: grid;
+  min-height: 16rem;
+  padding: 1.2rem;
+}
+
+.cliente-resumen__pasaporte::after {
+  border: 1px solid rgba(215, 173, 75, 0.58);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.2);
+  content: 'R';
+  display: grid;
+  font-family: Georgia, serif;
+  font-size: 5.5rem;
+  inset: auto 1rem 1rem auto;
+  line-height: 1;
+  place-items: center;
+  position: absolute;
+  width: 7rem;
+  height: 7rem;
+}
+
+.cliente-resumen__pasaporte span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.cliente-resumen__pasaporte strong {
+  align-self: end;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 950;
+  letter-spacing: -0.06em;
+}
+
+.cliente-resumen__pasaporte small {
+  color: rgba(255, 255, 255, 0.78);
+  max-width: 18ch;
+  overflow-wrap: anywhere;
+}
+
+.cliente-resumen__metricas {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cliente-resumen__escenario {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.36fr);
+}
+
+.cliente-resumen__panel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 245, 0.84)),
+    var(--rg-color-surface);
+  border-radius: 1.45rem;
+  padding: clamp(1rem, 2.4vw, 1.3rem);
+}
+
+.cliente-resumen__panel--principal {
+  min-height: 25rem;
+}
+
+.cliente-resumen__panel-header {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.cliente-resumen__panel h3 {
+  color: var(--rg-color-ink);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 950;
+  letter-spacing: -0.055em;
+  margin: 0.24rem 0 0;
+}
+
+.cliente-resumen__columna {
+  display: grid;
+  gap: 1rem;
+}
+
+.cliente-resumen__saldo {
+  background:
+    radial-gradient(circle at 90% 12%, rgba(45, 122, 89, 0.17), transparent 7rem),
+    linear-gradient(145deg, #fff, #fff8f0);
+}
+
+.cliente-resumen__saldo ngb-progressbar {
+  display: block;
+  margin: 1rem 0 0.8rem;
+}
+
+.cliente-resumen__timeline {
+  counter-reset: pedidos;
+  display: grid;
+  gap: 0.85rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cliente-resumen__pedido {
+  align-items: stretch;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.cliente-resumen__pedido-marca {
+  background: linear-gradient(180deg, var(--rg-color-gold), var(--rg-color-rose));
+  border: 4px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(90, 36, 64, 0.17);
+  height: 1.25rem;
+  margin-top: 1.1rem;
+  width: 1.25rem;
+}
+
+.cliente-resumen__pedido-cuerpo {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(90, 36, 64, 0.09);
+  border-radius: 1.15rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.9rem;
+}
+
+.cliente-resumen__pedido strong,
+.cliente-resumen__pedido b {
+  color: var(--rg-color-ink);
+  font-weight: 950;
+}
+
+.cliente-resumen__pedido small {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.cliente-resumen__pedido-acciones {
+  align-items: end;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: end;
+}
+
+.cliente-resumen__ultimo {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(215, 173, 75, 0.28), transparent 8rem),
+    linear-gradient(145deg, rgba(90, 36, 64, 0.96), rgba(59, 23, 44, 0.96));
+  color: #fff;
+}
+
+.cliente-resumen__ultimo .cliente-resumen__eyebrow,
+.cliente-resumen__ultimo h3 {
+  color: #fff;
+}
+
+.cliente-resumen__ultimo p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+@media (max-width: 1199.98px) {
+  .cliente-resumen__metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cliente-resumen__hero,
+  .cliente-resumen__escenario {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-resumen__pasaporte {
+    min-height: 12rem;
+  }
+}
+
+@media (max-width: 699.98px) {
+  .cliente-resumen__metricas {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-resumen__panel-header,
+  .cliente-resumen__pedido-cuerpo {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-resumen__panel-header {
+    display: grid;
+  }
+
+  .cliente-resumen__pedido-acciones {
+    justify-items: stretch;
+  }
+
+  .cliente-resumen__hero h2 {
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.vendedor-tiendas {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.vendedor-tiendas__hero,
+.vendedor-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.35rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.vendedor-tiendas__hero span,
+.vendedor-card span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vendedor-tiendas__hero h2,
+.vendedor-card h3 {
+  color: var(--rg-color-ink);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  margin: 0.25rem 0;
+}
+
+.vendedor-tiendas__hero p,
+.vendedor-card p,
+.vendedor-card small {
+  color: var(--rg-color-muted);
+}
+
+.vendedor-tiendas__layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(20rem, 28rem) minmax(0, 1fr);
+}
+
+@media (max-width: 1099.98px) {
+  .vendedor-tiendas__layout {
+    grid-template-columns: 1fr;
+  }
+}

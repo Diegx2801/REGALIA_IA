@@ -1,0 +1,112 @@
+<section class="cliente-pedidos">
+  <header class="cliente-pedidos__hero">
+    <span>Mis pedidos</span>
+    <h2>Historial y seguimiento</h2>
+    <p>Consulta pedidos reales asociados a tu JWT de cliente.</p>
+  </header>
+
+  @if (store.cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tus pedidos." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar tus pedidos.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarPanel(true)"
+    />
+  } @else {
+    <section class="cliente-pedidos__layout">
+      <article class="cliente-card">
+        <header class="cliente-pedidos__toolbar">
+          <div>
+            <span>Pedidos encontrados</span>
+            <h3>{{ pedidosFiltrados().length }} pedidos</h3>
+          </div>
+          <div class="cliente-pedidos__filtros">
+            <label>
+              Buscar
+              <input type="search" placeholder="Pedido, tienda o estado" (input)="actualizarBusqueda($event)" />
+            </label>
+            <label>
+              Estado
+              <select (change)="actualizarEstado($event)">
+                <option value="">Todos</option>
+                @for (estado of estadosDisponibles(); track estado) {
+                  <option [value]="estado">{{ estado }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        </header>
+
+        @if (pedidosFiltrados().length === 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin resultados"
+            titulo="Aún no tienes pedidos con esos filtros."
+            descripcion="Puedes limpiar filtros o explorar el catálogo para crear una solicitud."
+            textoAccion="Ir al catálogo"
+            rutaAccion="/catalogo"
+          />
+        } @else {
+          <app-lista-panel ariaEtiqueta="Listado completo de pedidos del cliente">
+            @for (pedido of pedidosFiltrados(); track pedido.idPedido) {
+              <app-fila-panel tipo="triple" [ariaEtiqueta]="'Pedido ' + pedido.idPedido">
+                <div>
+                  <strong>#{{ pedido.idPedido }} - {{ pedido.estadoPedido }}</strong>
+                  <small>{{ pedido.nombreTienda }} - Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}</small>
+                </div>
+                <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+                <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="store.seleccionarPedido(pedido.idPedido)">
+                  Ver detalle
+                </button>
+              </app-fila-panel>
+            }
+          </app-lista-panel>
+        }
+      </article>
+
+      <aside class="cliente-card cliente-pedidos__detalle">
+        @if (store.cargandoDetalle()) {
+          <app-estado-pantalla tipo="carga" etiqueta="Detalle" titulo="Cargando detalle del pedido." />
+        } @else if (store.pedidoDetalle()) {
+          <span>Detalle del pedido</span>
+          <h3>#{{ store.pedidoDetalle()?.idPedido }} - {{ store.pedidoDetalle()?.estadoPedido }}</h3>
+          <p>{{ store.pedidoDetalle()?.tipoEntrega }} - {{ store.pedidoDetalle()?.observacion }}</p>
+
+          <div class="cliente-pedidos__totales">
+            <article>
+              <small>Total</small>
+              <strong>{{ store.pedidoDetalle()?.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </article>
+            <article>
+              <small>Saldo</small>
+              <strong>{{ store.pedidoDetalle()?.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </article>
+          </div>
+
+          <app-lista-panel ariaEtiqueta="Productos del pedido seleccionado">
+            @for (producto of store.pedidoDetalle()?.productos ?? []; track producto.idDetallePedido) {
+              <app-fila-panel tipo="triple" [ariaEtiqueta]="producto.nombreProducto">
+                <span>{{ producto.nombreProducto }}</span>
+                <small>{{ producto.cantidad }} x {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+                <b>{{ producto.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+              </app-fila-panel>
+            }
+          </app-lista-panel>
+
+          @if ((store.pedidoDetalle()?.saldoPendiente ?? 0) > 0) {
+            <a appBoton routerLink="/cliente/pagos">Pagar saldo</a>
+          }
+        } @else {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Detalle"
+            titulo="Selecciona un pedido para ver sus productos."
+          />
+        }
+      </aside>
+    </section>
+  }
+</section>

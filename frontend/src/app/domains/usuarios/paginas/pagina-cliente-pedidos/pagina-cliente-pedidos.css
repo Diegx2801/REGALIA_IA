@@ -1,0 +1,114 @@
+:host {
+  display: block;
+}
+
+.cliente-pedidos {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.cliente-pedidos__hero,
+.cliente-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.35rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.cliente-pedidos__hero span,
+.cliente-card span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cliente-pedidos__hero h2,
+.cliente-card h3 {
+  color: var(--rg-color-ink);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  margin: 0.25rem 0;
+}
+
+.cliente-pedidos__hero p,
+.cliente-card p,
+.cliente-card small {
+  color: var(--rg-color-muted);
+}
+
+.cliente-pedidos__layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(21rem, 0.4fr);
+}
+
+.cliente-pedidos__toolbar,
+.cliente-pedidos__filtros,
+.cliente-pedidos__totales {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cliente-pedidos__toolbar {
+  grid-template-columns: 1fr;
+  margin-bottom: 1rem;
+}
+
+.cliente-pedidos__filtros {
+  grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+}
+
+.cliente-pedidos__filtros label {
+  color: var(--rg-color-ink);
+  display: grid;
+  font-weight: 900;
+  gap: 0.35rem;
+}
+
+.cliente-pedidos__filtros input,
+.cliente-pedidos__filtros select {
+  background: #fffaf5;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 0.85rem;
+  min-height: 2.9rem;
+  padding: 0 0.85rem;
+  width: 100%;
+}
+
+.cliente-pedidos__layout > *,
+.cliente-pedidos__toolbar > *,
+.cliente-pedidos__filtros > * {
+  min-width: 0;
+}
+
+.cliente-pedidos__detalle {
+  display: grid;
+  gap: 1rem;
+}
+
+.cliente-pedidos__totales {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cliente-pedidos__totales article {
+  background: #fffaf5;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 1rem;
+  padding: 0.85rem;
+}
+
+@media (max-width: 1399.98px) {
+  .cliente-pedidos__layout,
+  .cliente-pedidos__toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .cliente-pedidos__totales {
+    grid-template-columns: 1fr;
+  }
+}

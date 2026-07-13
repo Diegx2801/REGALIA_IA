@@ -1,0 +1,57 @@
+<section class="admin-vendedores">
+  <header class="admin-vendedores__hero">
+    <span>Vendedores</span>
+    <h2>Actividad comercial</h2>
+    <p>Consulta perfiles vendedores, estado de verificación y volumen de tiendas asociadas.</p>
+  </header>
+
+  @if (store.cargandoVendedores()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando vendedores." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar vendedores.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarVendedores()"
+    />
+  } @else {
+    <section class="admin-vendedores__metricas">
+      <app-tarjeta-metrica etiqueta="Vendedores" [valor]="store.totalVendedores()" descripcion="Total reportado por backend." />
+      <app-tarjeta-metrica etiqueta="Verificados" [valor]="verificados()" descripcion="Perfiles comerciales verificados en esta vista." />
+      <app-tarjeta-metrica etiqueta="Tiendas activas" [valor]="tiendasActivas()" descripcion="Suma de tiendas activas asociadas." />
+    </section>
+
+    <article class="admin-card">
+      <header class="admin-vendedores__toolbar">
+        <div>
+          <span>Listado</span>
+          <h3>{{ vendedoresFiltrados().length }} vendedores</h3>
+        </div>
+        <label>
+          Buscar
+          <input type="search" placeholder="Nombre o correo" (input)="buscar($event)" />
+        </label>
+      </header>
+
+      @if (vendedoresFiltrados().length === 0) {
+        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay vendedores con ese criterio." />
+      } @else {
+        <app-lista-panel ariaEtiqueta="Vendedores administrativos">
+          @for (vendedor of vendedoresFiltrados(); track vendedor.idVendedor) {
+            <app-fila-panel tipo="triple" [ariaEtiqueta]="vendedor.nombreCompleto">
+              <div>
+                <strong>{{ vendedor.nombreCompleto }}</strong>
+                <small>{{ vendedor.correo }}</small>
+              </div>
+              <b [ngbTooltip]="'Tiendas totales: ' + vendedor.tiendasTotales">
+                {{ vendedor.tiendasActivas }} activas
+              </b>
+              <span>{{ vendedor.verificado ? 'Verificado' : 'Pendiente' }}</span>
+            </app-fila-panel>
+          }
+        </app-lista-panel>
+      }
+    </article>
+  }
+</section>

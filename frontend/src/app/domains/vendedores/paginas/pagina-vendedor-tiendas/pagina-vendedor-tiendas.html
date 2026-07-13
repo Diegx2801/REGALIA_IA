@@ -1,0 +1,116 @@
+<section class="vendedor-tiendas">
+  <header class="vendedor-tiendas__hero">
+    <span>Tiendas</span>
+    <h2>Presencia comercial</h2>
+    <p>Crea tiendas reales para publicar productos. La aprobación sigue dependiendo del backend administrativo.</p>
+  </header>
+
+  @if (store.cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tus tiendas." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar tus tiendas.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarPanel(true)"
+    />
+  } @else {
+    @if (store.mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Operación correcta" [titulo]="store.mensajeExito() ?? ''" />
+    }
+
+    <section class="vendedor-tiendas__layout">
+      <article class="vendedor-card">
+        <header>
+          <span>Nueva tienda</span>
+          <h3>Registra una unidad comercial</h3>
+        </header>
+
+        <form appFormularioPanel appFormularioUnaColumna [formGroup]="formularioTienda" (ngSubmit)="crearTienda()">
+          <label appCampoFormulario>
+            Nombre comercial
+            <input type="text" formControlName="nombre" placeholder="Ej. Detalles Ana" />
+            @if (campoTieneError('nombre')) {
+              <small appErrorCampo>El nombre de la tienda es obligatorio.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            Rubro
+            <select formControlName="idRubro">
+              @for (rubro of store.rubros(); track rubro.idRubro) {
+                <option [ngValue]="rubro.idRubro">{{ rubro.nombre }}</option>
+              }
+            </select>
+            @if (campoTieneError('idRubro')) {
+              <small appErrorCampo>Selecciona un rubro comercial.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            Dirección de referencia
+            <input type="text" formControlName="direccionReferencia" placeholder="Zona, distrito o referencia" />
+          </label>
+
+          <label appCampoFormulario>
+            Descripción
+            <textarea
+              rows="4"
+              formControlName="descripcion"
+              placeholder="Cuenta qué tipo de regalos personalizados prepara tu tienda"
+            ></textarea>
+          </label>
+
+          <button
+            appBoton
+            appBotonBloque
+            [appBotonCargando]="store.guardandoTienda()"
+            type="submit"
+            [disabled]="store.guardandoTienda()"
+            ngbTooltip="La tienda quedará disponible para revisión administrativa"
+          >
+            {{ store.guardandoTienda() ? 'Creando tienda...' : 'Crear tienda' }}
+          </button>
+        </form>
+      </article>
+
+      <article class="vendedor-card">
+        <header>
+          <span>Mis tiendas</span>
+          <h3>{{ store.tiendas().length }} registradas</h3>
+        </header>
+
+        @if (store.tiendas().length === 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin tiendas"
+            titulo="Aún no tienes tiendas registradas."
+            descripcion="Crea tu primera tienda para empezar a publicar productos."
+          />
+        } @else {
+          <app-lista-panel ariaEtiqueta="Tiendas del vendedor">
+            @for (tienda of store.tiendas(); track tienda.idTienda) {
+              <app-fila-panel tipo="triple" [ariaEtiqueta]="tienda.nombre">
+                <div>
+                  <strong>{{ tienda.nombre }}</strong>
+                  <small>{{ tienda.rubros.length ? tienda.rubros[0].nombre : 'Sin rubro' }} - {{ tienda.direccionReferencia }}</small>
+                </div>
+                <b>{{ tienda.estadoRevision }}</b>
+                <button
+                  appBoton="secundario"
+                  appBotonTamano="sm"
+                  type="button"
+                  (click)="store.seleccionarTienda(tienda.idTienda)"
+                  ngbTooltip="Seleccionar esta tienda para productos"
+                >
+                  Activar
+                </button>
+              </app-fila-panel>
+            }
+          </app-lista-panel>
+        }
+      </article>
+    </section>
+  }
+</section>

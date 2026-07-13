@@ -1,0 +1,168 @@
+<section class="vendedor-productos">
+  <header class="vendedor-productos__hero">
+    <span>Productos</span>
+    <h2>Catálogo de tienda</h2>
+    <p>Administra productos reales por tienda: precio, stock, visibilidad e imagen.</p>
+  </header>
+
+  @if (store.cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando catálogo vendedor." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar tus productos.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarPanel(true)"
+    />
+  } @else if (store.tiendas().length === 0) {
+    <app-estado-pantalla
+      tipo="vacio"
+      etiqueta="Sin tienda"
+      titulo="Crea una tienda antes de publicar productos."
+      textoAccion="Crear tienda"
+      rutaAccion="/vendedor/tiendas"
+    />
+  } @else {
+    @if (store.mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Operación correcta" [titulo]="store.mensajeExito() ?? ''" />
+    }
+
+    <section class="vendedor-productos__layout">
+      <article class="vendedor-card">
+        <header>
+          <span>{{ idProductoEditando() ? 'Editar producto' : 'Nuevo producto' }}</span>
+          <h3>{{ store.tiendaSeleccionada()?.nombre }}</h3>
+        </header>
+
+        <label class="vendedor-productos__selector">
+          Tienda activa
+          <select [value]="store.idTiendaSeleccionada()" (change)="seleccionarTienda($event)">
+            @for (tienda of store.tiendas(); track tienda.idTienda) {
+              <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
+            }
+          </select>
+        </label>
+
+        <form appFormularioPanel appFormularioUnaColumna [formGroup]="formularioProducto" (ngSubmit)="guardarProducto()">
+          <label appCampoFormulario>
+            Tipo de producto
+            <select formControlName="idTipoProducto">
+              @for (tipoProducto of store.tiposProducto(); track tipoProducto.idTipoProducto) {
+                <option [ngValue]="tipoProducto.idTipoProducto">{{ tipoProducto.nombre }}</option>
+              }
+            </select>
+            @if (campoTieneError('idTipoProducto')) {
+              <small appErrorCampo>Selecciona un tipo de producto.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            Nombre
+            <input type="text" formControlName="nombre" placeholder="Ej. Box aniversario personalizado" />
+            @if (campoTieneError('nombre')) {
+              <small appErrorCampo>El nombre del producto es obligatorio.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            Precio
+            <input type="number" min="0.01" step="0.01" formControlName="precio" />
+            @if (campoTieneError('precio')) {
+              <small appErrorCampo>El precio debe ser mayor a cero.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            Stock
+            <input type="number" min="0" formControlName="stock" />
+            @if (campoTieneError('stock')) {
+              <small appErrorCampo>El stock no puede ser negativo.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            URL de imagen
+            <input type="url" formControlName="urlImagen" placeholder="https://..." />
+          </label>
+
+          <label class="vendedor-productos__check">
+            <input type="checkbox" formControlName="visibleEnTienda" />
+            Visible en tienda
+          </label>
+
+          <label appCampoFormulario>
+            Descripción
+            <textarea rows="4" formControlName="descripcion" placeholder="Describe materiales, personalización y condiciones"></textarea>
+          </label>
+
+          <button
+            appBoton
+            appBotonBloque
+            [appBotonCargando]="store.guardandoProducto()"
+            type="submit"
+            [disabled]="store.guardandoProducto()"
+            ngbTooltip="Se guardará en la tienda activa del vendedor autenticado"
+          >
+            @if (store.guardandoProducto()) {
+              Guardando...
+            } @else if (idProductoEditando()) {
+              Actualizar producto
+            } @else {
+              Crear producto
+            }
+          </button>
+
+          @if (idProductoEditando()) {
+            <button appBoton="secundario" appBotonBloque type="button" (click)="cancelarEdicionProducto()">
+              Cancelar edición
+            </button>
+          }
+        </form>
+      </article>
+
+      <article class="vendedor-card">
+        <header>
+          <span>Inventario</span>
+          <h3>{{ store.productos().length }} productos</h3>
+        </header>
+
+        @if (store.cargandoProductos()) {
+          <app-estado-pantalla tipo="carga" etiqueta="Productos" titulo="Cargando productos de la tienda." />
+        } @else if (store.productos().length === 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin productos"
+            titulo="Esta tienda aún no tiene productos."
+            descripcion="Publica tu primer producto para aparecer en el catálogo."
+          />
+        } @else {
+          <app-lista-panel ariaEtiqueta="Productos de la tienda seleccionada">
+            @for (producto of store.productos(); track producto.idProducto) {
+              <app-fila-panel tipo="producto" [ariaEtiqueta]="producto.nombre">
+                <img [src]="producto.urlImagen" [alt]="producto.nombre" loading="lazy" decoding="async" />
+                <div>
+                  <strong>{{ producto.nombre }}</strong>
+                  <small>{{ producto.tipoProducto }} - Stock {{ producto.stock }} - {{ producto.visibleEnTienda ? 'Visible' : 'Oculto' }}</small>
+                </div>
+                <span>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span>
+                <div class="vendedor-productos__acciones">
+                  <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="editarProducto(producto)">Editar</button>
+                  <button
+                    appBoton="peligro"
+                    appBotonTamano="sm"
+                    type="button"
+                    [disabled]="store.desactivandoProducto() === producto.idProducto"
+                    (click)="desactivarProducto(producto)"
+                  >
+                    {{ store.desactivandoProducto() === producto.idProducto ? 'Desactivando...' : 'Desactivar' }}
+                  </button>
+                </div>
+              </app-fila-panel>
+            }
+          </app-lista-panel>
+        }
+      </article>
+    </section>
+  }
+</section>

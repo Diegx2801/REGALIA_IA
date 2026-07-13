@@ -1,0 +1,179 @@
+<section class="admin-resumen">
+  @if (store.cargandoResumen()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Sincronizando la sala de control." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar el panel administrativo.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarResumen(true)"
+    />
+  } @else {
+    @if (store.mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Operacion correcta" [titulo]="store.mensajeExito() ?? ''" />
+    }
+
+    <header class="admin-resumen__hero" aria-labelledby="titulo-admin-resumen">
+      <div class="admin-resumen__hero-copy">
+        <span class="admin-resumen__eyebrow">Sala de control</span>
+        <h2 id="titulo-admin-resumen">Gobierno operativo de REGALIA.</h2>
+        <p>
+          Supervisa crecimiento, moderacion comercial y pedidos con riesgo financiero desde una vista
+          conectada al backend real.
+        </p>
+
+        <div class="admin-resumen__hero-actions" aria-label="Acciones administrativas principales">
+          <a appBoton routerLink="/admin/tiendas" ngbTooltip="Abrir cola completa de revision comercial">
+            Moderar tiendas
+          </a>
+          <a appBoton="secundario" routerLink="/admin/datos-maestros" ngbTooltip="Auditar catalogos base de REGALIA">
+            Datos maestros
+          </a>
+        </div>
+      </div>
+
+      <aside class="admin-resumen__radar" aria-label="Indicadores criticos administrativos">
+        <span>Radar operativo</span>
+        <strong>{{ store.tiendasPendientes() + store.pedidosConSaldo() }}</strong>
+        <small>puntos que requieren seguimiento administrativo.</small>
+      </aside>
+    </header>
+
+    <section class="admin-resumen__metricas" aria-label="Indicadores generales de plataforma">
+      <app-tarjeta-metrica etiqueta="Usuarios" [valor]="store.totalUsuarios()" descripcion="Cuentas gestionables." />
+      <app-tarjeta-metrica etiqueta="Vendedores" [valor]="store.totalVendedores()" descripcion="Perfiles comerciales registrados." />
+      <app-tarjeta-metrica etiqueta="Tiendas" [valor]="store.totalTiendas()" [descripcion]="store.tiendasPendientes() + ' pendiente(s) de revision.'" />
+      <app-tarjeta-metrica etiqueta="Pedidos" [valor]="store.totalPedidos()" [descripcion]="store.pedidosConSaldo() + ' con saldo pendiente.'" />
+      <app-tarjeta-metrica etiqueta="Catalogo visible" [valor]="store.totalProductosVisibles()" descripcion="Productos expuestos publicamente." />
+      <app-tarjeta-metrica etiqueta="Pagado" [valor]="store.montoPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'" descripcion="Monto pagado en pedidos cargados." />
+    </section>
+
+    <section class="admin-resumen__escenario">
+      <article class="admin-resumen__panel admin-resumen__panel--principal">
+        <header class="admin-resumen__panel-header">
+          <div>
+            <span class="admin-resumen__eyebrow">Moderacion comercial</span>
+            <h3>Tiendas en cola</h3>
+          </div>
+          <a appBoton="fantasma" appBotonTamano="sm" routerLink="/admin/tiendas">Ver todas</a>
+        </header>
+
+        @if (tiendasPrioritarias().length === 0) {
+          <app-estado-pantalla tipo="vacio" etiqueta="Sin tiendas" titulo="No hay tiendas para revisar." />
+        } @else {
+          <div class="admin-resumen__cola" aria-label="Tiendas priorizadas para moderacion">
+            @for (tienda of tiendasPrioritarias(); track tienda.idTienda) {
+              <article class="admin-resumen__tienda">
+                <div>
+                  <span class="admin-resumen__estado">{{ tienda.estadoRevision }}</span>
+                  <h4>{{ tienda.nombre }}</h4>
+                  <p>{{ tienda.vendedor }} · {{ tienda.rubros.length ? tienda.rubros.join(', ') : 'Sin rubros registrados' }}</p>
+                </div>
+
+                <div class="admin-resumen__acciones">
+                  <button
+                    appBoton
+                    appBotonTamano="sm"
+                    type="button"
+                    [disabled]="store.procesandoTienda() === tienda.idTienda"
+                    (click)="aprobar(tienda)"
+                    ngbTooltip="Aprobar tienda"
+                  >
+                    Aprobar
+                  </button>
+                  <button
+                    appBoton="secundario"
+                    appBotonTamano="sm"
+                    type="button"
+                    [disabled]="store.procesandoTienda() === tienda.idTienda"
+                    (click)="observar(tienda)"
+                    ngbTooltip="Solicitar correccion al vendedor"
+                  >
+                    Observar
+                  </button>
+                  <button
+                    appBoton="peligro"
+                    appBotonTamano="sm"
+                    type="button"
+                    [disabled]="store.procesandoTienda() === tienda.idTienda"
+                    (click)="rechazar(tienda)"
+                    ngbTooltip="Rechazar tienda"
+                  >
+                    Rechazar
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </article>
+
+      <aside class="admin-resumen__columna">
+        <article class="admin-resumen__panel admin-resumen__riesgo">
+          <span class="admin-resumen__eyebrow">Riesgo operativo</span>
+          <h3>Revision pendiente</h3>
+
+          <div class="admin-resumen__indicador">
+            <div>
+              <strong>{{ porcentajeTiendasPendientes() }}%</strong>
+              <small>tiendas pendientes</small>
+            </div>
+            <ngb-progressbar
+              type="warning"
+              [value]="porcentajeTiendasPendientes()"
+              height="0.72rem"
+              aria-label="Porcentaje de tiendas pendientes"
+            />
+          </div>
+
+          <div class="admin-resumen__indicador">
+            <div>
+              <strong>{{ porcentajePedidosConSaldo() }}%</strong>
+              <small>pedidos con saldo</small>
+            </div>
+            <ngb-progressbar
+              type="danger"
+              [value]="porcentajePedidosConSaldo()"
+              height="0.72rem"
+              aria-label="Porcentaje de pedidos con saldo pendiente"
+            />
+          </div>
+        </article>
+
+        <article class="admin-resumen__panel admin-resumen__pedidos">
+          <header class="admin-resumen__panel-header">
+            <div>
+              <span class="admin-resumen__eyebrow">Pedidos</span>
+              <h3>Movimientos criticos</h3>
+            </div>
+            <a appBoton="fantasma" appBotonTamano="sm" routerLink="/admin/pedidos">Ver</a>
+          </header>
+
+          @if (pedidosPrioritarios().length === 0) {
+            <app-estado-pantalla tipo="vacio" etiqueta="Sin pedidos" titulo="No hay pedidos registrados." />
+          } @else {
+            <div class="admin-resumen__movimientos" aria-label="Pedidos priorizados por saldo pendiente">
+              @for (pedido of pedidosPrioritarios(); track pedido.idPedido) {
+                <article class="admin-resumen__pedido">
+                  <div>
+                    <strong>#{{ pedido.idPedido }} · {{ pedido.nombreTienda }}</strong>
+                    <small>
+                      {{ pedido.estadoPedido }} ·
+                      @if (pedido.fechaEntrega) {
+                        entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}
+                      } @else {
+                        entrega no definida
+                      }
+                    </small>
+                  </div>
+                  <b>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+                </article>
+              }
+            </div>
+          }
+        </article>
+      </aside>
+    </section>
+  }
+</section>

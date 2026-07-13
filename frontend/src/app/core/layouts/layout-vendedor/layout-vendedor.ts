@@ -15,8 +15,23 @@ export class LayoutVendedor {
   readonly enlaces: EnlaceLayoutPrivado[] = [
     {
       etiqueta: 'Resumen',
-      ruta: '/vendedor',
+      ruta: '/vendedor/resumen',
       descripcion: 'Pedidos recibidos y estado comercial',
+    },
+    {
+      etiqueta: 'Tiendas',
+      ruta: '/vendedor/tiendas',
+      descripcion: 'Gestionar presencia comercial',
+    },
+    {
+      etiqueta: 'Productos',
+      ruta: '/vendedor/productos',
+      descripcion: 'Catalogo y disponibilidad',
+    },
+    {
+      etiqueta: 'Pedidos',
+      ruta: '/vendedor/pedidos',
+      descripcion: 'Solicitudes y pagos recibidos',
     },
     {
       etiqueta: 'Catalogo publico',

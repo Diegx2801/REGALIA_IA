@@ -1,0 +1,64 @@
+<section class="admin-datos">
+  <header class="admin-datos__hero">
+    <span>Datos maestros</span>
+    <h2>Catálogos base de REGALIA</h2>
+    <p>Lectura consolidada desde endpoints administrativos reales. La edición se agregará con formularios por catálogo.</p>
+  </header>
+
+  @if (store.cargandoDatosMaestros()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando datos maestros." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar datos maestros.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarDatosMaestros()"
+    />
+  } @else {
+    <section class="admin-datos__metricas">
+      <app-tarjeta-metrica etiqueta="Registros" [valor]="store.datosMaestros().length" descripcion="Total consolidado desde backend." />
+      <app-tarjeta-metrica etiqueta="Activos" [valor]="store.datosMaestrosActivos()" descripcion="Registros habilitados actualmente." />
+      <app-tarjeta-metrica etiqueta="Categorías" [valor]="store.categoriasDatosMaestros().length" descripcion="Catálogos administrativos detectados." />
+    </section>
+
+    <article class="admin-card">
+      <header class="admin-datos__toolbar">
+        <div>
+          <span>Catálogos</span>
+          <h3>{{ datosFiltrados().length }} registros</h3>
+        </div>
+        <label>
+          Categoría
+          <select (change)="filtrarCategoria($event)">
+            <option value="">Todas</option>
+            @for (categoria of store.categoriasDatosMaestros(); track categoria) {
+              <option [value]="categoria">{{ categoria }}</option>
+            }
+          </select>
+        </label>
+      </header>
+
+      <p class="admin-datos__aviso" ngbTooltip="No se muestran mocks: solo lectura real. CRUD fino se implementa por contrato de cada endpoint.">
+        Gestión de alta/edición/desactivación pendiente de UI específica por tipo de dato maestro.
+      </p>
+
+      @if (datosFiltrados().length === 0) {
+        <app-estado-pantalla tipo="vacio" etiqueta="Sin datos" titulo="No hay registros para esta categoría." />
+      } @else {
+        <app-lista-panel ariaEtiqueta="Datos maestros administrativos">
+          @for (dato of datosFiltrados(); track dato.categoria + '-' + dato.id) {
+            <app-fila-panel tipo="triple" [ariaEtiqueta]="dato.nombre">
+              <div>
+                <strong>{{ dato.nombre }}</strong>
+                <small>{{ dato.categoria }}</small>
+              </div>
+              <p>{{ dato.descripcion }}</p>
+              <span>{{ dato.estado ? 'Activo' : 'Inactivo' }}</span>
+            </app-fila-panel>
+          }
+        </app-lista-panel>
+      }
+    </article>
+  }
+</section>

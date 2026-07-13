@@ -1,0 +1,74 @@
+<section class="cliente-perfil">
+  <header class="cliente-perfil__hero">
+    <span>Perfil cliente</span>
+    <h2>Datos personales y contacto</h2>
+    <p>Estos datos se actualizan directamente contra tu perfil autenticado del backend.</p>
+  </header>
+
+  @if (store.cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tu perfil." />
+  } @else if (store.mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar tu perfil.'"
+      textoAccion="Reintentar"
+      (accion)="store.cargarPanel(true)"
+    />
+  } @else {
+    @if (store.mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Guardado" [titulo]="store.mensajeExito() ?? ''" />
+    }
+
+    <section class="cliente-perfil__grid">
+      <article class="cliente-perfil__card">
+        <span>Cuenta</span>
+        <h3>{{ store.perfil()?.nombreCompleto }}</h3>
+        <p>{{ store.perfil()?.correo }}</p>
+        <strong>{{ store.perfil()?.estado ? 'Cuenta activa' : 'Cuenta inactiva' }}</strong>
+      </article>
+
+      <form
+        appFormularioPanel
+        appFormularioUnaColumna
+        class="cliente-perfil__formulario"
+        [formGroup]="formularioPerfil"
+        (ngSubmit)="guardarPerfil()"
+      >
+        <label appCampoFormulario>
+          Nombres
+          <input type="text" formControlName="nombres" autocomplete="given-name" />
+          @if (campoTieneError('nombres')) {
+            <small appErrorCampo>Los nombres son obligatorios.</small>
+          }
+        </label>
+
+        <label appCampoFormulario>
+          Apellidos
+          <input type="text" formControlName="apellidos" autocomplete="family-name" />
+          @if (campoTieneError('apellidos')) {
+            <small appErrorCampo>Los apellidos son obligatorios.</small>
+          }
+        </label>
+
+        <label appCampoFormulario>
+          Teléfono
+          <input type="tel" formControlName="telefono" autocomplete="tel" placeholder="Ej. 999888777" />
+          @if (campoTieneError('telefono')) {
+            <small appErrorCampo>El teléfono no debe superar 20 caracteres.</small>
+          }
+        </label>
+
+        <button
+          appBoton
+          appBotonBloque
+          [appBotonCargando]="store.guardandoPerfil()"
+          type="submit"
+          [disabled]="store.guardandoPerfil()"
+        >
+          {{ store.guardandoPerfil() ? 'Guardando...' : 'Guardar perfil' }}
+        </button>
+      </form>
+    </section>
+  }
+</section>

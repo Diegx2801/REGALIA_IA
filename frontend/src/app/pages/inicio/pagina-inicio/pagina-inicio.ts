@@ -52,12 +52,42 @@ export class PaginaInicio implements AfterViewInit, OnInit {
   readonly mensajeErrorProductosDestacados = signal<string | null>(null);
 
   readonly categorias: readonly CategoriaInicio[] = [
-    { etiqueta: 'Cumpleanos', tipoIcono: 'cuadro', busqueda: 'cumpleanos' },
-    { etiqueta: 'Dia de la Madre', tipoIcono: 'circulo', busqueda: 'madre' },
-    { etiqueta: 'Aniversarios', tipoIcono: 'anillo', busqueda: 'aniversario' },
-    { etiqueta: 'Graduacion', tipoIcono: 'tarjeta', busqueda: 'graduacion' },
-    { etiqueta: 'Condolencias', tipoIcono: 'hoja', busqueda: 'condolencias' },
-    { etiqueta: 'Mas categorias', tipoIcono: 'mas' },
+    // Los iconos salen de public/assets para que Angular los sirva sin acoplarlos al build TS.
+    {
+      etiqueta: 'Cumpleaños',
+      tipoIcono: 'cuadro',
+      iconoUrl: '/assets/brand/iconos/cumpleanos-1.png',
+      busqueda: 'cumpleanos',
+    },
+    {
+      etiqueta: 'Día de la Madre',
+      tipoIcono: 'circulo',
+      iconoUrl: '/assets/brand/iconos/diadelamadre.png',
+      busqueda: 'madre',
+    },
+    {
+      etiqueta: 'Aniversarios',
+      tipoIcono: 'anillo',
+      iconoUrl: '/assets/brand/iconos/aniversario.png',
+      busqueda: 'aniversario',
+    },
+    {
+      etiqueta: 'Graduación',
+      tipoIcono: 'tarjeta',
+      iconoUrl: '/assets/brand/iconos/graduacion.png',
+      busqueda: 'graduacion',
+    },
+    {
+      etiqueta: 'Condolencias',
+      tipoIcono: 'hoja',
+      iconoUrl: '/assets/brand/iconos/condolencias.png',
+      busqueda: 'condolencias',
+    },
+    {
+      etiqueta: 'Más categorías',
+      tipoIcono: 'mas',
+      iconoUrl: '/assets/brand/iconos/mascateg.png',
+    },
   ];
 
   readonly meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];

@@ -5,7 +5,10 @@
   [class.layout-privado--administracion]="variante() === 'administracion'"
 >
   <aside class="layout-privado__sidebar" aria-label="Navegacion privada">
-    <a class="layout-privado__marca" routerLink="/">REGALIA</a>
+    <a class="layout-privado__marca" routerLink="/" aria-label="Ir al inicio de REGALIA">
+      <span>R</span>
+      REGALIA
+    </a>
 
     <div class="layout-privado__cabecera">
       <span>{{ etiqueta() }}</span>
@@ -18,6 +21,7 @@
         <a
           class="layout-privado__enlace"
           [routerLink]="enlace.ruta"
+          [queryParams]="enlace.queryParams"
           routerLinkActive="layout-privado__enlace--activo"
           ariaCurrentWhenActive="page"
           [routerLinkActiveOptions]="{ exact: true }"
@@ -34,14 +38,29 @@
         <strong>{{ sesion.usuarioActual()?.nombreCompleto ?? 'Usuario REGALIA' }}</strong>
         <small>{{ sesion.usuarioActual()?.correo ?? 'Sesion activa' }}</small>
       </div>
-      <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="cerrarSesion()">Salir</button>
+      <span class="layout-privado__rol">{{ rolVisible() }}</span>
+      <button
+        appBoton="fantasma"
+        appBotonTamano="sm"
+        type="button"
+        (click)="cerrarSesion()"
+        ngbTooltip="Cerrar sesion y volver al inicio"
+      >
+        Cerrar sesion
+      </button>
     </footer>
   </aside>
 
   <div class="layout-privado__area">
     <header class="layout-privado__topbar">
-      <span>{{ etiqueta() }}</span>
-      <a routerLink="/">Volver al inicio</a>
+      <div>
+        <span>{{ etiqueta() }}</span>
+        <strong>{{ sesion.usuarioActual()?.nombreCompleto ?? 'REGALIA' }}</strong>
+      </div>
+      <nav aria-label="Acciones rapidas privadas">
+        <a routerLink="/catalogo">Catalogo</a>
+        <a routerLink="/">Inicio</a>
+      </nav>
     </header>
 
     <main id="contenido-principal" class="layout-privado__contenido" tabindex="-1">

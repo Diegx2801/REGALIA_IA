@@ -15,8 +15,23 @@ export class LayoutCliente {
   readonly enlaces: EnlaceLayoutPrivado[] = [
     {
       etiqueta: 'Resumen',
-      ruta: '/cliente',
+      ruta: '/cliente/resumen',
       descripcion: 'Actividad, pedidos y preferencias',
+    },
+    {
+      etiqueta: 'Perfil',
+      ruta: '/cliente/perfil',
+      descripcion: 'Datos personales y contacto',
+    },
+    {
+      etiqueta: 'Pedidos',
+      ruta: '/cliente/pedidos',
+      descripcion: 'Historial y seguimiento',
+    },
+    {
+      etiqueta: 'Pagos',
+      ruta: '/cliente/pagos',
+      descripcion: 'Saldos pendientes y pagos',
     },
     {
       etiqueta: 'Catalogo',

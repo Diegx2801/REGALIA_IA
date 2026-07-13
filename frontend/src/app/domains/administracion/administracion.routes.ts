@@ -3,9 +3,14 @@ import { Routes } from '@angular/router';
 export const ADMINISTRACION_ROUTES: Routes = [
   {
     path: '',
+    pathMatch: 'full',
+    redirectTo: 'resumen',
+  },
+  {
+    path: 'resumen',
     loadComponent: () =>
-      import('./dashboard/pagina-panel-administracion/pagina-panel-administracion').then(
-        (m) => m.PaginaPanelAdministracion,
+      import('./paginas/pagina-admin-resumen/pagina-admin-resumen').then(
+        (m) => m.PaginaAdminResumen,
       ),
   },
   {
@@ -13,6 +18,13 @@ export const ADMINISTRACION_ROUTES: Routes = [
     loadComponent: () =>
       import('./paginas/pagina-admin-usuarios/pagina-admin-usuarios').then(
         (m) => m.PaginaAdminUsuarios,
+      ),
+  },
+  {
+    path: 'vendedores',
+    loadComponent: () =>
+      import('./paginas/pagina-admin-vendedores/pagina-admin-vendedores').then(
+        (m) => m.PaginaAdminVendedores,
       ),
   },
   {
@@ -27,6 +39,13 @@ export const ADMINISTRACION_ROUTES: Routes = [
     loadComponent: () =>
       import('./paginas/pagina-admin-pedidos/pagina-admin-pedidos').then(
         (m) => m.PaginaAdminPedidos,
+      ),
+  },
+  {
+    path: 'datos-maestros',
+    loadComponent: () =>
+      import('./paginas/pagina-admin-datos-maestros/pagina-admin-datos-maestros').then(
+        (m) => m.PaginaAdminDatosMaestros,
       ),
   },
 ];

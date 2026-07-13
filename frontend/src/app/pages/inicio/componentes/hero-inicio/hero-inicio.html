@@ -26,15 +26,29 @@
   <nav class="occasion-strip" aria-label="Categorias destacadas">
     @for (categoria of categorias(); track categoria.etiqueta) {
       <button type="button" class="occasion-strip__item" (click)="buscarCategoria.emit(categoria)">
-        <span
-          class="occasion-strip__icon"
-          [class.occasion-strip__icon--cuadro]="categoria.tipoIcono === 'cuadro'"
-          [class.occasion-strip__icon--circulo]="categoria.tipoIcono === 'circulo'"
-          [class.occasion-strip__icon--anillo]="categoria.tipoIcono === 'anillo'"
-          [class.occasion-strip__icon--tarjeta]="categoria.tipoIcono === 'tarjeta'"
-          [class.occasion-strip__icon--hoja]="categoria.tipoIcono === 'hoja'"
-          [class.occasion-strip__icon--mas]="categoria.tipoIcono === 'mas'"
-        ></span>
+        @if (categoria.iconoUrl) {
+          <!-- Icono decorativo: el texto del boton ya comunica la accion para lectores de pantalla. -->
+          <span class="occasion-strip__asset-frame" aria-hidden="true">
+            <img
+              class="occasion-strip__asset"
+              [src]="categoria.iconoUrl"
+              alt=""
+              loading="lazy"
+              width="58"
+              height="58"
+            />
+          </span>
+        } @else {
+          <span
+            class="occasion-strip__icon"
+            [class.occasion-strip__icon--cuadro]="categoria.tipoIcono === 'cuadro'"
+            [class.occasion-strip__icon--circulo]="categoria.tipoIcono === 'circulo'"
+            [class.occasion-strip__icon--anillo]="categoria.tipoIcono === 'anillo'"
+            [class.occasion-strip__icon--tarjeta]="categoria.tipoIcono === 'tarjeta'"
+            [class.occasion-strip__icon--hoja]="categoria.tipoIcono === 'hoja'"
+            [class.occasion-strip__icon--mas]="categoria.tipoIcono === 'mas'"
+          ></span>
+        }
         <strong>{{ categoria.etiqueta }}</strong>
       </button>
     }

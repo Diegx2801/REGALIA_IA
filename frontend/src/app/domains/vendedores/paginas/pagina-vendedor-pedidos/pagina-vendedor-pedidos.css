@@ -1,0 +1,110 @@
+:host {
+  display: block;
+}
+
+.vendedor-pedidos {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.vendedor-pedidos__hero,
+.vendedor-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.35rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.vendedor-pedidos__hero span,
+.vendedor-card span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vendedor-pedidos__hero h2,
+.vendedor-card h3 {
+  color: var(--rg-color-ink);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  margin: 0.25rem 0;
+}
+
+.vendedor-pedidos__hero p,
+.vendedor-card p,
+.vendedor-card small {
+  color: var(--rg-color-muted);
+}
+
+.vendedor-pedidos__layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.42fr);
+}
+
+.vendedor-pedidos__toolbar,
+.vendedor-pedidos__filtros,
+.vendedor-pedidos__detalle,
+.vendedor-pedidos__totales {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.vendedor-pedidos__toolbar {
+  grid-template-columns: 1fr;
+  margin-bottom: 1rem;
+}
+
+.vendedor-pedidos__filtros {
+  grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+}
+
+.vendedor-pedidos__filtros label {
+  color: var(--rg-color-ink);
+  display: grid;
+  font-weight: 900;
+  gap: 0.35rem;
+}
+
+.vendedor-pedidos__filtros input,
+.vendedor-pedidos__filtros select {
+  background: #fffaf5;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 0.85rem;
+  min-height: 2.9rem;
+  padding: 0 0.85rem;
+  width: 100%;
+}
+
+.vendedor-pedidos__layout > *,
+.vendedor-pedidos__toolbar > *,
+.vendedor-pedidos__filtros > * {
+  min-width: 0;
+}
+
+.vendedor-pedidos__totales {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vendedor-pedidos__totales article {
+  background: #fffaf5;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 1rem;
+  padding: 0.85rem;
+}
+
+@media (max-width: 1399.98px) {
+  .vendedor-pedidos__layout,
+  .vendedor-pedidos__toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 739.98px) {
+  .vendedor-pedidos__totales {
+    grid-template-columns: 1fr;
+  }
+}

@@ -5,7 +5,7 @@
   border-radius: 1.25rem;
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: var(--rg-filtros-columna-inicial, 12rem) minmax(0, 1fr) auto;
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--rg-filtros-columna-inicial, 13rem), 100%), 1fr));
   padding: 1rem;
 }
 
@@ -24,9 +24,11 @@
   border: 1px solid var(--rg-color-border);
   border-radius: 0.9rem;
   padding: 0.75rem;
+  width: 100%;
 }
 
 .rg-filtros-panel button {
+  align-self: end;
   background: var(--rg-color-primary);
   border: 0;
   border-radius: 999px;
@@ -36,18 +38,12 @@
   padding-inline: 1rem;
 }
 
-@media (max-width: 999.98px) {
+@media (max-width: 699.98px) {
   .rg-filtros-panel {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .rg-filtros-panel button {
     width: 100%;
-  }
-}
-
-@media (max-width: 699.98px) {
-  .rg-filtros-panel {
-    grid-template-columns: 1fr;
   }
 }

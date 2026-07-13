@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+.cliente-pagos {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.cliente-pagos__hero,
+.cliente-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.35rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.cliente-pagos__hero span,
+.cliente-card span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cliente-pagos__hero h2,
+.cliente-card h3 {
+  color: var(--rg-color-ink);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  margin: 0.25rem 0;
+}
+
+.cliente-pagos__hero p,
+.cliente-card p,
+.cliente-card small,
+.cliente-pagos__nota {
+  color: var(--rg-color-muted);
+}
+
+.cliente-pagos__layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) 27rem;
+}
+
+.cliente-pagos__formulario-card {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (max-width: 1099.98px) {
+  .cliente-pagos__layout {
+    grid-template-columns: 1fr;
+  }
+}
