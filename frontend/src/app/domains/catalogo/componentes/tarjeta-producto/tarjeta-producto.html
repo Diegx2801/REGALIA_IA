@@ -1,37 +1,40 @@
-<article class="product-card" [class.product-card--agotado]="!producto().disponible">
+@let productoActual = producto();
+
+<article class="product-card" [class.product-card--agotado]="!productoActual.disponible">
   <a
     class="product-card__media"
-    [routerLink]="['/catalogo', producto().idProducto]"
-    [attr.aria-label]="'Ver detalle de ' + producto().nombre"
+    [routerLink]="['/catalogo', productoActual.idProducto]"
+    [attr.aria-label]="'Ver detalle de ' + productoActual.nombre"
   >
-    <img [src]="imagenPrincipal()" [alt]="producto().nombre" loading="lazy" />
+    <img [src]="imagenPrincipal()" [alt]="productoActual.nombre" loading="lazy" decoding="async" />
     <span class="product-card__badge">{{ etiquetaEstado() }}</span>
   </a>
 
   <div class="product-card__body">
     <div class="product-card__topline">
-      <span class="product-card__category">{{ producto().tipoProducto }}</span>
-      <span class="product-card__stock">Stock {{ producto().stock }}</span>
+      <span class="product-card__category">{{ productoActual.tipoProducto }}</span>
+      <span class="product-card__stock">Stock {{ productoActual.stock }}</span>
     </div>
 
     <h3 class="product-card__title">
-      <a [routerLink]="['/catalogo', producto().idProducto]">{{ producto().nombre }}</a>
+      <a [routerLink]="['/catalogo', productoActual.idProducto]">{{ productoActual.nombre }}</a>
     </h3>
-    <p class="product-card__description">{{ producto().descripcion }}</p>
+    <p class="product-card__description">{{ productoActual.descripcion }}</p>
 
     <div class="product-card__meta">
-      <span>{{ producto().nombreTienda }}</span>
-      <span>{{ producto().disponible ? 'Listo para reservar' : 'Sin stock disponible' }}</span>
+      <span>{{ productoActual.nombreTienda }}</span>
+      <span>{{ productoActual.disponible ? 'Listo para reservar' : 'Sin stock disponible' }}</span>
     </div>
 
     <div class="product-card__footer">
       <div class="product-card__price">
-        <strong>{{ producto().precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        <strong>{{ productoActual.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
       </div>
       <button
         class="product-card__button"
         type="button"
-        [disabled]="!producto().disponible"
+        [disabled]="!productoActual.disponible"
+        [attr.aria-label]="'Agregar ' + productoActual.nombre + ' al carrito'"
         (click)="agregarAlCarrito()"
       >
         Agregar

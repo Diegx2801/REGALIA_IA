@@ -1,35 +1,38 @@
-import { CurrencyPipe } from '@angular/common';
-import { AfterViewInit, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+  ViewEncapsulation,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { FormControl, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ProductoApiService } from '../../../domains/catalogo/acceso-datos/producto-api.service';
 import { Producto } from '../../../domains/catalogo/modelos/producto.model';
-
-interface CategoriaInicio {
-  readonly etiqueta: string;
-  readonly tipoIcono: 'cuadro' | 'circulo' | 'anillo' | 'tarjeta' | 'hoja' | 'mas';
-  readonly busqueda?: string;
-}
-
-interface CampanaComercial {
-  readonly fecha: string;
-  readonly titulo: string;
-  readonly descripcion: string;
-  readonly sugerencias: readonly string[];
-}
-
-interface PasoModeloNegocio {
-  readonly numero: string;
-  readonly descripcion: string;
-}
+import { CalendarioComercial } from '../componentes/calendario-comercial/calendario-comercial';
+import { CtaVendedorInicio } from '../componentes/cta-vendedor-inicio/cta-vendedor-inicio';
+import { DestacadosInicio } from '../componentes/destacados-inicio/destacados-inicio';
+import { HeroInicio } from '../componentes/hero-inicio/hero-inicio';
+import { ModeloNegocioInicio } from '../componentes/modelo-negocio-inicio/modelo-negocio-inicio';
+import { CategoriaInicio, CampanaComercial, PasoModeloNegocio } from '../modelos/inicio.model';
 
 @Component({
   selector: 'app-pagina-inicio',
-  imports: [CurrencyPipe, ReactiveFormsModule, RouterLink],
+  imports: [
+    CalendarioComercial,
+    CtaVendedorInicio,
+    DestacadosInicio,
+    HeroInicio,
+    ModeloNegocioInicio,
+  ],
   templateUrl: './pagina-inicio.html',
   styleUrl: './pagina-inicio.css',
+  // Los estilos usan clases prefijadas por feature; se comparten con componentes internos sin duplicar CSS.
+  encapsulation: ViewEncapsulation.None,
 })
 export class PaginaInicio implements AfterViewInit, OnInit {
   private readonly router = inject(Router);
@@ -133,14 +136,6 @@ export class PaginaInicio implements AfterViewInit, OnInit {
     void this.router.navigate(['/catalogo'], {
       queryParams: categoria.busqueda ? { busqueda: categoria.busqueda } : undefined,
     });
-  }
-
-  obtenerImagenProducto(producto: Producto): string {
-    return producto.imagenes[0]?.urlImagen ?? '/assets/brand/producto-fallback.svg';
-  }
-
-  identificarProducto(_indice: number, producto: Producto): number {
-    return producto.idProducto;
   }
 
   private cargarProductosDestacados(): void {

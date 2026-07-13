@@ -1,0 +1,26 @@
+<nav class="builder-stepper" aria-label="Progreso de la solicitud">
+  @for (paso of pasos(); track paso.numero) {
+    <button
+      type="button"
+      class="builder-stepper__item"
+      [class.builder-stepper__item--active]="pasoActual() === paso.numero"
+      [class.builder-stepper__item--completed]="pasoActual() > paso.numero"
+      [disabled]="paso.numero > pasoActual()"
+      [attr.aria-current]="pasoActual() === paso.numero ? 'step' : null"
+      [attr.aria-label]="'Paso ' + paso.numero + ': ' + paso.titulo + '. ' + paso.descripcion"
+      (click)="irAPaso.emit(paso.numero)"
+    >
+      <span class="builder-stepper__number">
+        @if (pasoActual() > paso.numero) {
+          &check;
+        } @else {
+          {{ paso.numero }}
+        }
+      </span>
+      <span class="builder-stepper__copy">
+        <strong>{{ paso.titulo }}</strong>
+        <small>{{ paso.descripcion }}</small>
+      </span>
+    </button>
+  }
+</nav>

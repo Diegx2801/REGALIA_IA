@@ -1,213 +1,27 @@
 <main class="landing-page">
-  <section class="landing-hero rg-page__container--retail" aria-labelledby="titulo-inicio">
-    <div class="landing-hero__frame">
-      <div class="landing-hero__overlay"></div>
-      <div class="landing-hero__content">
-        <h1 id="titulo-inicio">Regalos personalizados en tu ciudad, sin perder tiempo.</h1>
-        <p>
-          Descubre emprendedores locales, compara opciones y reserva con una se&ntilde;a clara y
-          segura.
-        </p>
+  <app-hero-inicio
+    [formularioBusqueda]="formularioBusqueda"
+    [categorias]="categorias"
+    (buscarDetalles)="buscarDetalles()"
+    (buscarCategoria)="buscarCategoria($event)"
+  />
 
-        <form
-          class="hero-search"
-          [formGroup]="formularioBusqueda"
-          (ngSubmit)="buscarDetalles()"
-          aria-label="Busqueda rapida de regalos"
-        >
-          <label>
-            <span>Ocasion</span>
-            <input type="text" formControlName="ocasion" />
-          </label>
-          <label>
-            <span>Presupuesto</span>
-            <input type="text" formControlName="presupuesto" />
-          </label>
-          <label>
-            <span>Fecha</span>
-            <input type="date" formControlName="fecha" aria-label="Fecha de entrega" />
-          </label>
-          <label>
-            <span>Distrito</span>
-            <input type="text" formControlName="distrito" />
-          </label>
-          <button type="submit">Buscar detalles</button>
-        </form>
-      </div>
-    </div>
+  <app-calendario-comercial
+    [campanas]="campanas"
+    [meses]="meses"
+    [diasSemana]="diasSemana"
+    [diasFebrero]="diasFebrero"
+    [mesActivo]="mesActivo()"
+    (seleccionarMes)="mesActivo.set($event)"
+  />
 
-    <nav class="occasion-strip" aria-label="Categorias destacadas">
-      @for (categoria of categorias; track categoria.etiqueta) {
-        <button type="button" class="occasion-strip__item" (click)="buscarCategoria(categoria)">
-          <span
-            class="occasion-strip__icon"
-            [class.occasion-strip__icon--cuadro]="categoria.tipoIcono === 'cuadro'"
-            [class.occasion-strip__icon--circulo]="categoria.tipoIcono === 'circulo'"
-            [class.occasion-strip__icon--anillo]="categoria.tipoIcono === 'anillo'"
-            [class.occasion-strip__icon--tarjeta]="categoria.tipoIcono === 'tarjeta'"
-            [class.occasion-strip__icon--hoja]="categoria.tipoIcono === 'hoja'"
-            [class.occasion-strip__icon--mas]="categoria.tipoIcono === 'mas'"
-          ></span>
-          <strong>{{ categoria.etiqueta }}</strong>
-        </button>
-      }
-    </nav>
-  </section>
+  <app-destacados-inicio
+    [productos]="productosDestacados()"
+    [cargando]="cargandoProductosDestacados()"
+    [mensajeError]="mensajeErrorProductosDestacados()"
+  />
 
-  <section class="festive-calendar rg-page__container--retail" aria-labelledby="titulo-calendario">
-    <article class="festive-calendar__campaign">
-      <span class="eyebrow">Calendario comercial</span>
-      <strong class="festive-calendar__status">Campana activa</strong>
-      <h2 id="titulo-calendario">{{ campanas[0].titulo }}</h2>
-      <b>{{ campanas[0].fecha }}</b>
-      <p>{{ campanas[0].descripcion }}</p>
-      <a class="landing-button landing-button--light" routerLink="/catalogo" [queryParams]="{ busqueda: campanas[0].titulo }">
-        Preparar campana
-      </a>
+  <app-modelo-negocio-inicio [pasos]="pasosModeloNegocio" />
 
-      <div class="festive-calendar__suggestions">
-        <span>Productos sugeridos</span>
-        <div>
-          @for (sugerencia of campanas[0].sugerencias; track sugerencia) {
-            <strong>{{ sugerencia }}</strong>
-          }
-        </div>
-      </div>
-
-      <div class="festive-calendar__events">
-        @for (campana of campanas; track campana.fecha) {
-          <button type="button" [class.is-active]="$index === 0">
-            <span>{{ campana.fecha }}</span>
-            <strong>{{ campana.titulo }}</strong>
-          </button>
-        }
-      </div>
-    </article>
-
-    <article class="festive-calendar__month" aria-label="Calendario de temporadas">
-      <header>
-        <h2>2026</h2>
-        <span>Temporadas de regalos</span>
-      </header>
-
-      <div class="festive-calendar__months" role="tablist" aria-label="Meses">
-        @for (mes of meses; track mes) {
-          <button type="button" [class.is-active]="mesActivo() === mes" (click)="mesActivo.set(mes)">
-            {{ mes }}
-          </button>
-        }
-      </div>
-
-      <div class="festive-calendar__week">
-        @for (dia of diasSemana; track dia) {
-          <span>{{ dia }}</span>
-        }
-      </div>
-
-      <div class="festive-calendar__days">
-        @for (dia of diasFebrero; track dia) {
-          <button type="button" [class.is-event]="dia === 14">{{ dia }}</button>
-        }
-      </div>
-    </article>
-  </section>
-
-  <section class="landing-section landing-section--featured rg-page__container--retail">
-    <div class="landing-section__main">
-      <span class="eyebrow eyebrow--dark">Destacados para ti</span>
-      <h2>Ideas listas para convertir una ocasion en reserva.</h2>
-
-      @if (cargandoProductosDestacados()) {
-        <div class="featured-products">
-          @for (item of [1, 2, 3, 4]; track item) {
-            <article class="featured-product featured-product--skeleton">
-              <span></span>
-              <div></div>
-              <div></div>
-            </article>
-          }
-        </div>
-      } @else if (mensajeErrorProductosDestacados()) {
-        <div class="landing-empty-state">
-          <strong>{{ mensajeErrorProductosDestacados() }}</strong>
-          <a routerLink="/catalogo">Ir al catalogo</a>
-        </div>
-      } @else if (productosDestacados().length === 0) {
-        <div class="landing-empty-state">
-          <strong>No hay productos destacados disponibles.</strong>
-          <a routerLink="/catalogo">Explorar catalogo</a>
-        </div>
-      } @else {
-        <div class="featured-products">
-          @for (producto of productosDestacados(); track identificarProducto($index, producto)) {
-            <article class="featured-product">
-              <img [src]="obtenerImagenProducto(producto)" [alt]="producto.nombre" />
-              <div class="featured-product__body">
-                <h3>{{ producto.nombre }}</h3>
-                <p>{{ producto.nombreTienda }}</p>
-                <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-                <div class="featured-product__meta">
-                  <span>{{ producto.tipoProducto }}</span>
-                  <mark>{{ producto.disponible ? 'Disponible' : 'Agotado' }}</mark>
-                </div>
-                <a routerLink="/catalogo" [queryParams]="{ busqueda: producto.nombre }">Reservar con se&ntilde;a</a>
-              </div>
-            </article>
-          }
-        </div>
-      }
-    </div>
-
-    <aside class="landing-section__aside" aria-label="Confianza y campanas">
-      <article class="trust-card">
-        <span aria-hidden="true">&check;</span>
-        <div>
-          <h3>Vendedores confiables</h3>
-          <p>Perfiles verificados, precios referenciales y rese&ntilde;as reales para que reserves con confianza y claridad.</p>
-          <a routerLink="/vendedores">Conoce mas &rarr;</a>
-        </div>
-      </article>
-
-      <article class="season-card">
-        <span>Campana de temporada</span>
-        <h3>Dia de la Madre</h3>
-        <p>Sorprende a mama con algo unico, hecho con amor.</p>
-        <a routerLink="/catalogo" [queryParams]="{ busqueda: 'dia de la madre' }">Ver ideas</a>
-        <div aria-hidden="true"></div>
-      </article>
-    </aside>
-  </section>
-
-  <section class="business-model rg-page__container--retail" id="modelo">
-    <div class="business-model__copy">
-      <span class="eyebrow eyebrow--dark">Modelo de negocio</span>
-      <h2>REGALIA conecta clientes con emprendedores locales.</h2>
-      <p>
-        No fabricamos productos: ordenamos la busqueda, filtramos vendedores compatibles y
-        habilitamos reservas con se&ntilde;a.
-      </p>
-    </div>
-
-    <div class="business-model__steps">
-      @for (paso of pasosModeloNegocio; track paso.numero) {
-        <article>
-          <strong>{{ paso.numero }}</strong>
-          <p>{{ paso.descripcion }}</p>
-        </article>
-      }
-    </div>
-  </section>
-
-  <section class="seller-cta rg-page__container--retail" id="vendedores">
-    <div class="seller-cta__icon" aria-hidden="true">
-      <span></span>
-      <span></span>
-    </div>
-    <div>
-      <span>&iquest;Tienes un emprendimiento?</span>
-      <h2>Unete a REGALIA</h2>
-    </div>
-    <p>Publica tus productos, llega a mas clientes y haz crecer tu marca con nosotros.</p>
-    <a routerLink="/login">Quiero vender en REGALIA &rarr;</a>
-  </section>
+  <app-cta-vendedor-inicio />
 </main>

@@ -110,8 +110,10 @@
 }
 
 .builder-stepper__item:disabled {
+  background: rgba(255, 255, 255, 0.72);
+  color: #6d5965;
   cursor: not-allowed;
-  opacity: 0.72;
+  opacity: 1;
 }
 
 .builder-stepper__item:not(:disabled):hover {
@@ -268,65 +270,6 @@
   color: #2f7b62;
 }
 
-.builder-field {
-  display: grid;
-  gap: 0.42rem;
-}
-
-.builder-field--textarea {
-  margin-bottom: 1rem;
-}
-
-.builder-field__top {
-  align-items: center;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-}
-
-.builder-field__top strong {
-  color: var(--rg-color-ink);
-  font-size: 0.8rem;
-  font-weight: 950;
-}
-
-.builder-field__top small {
-  color: var(--rg-color-muted);
-  font-size: 0.74rem;
-  font-weight: 800;
-}
-
-.builder-field__control {
-  background: #fff;
-  border: 1px solid rgba(90, 36, 64, 0.16);
-  border-radius: 0.8rem;
-  color: var(--rg-color-ink);
-  font: inherit;
-  font-size: 0.88rem;
-  line-height: 1.6;
-  min-height: 8.7rem;
-  outline: none;
-  padding: 0.78rem 0.9rem;
-  resize: vertical;
-  width: 100%;
-}
-
-.builder-field__control::placeholder {
-  color: #9f949f;
-}
-
-.builder-field__control:focus {
-  border-color: var(--rg-color-primary);
-  box-shadow: 0 0 0 4px rgba(90, 36, 64, 0.09);
-}
-
-.builder-field__error {
-  color: var(--rg-color-rose);
-  font-size: 0.78rem;
-  font-weight: 850;
-  margin: -0.55rem 0 0.8rem;
-}
-
 .builder-suggestions {
   display: grid;
   gap: 0.65rem;
@@ -396,8 +339,10 @@
 
 .builder-primary-action:disabled,
 .builder-recommendation-card__select:disabled {
+  background: #e7d9cf;
+  color: #6d5965;
   cursor: not-allowed;
-  opacity: 0.58;
+  opacity: 1;
 }
 
 .builder-secondary-action {
@@ -691,50 +636,6 @@
   gap: 0.35rem;
   margin-top: 1rem;
   padding: 1rem;
-}
-
-.builder-status,
-.builder-empty-state {
-  border-radius: 0.95rem;
-  display: grid;
-  gap: 0.45rem;
-  padding: 1rem;
-}
-
-.builder-status {
-  margin-inline: auto;
-  width: min(100%, 1280px);
-}
-
-.builder-status--error {
-  background: rgba(201, 95, 81, 0.1);
-  border: 1px solid rgba(201, 95, 81, 0.26);
-  color: var(--rg-color-rose);
-  font-weight: 900;
-}
-
-.builder-empty-state {
-  background: rgba(255, 250, 245, 0.8);
-  border: 1px solid rgba(234, 219, 208, 0.9);
-  justify-items: start;
-}
-
-.builder-empty-state span {
-  color: var(--rg-color-primary);
-  font-size: 0.7rem;
-  font-weight: 950;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.builder-empty-state h3 {
-  color: var(--rg-color-ink);
-  margin: 0;
-}
-
-.builder-empty-state p {
-  color: var(--rg-color-muted);
-  margin: 0;
 }
 
 .builder-confirmation span {

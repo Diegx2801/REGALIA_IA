@@ -1,0 +1,9 @@
+<span
+  class="insignia-ui"
+  [class.insignia-ui--primaria]="variante() === 'primaria'"
+  [class.insignia-ui--exito]="variante() === 'exito'"
+  [class.insignia-ui--advertencia]="variante() === 'advertencia'"
+  [class.insignia-ui--error]="variante() === 'error'"
+>
+  {{ texto() }}
+</span>

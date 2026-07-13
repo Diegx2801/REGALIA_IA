@@ -1,0 +1,44 @@
+<aside class="catalog-filters" aria-label="Filtros del catalogo">
+  <div class="catalog-filters__head">
+    <div>
+      <span class="catalog-filters__eyebrow">Explorar</span>
+      <h2 class="catalog-filters__title">Filtros</h2>
+    </div>
+    <button class="catalog-filters__clear" type="button" (click)="limpiarFiltros.emit()">
+      Limpiar
+    </button>
+  </div>
+
+  <app-campo-texto
+    id="search"
+    etiqueta="Buscar"
+    tipo="search"
+    placeholder="flores, torta, box, taza..."
+    [control]="controlBusqueda"
+  />
+
+  <app-campo-select
+    id="category"
+    etiqueta="Categoria"
+    [control]="controlCategoria"
+    [opciones]="opcionesCategoria()"
+  />
+
+  <app-campo-texto
+    id="maxPrice"
+    etiqueta="Precio maximo"
+    tipo="number"
+    ayuda="Filtra productos hasta el monto indicado en soles."
+    [control]="controlPrecioMaximo"
+  />
+
+  <label class="catalog-filters__check">
+    <input
+      id="catalog-only-available"
+      type="checkbox"
+      [checked]="soloDisponibles()"
+      (change)="actualizarDisponibilidad.emit($any($event.target).checked)"
+    />
+    <span>Disponibles para reservar</span>
+  </label>
+</aside>

@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { finalize, switchMap } from 'rxjs';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
@@ -72,7 +73,7 @@ export class PaginaAdminTiendas implements OnInit {
           this.totalTiendas.set(pagina.totalElementos);
           this.totalPaginas.set(pagina.totalPaginas);
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -143,7 +144,7 @@ export class PaginaAdminTiendas implements OnInit {
           this.totalPaginas.set(pagina.totalPaginas);
           this.mensajeExito.set('Estado de tienda actualizado correctamente.');
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -160,10 +161,7 @@ export class PaginaAdminTiendas implements OnInit {
     return confirmarAccionCritica(`Vas a ${acciones[accion]} la tienda "${tienda.nombre}".`);
   }
 
-  private obtenerMensajeError(error: Error): string {
-    const mensaje = error.message ?? '';
-    return mensaje.includes('Http failure response') || mensaje.includes('Unknown Error')
-      ? 'No pudimos conectar con el backend para cargar tiendas.'
-      : mensaje || 'No pudimos cargar tiendas.';
+  private obtenerMensajeError(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar tiendas.');
   }
 }

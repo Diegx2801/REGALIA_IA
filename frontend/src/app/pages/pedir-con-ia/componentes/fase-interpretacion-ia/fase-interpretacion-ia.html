@@ -1,0 +1,27 @@
+<section class="builder-phase builder-card builder-card--centered" aria-labelledby="interpretacion-title">
+  <div class="builder-card__header">
+    <div>
+      <span class="builder-card__eyebrow">Fase 2 de 4</span>
+      <h2 id="interpretacion-title" class="builder-card__title">Interpretacion IA</h2>
+      <p class="builder-card__text">
+        Respuesta generada por el servicio IA del backend para tu solicitud.
+      </p>
+    </div>
+    <span class="builder-card__pill builder-card__pill--success">Backend conectado</span>
+  </div>
+
+  <div class="builder-interpretation-grid builder-interpretation-grid--single">
+    <article>
+      <span>Respuesta IA</span>
+      <strong>{{ respuestaIa() }}</strong>
+      <p>Solicitud original: {{ descripcionActual() }}</p>
+    </article>
+  </div>
+
+  <div class="builder-phase-actions">
+    <button type="button" class="builder-secondary-action" (click)="volver.emit()">Volver</button>
+    <button type="button" class="builder-primary-action" (click)="continuar.emit()">
+      Ver productos reales <span aria-hidden="true">-&gt;</span>
+    </button>
+  </div>
+</section>

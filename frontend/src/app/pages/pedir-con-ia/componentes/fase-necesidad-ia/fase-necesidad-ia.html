@@ -1,0 +1,62 @@
+<section class="builder-phase builder-phase--need" aria-labelledby="need-title">
+  <form class="builder-card builder-card--form" [formGroup]="formulario()">
+    <div class="builder-card__header">
+      <div>
+        <span class="builder-card__eyebrow">Fase 1 de 4</span>
+        <h2 id="need-title" class="builder-card__title">
+          Asistente de busqueda inteligente
+        </h2>
+        <p class="builder-card__text">
+          Describe la ocasion, presupuesto, estilo y cualquier detalle importante. Esta
+          informacion se envia al endpoint IA del backend.
+        </p>
+      </div>
+      <span class="builder-card__pill">API REST</span>
+    </div>
+
+    <app-campo-textarea
+      id="need"
+      etiqueta="&iquest;Que regalo tienes en mente?"
+      [control]="controlNecesidad()"
+      [filas]="6"
+      [maximoCaracteres]="800"
+      placeholder="Ejemplo: Quiero un regalo elegante para graduacion, con una torta personalizada y flores."
+      mensajeError="Describe tu necesidad para continuar."
+    />
+
+    <button
+      type="button"
+      class="builder-primary-action"
+      [disabled]="cargando()"
+      (click)="continuar.emit()"
+    >
+      @if (cargando()) {
+        Consultando IA...
+      } @else {
+        Consultar recomendaciones <span aria-hidden="true">-&gt;</span>
+      }
+    </button>
+  </form>
+
+  <aside class="builder-card builder-preview" aria-label="Vista previa de tu solicitud">
+    <div class="builder-card__header builder-card__header--compact">
+      <div>
+        <span class="builder-card__eyebrow">Vista previa</span>
+        <h2 class="builder-card__title">Tu solicitud hasta ahora</h2>
+      </div>
+    </div>
+    <dl class="builder-summary-list">
+      <div>
+        <dt>Descripcion</dt>
+        <dd>{{ descripcionActual() }}</dd>
+      </div>
+    </dl>
+    <div class="builder-preview__image">
+      <img src="/assets/brand/ilustraciones/hero-regalia-home.png" alt="Regalo REGALIA" loading="lazy" decoding="async" />
+    </div>
+    <p class="builder-preview__safe">
+      El frontend no inventa recomendaciones; si el backend no devuelve productos, se
+      mostrara un estado vacio.
+    </p>
+  </aside>
+</section>

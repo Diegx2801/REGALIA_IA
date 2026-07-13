@@ -1,6 +1,6 @@
 <section class="auth-page">
   <a class="auth-brand" routerLink="/" aria-label="Volver al inicio de REGALIA">
-    <img src="/assets/brand/logos/logo-principal.png" alt="REGALIA" />
+    <img src="/assets/brand/logos/logo-principal.png" alt="REGALIA" width="168" height="80" decoding="async" fetchpriority="high" />
   </a>
 
   <div class="auth-shell">
@@ -79,7 +79,12 @@
         }
 
         @if (modo() === 'login') {
-          <form class="auth-form" [formGroup]="formularioLogin" (ngSubmit)="enviarLogin()">
+          <form
+            class="auth-form"
+            [formGroup]="formularioLogin"
+            [attr.aria-busy]="estaEnviando()"
+            (ngSubmit)="enviarLogin()"
+          >
             <header class="auth-form__header">
               <span>Bienvenido de nuevo</span>
               <h2>Ingresa a tu cuenta</h2>
@@ -121,7 +126,13 @@
                   placeholder="Tu contrasena"
                   formControlName="contrasena"
                 />
-                <button class="auth-field__toggle" type="button" (click)="alternarVisibilidadContrasena()">
+                <button
+                  class="auth-field__toggle"
+                  type="button"
+                  [attr.aria-label]="mostrarContrasena() ? 'Ocultar contrasena' : 'Mostrar contrasena'"
+                  [attr.aria-pressed]="mostrarContrasena()"
+                  (click)="alternarVisibilidadContrasena()"
+                >
                   {{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}
                 </button>
               </div>
@@ -131,7 +142,7 @@
             </div>
 
             <label class="auth-check">
-              <input type="checkbox" formControlName="recordarSesion" />
+              <input id="login-remember-session" type="checkbox" formControlName="recordarSesion" />
               <span>Recordar mi sesion en este dispositivo</span>
             </label>
 
@@ -158,7 +169,12 @@
             </p>
           </form>
         } @else {
-          <form class="auth-form" [formGroup]="formularioRegistro" (ngSubmit)="enviarRegistro()">
+          <form
+            class="auth-form"
+            [formGroup]="formularioRegistro"
+            [attr.aria-busy]="estaEnviando()"
+            (ngSubmit)="enviarRegistro()"
+          >
             <header class="auth-form__header">
               <span>Cuenta personal</span>
               <h2>Crea tu cuenta</h2>
@@ -219,7 +235,13 @@
                     placeholder="Minimo 8 caracteres"
                     formControlName="contrasena"
                   />
-                  <button class="auth-field__toggle" type="button" (click)="alternarVisibilidadContrasenaRegistro()">
+                  <button
+                    class="auth-field__toggle"
+                    type="button"
+                    [attr.aria-label]="mostrarContrasenaRegistro() ? 'Ocultar contrasena' : 'Mostrar contrasena'"
+                    [attr.aria-pressed]="mostrarContrasenaRegistro()"
+                    (click)="alternarVisibilidadContrasenaRegistro()"
+                  >
                     {{ mostrarContrasenaRegistro() ? 'Ocultar' : 'Ver' }}
                   </button>
                 </div>
@@ -235,7 +257,13 @@
                     placeholder="Repite la contrasena"
                     formControlName="confirmarContrasena"
                   />
-                  <button class="auth-field__toggle" type="button" (click)="alternarVisibilidadConfirmacionRegistro()">
+                  <button
+                    class="auth-field__toggle"
+                    type="button"
+                    [attr.aria-label]="mostrarConfirmacionRegistro() ? 'Ocultar confirmacion de contrasena' : 'Mostrar confirmacion de contrasena'"
+                    [attr.aria-pressed]="mostrarConfirmacionRegistro()"
+                    (click)="alternarVisibilidadConfirmacionRegistro()"
+                  >
                     {{ mostrarConfirmacionRegistro() ? 'Ocultar' : 'Ver' }}
                   </button>
                 </div>
@@ -250,7 +278,7 @@
             }
 
             <label class="auth-check auth-check--terms">
-              <input type="checkbox" formControlName="aceptaTerminos" />
+              <input id="register-accept-terms" type="checkbox" formControlName="aceptaTerminos" />
               <span>Acepto los terminos de uso y la politica de privacidad de REGALIA.</span>
             </label>
             @if (campoRegistroTieneError('aceptaTerminos')) {

@@ -3,6 +3,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import {
   CampoFormularioDirective,
@@ -117,7 +118,7 @@ export class PaginaPanelCliente implements OnInit {
             telefono: perfil.telefono === 'Telefono pendiente' ? '' : perfil.telefono,
           });
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -149,7 +150,7 @@ export class PaginaPanelCliente implements OnInit {
           this.perfil.set(perfil);
           this.mensajeExito.set('Perfil actualizado correctamente.');
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -170,7 +171,7 @@ export class PaginaPanelCliente implements OnInit {
       )
       .subscribe({
         next: (detalle) => this.pedidoDetalle.set(detalle),
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -213,7 +214,7 @@ export class PaginaPanelCliente implements OnInit {
           });
           this.mensajeExito.set('Pago registrado correctamente.');
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -227,15 +228,7 @@ export class PaginaPanelCliente implements OnInit {
     return control.invalid && (control.touched || control.dirty);
   }
 
-  private obtenerMensajeError(error: Error): string {
-    const mensaje = error.message ?? '';
-    const esErrorTecnico =
-      mensaje.includes('Http failure response') ||
-      mensaje.includes('Unknown Error') ||
-      mensaje.includes('Timeout');
-
-    return esErrorTecnico
-      ? 'No pudimos conectar con el backend para cargar tu panel cliente.'
-      : mensaje || 'No pudimos cargar la informacion del cliente.';
+  private obtenerMensajeError(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar la informacion del cliente.');
   }
 }

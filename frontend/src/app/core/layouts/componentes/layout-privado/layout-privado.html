@@ -19,6 +19,7 @@
           class="layout-privado__enlace"
           [routerLink]="enlace.ruta"
           routerLinkActive="layout-privado__enlace--activo"
+          ariaCurrentWhenActive="page"
           [routerLinkActiveOptions]="{ exact: true }"
         >
           <strong>{{ enlace.etiqueta }}</strong>
@@ -43,7 +44,7 @@
       <a routerLink="/">Volver al inicio</a>
     </header>
 
-    <main class="layout-privado__contenido">
+    <main id="contenido-principal" class="layout-privado__contenido" tabindex="-1">
       <ng-content />
     </main>
   </div>

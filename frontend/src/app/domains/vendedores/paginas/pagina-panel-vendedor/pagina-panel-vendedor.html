@@ -218,7 +218,7 @@
           <app-lista-panel class="panel-vendedor__productos" ariaEtiqueta="Productos de la tienda seleccionada">
             @for (producto of productos(); track producto.idProducto) {
               <app-fila-panel tipo="producto" [ariaEtiqueta]="producto.nombre">
-                <img [src]="producto.urlImagen" [alt]="producto.nombre" />
+                <img [src]="producto.urlImagen" [alt]="producto.nombre" loading="lazy" decoding="async" />
                 <div>
                   <strong>{{ producto.nombre }}</strong>
                   <small>{{ producto.tipoProducto }} - Stock {{ producto.stock }}</small>

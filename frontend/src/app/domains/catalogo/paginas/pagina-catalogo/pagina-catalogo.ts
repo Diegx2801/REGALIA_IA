@@ -1,22 +1,34 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+  ViewEncapsulation,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CarritoCheckoutService } from '../../../../core/carrito/carrito-checkout.service';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { TiendaPublicaApiService } from '../../../tiendas/acceso-datos/tienda-publica-api.service';
-import { TiendaPublica } from '../../../tiendas/modelos/tienda-publica.model';
 import { ProductoApiService } from '../../acceso-datos/producto-api.service';
-import { TarjetaProducto } from '../../componentes/tarjeta-producto/tarjeta-producto';
+import { FiltrosCatalogo } from '../../componentes/filtros-catalogo/filtros-catalogo';
+import { HeroCatalogo } from '../../componentes/hero-catalogo/hero-catalogo';
+import { ResultadosCatalogo } from '../../componentes/resultados-catalogo/resultados-catalogo';
+import { TiendasCatalogo } from '../../componentes/tiendas-catalogo/tiendas-catalogo';
+import { OrdenCatalogo } from '../../modelos/catalogo-ui.model';
 import { Producto } from '../../modelos/producto.model';
-
-type OrdenCatalogo = 'recommended' | 'priceAsc' | 'priceDesc';
+import { TiendaPublica } from '../../../tiendas/modelos/tienda-publica.model';
 
 @Component({
   selector: 'app-pagina-catalogo',
-  imports: [FormsModule, RouterLink, TarjetaProducto],
+  imports: [FiltrosCatalogo, HeroCatalogo, ResultadosCatalogo, TiendasCatalogo],
   templateUrl: './pagina-catalogo.html',
   styleUrl: './pagina-catalogo.css',
+  // Las clases catalog-* son propias del dominio; se comparten con componentes internos del catalogo.
+  encapsulation: ViewEncapsulation.None,
 })
 export class PaginaCatalogo implements OnInit {
   private readonly productoApiService = inject(ProductoApiService);
@@ -89,7 +101,7 @@ export class PaginaCatalogo implements OnInit {
       .pipe(finalize(() => this.cargandoProductos.set(false)))
       .subscribe({
         next: (productos) => this.productos.set(productos),
-        error: (error: Error) => {
+        error: (error: unknown) => {
           this.productos.set([]);
           this.mensajeErrorProductos.set(this.obtenerMensajeErrorCatalogo(error));
         },
@@ -105,7 +117,7 @@ export class PaginaCatalogo implements OnInit {
       .pipe(finalize(() => this.cargandoTiendas.set(false)))
       .subscribe({
         next: (tiendas) => this.tiendas.set(tiendas),
-        error: (error: Error) => {
+        error: (error: unknown) => {
           this.tiendas.set([]);
           this.mensajeErrorTiendas.set(this.obtenerMensajeErrorTiendas(error));
         },
@@ -145,14 +157,6 @@ export class PaginaCatalogo implements OnInit {
     this.carritoCheckout.agregarProducto(producto);
   }
 
-  identificarProducto(_indice: number, producto: Producto): number {
-    return producto.idProducto;
-  }
-
-  identificarTienda(_indice: number, tienda: TiendaPublica): number {
-    return tienda.idTienda;
-  }
-
   private normalizarTexto(valor: string): string {
     return valor
       .normalize('NFD')
@@ -161,20 +165,11 @@ export class PaginaCatalogo implements OnInit {
       .toLowerCase();
   }
 
-  private obtenerMensajeErrorCatalogo(error: Error): string {
-    const mensaje = error.message ?? '';
-    const esErrorTecnico =
-      mensaje.includes('Http failure response') ||
-      mensaje.includes('Unknown Error') ||
-      mensaje.includes('Timeout');
-
-    return esErrorTecnico
-      ? 'No pudimos sincronizar el catalogo real. Verifica que el backend este activo.'
-      : mensaje || 'No pudimos cargar el catalogo real.';
+  private obtenerMensajeErrorCatalogo(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar el catalogo real.');
   }
 
-  private obtenerMensajeErrorTiendas(error: Error): string {
-    const mensaje = error.message ?? '';
-    return mensaje || 'No pudimos cargar las tiendas publicas.';
+  private obtenerMensajeErrorTiendas(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar las tiendas publicas.');
   }
 }

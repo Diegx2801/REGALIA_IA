@@ -1,0 +1,9 @@
+<!-- Layout generico para formularios: mantiene separacion visual sin mezclar reglas de negocio. -->
+<div
+  class="rg-form-grid"
+  [class.rg-form-grid--2]="columnas() === 2"
+  [class.rg-form-grid--3]="columnas() === 3"
+  [class.rg-form-grid--4]="columnas() === 4"
+>
+  <ng-content />
+</div>

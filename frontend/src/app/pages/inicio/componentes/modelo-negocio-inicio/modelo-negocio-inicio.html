@@ -1,0 +1,19 @@
+<section class="business-model rg-page__container--retail" id="modelo">
+  <div class="business-model__copy">
+    <span class="eyebrow eyebrow--dark">Modelo de negocio</span>
+    <h2>REGALIA conecta clientes con emprendedores locales.</h2>
+    <p>
+      No fabricamos productos: ordenamos la busqueda, filtramos vendedores compatibles y
+      habilitamos reservas con se&ntilde;a.
+    </p>
+  </div>
+
+  <div class="business-model__steps">
+    @for (paso of pasos(); track paso.numero) {
+      <article>
+        <strong>{{ paso.numero }}</strong>
+        <p>{{ paso.descripcion }}</p>
+      </article>
+    }
+  </div>
+</section>

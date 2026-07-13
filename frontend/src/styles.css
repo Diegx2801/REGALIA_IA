@@ -50,6 +50,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.rg-skip-link {
+  background: var(--rg-color-primary);
+  border-radius: 0 0 var(--rg-radius-md) 0;
+  color: #fff;
+  font-weight: 950;
+  left: 0;
+  padding: 0.85rem 1rem;
+  position: fixed;
+  top: 0;
+  transform: translateY(-120%);
+  transition: transform 160ms ease;
+  z-index: 9999;
+}
+
+.rg-skip-link:focus-visible {
+  outline-color: var(--rg-color-gold);
+  transform: translateY(0);
+}
+
 img {
   display: block;
   max-width: 100%;
@@ -103,7 +122,12 @@ textarea {
 .rg-boton:disabled,
 .rg-boton--cargando {
   cursor: not-allowed;
-  opacity: 0.62;
+  filter: saturate(0.74);
+  opacity: 0.78;
+}
+
+.rg-boton[aria-disabled='true'] {
+  cursor: not-allowed;
 }
 
 .rg-boton--primario {
@@ -259,5 +283,16 @@ textarea {
 @media (max-width: 575.98px) {
   .rg-panel__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

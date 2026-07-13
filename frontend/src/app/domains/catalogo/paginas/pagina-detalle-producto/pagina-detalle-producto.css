@@ -147,7 +147,12 @@
 
 .detalle-producto__acciones {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.7rem;
+}
+
+.detalle-producto__acciones .rg-boton {
+  min-width: min(100%, 12rem);
 }
 
 .detalle-producto__accion-principal--deshabilitada {
@@ -189,10 +194,20 @@
 
 @media (max-width: 575.98px) {
   .detalle-producto {
-    padding-inline: 0.9rem;
+    padding: 5.8rem 0.9rem 2.8rem;
   }
 
   .detalle-producto__miniaturas {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .detalle-producto__galeria,
+  .detalle-producto__informacion,
+  .detalle-producto__estado {
+    border-radius: 22px;
+  }
+
+  .detalle-producto__acciones .rg-boton {
+    width: 100%;
   }
 }

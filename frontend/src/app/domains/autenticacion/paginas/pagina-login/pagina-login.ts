@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { RolUsuario, SesionAutenticacion } from '../../../../core/autenticacion/sesion-autenticacion.model';
 import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
+import { normalizarErrorApi, obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { UsuarioApiService } from '../../../usuarios/acceso-datos/usuario-api.service';
 import { SolicitudCrearUsuario } from '../../../usuarios/modelos/usuario.model';
 import { AutenticacionApiService } from '../../acceso-datos/autenticacion-api.service';
@@ -225,26 +226,16 @@ export class PaginaLogin implements OnInit {
   }
 
   private obtenerMensajeErrorLogin(error: unknown): string {
-    const mensaje = error instanceof Error ? error.message : '';
+    const errorNormalizado = normalizarErrorApi(error);
 
-    if (mensaje.includes('Http failure response') || mensaje.includes('Unknown Error')) {
-      return 'No pudimos conectar con el backend de REGALIA. Verifica que el servidor este activo.';
-    }
-
-    if (mensaje.toLowerCase().includes('unauthorized') || mensaje.includes('401')) {
+    if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
       return 'Correo o contrasena incorrectos.';
     }
 
-    return mensaje || 'No se pudo iniciar sesion.';
+    return errorNormalizado.message || 'No se pudo iniciar sesion.';
   }
 
   private obtenerMensajeErrorRegistro(error: unknown): string {
-    const mensaje = error instanceof Error ? error.message : '';
-
-    if (mensaje.includes('Http failure response') || mensaje.includes('Unknown Error')) {
-      return 'No pudimos conectar con el backend de REGALIA para crear la cuenta.';
-    }
-
-    return mensaje || 'No se pudo crear la cuenta.';
+    return obtenerMensajeErrorUsuario(error, 'No se pudo crear la cuenta.');
   }
 }

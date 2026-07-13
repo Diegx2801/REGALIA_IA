@@ -1,0 +1,10 @@
+<article class="tarjeta-informativa">
+  @if (etiqueta()) {
+    <span>{{ etiqueta() }}</span>
+  }
+  <strong>{{ titulo() }}</strong>
+  @if (descripcion()) {
+    <p>{{ descripcion() }}</p>
+  }
+  <ng-content />
+</article>

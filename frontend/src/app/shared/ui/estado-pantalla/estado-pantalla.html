@@ -10,7 +10,9 @@
   @if (descripcion()) {
     <p>{{ descripcion() }}</p>
   }
-  @if (textoAccion()) {
+  @if (textoAccion() && rutaAccion()) {
+    <a appBoton [routerLink]="rutaAccion()">{{ textoAccion() }}</a>
+  } @else if (textoAccion()) {
     <button appBoton type="button" (click)="ejecutarAccion()">{{ textoAccion() }}</button>
   }
 </section>

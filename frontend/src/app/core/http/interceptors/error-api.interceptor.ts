@@ -1,16 +1,12 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { normalizarErrorApi } from '../modelos/error-api.model';
 
 export const errorApiInterceptor: HttpInterceptorFn = (request, next) =>
   next(request).pipe(
     catchError((error: unknown) => {
-      // Normaliza errores HTTP para que formularios y pantallas muestren mensajes consistentes.
-      const mensaje =
-        error instanceof HttpErrorResponse
-          ? (error.error?.message ?? error.message)
-          : 'No se pudo completar la operacion.';
-
-      return throwError(() => new Error(mensaje));
+      // Unifica errores HTTP para que cada pantalla reciba un contrato predecible.
+      return throwError(() => normalizarErrorApi(error));
     }),
   );

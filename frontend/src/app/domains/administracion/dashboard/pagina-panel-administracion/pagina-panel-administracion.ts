@@ -3,6 +3,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, forkJoin, switchMap } from 'rxjs';
 import { ProductoApiService } from '../../../catalogo/acceso-datos/producto-api.service';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
@@ -92,7 +93,7 @@ export class PaginaPanelAdministracion implements OnInit {
           this.totalPedidos.set(pedidos.totalElementos);
           this.totalProductosVisibles.set(productos.length);
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -138,7 +139,7 @@ export class PaginaPanelAdministracion implements OnInit {
           this.totalTiendas.set(tiendas.totalElementos);
           this.mensajeExito.set('Estado de tienda actualizado correctamente.');
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -155,15 +156,7 @@ export class PaginaPanelAdministracion implements OnInit {
     return confirmarAccionCritica(`Vas a ${acciones[accion]} la tienda "${tienda.nombre}".`);
   }
 
-  private obtenerMensajeError(error: Error): string {
-    const mensaje = error.message ?? '';
-    const esErrorTecnico =
-      mensaje.includes('Http failure response') ||
-      mensaje.includes('Unknown Error') ||
-      mensaje.includes('Timeout');
-
-    return esErrorTecnico
-      ? 'No pudimos conectar con el backend para cargar el panel administrativo.'
-      : mensaje || 'No pudimos cargar la informacion administrativa.';
+  private obtenerMensajeError(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar la informacion administrativa.');
   }
 }

@@ -21,7 +21,7 @@
     <section class="detalle-producto__principal">
       <div class="detalle-producto__galeria">
         <div class="detalle-producto__imagen-principal">
-          <img [src]="imagenActiva()" [alt]="productoActual.nombre" />
+          <img [src]="imagenActiva()" [alt]="productoActual.nombre" decoding="async" fetchpriority="high" />
           <span [class.detalle-producto__estado-stock--agotado]="!productoActual.disponible">
             {{ stockTexto() }}
           </span>
@@ -33,9 +33,11 @@
               <button
                 type="button"
                 [class.detalle-producto__miniatura--activa]="indiceImagenActiva() === indice"
+                [attr.aria-label]="'Ver imagen ' + (indice + 1) + ' de ' + productoActual.nombre"
+                [attr.aria-pressed]="indiceImagenActiva() === indice"
                 (click)="seleccionarImagen(indice)"
               >
-                <img [src]="imagen.urlImagen" [alt]="productoActual.nombre + ' imagen ' + (indice + 1)" />
+                <img [src]="imagen.urlImagen" [alt]="productoActual.nombre + ' imagen ' + (indice + 1)" loading="lazy" decoding="async" />
               </button>
             }
           </div>
@@ -56,9 +58,27 @@
           <div class="detalle-producto__cantidad" aria-label="Seleccion de cantidad">
             <span>Cantidad</span>
             <div>
-              <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="disminuirCantidad(productoActual)">-</button>
-              <strong>{{ cantidadSeleccionada() }}</strong>
-              <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="aumentarCantidad(productoActual)">+</button>
+              <button
+                appBoton="secundario"
+                appBotonTamano="sm"
+                type="button"
+                [disabled]="cantidadSeleccionada() <= 1"
+                [attr.aria-label]="'Disminuir cantidad de ' + productoActual.nombre"
+                (click)="disminuirCantidad(productoActual)"
+              >
+                -
+              </button>
+              <strong aria-live="polite">{{ cantidadSeleccionada() }}</strong>
+              <button
+                appBoton="secundario"
+                appBotonTamano="sm"
+                type="button"
+                [disabled]="cantidadSeleccionada() >= productoActual.stock"
+                [attr.aria-label]="'Aumentar cantidad de ' + productoActual.nombre"
+                (click)="aumentarCantidad(productoActual)"
+              >
+                +
+              </button>
             </div>
             <small>Total estimado {{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
           </div>
@@ -80,14 +100,19 @@
         </dl>
 
         <div class="detalle-producto__acciones">
-          <a
-            appBoton
-            class="detalle-producto__accion-principal"
-            [class.detalle-producto__accion-principal--deshabilitada]="!productoActual.disponible"
-            [routerLink]="productoActual.disponible ? ['/checkout/solicitud', productoActual.idProducto] : null"
-          >
-            Solicitar personalizacion
-          </a>
+          @if (productoActual.disponible) {
+            <a
+              appBoton
+              class="detalle-producto__accion-principal"
+              [routerLink]="['/checkout/solicitud', productoActual.idProducto]"
+            >
+              Solicitar personalizacion
+            </a>
+          } @else {
+            <button appBoton type="button" class="detalle-producto__accion-principal" disabled>
+              Solicitar personalizacion
+            </button>
+          }
           <button appBoton="secundario" type="button" [disabled]="!productoActual.disponible" (click)="agregarAlCarrito(productoActual)">
             Agregar al carrito
           </button>

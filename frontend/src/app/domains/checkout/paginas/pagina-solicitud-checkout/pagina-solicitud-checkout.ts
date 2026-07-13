@@ -3,8 +3,9 @@ import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { finalize, forkJoin, of } from 'rxjs';
 import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { ProductoApiService } from '../../../catalogo/acceso-datos/producto-api.service';
 import { Producto } from '../../../catalogo/modelos/producto.model';
 import { TipoEntregaApiService } from '../../../datos-maestros/acceso-datos/tipo-entrega-api.service';
@@ -145,7 +146,7 @@ export class PaginaSolicitudCheckout implements OnInit {
       .pipe(finalize(() => this.enviandoSolicitud.set(false)))
       .subscribe({
         next: (resultado) => this.resultadoCheckout.set(resultado),
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
       });
   }
 
@@ -170,7 +171,8 @@ export class PaginaSolicitudCheckout implements OnInit {
     forkJoin({
       producto: this.productoApiService.obtenerProductoPorId(idProducto),
       tiposEntrega: this.tipoEntregaApiService.obtenerTiposEntrega(),
-      opcionesPago: this.checkoutApiService.obtenerOpcionesPagoInicial(),
+      // Las opciones de pago son protegidas; sin sesion se evita un 401 innecesario en consola.
+      opcionesPago: this.obtenerOpcionesPagoSiHaySesion(),
     })
       .pipe(
         finalize(() => this.cargandoDatos.set(false)),
@@ -184,7 +186,7 @@ export class PaginaSolicitudCheckout implements OnInit {
           this.opcionesPago.set(opcionesPago);
           this.aplicarValoresIniciales(tiposEntrega, opcionesPago, producto);
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
       });
   }
 
@@ -201,7 +203,8 @@ export class PaginaSolicitudCheckout implements OnInit {
 
     forkJoin({
       tiposEntrega: this.tipoEntregaApiService.obtenerTiposEntrega(),
-      opcionesPago: this.checkoutApiService.obtenerOpcionesPagoInicial(),
+      // El usuario puede revisar el carrito sin login; el pago se carga recien con sesion activa.
+      opcionesPago: this.obtenerOpcionesPagoSiHaySesion(),
     })
       .pipe(
         finalize(() => this.cargandoDatos.set(false)),
@@ -213,7 +216,7 @@ export class PaginaSolicitudCheckout implements OnInit {
           this.opcionesPago.set(opcionesPago);
           this.aplicarValoresInicialesCheckout(tiposEntrega, opcionesPago);
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
       });
   }
 
@@ -237,6 +240,12 @@ export class PaginaSolicitudCheckout implements OnInit {
   ): void {
     this.formulario.controls.idTipoEntrega.setValue(tiposEntrega[0]?.idTipoEntrega ?? null);
     this.formulario.controls.codigoTipoPago.setValue(opcionesPago[0]?.codigo ?? '');
+  }
+
+  private obtenerOpcionesPagoSiHaySesion() {
+    if (this.requiereLogin()) return of([] as OpcionPagoInicial[]);
+
+    return this.checkoutApiService.obtenerOpcionesPagoInicial();
   }
 
   private sincronizarFormularioConSignals(): void {
@@ -290,15 +299,7 @@ export class PaginaSolicitudCheckout implements OnInit {
     return fecha.toISOString().slice(0, 10);
   }
 
-  private obtenerMensajeErrorCheckout(error: Error): string {
-    const mensaje = error.message ?? '';
-    const esErrorTecnico =
-      mensaje.includes('Http failure response') ||
-      mensaje.includes('Unknown Error') ||
-      mensaje.includes('Timeout');
-
-    return esErrorTecnico
-      ? 'No pudimos conectar con el backend de REGALIA para preparar la solicitud.'
-      : mensaje || 'No pudimos preparar la solicitud de checkout.';
+  private obtenerMensajeErrorCheckout(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos preparar la solicitud de checkout.');
   }
 }

@@ -2,7 +2,14 @@
   <header class="public-shell__header">
     <div class="public-shell__bar rg-page__container--retail">
       <a class="public-shell__brand" routerLink="/" (click)="cerrarMenuMovil()" aria-label="Ir al inicio de REGALIA">
-        <img src="/assets/brand/logos/logo-principal.png" alt="REGALIA" />
+        <img
+          src="/assets/brand/logos/logo-principal-horizontal.png"
+          alt="REGALIA"
+          width="480"
+          height="120"
+          decoding="async"
+          fetchpriority="high"
+        />
       </a>
 
       <button
@@ -10,17 +17,24 @@
         class="public-shell__toggle"
         (click)="alternarMenuMovil()"
         [attr.aria-expanded]="menuMovilAbierto()"
-        aria-label="Abrir menu principal"
+        aria-controls="navegacion-publica"
+        [attr.aria-label]="menuMovilAbierto() ? 'Cerrar menu principal' : 'Abrir menu principal'"
       >
         <span></span>
         <span></span>
         <span></span>
       </button>
 
-      <nav class="public-shell__nav" [class.is-open]="menuMovilAbierto()" aria-label="Navegacion publica principal">
+      <nav
+        id="navegacion-publica"
+        class="public-shell__nav"
+        [class.is-open]="menuMovilAbierto()"
+        aria-label="Navegacion publica principal"
+      >
         @for (enlace of enlacesNavegacion; track enlace.ruta) {
           <a
             routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
             [routerLinkActiveOptions]="{ exact: enlace.ruta === '/' }"
             [routerLink]="enlace.ruta"
             (click)="cerrarMenuMovil()"
@@ -31,11 +45,11 @@
       </nav>
 
       <div class="public-shell__actions">
-        <a class="public-shell__cart" routerLink="/carrito" aria-label="Abrir carrito">
-          <img src="/assets/brand/iconos/carrito.png" alt="" />
+        <a class="public-shell__cart" routerLink="/carrito" [attr.aria-label]="'Abrir carrito con ' + carrito.cantidadItems() + ' productos'">
+          <img src="/assets/brand/iconos/carrito.png" alt="" width="20" height="20" loading="lazy" decoding="async" />
           <span>Carrito</span>
           @if (carrito.cantidadItems() > 0) {
-            <strong>{{ carrito.cantidadItems() }}</strong>
+            <strong aria-hidden="true">{{ carrito.cantidadItems() }}</strong>
           }
         </a>
 
@@ -52,7 +66,7 @@
     </div>
   </header>
 
-  <main class="public-shell__content">
+  <main id="contenido-principal" class="public-shell__content" tabindex="-1">
     <router-outlet />
   </main>
 

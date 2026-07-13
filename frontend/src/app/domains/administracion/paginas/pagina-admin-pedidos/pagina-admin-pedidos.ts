@@ -3,6 +3,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { FiltrosPanelComponent } from '../../../../shared/ui/filtros-panel/filtros-panel';
 import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
@@ -76,7 +77,7 @@ export class PaginaAdminPedidos implements OnInit {
           this.totalPedidos.set(pagina.totalElementos);
           this.totalPaginas.set(pagina.totalPaginas);
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -97,10 +98,7 @@ export class PaginaAdminPedidos implements OnInit {
     this.cargarPedidos();
   }
 
-  private obtenerMensajeError(error: Error): string {
-    const mensaje = error.message ?? '';
-    return mensaje.includes('Http failure response') || mensaje.includes('Unknown Error')
-      ? 'No pudimos conectar con el backend para cargar pedidos.'
-      : mensaje || 'No pudimos cargar pedidos.';
+  private obtenerMensajeError(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar pedidos.');
   }
 }

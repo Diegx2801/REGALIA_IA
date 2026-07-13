@@ -11,7 +11,7 @@
       </div>
 
       <div class="cart-hero__media">
-        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" />
+        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" width="104" height="104" loading="lazy" decoding="async" />
         <a class="cart-button cart-button--primary" routerLink="/pedir-con-ia">Cotizar con IA</a>
       </div>
     </header>
@@ -52,7 +52,7 @@
 
     @if (carrito.estaVacio() && !vieneDeCheckout()) {
       <section class="cart-empty">
-        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" />
+        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" width="160" height="160" loading="lazy" decoding="async" />
         <h2>Tu carrito esta vacio</h2>
         <p>
           Agrega productos con precio fijo desde el catalogo o crea una solicitud personalizada con IA.
@@ -116,11 +116,12 @@
                   </label>
 
                   <div class="cart-item__actions">
-                    <div class="quantity-control" aria-label="Control de cantidad">
+                    <div class="quantity-control" [attr.aria-label]="'Control de cantidad para ' + item.nombre">
                       <button
                         type="button"
                         (click)="actualizarCantidad(item.idProducto, item.cantidad - 1)"
                         [disabled]="item.cantidad <= 1"
+                        [attr.aria-label]="'Disminuir cantidad de ' + item.nombre"
                       >
                         -
                       </button>
@@ -130,18 +131,24 @@
                         [max]="item.stockDisponible"
                         [ngModel]="item.cantidad"
                         (ngModelChange)="actualizarCantidad(item.idProducto, $event)"
-                        aria-label="Cantidad"
+                        [attr.aria-label]="'Cantidad de ' + item.nombre"
                       />
                       <button
                         type="button"
                         (click)="actualizarCantidad(item.idProducto, item.cantidad + 1)"
                         [disabled]="item.cantidad >= item.stockDisponible"
+                        [attr.aria-label]="'Aumentar cantidad de ' + item.nombre"
                       >
                         +
                       </button>
                     </div>
 
-                    <button class="cart-item__remove" type="button" (click)="carrito.quitarProducto(item.idProducto)">
+                    <button
+                      class="cart-item__remove"
+                      type="button"
+                      [attr.aria-label]="'Quitar ' + item.nombre + ' del carrito'"
+                      (click)="carrito.quitarProducto(item.idProducto)"
+                    >
                       Quitar
                     </button>
                   </div>
@@ -186,6 +193,7 @@
             class="cart-button cart-button--primary cart-button--block"
             type="button"
             [disabled]="!puedePrepararCheckout()"
+            [attr.aria-disabled]="!puedePrepararCheckout()"
             (click)="prepararCheckout()"
           >
             Preparar checkout

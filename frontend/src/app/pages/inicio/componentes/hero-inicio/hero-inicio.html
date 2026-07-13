@@ -1,0 +1,42 @@
+<section class="landing-hero rg-page__container--retail" aria-labelledby="titulo-inicio">
+  <div class="landing-hero__frame">
+    <div class="landing-hero__overlay"></div>
+    <div class="landing-hero__content">
+      <h1 id="titulo-inicio">Regalos personalizados en tu ciudad, sin perder tiempo.</h1>
+      <p>
+        Descubre emprendedores locales, compara opciones y reserva con una se&ntilde;a clara y
+        segura.
+      </p>
+
+      <form
+        class="hero-search"
+        [formGroup]="formularioBusqueda()"
+        (ngSubmit)="buscarDetalles.emit()"
+        aria-label="Busqueda rapida de regalos"
+      >
+        <app-campo-texto id="busqueda-ocasion" etiqueta="Ocasion" [control]="controlOcasion()" />
+        <app-campo-texto id="busqueda-presupuesto" etiqueta="Presupuesto" [control]="controlPresupuesto()" />
+        <app-campo-texto id="busqueda-fecha" etiqueta="Fecha" tipo="date" [control]="controlFecha()" />
+        <app-campo-texto id="busqueda-distrito" etiqueta="Distrito" [control]="controlDistrito()" />
+        <button type="submit">Buscar detalles</button>
+      </form>
+    </div>
+  </div>
+
+  <nav class="occasion-strip" aria-label="Categorias destacadas">
+    @for (categoria of categorias(); track categoria.etiqueta) {
+      <button type="button" class="occasion-strip__item" (click)="buscarCategoria.emit(categoria)">
+        <span
+          class="occasion-strip__icon"
+          [class.occasion-strip__icon--cuadro]="categoria.tipoIcono === 'cuadro'"
+          [class.occasion-strip__icon--circulo]="categoria.tipoIcono === 'circulo'"
+          [class.occasion-strip__icon--anillo]="categoria.tipoIcono === 'anillo'"
+          [class.occasion-strip__icon--tarjeta]="categoria.tipoIcono === 'tarjeta'"
+          [class.occasion-strip__icon--hoja]="categoria.tipoIcono === 'hoja'"
+          [class.occasion-strip__icon--mas]="categoria.tipoIcono === 'mas'"
+        ></span>
+        <strong>{{ categoria.etiqueta }}</strong>
+      </button>
+    }
+  </nav>
+</section>

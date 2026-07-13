@@ -6,6 +6,7 @@ import { catchError, EMPTY, finalize, switchMap, tap } from 'rxjs';
 import { ProductoApiService } from '../../acceso-datos/producto-api.service';
 import { Producto } from '../../modelos/producto.model';
 import { CarritoCheckoutService } from '../../../../core/carrito/carrito-checkout.service';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 
 @Component({
@@ -68,7 +69,7 @@ export class PaginaDetalleProducto implements OnInit {
 
           return this.productoApiService.obtenerProductoPorId(idProducto).pipe(
             tap((producto) => this.producto.set(producto)),
-            catchError((error: Error) => {
+            catchError((error: unknown) => {
               this.mensajeError.set(this.obtenerMensajeErrorDetalle(error));
               return EMPTY;
             }),
@@ -103,15 +104,7 @@ export class PaginaDetalleProducto implements OnInit {
     this.cantidadSeleccionada.set(cantidadSegura);
   }
 
-  private obtenerMensajeErrorDetalle(error: Error): string {
-    const mensaje = error.message ?? '';
-    const esErrorTecnico =
-      mensaje.includes('Http failure response') ||
-      mensaje.includes('Unknown Error') ||
-      mensaje.includes('Timeout');
-
-    return esErrorTecnico
-      ? 'No pudimos conectar con el backend de REGALIA para cargar este producto.'
-      : mensaje || 'No pudimos cargar el detalle del producto.';
+  private obtenerMensajeErrorDetalle(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar el detalle del producto.');
   }
 }

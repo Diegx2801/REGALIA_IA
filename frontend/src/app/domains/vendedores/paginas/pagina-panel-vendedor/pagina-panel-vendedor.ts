@@ -3,6 +3,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin, of, switchMap } from 'rxjs';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import {
   CampoFormularioDirective,
@@ -199,7 +200,7 @@ export class PaginaPanelVendedor implements OnInit {
       )
       .subscribe({
         next: (productos) => this.productos.set(productos),
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -218,7 +219,7 @@ export class PaginaPanelVendedor implements OnInit {
           this.mensajeExito.set('Perfil vendedor creado correctamente.');
           this.cargarPanel();
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -231,7 +232,7 @@ export class PaginaPanelVendedor implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (productos) => this.productos.set(productos),
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -261,7 +262,7 @@ export class PaginaPanelVendedor implements OnInit {
           this.pedidos.set(pedidos);
           if (idTienda === null) this.pedidosTodos.set(pedidos);
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -286,7 +287,7 @@ export class PaginaPanelVendedor implements OnInit {
       )
       .subscribe({
         next: (detalle) => this.pedidoDetalle.set(detalle),
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -327,7 +328,7 @@ export class PaginaPanelVendedor implements OnInit {
           this.mensajeExito.set('Tienda creada correctamente.');
           this.cargarPanel();
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -382,7 +383,7 @@ export class PaginaPanelVendedor implements OnInit {
           this.idProductoEditando.set(null);
           this.mensajeExito.set(idProductoEditando ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.');
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -437,7 +438,7 @@ export class PaginaPanelVendedor implements OnInit {
           if (this.idProductoEditando() === producto.idProducto) this.cancelarEdicionProducto();
           this.mensajeExito.set('Producto desactivado correctamente.');
         },
-        error: (error: Error) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -451,15 +452,7 @@ export class PaginaPanelVendedor implements OnInit {
     return control.invalid && (control.touched || control.dirty);
   }
 
-  private obtenerMensajeError(error: Error): string {
-    const mensaje = error.message ?? '';
-    const esErrorTecnico =
-      mensaje.includes('Http failure response') ||
-      mensaje.includes('Unknown Error') ||
-      mensaje.includes('Timeout');
-
-    return esErrorTecnico
-      ? 'No pudimos conectar con el backend para cargar el panel vendedor.'
-      : mensaje || 'No pudimos cargar la informacion del vendedor.';
+  private obtenerMensajeError(error: unknown): string {
+    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar la informacion del vendedor.');
   }
 }

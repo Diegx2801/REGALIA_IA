@@ -16,6 +16,7 @@ export type TamanoBoton = 'sm' | 'md' | 'lg';
     '[class.rg-boton--bloque]': 'bloque()',
     '[class.rg-boton--cargando]': 'cargando()',
     '[attr.aria-busy]': 'cargando()',
+    '[attr.aria-disabled]': 'cargando() ? "true" : null',
   },
 })
 export class BotonDirective {

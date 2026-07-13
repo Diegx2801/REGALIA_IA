@@ -1,23 +1,35 @@
-import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, inject, signal, ViewEncapsulation } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CarritoCheckoutService } from '../../../core/carrito/carrito-checkout.service';
+import { obtenerMensajeErrorUsuario } from '../../../core/http/modelos/error-api.model';
 import { Producto } from '../../../domains/catalogo/modelos/producto.model';
 import { BuilderIaApiService } from '../acceso-datos/builder-ia-api.service';
-
-interface PasoBuilder {
-  readonly numero: number;
-  readonly titulo: string;
-  readonly descripcion: string;
-}
+import { FaseInterpretacionIa } from '../componentes/fase-interpretacion-ia/fase-interpretacion-ia';
+import { FaseNecesidadIa } from '../componentes/fase-necesidad-ia/fase-necesidad-ia';
+import { FaseRecomendacionesIa } from '../componentes/fase-recomendaciones-ia/fase-recomendaciones-ia';
+import { FaseReservaIa } from '../componentes/fase-reserva-ia/fase-reserva-ia';
+import { HeroBuilderIa } from '../componentes/hero-builder-ia/hero-builder-ia';
+import { PasosBuilderIa } from '../componentes/pasos-builder-ia/pasos-builder-ia';
+import { PasoBuilderIa } from '../modelos/builder-ia.model';
+import { EstadoPantallaComponent } from '../../../shared/ui/estado-pantalla/estado-pantalla';
 
 @Component({
   selector: 'app-pagina-pedir-con-ia',
-  imports: [CurrencyPipe, ReactiveFormsModule],
+  imports: [
+    FaseInterpretacionIa,
+    FaseNecesidadIa,
+    FaseRecomendacionesIa,
+    FaseReservaIa,
+    HeroBuilderIa,
+    PasosBuilderIa,
+    EstadoPantallaComponent,
+  ],
   templateUrl: './pagina-pedir-con-ia.html',
   styleUrl: './pagina-pedir-con-ia.css',
+  // Los estilos builder-* pertenecen a este flujo y se comparten con sus fases internas.
+  encapsulation: ViewEncapsulation.None,
 })
 export class PaginaPedirConIa {
   private readonly builderIaApi = inject(BuilderIaApiService);
@@ -39,19 +51,17 @@ export class PaginaPedirConIa {
     }),
   });
 
-  readonly pasos: readonly PasoBuilder[] = [
+  readonly pasos: readonly PasoBuilderIa[] = [
     { numero: 1, titulo: 'Necesidad', descripcion: 'Cuentanos que buscas' },
     { numero: 2, titulo: 'Interpretacion IA', descripcion: 'Respuesta del backend' },
     { numero: 3, titulo: 'Recomendaciones', descripcion: 'Productos reales' },
     { numero: 4, titulo: 'Reserva', descripcion: 'Confirmas tu eleccion' },
   ];
 
-  readonly caracteresUsados = computed(() => this.formulario.controls.necesidad.value.length);
   readonly descripcionActual = computed(() => {
     const valor = this.formulario.controls.necesidad.value.trim();
     return valor || 'Describe que regalo necesitas para que REGALIA pueda ayudarte.';
   });
-  readonly pasoActivo = computed(() => this.pasos.find((paso) => paso.numero === this.pasoActual()));
 
   irAPaso(numeroPaso: number): void {
     if (numeroPaso > this.pasoActual()) return;
@@ -108,10 +118,6 @@ export class PaginaPedirConIa {
     void this.router.navigateByUrl('/carrito');
   }
 
-  identificarProducto(_indice: number, producto: Producto): number {
-    return producto.idProducto;
-  }
-
   private solicitarRecomendaciones(): void {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
@@ -137,12 +143,6 @@ export class PaginaPedirConIa {
   }
 
   private obtenerMensajeErrorIa(error: unknown): string {
-    const mensaje = error instanceof Error ? error.message : '';
-
-    if (mensaje.includes('Http failure response') || mensaje.includes('Unknown Error')) {
-      return 'No pudimos conectar con el servicio IA del backend.';
-    }
-
-    return mensaje || 'No se pudo generar recomendaciones.';
+    return obtenerMensajeErrorUsuario(error, 'No se pudo generar recomendaciones.');
   }
 }

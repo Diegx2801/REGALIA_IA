@@ -6,6 +6,7 @@
   display: grid;
   grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr);
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 .layout-privado--vendedor {
@@ -36,6 +37,7 @@
   font-weight: 950;
   letter-spacing: 0.18em;
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .layout-privado__cabecera span,
@@ -57,6 +59,12 @@
 .layout-privado__usuario small,
 .layout-privado__enlace small {
   color: rgba(255, 255, 255, 0.68);
+}
+
+.layout-privado__cabecera p,
+.layout-privado__enlace strong,
+.layout-privado__enlace small {
+  overflow-wrap: anywhere;
 }
 
 .layout-privado__menu {
@@ -140,6 +148,7 @@
 .layout-privado__contenido {
   margin-inline: auto;
   max-width: 1120px;
+  min-width: 0;
 }
 
 @media (max-width: 991.98px) {
@@ -148,16 +157,35 @@
   }
 
   .layout-privado__sidebar {
+    gap: 1.2rem;
     min-height: auto;
     position: static;
   }
 
   .layout-privado__menu {
-    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    /* Menu horizontal fluido: evita sidebar alta en tablet sin perder accesibilidad tactil. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  }
+
+  .layout-privado__usuario {
+    margin-top: 0;
   }
 }
 
 @media (max-width: 575.98px) {
+  .layout-privado__sidebar,
+  .layout-privado__area {
+    padding: 1rem;
+  }
+
+  .layout-privado__cabecera h1 {
+    font-size: clamp(1.55rem, 10vw, 2rem);
+  }
+
+  .layout-privado__menu {
+    grid-template-columns: 1fr;
+  }
+
   .layout-privado__usuario {
     grid-template-columns: auto 1fr;
   }
