@@ -1,0 +1,47 @@
+<header class="catalog-hero">
+  <div class="rg-page__container--retail catalog-hero__container">
+    <div class="catalog-hero__content">
+      <nav class="catalog-breadcrumb" aria-label="Ruta de navegacion">
+        <a routerLink="/">Inicio</a>
+        <span>/</span>
+        <strong>Catalogo</strong>
+      </nav>
+
+      <span class="catalog-hero__eyebrow">Marketplace local</span>
+      <h1 class="catalog-hero__title">Regalos listos para reservar con vendedores verificados.</h1>
+      <p class="catalog-hero__text">
+        Explora productos reales del backend, compara estilos y agrega opciones al carrito antes
+        de coordinar tu solicitud.
+      </p>
+
+      <label class="catalog-search" aria-label="Buscar regalos en catalogo">
+        <span class="catalog-search__icon" aria-hidden="true">&#8981;</span>
+        <app-campo-texto
+          id="catalog-search"
+          etiqueta="Buscar"
+          tipo="search"
+          placeholder="flores, torta, box, taza..."
+          [control]="controlBusqueda"
+        />
+        <button class="catalog-search__action" type="button">Buscar detalles</button>
+      </label>
+    </div>
+
+    <aside class="catalog-hero__visual" aria-label="Resumen comercial del catalogo">
+      <div class="catalog-hero__visual-card">
+        <span>Catalogo REGALIA</span>
+        <strong>Productos sincronizados con la API REST.</strong>
+      </div>
+      <div class="catalog-hero__summary">
+        <div>
+          <strong>{{ totalProductos() }}</strong>
+          <span>productos</span>
+        </div>
+        <div>
+          <strong>{{ productosDisponibles() }}</strong>
+          <span>disponibles</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</header>

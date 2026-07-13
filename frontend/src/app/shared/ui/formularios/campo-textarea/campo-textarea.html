@@ -1,0 +1,26 @@
+<label class="rg-form-field rg-form-field--textarea" [for]="id()">
+  <span class="rg-form-field__top">
+    <strong class="rg-form-field__label">{{ etiqueta() }}</strong>
+    @if (maximoCaracteres()) {
+      <small [id]="idContador()" aria-live="polite">{{ caracteresUsados() }}/{{ maximoCaracteres() }}</small>
+    }
+  </span>
+  <textarea
+    class="rg-form-field__control"
+    [id]="id()"
+    [rows]="filas()"
+    [attr.maxlength]="maximoCaracteres()"
+    [placeholder]="placeholder()"
+    [formControl]="control()"
+    [attr.aria-invalid]="debeMostrarError()"
+    [attr.aria-describedby]="ariaDescribedBy()"
+  ></textarea>
+</label>
+
+@if (ayuda()) {
+  <small class="rg-form-field__help" [id]="idAyuda()">{{ ayuda() }}</small>
+}
+
+@if (debeMostrarError()) {
+  <small class="rg-form-field__error" [id]="idError()">{{ mensajeError() }}</small>
+}

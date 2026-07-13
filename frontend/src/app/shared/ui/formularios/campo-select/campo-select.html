@@ -1,0 +1,18 @@
+<label class="rg-form-field" [for]="id()">
+  <span class="rg-form-field__label">{{ etiqueta() }}</span>
+  <select
+    class="rg-form-field__control"
+    [id]="id()"
+    [formControl]="control()"
+    [attr.aria-invalid]="debeMostrarError()"
+    [attr.aria-describedby]="ariaDescribedBy()"
+  >
+    @for (opcion of opciones(); track opcion.valor) {
+      <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+    }
+  </select>
+</label>
+
+@if (debeMostrarError()) {
+  <small class="rg-form-field__error" [id]="idError()">{{ mensajeError() }}</small>
+}

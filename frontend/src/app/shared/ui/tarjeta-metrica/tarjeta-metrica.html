@@ -1,0 +1,6 @@
+<!-- Componente presentacional: recibe metricas ya calculadas por el contenedor. -->
+<article class="rg-panel__tarjeta tarjeta-metrica" [attr.aria-label]="etiqueta() + ': ' + (valor() ?? '')">
+  <span>{{ etiqueta() }}</span>
+  <h3>{{ valor() ?? '0' }}</h3>
+  <p>{{ descripcion() }}</p>
+</article>

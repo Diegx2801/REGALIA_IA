@@ -1,0 +1,30 @@
+:host {
+  display: block;
+}
+
+.estado-pantalla {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.25rem;
+  box-shadow: 0 14px 34px rgba(35, 25, 39, 0.08);
+  padding: 1rem;
+}
+
+.estado-pantalla span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.estado-pantalla p {
+  color: var(--rg-color-muted);
+}
+
+.estado-pantalla--error {
+  border-color: rgba(201, 95, 81, 0.32);
+}
+
+.estado-pantalla--exito {
+  border-color: rgba(47, 123, 98, 0.32);
+}

@@ -1,0 +1,66 @@
+<section class="builder-page">
+  <div class="rg-page__container--retail builder-page__container">
+    <app-hero-builder-ia />
+
+    <app-pasos-builder-ia
+      [pasos]="pasos"
+      [pasoActual]="pasoActual()"
+      (irAPaso)="irAPaso($event)"
+    />
+
+    @if (mensajeError()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="Error IA"
+        titulo="No pudimos completar la solicitud"
+        [descripcion]="mensajeError()"
+      />
+    }
+
+    <div class="builder-shell">
+      @if (pasoActual() === 1) {
+        <app-fase-necesidad-ia
+          [formulario]="formulario"
+          [descripcionActual]="descripcionActual()"
+          [cargando]="cargandoRecomendaciones()"
+          (continuar)="continuar()"
+        />
+      }
+
+      @if (pasoActual() === 2) {
+        <app-fase-interpretacion-ia
+          [respuestaIa]="respuestaIa()"
+          [descripcionActual]="descripcionActual()"
+          (volver)="volver()"
+          (continuar)="continuar()"
+        />
+      }
+
+      @if (pasoActual() === 3) {
+        <app-fase-recomendaciones-ia
+          [productos]="productosRecomendados()"
+          [productoSeleccionado]="productoSeleccionado()"
+          (seleccionarProducto)="seleccionarProducto($event)"
+          (buscarEnCatalogo)="buscarEnCatalogo()"
+          (volver)="volver()"
+          (continuar)="continuar()"
+        />
+      }
+
+      @if (pasoActual() === 4) {
+        <app-fase-reserva-ia
+          [productoSeleccionado]="productoSeleccionado()"
+          [mensajeExito]="mensajeExito()"
+          (buscarEnCatalogo)="buscarEnCatalogo()"
+          (volver)="volver()"
+          (confirmarSolicitud)="confirmarSolicitud()"
+          (irAlCarrito)="irAlCarrito()"
+        />
+      }
+    </div>
+
+    <footer class="builder-footer-progress">
+      <span>Paso {{ pasoActual() }} de 4</span>
+    </footer>
+  </div>
+</section>

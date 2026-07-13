@@ -1,0 +1,11 @@
+<!-- Fila presentacional: no conoce pedidos, productos ni usuarios para mantener bajo acoplamiento. -->
+<article
+  class="fila-panel"
+  [class.fila-panel--triple]="tipo() === 'triple'"
+  [class.fila-panel--tres-columnas]="tipo() === 'tres-columnas'"
+  [class.fila-panel--producto]="tipo() === 'producto'"
+  [class.fila-panel--apilada]="tipo() === 'apilada'"
+  [attr.aria-label]="ariaEtiqueta()"
+>
+  <ng-content />
+</article>

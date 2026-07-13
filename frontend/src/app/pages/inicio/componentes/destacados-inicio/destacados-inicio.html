@@ -1,0 +1,72 @@
+<section class="landing-section landing-section--featured rg-page__container--retail">
+  <div class="landing-section__main">
+    <span class="eyebrow eyebrow--dark">Destacados para ti</span>
+    <h2>Ideas listas para convertir una ocasion en reserva.</h2>
+
+    @if (cargando()) {
+      <div class="featured-products">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <app-skeleton-card variante="compacto" />
+        }
+      </div>
+    } @else if (mensajeError()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="Error de destacados"
+        titulo="No pudimos cargar productos destacados"
+        [descripcion]="mensajeError()"
+        textoAccion="Ir al catalogo"
+        rutaAccion="/catalogo"
+      />
+    } @else if (productos().length === 0) {
+      <app-estado-pantalla
+        tipo="vacio"
+        etiqueta="Sin destacados"
+        titulo="No hay productos destacados disponibles."
+        descripcion="Explora el catalogo para ver productos activos del marketplace."
+        textoAccion="Explorar catalogo"
+        rutaAccion="/catalogo"
+      />
+    } @else {
+      <div class="featured-products">
+        @for (producto of productos(); track identificarProducto($index, producto)) {
+          <article class="featured-product">
+            <img [src]="obtenerImagenProducto(producto)" [alt]="producto.nombre" loading="lazy" decoding="async" />
+            <div class="featured-product__body">
+              <h3>{{ producto.nombre }}</h3>
+              <p>{{ producto.nombreTienda }}</p>
+              <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+              <div class="featured-product__meta">
+                <span>{{ producto.tipoProducto }}</span>
+                <app-insignia-ui
+                  [texto]="producto.disponible ? 'Disponible' : 'Agotado'"
+                  [variante]="producto.disponible ? 'exito' : 'error'"
+                />
+              </div>
+              <a routerLink="/catalogo" [queryParams]="{ busqueda: producto.nombre }">Reservar con se&ntilde;a</a>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+
+  <aside class="landing-section__aside" aria-label="Confianza y campanas">
+    <article class="trust-card">
+      <span aria-hidden="true">&check;</span>
+      <div>
+        <h3>Vendedores confiables</h3>
+        <p>Perfiles verificados, precios referenciales y rese&ntilde;as reales para que reserves con confianza y claridad.</p>
+        <a routerLink="/vendedores">Conoce mas &rarr;</a>
+      </div>
+    </article>
+
+    <article class="season-card">
+      <span>Campana de temporada</span>
+      <h3>Dia de la Madre</h3>
+      <p>Sorprende a mama con algo unico, hecho con amor.</p>
+      <a routerLink="/catalogo" [queryParams]="{ busqueda: 'dia de la madre' }">Ver ideas</a>
+      <div aria-hidden="true"></div>
+    </article>
+  </aside>
+</section>

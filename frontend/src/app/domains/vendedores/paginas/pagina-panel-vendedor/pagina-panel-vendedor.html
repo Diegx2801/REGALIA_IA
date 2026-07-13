@@ -1,0 +1,343 @@
+<section class="panel-vendedor">
+  <header class="rg-panel__hero">
+    <span>Vendedor</span>
+    <h2>Gestion comercial de tu tienda</h2>
+    <p>
+      Datos cargados desde la API privada del vendedor: perfil, tiendas, productos y pedidos recibidos.
+    </p>
+  </header>
+
+  @if (cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando informacion comercial." />
+  } @else if (mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="mensajeError() ?? 'No pudimos cargar el panel vendedor.'"
+      [textoAccion]="debeCrearPerfil() ? (guardandoPerfil() ? 'Creando perfil...' : 'Crear perfil vendedor') : 'Reintentar'"
+      (accion)="debeCrearPerfil() ? crearPerfilVendedor() : cargarPanel()"
+    />
+  } @else {
+    @if (mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Operacion correcta" [titulo]="mensajeExito() ?? ''" />
+    }
+
+    <section class="panel-vendedor__perfil">
+      <div>
+        <span>Perfil vendedor</span>
+        <h3>{{ perfil()?.nombreCompleto }}</h3>
+        <p>{{ perfil()?.correo }}</p>
+      </div>
+      <strong>{{ perfil()?.verificado ? 'Verificado' : 'Pendiente de verificacion' }}</strong>
+    </section>
+
+    @if (tiendas().length === 0) {
+      <section class="panel-vendedor__bloque">
+        <header>
+          <span>Primera tienda</span>
+          <h3>Crea tu tienda para publicar productos.</h3>
+        </header>
+
+        <form appFormularioPanel class="panel-vendedor__formulario" [formGroup]="formularioTienda" (ngSubmit)="crearTienda()">
+          <label appCampoFormulario>
+            Nombre comercial
+            <input type="text" formControlName="nombre" placeholder="Ej. Detalles Ana" />
+            @if (campoTiendaTieneError('nombre')) {
+              <small appErrorCampo>El nombre de la tienda es obligatorio.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            Rubro
+            <select formControlName="idRubro">
+              @for (rubro of rubros(); track rubro.idRubro) {
+                <option [ngValue]="rubro.idRubro">{{ rubro.nombre }}</option>
+              }
+            </select>
+            @if (campoTiendaTieneError('idRubro')) {
+              <small appErrorCampo>Selecciona un rubro comercial.</small>
+            }
+          </label>
+
+          <label appCampoFormulario>
+            Direccion de referencia
+            <input type="text" formControlName="direccionReferencia" placeholder="Zona, distrito o referencia" />
+          </label>
+
+          <label appCampoFormulario>
+            Descripcion
+            <textarea
+              rows="4"
+              formControlName="descripcion"
+              placeholder="Cuenta que tipo de regalos personalizados prepara tu tienda"
+            ></textarea>
+          </label>
+
+          <button appBoton appBotonBloque [appBotonCargando]="guardandoTienda()" type="submit" [disabled]="guardandoTienda()">
+            {{ guardandoTienda() ? 'Creando tienda...' : 'Crear tienda' }}
+          </button>
+        </form>
+      </section>
+    }
+
+    <section class="rg-panel__grid">
+      <app-tarjeta-metrica
+        etiqueta="Tiendas"
+        [valor]="tiendas().length"
+        [descripcion]="tiendaSeleccionada()?.nombre ?? 'Aun no hay tienda activa.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Productos visibles"
+        [valor]="productosVisibles()"
+        [descripcion]="productosSinStock() + ' producto(s) sin stock en la tienda seleccionada.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Pedidos pendientes"
+        [valor]="pedidosPendientes()"
+        descripcion="Pedidos recibidos con saldo por cobrar o confirmar."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Pagado"
+        [valor]="totalPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        [descripcion]="'Saldo pendiente ' + (saldoPendiente() | currency: 'PEN' : 'symbol-narrow' : '1.2-2') + '.'"
+      />
+    </section>
+
+    <section class="panel-vendedor__layout">
+      <article class="panel-vendedor__bloque">
+        <header>
+          <span>Tiendas</span>
+          <h3>Selecciona una tienda</h3>
+        </header>
+
+        @if (tiendas().length === 0) {
+          <p>No tienes tiendas registradas todavia.</p>
+        } @else {
+          <div class="panel-vendedor__tiendas">
+            @for (tienda of tiendas(); track tienda.idTienda) {
+              <button
+                appBoton="secundario"
+                type="button"
+                [class.panel-vendedor__tienda--activa]="idTiendaSeleccionada() === tienda.idTienda"
+                (click)="seleccionarTienda(tienda.idTienda)"
+              >
+                <strong>{{ tienda.nombre }}</strong>
+                <small>{{ tienda.estadoRevision }} - {{ tienda.formalizada ? 'Formalizada' : 'No formalizada' }}</small>
+              </button>
+            }
+          </div>
+        }
+      </article>
+
+      <article class="panel-vendedor__bloque">
+        <header>
+          <span>Productos</span>
+          <h3>Catalogo de {{ tiendaSeleccionada()?.nombre ?? 'tienda' }}</h3>
+        </header>
+
+        @if (tiendaSeleccionada()) {
+          <form appFormularioPanel class="panel-vendedor__formulario" [formGroup]="formularioProducto" (ngSubmit)="guardarProducto()">
+            @if (idProductoEditando()) {
+              <p class="panel-vendedor__modo-edicion">Editando producto #{{ idProductoEditando() }}</p>
+            }
+
+            <label appCampoFormulario>
+              Tipo de producto
+              <select formControlName="idTipoProducto">
+                @for (tipoProducto of tiposProducto(); track tipoProducto.idTipoProducto) {
+                  <option [ngValue]="tipoProducto.idTipoProducto">{{ tipoProducto.nombre }}</option>
+                }
+              </select>
+              @if (campoProductoTieneError('idTipoProducto')) {
+                <small appErrorCampo>Selecciona un tipo de producto.</small>
+              }
+            </label>
+
+            <label appCampoFormulario>
+              Nombre
+              <input type="text" formControlName="nombre" placeholder="Ej. Box aniversario personalizado" />
+              @if (campoProductoTieneError('nombre')) {
+                <small appErrorCampo>El nombre del producto es obligatorio.</small>
+              }
+            </label>
+
+            <label appCampoFormulario>
+              Precio
+              <input type="number" min="0.01" step="0.01" formControlName="precio" />
+              @if (campoProductoTieneError('precio')) {
+                <small appErrorCampo>El precio debe ser mayor a cero.</small>
+              }
+            </label>
+
+            <label appCampoFormulario>
+              Stock
+              <input type="number" min="0" formControlName="stock" />
+              @if (campoProductoTieneError('stock')) {
+                <small appErrorCampo>El stock no puede ser negativo.</small>
+              }
+            </label>
+
+            <label appCampoFormulario>
+              URL de imagen
+              <input type="url" formControlName="urlImagen" placeholder="https://..." />
+            </label>
+
+            <label class="panel-vendedor__check">
+              <input type="checkbox" formControlName="visibleEnTienda" />
+              Visible en tienda
+            </label>
+
+            <label appCampoFormulario>
+              Descripcion
+              <textarea
+                rows="4"
+                formControlName="descripcion"
+                placeholder="Describe materiales, personalizacion y condiciones"
+              ></textarea>
+            </label>
+
+            <button appBoton appBotonBloque [appBotonCargando]="guardandoProducto()" type="submit" [disabled]="guardandoProducto()">
+              @if (guardandoProducto()) {
+                Guardando producto...
+              } @else if (idProductoEditando()) {
+                Actualizar producto
+              } @else {
+                Crear producto
+              }
+            </button>
+
+            @if (idProductoEditando()) {
+              <button appBoton="secundario" appBotonBloque type="button" (click)="cancelarEdicionProducto()">Cancelar edicion</button>
+            }
+          </form>
+        }
+
+        @if (productos().length === 0) {
+          <p>No hay productos registrados para esta tienda.</p>
+        } @else {
+          <app-lista-panel class="panel-vendedor__productos" ariaEtiqueta="Productos de la tienda seleccionada">
+            @for (producto of productos(); track producto.idProducto) {
+              <app-fila-panel tipo="producto" [ariaEtiqueta]="producto.nombre">
+                <img [src]="producto.urlImagen" [alt]="producto.nombre" loading="lazy" decoding="async" />
+                <div>
+                  <strong>{{ producto.nombre }}</strong>
+                  <small>{{ producto.tipoProducto }} - Stock {{ producto.stock }}</small>
+                </div>
+                <span>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span>
+                <div class="panel-vendedor__acciones-producto">
+                  <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="editarProducto(producto)">Editar</button>
+                  <button appBoton="peligro" appBotonTamano="sm" type="button" (click)="desactivarProducto(producto)">Desactivar</button>
+                </div>
+              </app-fila-panel>
+            }
+          </app-lista-panel>
+        }
+      </article>
+    </section>
+
+    <section class="panel-vendedor__bloque">
+      <header>
+        <span>Pedidos recibidos</span>
+        <h3>Ultimas solicitudes</h3>
+      </header>
+
+      <div class="panel-vendedor__filtros-pedidos">
+        <label>
+          Filtrar por tienda
+          <select (change)="filtrarPedidosPorTienda($event)">
+            <option value="">Todas las tiendas</option>
+            @for (tienda of tiendas(); track tienda.idTienda) {
+              <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Estado
+          <select (change)="filtrarPedidosPorEstado($event)">
+            <option value="">Todos</option>
+            @for (estado of estadosPedidoDisponibles(); track estado) {
+              <option [value]="estado">{{ estado }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Buscar
+          <input type="search" placeholder="Pedido, tienda o cliente" (input)="buscarPedidos($event)" />
+        </label>
+      </div>
+
+      @if (cargandoPedidos()) {
+        <app-estado-pantalla tipo="carga" etiqueta="Pedidos" titulo="Cargando pedidos de la tienda seleccionada..." />
+      } @else if (pedidosFiltrados().length === 0) {
+        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay pedidos que coincidan con los filtros actuales." />
+      } @else {
+        <app-lista-panel class="panel-vendedor__pedidos" ariaEtiqueta="Pedidos recibidos">
+          @for (pedido of pedidosFiltrados(); track pedido.idPedido) {
+            <app-fila-panel tipo="apilada" [ariaEtiqueta]="'Pedido ' + pedido.idPedido">
+              <strong>#{{ pedido.idPedido }} - {{ pedido.estadoPedido }}</strong>
+              <span>{{ pedido.nombreTienda }}</span>
+              <small>Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }} - {{ pedido.cantidadItems }} item(s)</small>
+              <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+              <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="verDetallePedido(pedido)">Ver detalle</button>
+            </app-fila-panel>
+          }
+        </app-lista-panel>
+      }
+
+      @if (cargandoDetallePedido()) {
+        <app-estado-pantalla tipo="carga" etiqueta="Detalle" titulo="Cargando detalle del pedido..." />
+      } @else if (pedidoDetalle()) {
+        <section class="panel-vendedor__detalle-pedido">
+          <header>
+            <span>Detalle del pedido</span>
+            <h3>#{{ pedidoDetalle()?.idPedido }} - {{ pedidoDetalle()?.estadoPedido }}</h3>
+            <p>{{ pedidoDetalle()?.tipoEntrega }} - {{ pedidoDetalle()?.correoCliente }}</p>
+          </header>
+
+          <div class="panel-vendedor__detalle-grid">
+            <article>
+              <small>Total</small>
+              <strong>{{ pedidoDetalle()?.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </article>
+            <article>
+              <small>Pagado</small>
+              <strong>{{ pedidoDetalle()?.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </article>
+            <article>
+              <small>Saldo</small>
+              <strong>{{ pedidoDetalle()?.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </article>
+          </div>
+
+          <p>{{ pedidoDetalle()?.observacion }}</p>
+
+          <app-lista-panel class="panel-vendedor__tabla" ariaEtiqueta="Productos solicitados">
+            <strong>Productos solicitados</strong>
+            @for (producto of pedidoDetalle()?.productos ?? []; track producto.idDetallePedido) {
+              <app-fila-panel tipo="tres-columnas" [ariaEtiqueta]="producto.nombreProducto">
+                <span>{{ producto.nombreProducto }}</span>
+                <small>{{ producto.cantidad }} x {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+                <b>{{ producto.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+              </app-fila-panel>
+            }
+          </app-lista-panel>
+
+          <app-lista-panel class="panel-vendedor__tabla" ariaEtiqueta="Pagos registrados">
+            <strong>Pagos registrados</strong>
+            @for (pago of pedidoDetalle()?.pagos ?? []; track pago.idPago) {
+              <app-fila-panel tipo="tres-columnas" [ariaEtiqueta]="pago.tipoPago">
+                <span>{{ pago.tipoPago }}</span>
+                <small>{{ pago.estadoPago }} - {{ pago.metodoPagoPasarela }}</small>
+                <b>{{ pago.monto | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+              </app-fila-panel>
+            } @empty {
+              <p>No hay pagos registrados para este pedido.</p>
+            }
+          </app-lista-panel>
+        </section>
+      }
+    </section>
+  }
+</section>

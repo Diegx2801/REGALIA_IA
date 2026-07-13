@@ -1,0 +1,21 @@
+<label class="rg-form-field" [for]="id()">
+  <span class="rg-form-field__label">{{ etiqueta() }}</span>
+  <input
+    class="rg-form-field__control"
+    [id]="id()"
+    [type]="tipo()"
+    [placeholder]="placeholder()"
+    [autocomplete]="autocomplete() ?? ''"
+    [formControl]="control()"
+    [attr.aria-invalid]="debeMostrarError()"
+    [attr.aria-describedby]="ariaDescribedBy()"
+  />
+</label>
+
+@if (ayuda()) {
+  <small class="rg-form-field__help" [id]="idAyuda()">{{ ayuda() }}</small>
+}
+
+@if (debeMostrarError()) {
+  <small class="rg-form-field__error" [id]="idError()">{{ mensajeError() }}</small>
+}

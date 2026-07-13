@@ -1,0 +1,57 @@
+<section class="catalog-section">
+  <div class="catalog-toolbar">
+    <app-encabezado-seccion etiqueta="Productos listos" [titulo]="productos().length + ' resultados para regalar'" />
+    <label class="catalog-sort" for="sortProducts">
+      <app-campo-select
+        id="sortProducts"
+        etiqueta="Ordenar"
+        [control]="controlOrden"
+        [opciones]="opcionesOrden"
+      />
+    </label>
+  </div>
+
+  <div class="active-filters" aria-label="Filtros activos">
+    @if (tipoSeleccionado() !== 'Todas') {
+      <app-insignia-ui [texto]="tipoSeleccionado()" variante="primaria" />
+    }
+    <app-insignia-ui [texto]="'Hasta S/ ' + precioMaximo()" />
+    @if (soloDisponibles()) {
+      <app-insignia-ui texto="Disponibles para reservar" variante="exito" />
+    }
+  </div>
+
+  @if (cargando()) {
+    <div class="product-grid" aria-label="Cargando productos">
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+        <app-skeleton-card variante="producto" />
+      }
+    </div>
+  } @else {
+    @if (mensajeError()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="Error de catalogo"
+        titulo="No pudimos cargar productos"
+        [descripcion]="mensajeError()"
+      />
+    }
+
+    @if (productos().length === 0) {
+      <app-estado-pantalla
+        tipo="vacio"
+        etiqueta="Sin resultados"
+        titulo="No encontramos regalos con esos filtros."
+        descripcion="Prueba con otra busqueda o limpia los filtros para ver todo el catalogo real."
+        textoAccion="Ver todo"
+        (accion)="limpiarFiltros.emit()"
+      />
+    } @else {
+      <div class="product-grid">
+        @for (producto of productos(); track identificarProducto($index, producto)) {
+          <app-tarjeta-producto [producto]="producto" (agregar)="agregarAlCarrito.emit($event)" />
+        }
+      </div>
+    }
+  }
+</section>

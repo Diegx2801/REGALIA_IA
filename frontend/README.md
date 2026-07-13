@@ -1,39 +1,59 @@
-# Frontend de REGALIA
+# Frontend
 
-Aplicación Angular para REGALIA, una plataforma local de Trujillo que conecta clientes con vendedores de regalos y servicios personalizados mediante coincidencia inteligente.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.8.
 
-## Flujos MVP
+## Development server
 
-- Inicio: propuesta de valor y modelo de reserva.
-- Pedir con IA: interpretación de necesidad y recomendaciones.
-- Catálogo: vendedores locales con filtros por categoría, ocasión y presupuesto.
-- Vendedores: registro, perfil base y reputación.
-- Panel: pedidos, estados, señas y pagos.
-
-## Desarrollo
+To start a local development server, run:
 
 ```bash
-npm run start
+ng serve
 ```
 
-Abrir `http://localhost:4200/`.
+Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-## Validación
+## Code scaffolding
+
+Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
 
 ```bash
-npm run build
-npm test -- --watch=false
+ng generate component component-name
 ```
 
-<!-- DESPLIEGUE FRONTEND: el build genera archivos estaticos listos para publicarse en hosting web. -->
+For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
 
-### Desarrollo local con ngrok
-
-Para probar flujos externos como Mercado Pago usando Angular con ngrok, no agregar el dominio temporal en `angular.json`.
-
-Levantar el frontend así:
-
-```powershell
-$env:__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="TU_DOMINIO_NGROK.ngrok-free.dev"
-npm start
+```bash
+ng generate --help
 ```
+
+## Building
+
+To build the project run:
+
+```bash
+ng build
+```
+
+This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+## Running unit tests
+
+To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+
+```bash
+ng test
+```
+
+## Running end-to-end tests
+
+For end-to-end (e2e) testing, run:
+
+```bash
+ng e2e
+```
+
+Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+
+## Additional Resources
+
+For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

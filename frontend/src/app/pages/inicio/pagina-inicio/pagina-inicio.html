@@ -1,0 +1,27 @@
+<main class="landing-page">
+  <app-hero-inicio
+    [formularioBusqueda]="formularioBusqueda"
+    [categorias]="categorias"
+    (buscarDetalles)="buscarDetalles()"
+    (buscarCategoria)="buscarCategoria($event)"
+  />
+
+  <app-calendario-comercial
+    [campanas]="campanas"
+    [meses]="meses"
+    [diasSemana]="diasSemana"
+    [diasFebrero]="diasFebrero"
+    [mesActivo]="mesActivo()"
+    (seleccionarMes)="mesActivo.set($event)"
+  />
+
+  <app-destacados-inicio
+    [productos]="productosDestacados()"
+    [cargando]="cargandoProductosDestacados()"
+    [mensajeError]="mensajeErrorProductosDestacados()"
+  />
+
+  <app-modelo-negocio-inicio [pasos]="pasosModeloNegocio" />
+
+  <app-cta-vendedor-inicio />
+</main>

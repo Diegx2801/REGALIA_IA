@@ -1,0 +1,59 @@
+<section class="catalog-page">
+  <app-hero-catalogo
+    [totalProductos]="productos().length"
+    [productosDisponibles]="productosDisponibles()"
+    [terminoBusqueda]="terminoBusqueda()"
+    (actualizarBusqueda)="actualizarBusqueda($event)"
+  />
+
+  <div class="rg-page__container--retail catalog-page__container">
+    <nav class="category-strip" aria-label="Categorias destacadas">
+      @for (categoria of categorias(); track categoria) {
+        <button
+          type="button"
+          class="category-strip__chip"
+          [class.category-strip__chip--active]="tipoSeleccionado() === categoria"
+          (click)="actualizarTipo(categoria)"
+        >
+          {{ categoria }}
+        </button>
+      }
+    </nav>
+
+    <div class="catalog-layout">
+      <app-filtros-catalogo
+        [categorias]="categorias()"
+        [terminoBusqueda]="terminoBusqueda()"
+        [tipoSeleccionado]="tipoSeleccionado()"
+        [precioMaximo]="precioMaximo()"
+        [soloDisponibles]="soloDisponibles()"
+        (actualizarBusqueda)="actualizarBusqueda($event)"
+        (actualizarTipo)="actualizarTipo($event)"
+        (actualizarPrecioMaximo)="actualizarPrecioMaximo($event)"
+        (actualizarDisponibilidad)="actualizarDisponibilidad($event)"
+        (limpiarFiltros)="limpiarFiltros()"
+      />
+
+      <main class="catalog-results" aria-label="Resultados del catalogo">
+        <app-resultados-catalogo
+          [productos]="productosFiltrados()"
+          [cargando]="cargandoProductos()"
+          [mensajeError]="mensajeErrorProductos()"
+          [tipoSeleccionado]="tipoSeleccionado()"
+          [precioMaximo]="precioMaximo()"
+          [soloDisponibles]="soloDisponibles()"
+          [ordenSeleccionado]="ordenSeleccionado()"
+          (actualizarOrden)="actualizarOrden($event)"
+          (limpiarFiltros)="limpiarFiltros()"
+          (agregarAlCarrito)="agregarAlCarrito($event)"
+        />
+
+        <app-tiendas-catalogo
+          [tiendas]="tiendas()"
+          [cargando]="cargandoTiendas()"
+          [mensajeError]="mensajeErrorTiendas()"
+        />
+      </main>
+    </div>
+  </div>
+</section>

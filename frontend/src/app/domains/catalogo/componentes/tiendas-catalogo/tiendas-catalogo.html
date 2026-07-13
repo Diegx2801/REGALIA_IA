@@ -1,0 +1,55 @@
+<section class="catalog-section catalog-section--sellers">
+  <div class="catalog-toolbar catalog-toolbar--compact">
+    <app-encabezado-seccion etiqueta="Vendedores locales" [titulo]="tiendas().length + ' tiendas publicas'" />
+    <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
+  </div>
+
+  @if (cargando()) {
+    <div class="seller-grid">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <app-skeleton-card variante="tienda" />
+      }
+    </div>
+  } @else if (mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error de tiendas"
+      titulo="No pudimos cargar tiendas publicas"
+      [descripcion]="mensajeError()"
+    />
+  } @else if (tiendas().length === 0) {
+    <app-estado-pantalla
+      tipo="vacio"
+      etiqueta="Sin tiendas"
+      titulo="No hay tiendas publicas disponibles."
+      descripcion="Cuando el backend publique tiendas aprobadas, apareceran en esta seccion."
+    />
+  } @else {
+    <div class="seller-grid">
+      @for (tienda of tiendas(); track identificarTienda($index, tienda)) {
+        <article class="seller-card">
+          <div class="seller-card__head">
+            <app-insignia-ui
+              [texto]="tienda.tiendaFormalizada ? 'Formalizada' : tienda.estadoRevision"
+              [variante]="tienda.tiendaFormalizada ? 'exito' : 'advertencia'"
+            />
+          </div>
+          <span class="seller-card__category">
+            {{ tienda.rubros[0]?.nombre ?? 'Tienda REGALIA' }}
+          </span>
+          <h3 class="seller-card__title">{{ tienda.nombre }}</h3>
+          <p class="seller-card__text">{{ tienda.descripcion }}</p>
+          <div class="seller-card__tags">
+            @for (rubro of tienda.rubros; track rubro.idRubro) {
+              <span>{{ rubro.nombre }}</span>
+            }
+          </div>
+          <div class="seller-card__footer">
+            <span>{{ tienda.direccionReferencia }}</span>
+            <strong>{{ tienda.estadoRevision }}</strong>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

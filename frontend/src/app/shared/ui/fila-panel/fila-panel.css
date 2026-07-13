@@ -1,0 +1,50 @@
+:host {
+  display: block;
+}
+
+.fila-panel {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.85rem;
+  min-width: 0;
+}
+
+.fila-panel--triple {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.fila-panel--tres-columnas {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fila-panel--producto {
+  grid-template-columns: 4rem minmax(0, 1fr) auto auto;
+}
+
+.fila-panel--apilada {
+  align-items: stretch;
+  grid-template-columns: 1fr;
+}
+
+.fila-panel > * {
+  min-width: 0;
+}
+
+.fila-panel :is(h1, h2, h3, p, strong, small, span) {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 899.98px) {
+  .fila-panel,
+  .fila-panel--triple,
+  .fila-panel--tres-columnas,
+  .fila-panel--producto {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+}

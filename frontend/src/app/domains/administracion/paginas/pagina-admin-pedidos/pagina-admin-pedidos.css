@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+.admin-seccion {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-seccion span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-seccion p,
+.admin-seccion small {
+  color: var(--rg-color-muted);
+}
+
+.admin-seccion__lista app-fila-panel div:last-child {
+  display: grid;
+  justify-items: end;
+}
+
+@media (max-width: 799.98px) {
+  .admin-seccion__lista app-fila-panel div:last-child {
+    justify-items: start;
+  }
+
+}
