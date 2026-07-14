@@ -49,12 +49,35 @@ public class GoogleSsoService {
                 .orElseGet(() -> vincularOCrearUsuario(googleIdentity, correoNormalizado));
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void vincularUsuarioExistente(
+            UsuarioEntity usuario,
+            GoogleUserIdentity googleIdentity,
+            String correoNormalizado
+    ) {
+        validarUsuarioActivo(usuario);
+        validarSubjectDisponible(usuario, googleIdentity);
+        vincularIdentidadGoogle(usuario, googleIdentity, correoNormalizado);
+    }
+
     private UsuarioEntity validarUsuarioActivo(UsuarioEntity usuario) {
         if (usuario == null || !Boolean.TRUE.equals(usuario.getEstado())) {
             throw new CredencialesInvalidasException(MENSAJE_CREDENCIALES_INVALIDAS);
         }
 
         return usuario;
+    }
+
+    private void validarSubjectDisponible(UsuarioEntity usuario, GoogleUserIdentity googleIdentity) {
+        usuarioIdentidadRepository
+                .findByProveedorAndProveedorSubjectAndEstadoTrue(PROVEEDOR_GOOGLE, googleIdentity.subject())
+                .ifPresent(identidad -> {
+                    Long idUsuarioVinculado = identidad.getUsuario().getIdUsuario();
+
+                    if (!idUsuarioVinculado.equals(usuario.getIdUsuario())) {
+                        throw new CredencialesInvalidasException(MENSAJE_CREDENCIALES_INVALIDAS);
+                    }
+                });
     }
 
     private UsuarioEntity vincularOCrearUsuario(GoogleUserIdentity googleIdentity, String correoNormalizado) {
