@@ -2,7 +2,9 @@ package com.regalia.backend.auth.api;
 
 import com.regalia.backend.auth.api.dto.LoginRequest;
 import com.regalia.backend.auth.api.dto.LoginResponse;
+import com.regalia.backend.auth.api.mapper.AuthApiMapper;
 import com.regalia.backend.auth.application.AuthService;
+import com.regalia.backend.auth.application.result.LoginResult;
 import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.shared.web.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,14 +32,14 @@ public class AdminAuthController {
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest
     ) {
-        LoginResponse response = authService.loginAdmin(
-                request,
+        LoginResult result = authService.loginAdmin(
+                AuthApiMapper.toCommand(request),
                 clientIpResolver.resolve(httpRequest),
                 clientIpResolver.resolveUserAgent(httpRequest)
         );
 
         return ResponseEntity.ok(
-                ApiResponse.success(response, "Inicio de sesi\u00f3n administrativo correcto")
+                ApiResponse.success(AuthApiMapper.toResponse(result), "Inicio de sesi\u00f3n administrativo correcto")
         );
     }
 }
