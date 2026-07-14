@@ -35,7 +35,7 @@ public class UsuarioEntity {
     @Column(name = "telefono", length = 20)
     private String telefono;
 
-    @Column(name = "contrasena_hash", nullable = false, length = 255)
+    @Column(name = "contrasena_hash", length = 255)
     private String contrasenaHash;
 
     @Column(name = "estado", nullable = false)
