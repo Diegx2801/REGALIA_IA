@@ -30,6 +30,11 @@ public interface UsuarioDocumentoJpaRepository extends JpaRepository<UsuarioDocu
 
     Optional<UsuarioDocumentoEntity> findByIdUsuarioDocumentoAndEstadoTrue(Long idUsuarioDocumento);
 
+    Optional<UsuarioDocumentoEntity> findByTipoDocumentoIdTipoDocumentoAndNumeroDocumentoIgnoreCase(
+            Long idTipoDocumento,
+            String numeroDocumento
+    );
+
     boolean existsByTipoDocumentoIdTipoDocumentoAndNumeroDocumentoIgnoreCaseAndEstadoVerificacionAndEstadoTrueAndIdUsuarioDocumentoNot(
             Long idTipoDocumento,
             String numeroDocumento,

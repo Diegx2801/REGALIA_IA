@@ -31,12 +31,7 @@ public class JwtService {
     /**
      * Genera un token JWT con datos minimos del usuario autenticado.
      */
-    public String generarToken(
-            Long idUsuario,
-            String correo,
-            List<String> roles,
-            AuthContext authContext
-    ) {
+    public String generarToken(Long idUsuario,String correo,List<String> roles,AuthContext authContext) {
         Date fechaActual = new Date();
         Long expirationMinutes = jwtProperties.obtenerExpirationMinutes(authContext);
         Date fechaExpiracion = new Date(fechaActual.getTime() + expirationMinutes * 60 * 1000);

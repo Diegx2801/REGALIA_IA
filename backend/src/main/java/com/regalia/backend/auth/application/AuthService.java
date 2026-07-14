@@ -67,12 +67,7 @@ public class AuthService {
         return login(request, ipCliente, userAgent, AuthContext.ADMIN);
     }
 
-    private LoginResponse login(
-            LoginRequest request,
-            String ipCliente,
-            String userAgent,
-            AuthContext authContext
-    ) {
+    private LoginResponse login(LoginRequest request,String ipCliente,String userAgent,AuthContext authContext) {
         String correoNormalizado = normalizarCorreo(request.correo());
 
         loginAttemptLimiter.validarPermitido(authContext, correoNormalizado, ipCliente);
@@ -162,11 +157,7 @@ public class AuthService {
         return correo.trim().toLowerCase(Locale.ROOT);
     }
 
-    private LoginResponse construirLoginResponse(
-            UsuarioEntity usuario,
-            List<String> roles,
-            AuthContext authContext
-    ) {
+    private LoginResponse construirLoginResponse(UsuarioEntity usuario,List<String> roles,AuthContext authContext) {
         String token = jwtService.generarToken(
                 usuario.getIdUsuario(),
                 usuario.getCorreo(),

@@ -65,7 +65,7 @@ public class TiendaService {
 
         validarLimiteTiendas(vendedor.getIdVendedor());
 
-        UsuarioDocumentoEntity documentoFiscal = obtenerDocumentoFiscalValidoSiExiste(
+        UsuarioDocumentoEntity documentoFiscal = obtenerDocumentoFiscalActivoSiExiste(
                 request.idDocumentoFiscal(),
                 vendedor.getUsuario().getIdUsuario()
         );
@@ -156,7 +156,7 @@ public class TiendaService {
 
         validarPropiedadTienda(tienda, vendedor.getIdVendedor());
 
-        UsuarioDocumentoEntity documentoFiscal = obtenerDocumentoFiscalValidoSiExiste(
+        UsuarioDocumentoEntity documentoFiscal = obtenerDocumentoFiscalActivoSiExiste(
                 request.idDocumentoFiscal(),
                 vendedor.getUsuario().getIdUsuario()
         );
@@ -338,7 +338,7 @@ public class TiendaService {
         return size;
     }
 
-    private UsuarioDocumentoEntity obtenerDocumentoFiscalValidoSiExiste(Long idDocumentoFiscal, Long idUsuario) {
+    private UsuarioDocumentoEntity obtenerDocumentoFiscalActivoSiExiste(Long idDocumentoFiscal, Long idUsuario) {
         if (idDocumentoFiscal == null) {
             return null;
         }
@@ -348,12 +348,12 @@ public class TiendaService {
                         "No se encontró el documento fiscal indicado"
                 ));
 
-        validarDocumentoFiscal(documentoFiscal, idUsuario);
+        validarDocumentoFiscalActivo(documentoFiscal, idUsuario);
 
         return documentoFiscal;
     }
 
-    private void validarDocumentoFiscal(UsuarioDocumentoEntity documentoFiscal, Long idUsuario) {
+    private void validarDocumentoFiscalActivo(UsuarioDocumentoEntity documentoFiscal, Long idUsuario) {
         if (!Objects.equals(documentoFiscal.getUsuario().getIdUsuario(), idUsuario)) {
             throw new RecursoNoEncontradoException(
                     "El documento fiscal indicado no pertenece al usuario autenticado"
@@ -363,12 +363,6 @@ public class TiendaService {
         if (!Boolean.TRUE.equals(documentoFiscal.getEstado())) {
             throw new RecursoNoEncontradoException(
                     "El documento fiscal indicado no está activo"
-            );
-        }
-
-        if (!ESTADO_DOCUMENTO_VERIFICADO.equalsIgnoreCase(documentoFiscal.getEstadoVerificacion())) {
-            throw new RecursoNoEncontradoException(
-                    "El documento fiscal indicado aún no está verificado"
             );
         }
 
