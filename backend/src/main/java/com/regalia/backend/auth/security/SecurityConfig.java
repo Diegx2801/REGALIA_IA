@@ -110,6 +110,7 @@ public class SecurityConfig {
                          * El login administrativo solo acepta cuentas con rol ADMIN exclusivo.
                          */
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/google").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admin/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 

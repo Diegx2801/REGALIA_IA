@@ -2,6 +2,7 @@ package com.regalia.backend.auth.api;
 
 import com.regalia.backend.auth.api.dto.LoginRequest;
 import com.regalia.backend.auth.api.dto.LoginResponse;
+import com.regalia.backend.auth.api.dto.GoogleLoginRequest;
 import com.regalia.backend.auth.application.AuthService;
 import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.shared.web.ClientIpResolver;
@@ -39,6 +40,22 @@ public class AuthController {
 
         return ResponseEntity.ok(
                 ApiResponse.success(response, "Inicio de sesi\u00f3n correcto")
+        );
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<LoginResponse>> loginGoogle(
+            @Valid @RequestBody GoogleLoginRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        LoginResponse response = authService.loginGoogle(
+                request,
+                clientIpResolver.resolve(httpRequest),
+                clientIpResolver.resolveUserAgent(httpRequest)
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success(response, "Inicio de sesi\u00f3n con Google correcto")
         );
     }
 }

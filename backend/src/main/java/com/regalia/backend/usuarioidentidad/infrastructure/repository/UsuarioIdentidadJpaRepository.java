@@ -15,10 +15,5 @@ public interface UsuarioIdentidadJpaRepository extends JpaRepository<UsuarioIden
             String proveedorSubject
     );
 
-    Optional<UsuarioIdentidadEntity> findByUsuario_IdUsuarioAndProveedorAndEstadoTrue(
-            Long idUsuario,
-            String proveedor
-    );
-
     boolean existsByUsuario_IdUsuarioAndProveedorAndEstadoTrue(Long idUsuario, String proveedor);
 }
