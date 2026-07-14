@@ -9,13 +9,14 @@ import { normalizarErrorApi, obtenerMensajeErrorUsuario } from '../../../../core
 import { UsuarioApiService } from '../../../usuarios/acceso-datos/usuario-api.service';
 import { SolicitudCrearUsuario } from '../../../usuarios/modelos/usuario.model';
 import { AutenticacionApiService } from '../../acceso-datos/autenticacion-api.service';
+import { BotonGoogleLogin } from '../../componentes/boton-google-login/boton-google-login';
 import { CredencialesLogin, ResultadoLogin } from '../../modelos/autenticacion.model';
 
 type ModoAutenticacion = 'login' | 'registro';
 
 @Component({
   selector: 'app-pagina-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, BotonGoogleLogin],
   templateUrl: './pagina-login.html',
   styleUrl: './pagina-login.css',
 })
@@ -139,6 +140,26 @@ export class PaginaLogin implements OnInit {
       });
   }
 
+  enviarLoginGoogle(idToken: string): void {
+    if (this.esLoginAdministracion() || this.estaEnviando()) return;
+
+    this.mensajeError.set('');
+    this.mensajeRegistro.set('');
+    this.estaEnviando.set(true);
+
+    this.autenticacionApi
+      .iniciarSesionGoogle(idToken)
+      .pipe(finalize(() => this.estaEnviando.set(false)))
+      .subscribe({
+        next: (resultado) => this.procesarLoginExitoso(resultado),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorGoogle(error)),
+      });
+  }
+
+  mostrarErrorGoogle(mensaje: string): void {
+    this.mensajeError.set(mensaje);
+  }
+
   alternarVisibilidadContrasena(): void {
     this.mostrarContrasena.update((valor) => !valor);
   }
@@ -237,5 +258,15 @@ export class PaginaLogin implements OnInit {
 
   private obtenerMensajeErrorRegistro(error: unknown): string {
     return obtenerMensajeErrorUsuario(error, 'No se pudo crear la cuenta.');
+  }
+
+  private obtenerMensajeErrorGoogle(error: unknown): string {
+    const errorNormalizado = normalizarErrorApi(error);
+
+    if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
+      return 'No pudimos validar tu cuenta de Google.';
+    }
+
+    return errorNormalizado.message || 'No se pudo iniciar sesion con Google.';
   }
 }

@@ -3,6 +3,10 @@ export interface LoginRequestDto {
   contrasena: string;
 }
 
+export interface GoogleLoginRequestDto {
+  idToken: string;
+}
+
 export interface LoginResponseDto {
   token: string;
   tipo: string;

@@ -4,6 +4,7 @@ export const RUTA_BASE_API = '/api' as const;
 export const ENDPOINTS_API = {
   autenticacion: {
     login: `${RUTA_BASE_API}/auth/login`,
+    google: `${RUTA_BASE_API}/auth/google`,
     loginAdministracion: `${RUTA_BASE_API}/admin/auth/login`,
   },
   usuarios: {

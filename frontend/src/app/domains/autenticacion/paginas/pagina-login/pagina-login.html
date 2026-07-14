@@ -163,6 +163,18 @@
               }
             </button>
 
+            @if (!esLoginAdministracion()) {
+              <div class="auth-divider" aria-hidden="true">
+                <span>o continua con</span>
+              </div>
+
+              <app-boton-google-login
+                [disabled]="estaEnviando()"
+                (idTokenObtenido)="enviarLoginGoogle($event)"
+                (errorAutenticacion)="mostrarErrorGoogle($event)"
+              />
+            }
+
             <p class="auth-form__switch">
               Aun no tienes cuenta?
               <button type="button" (click)="cambiarModo('registro')">Creala gratis</button>

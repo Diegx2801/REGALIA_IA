@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.google-login-button {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  width: 100%;
+}
+
+.google-login-button--disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.google-login-button__container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}

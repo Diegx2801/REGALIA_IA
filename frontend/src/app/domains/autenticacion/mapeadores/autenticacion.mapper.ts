@@ -1,5 +1,5 @@
 import { RolUsuario } from '../../../core/autenticacion/sesion-autenticacion.model';
-import { LoginRequestDto, LoginResponseDto } from '../modelos/autenticacion.dto';
+import { GoogleLoginRequestDto, LoginRequestDto, LoginResponseDto } from '../modelos/autenticacion.dto';
 import { CredencialesLogin, ResultadoLogin } from '../modelos/autenticacion.model';
 
 export function mapearCredencialesLoginADto(credenciales: CredencialesLogin): LoginRequestDto {
@@ -7,6 +7,10 @@ export function mapearCredencialesLoginADto(credenciales: CredencialesLogin): Lo
     correo: credenciales.correo.trim().toLowerCase(),
     contrasena: credenciales.contrasena,
   };
+}
+
+export function mapearGoogleLoginADto(idToken: string): GoogleLoginRequestDto {
+  return { idToken };
 }
 
 export function mapearLoginDesdeDto(dto: LoginResponseDto): ResultadoLogin {

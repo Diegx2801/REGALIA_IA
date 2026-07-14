@@ -416,6 +416,30 @@
   opacity: 0.72;
 }
 
+.auth-divider {
+  align-items: center;
+  color: var(--rg-color-muted);
+  display: flex;
+  font-size: 0.76rem;
+  font-weight: 800;
+  gap: 0.75rem;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  background: rgba(91, 46, 109, 0.14);
+  content: '';
+  flex: 1;
+  height: 1px;
+}
+
+.auth-divider span {
+  white-space: nowrap;
+}
+
 .auth-submit__spinner {
   animation: spin 0.8s linear infinite;
   border: 2px solid rgba(255, 255, 255, 0.4);
