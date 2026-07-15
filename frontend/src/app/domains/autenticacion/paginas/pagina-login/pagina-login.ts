@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -29,6 +29,8 @@ export class PaginaLogin implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly estaEnviando = signal(false);
+  readonly estaProcesandoGoogle = signal(false);
+  readonly estaBloqueado = computed(() => this.estaEnviando() || this.estaProcesandoGoogle());
   readonly mensajeError = signal('');
   readonly mensajeRegistro = signal('');
   readonly esLoginAdministracion = signal(false);
@@ -91,10 +93,12 @@ export class PaginaLogin implements OnInit {
     this.modo.set(modo);
     this.mensajeError.set('');
     this.mensajeRegistro.set('');
+    this.estaProcesandoGoogle.set(false);
   }
 
   enviarLogin(): void {
     this.mensajeError.set('');
+    this.estaProcesandoGoogle.set(false);
 
     if (this.formularioLogin.invalid) {
       this.formularioLogin.markAllAsTouched();
@@ -117,6 +121,7 @@ export class PaginaLogin implements OnInit {
   enviarRegistro(): void {
     this.mensajeError.set('');
     this.mensajeRegistro.set('');
+    this.estaProcesandoGoogle.set(false);
 
     if (this.formularioRegistro.invalid || !this.contrasenasRegistroCoinciden()) {
       this.formularioRegistro.markAllAsTouched();
@@ -141,15 +146,17 @@ export class PaginaLogin implements OnInit {
   }
 
   enviarLoginGoogle(idToken: string): void {
-    if (this.esLoginAdministracion() || this.estaEnviando()) return;
+    if (this.esLoginAdministracion() || this.estaBloqueado()) return;
 
     this.mensajeError.set('');
     this.mensajeRegistro.set('');
-    this.estaEnviando.set(true);
+    this.estaProcesandoGoogle.set(true);
 
     this.autenticacionApi
       .iniciarSesionGoogle(idToken)
-      .pipe(finalize(() => this.estaEnviando.set(false)))
+      .pipe(finalize(() => {
+        this.estaProcesandoGoogle.set(false);
+      }))
       .subscribe({
         next: (resultado) => this.procesarLoginExitoso(resultado),
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorGoogle(error)),
@@ -157,6 +164,8 @@ export class PaginaLogin implements OnInit {
   }
 
   mostrarErrorGoogle(mensaje: string): void {
+    this.estaProcesandoGoogle.set(false);
+    this.mensajeRegistro.set('');
     this.mensajeError.set(mensaje);
   }
 
@@ -262,11 +271,32 @@ export class PaginaLogin implements OnInit {
 
   private obtenerMensajeErrorGoogle(error: unknown): string {
     const errorNormalizado = normalizarErrorApi(error);
+    const accion = this.modo() === 'registro' ? 'crear tu cuenta' : 'iniciar sesion';
 
-    if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
-      return 'No pudimos validar tu cuenta de Google.';
+    if (errorNormalizado.tipo === 'red' || errorNormalizado.tipo === 'timeout') {
+      return 'No pudimos conectar con Google o REGALIA. Intentalo nuevamente en unos segundos.';
     }
 
-    return errorNormalizado.message || 'No se pudo iniciar sesion con Google.';
+    if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
+      return `No pudimos validar tu cuenta de Google para ${accion}. Vuelve a intentarlo.`;
+    }
+
+    if (errorNormalizado.estado === 403 || errorNormalizado.tipo === 'autorizacion') {
+      return 'Tu cuenta no tiene permisos para acceder a REGALIA con Google.';
+    }
+
+    if (errorNormalizado.estado === 409 || errorNormalizado.tipo === 'conflicto') {
+      return 'Este correo ya esta registrado. Inicia sesion con tu contrasena y vincula Google desde tu perfil.';
+    }
+
+    if (errorNormalizado.tipo === 'validacion') {
+      return 'Google no devolvio una identidad valida. Elige otra cuenta o intenta nuevamente.';
+    }
+
+    if (errorNormalizado.tipo === 'servidor') {
+      return 'REGALIA no pudo completar el acceso con Google. Intentalo nuevamente en unos minutos.';
+    }
+
+    return errorNormalizado.message || `No se pudo ${accion} con Google.`;
   }
 }

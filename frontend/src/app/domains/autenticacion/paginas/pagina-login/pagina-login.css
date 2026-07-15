@@ -440,6 +440,14 @@
   white-space: nowrap;
 }
 
+.auth-google-status {
+  color: var(--rg-color-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  margin: -0.35rem 0 0;
+  text-align: center;
+}
+
 .auth-submit__spinner {
   animation: spin 0.8s linear infinite;
   border: 2px solid rgba(255, 255, 255, 0.4);

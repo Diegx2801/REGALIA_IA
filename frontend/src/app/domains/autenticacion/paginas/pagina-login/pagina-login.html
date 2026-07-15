@@ -82,7 +82,7 @@
           <form
             class="auth-form"
             [formGroup]="formularioLogin"
-            [attr.aria-busy]="estaEnviando()"
+            [attr.aria-busy]="estaBloqueado()"
             (ngSubmit)="enviarLogin()"
           >
             <header class="auth-form__header">
@@ -154,7 +154,7 @@
               <p class="auth-message auth-message--success" role="status">{{ mensajeRegistro() }}</p>
             }
 
-            <button class="auth-submit" type="submit" [disabled]="estaEnviando()">
+            <button class="auth-submit" type="submit" [disabled]="estaBloqueado()">
               @if (estaEnviando()) {
                 <span class="auth-submit__spinner" aria-hidden="true"></span>
                 Validando...
@@ -169,11 +169,15 @@
               </div>
 
               <app-boton-google-login
-                [disabled]="estaEnviando()"
+                [disabled]="estaBloqueado()"
                 modo="login"
                 (idTokenObtenido)="enviarLoginGoogle($event)"
                 (errorAutenticacion)="mostrarErrorGoogle($event)"
               />
+
+              @if (estaProcesandoGoogle()) {
+                <p class="auth-google-status" role="status">Validando acceso seguro con Google...</p>
+              }
             }
 
             <p class="auth-form__switch">
@@ -185,7 +189,7 @@
           <form
             class="auth-form"
             [formGroup]="formularioRegistro"
-            [attr.aria-busy]="estaEnviando()"
+            [attr.aria-busy]="estaBloqueado()"
             (ngSubmit)="enviarRegistro()"
           >
             <header class="auth-form__header">
@@ -302,7 +306,7 @@
               <p class="auth-message auth-message--success" role="status">{{ mensajeRegistro() }}</p>
             }
 
-            <button class="auth-submit" type="submit" [disabled]="estaEnviando()">
+            <button class="auth-submit" type="submit" [disabled]="estaBloqueado()">
               @if (estaEnviando()) {
                 <span class="auth-submit__spinner" aria-hidden="true"></span>
                 Creando cuenta...
@@ -317,11 +321,15 @@
               </div>
 
               <app-boton-google-login
-                [disabled]="estaEnviando()"
+                [disabled]="estaBloqueado()"
                 modo="registro"
                 (idTokenObtenido)="enviarLoginGoogle($event)"
                 (errorAutenticacion)="mostrarErrorGoogle($event)"
               />
+
+              @if (estaProcesandoGoogle()) {
+                <p class="auth-google-status" role="status">Creando acceso seguro con Google...</p>
+              }
             }
 
             <a class="auth-seller-link" routerLink="/login" [queryParams]="{ origen: 'vendedor' }">
