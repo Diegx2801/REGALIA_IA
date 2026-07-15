@@ -11,6 +11,7 @@ public record UsuarioResponse(
         String apellidos,
         String correo,
         String telefono,
+        Boolean correoVerificado,
         Boolean estado,
         LocalDateTime fechaCreacion,
         LocalDateTime fechaActualizacion

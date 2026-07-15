@@ -4,6 +4,7 @@ export interface UsuarioPerfilDto {
   apellidos: string | null;
   correo: string | null;
   telefono: string | null;
+  correoVerificado: boolean | null;
   estado: boolean | null;
   fechaCreacion: string | null;
   fechaActualizacion: string | null;

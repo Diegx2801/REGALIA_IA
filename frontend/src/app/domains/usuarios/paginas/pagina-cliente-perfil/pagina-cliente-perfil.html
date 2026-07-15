@@ -25,7 +25,20 @@
         <span>Cuenta</span>
         <h3>{{ store.perfil()?.nombreCompleto }}</h3>
         <p>{{ store.perfil()?.correo }}</p>
-        <strong>{{ store.perfil()?.estado ? 'Cuenta activa' : 'Cuenta inactiva' }}</strong>
+        <div class="cliente-perfil__account-status">
+          <strong>{{ store.perfil()?.estado ? 'Cuenta activa' : 'Cuenta inactiva' }}</strong>
+          <strong
+            class="cliente-perfil__verification-status"
+            [class.cliente-perfil__verification-status--verified]="store.perfil()?.correoVerificado"
+          >
+            {{ store.perfil()?.correoVerificado ? 'Correo verificado' : 'Correo pendiente' }}
+          </strong>
+        </div>
+        @if (!store.perfil()?.correoVerificado) {
+          <p class="cliente-perfil__verification-note">
+            Confirma tu correo para proteger tu cuenta y recibir avisos importantes.
+          </p>
+        }
       </article>
 
       <article class="cliente-perfil__card cliente-perfil__card--identidad">

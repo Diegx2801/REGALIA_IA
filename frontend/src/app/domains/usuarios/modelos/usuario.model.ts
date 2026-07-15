@@ -5,6 +5,7 @@ export interface UsuarioPerfil {
   nombreCompleto: string;
   correo: string;
   telefono: string;
+  correoVerificado: boolean;
   estado: boolean;
   fechaCreacion: string | null;
   fechaActualizacion: string | null;

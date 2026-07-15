@@ -34,6 +34,7 @@ public class UsuarioMapper {
                 entity.getApellido(),
                 entity.getCorreo(),
                 entity.getTelefono(),
+                entity.getCorreoVerificado(),
                 entity.getEstado(),
                 entity.getFechaCreacion(),
                 entity.getFechaActualizacion()
