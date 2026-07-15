@@ -8,6 +8,7 @@ import { GoogleIdentidadService } from '../../acceso-datos/google-identidad.serv
 })
 export class BotonGoogleLogin implements AfterViewInit, OnDestroy {
   @Input() disabled = false;
+  @Input() modo: 'login' | 'registro' = 'login';
   @Output() idTokenObtenido = new EventEmitter<string>();
   @Output() errorAutenticacion = new EventEmitter<string>();
 
@@ -25,6 +26,8 @@ export class BotonGoogleLogin implements AfterViewInit, OnDestroy {
     this.googleIdentidad.renderizarBoton(contenedor, {
       onCredential: (idToken) => this.emitirIdToken(idToken),
       onError: (mensaje) => this.emitirError(mensaje),
+    }, {
+      text: this.modo === 'registro' ? 'signup_with' : 'continue_with',
     });
   }
 

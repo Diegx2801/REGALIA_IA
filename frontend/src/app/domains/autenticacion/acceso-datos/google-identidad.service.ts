@@ -55,6 +55,7 @@ export class GoogleIdentidadService {
       onCredential: (idToken: string) => void;
       onError: (mensaje: string) => void;
     },
+    opciones?: Pick<GoogleButtonOptions, 'text'>,
   ): void {
     this.cargarScript()
       .then(() => {
@@ -84,7 +85,7 @@ export class GoogleIdentidadService {
         googleId.renderButton(contenedor, {
           theme: 'outline',
           size: 'large',
-          text: 'continue_with',
+          text: opciones?.text ?? 'continue_with',
           shape: 'pill',
           width: 320,
           locale: 'es',

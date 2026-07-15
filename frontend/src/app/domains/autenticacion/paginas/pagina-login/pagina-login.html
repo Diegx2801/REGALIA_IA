@@ -170,6 +170,7 @@
 
               <app-boton-google-login
                 [disabled]="estaEnviando()"
+                modo="login"
                 (idTokenObtenido)="enviarLoginGoogle($event)"
                 (errorAutenticacion)="mostrarErrorGoogle($event)"
               />
@@ -309,6 +310,19 @@
                 Crear mi cuenta
               }
             </button>
+
+            @if (!esLoginAdministracion()) {
+              <div class="auth-divider" aria-hidden="true">
+                <span>o crea tu cuenta con</span>
+              </div>
+
+              <app-boton-google-login
+                [disabled]="estaEnviando()"
+                modo="registro"
+                (idTokenObtenido)="enviarLoginGoogle($event)"
+                (errorAutenticacion)="mostrarErrorGoogle($event)"
+              />
+            }
 
             <a class="auth-seller-link" routerLink="/login" [queryParams]="{ origen: 'vendedor' }">
               <span aria-hidden="true">&#10022;</span>
