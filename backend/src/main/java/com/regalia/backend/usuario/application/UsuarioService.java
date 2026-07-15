@@ -2,6 +2,7 @@ package com.regalia.backend.usuario.application;
 
 import com.regalia.backend.rol.application.RolService;
 import com.regalia.backend.rol.infrastructure.entity.RolEntity;
+import com.regalia.backend.auth.application.EmailVerificationService;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
@@ -43,6 +44,7 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final RolService rolService;
     private final UsuarioRolJpaRepository usuarioRolRepository;
+    private final EmailVerificationService emailVerificationService;
 
     // @Transactional: controla la transaccion; readOnly evita escritura accidental en consultas.
     @Transactional(readOnly = true)
@@ -128,6 +130,7 @@ public class UsuarioService {
         UsuarioEntity usuarioGuardado = usuarioRepository.save(usuario);
 
         asignarRolCliente(usuarioGuardado);
+        emailVerificationService.enviarVerificacionCuentaLocal(usuarioGuardado);
 
         return usuarioMapper.toResponse(usuarioGuardado);
     }

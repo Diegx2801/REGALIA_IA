@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 /**
  * Encapsula las reglas de autenticacion SSO con Google sin mezclar el login local.
  */
@@ -96,6 +98,8 @@ public class GoogleSsoService {
         usuario.setApellido(obtenerApellidoGoogle(googleIdentity));
         usuario.setCorreo(correoNormalizado);
         usuario.setContrasenaHash(null);
+        usuario.setCorreoVerificado(googleIdentity.emailVerified());
+        usuario.setFechaVerificacionCorreo(googleIdentity.emailVerified() ? LocalDateTime.now() : null);
         usuario.setEstado(true);
 
         UsuarioEntity usuarioGuardado = usuarioRepository.saveAndFlush(usuario);
@@ -138,6 +142,12 @@ public class GoogleSsoService {
         identidad.setEstado(true);
 
         usuarioIdentidadRepository.save(identidad);
+
+        if (googleIdentity.emailVerified() && !Boolean.TRUE.equals(usuario.getCorreoVerificado())) {
+            usuario.setCorreoVerificado(true);
+            usuario.setFechaVerificacionCorreo(LocalDateTime.now());
+            usuarioRepository.save(usuario);
+        }
     }
 
     private String obtenerNombreGoogle(GoogleUserIdentity googleIdentity) {

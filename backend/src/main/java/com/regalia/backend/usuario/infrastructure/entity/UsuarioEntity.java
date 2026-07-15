@@ -38,6 +38,12 @@ public class UsuarioEntity {
     @Column(name = "contrasena_hash", length = 255)
     private String contrasenaHash;
 
+    @Column(name = "correo_verificado", nullable = false)
+    private Boolean correoVerificado = false;
+
+    @Column(name = "fecha_verificacion_correo")
+    private LocalDateTime fechaVerificacionCorreo;
+
     @Column(name = "estado", nullable = false)
     private Boolean estado = true;
 
@@ -56,6 +62,10 @@ public class UsuarioEntity {
 
         if (this.estado == null) {
             this.estado = true;
+        }
+
+        if (this.correoVerificado == null) {
+            this.correoVerificado = false;
         }
     }
 

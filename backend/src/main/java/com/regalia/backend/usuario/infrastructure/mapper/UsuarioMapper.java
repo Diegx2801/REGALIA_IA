@@ -21,6 +21,7 @@ public class UsuarioMapper {
         entity.setCorreo(limpiarTexto(request.correo()).toLowerCase());
         entity.setTelefono(limpiarTextoOpcional(request.telefono()));
         entity.setContrasenaHash(contrasenaHash);
+        entity.setCorreoVerificado(false);
         entity.setEstado(true);
 
         return entity;
