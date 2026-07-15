@@ -28,6 +28,43 @@
         <strong>{{ store.perfil()?.estado ? 'Cuenta activa' : 'Cuenta inactiva' }}</strong>
       </article>
 
+      <article class="cliente-perfil__card cliente-perfil__card--identidad">
+        <span>Acceso</span>
+        <h3>Metodos de ingreso</h3>
+        <p>Gestiona accesos rapidos sin reemplazar tu cuenta REGALIA.</p>
+
+        <div class="cliente-perfil__identity">
+          <div>
+            <strong>Google</strong>
+            @if (store.identidadGoogle(); as identidadGoogle) {
+              <small>{{ identidadGoogle.correo }}</small>
+            } @else {
+              <small>Vincula tu correo verificado de Google.</small>
+            }
+          </div>
+          <span
+            class="cliente-perfil__identity-status"
+            [class.cliente-perfil__identity-status--active]="store.googleVinculado()"
+          >
+            {{ store.googleVinculado() ? 'Vinculado' : 'Pendiente' }}
+          </span>
+        </div>
+
+        @if (!store.googleVinculado()) {
+          <app-boton-google-login
+            modo="login"
+            [disabled]="store.vinculandoGoogle()"
+            [mostrarCuentaGoogle]="false"
+            (idTokenObtenido)="vincularGoogle($event)"
+            (errorAutenticacion)="registrarErrorGoogle($event)"
+          />
+        } @else {
+          <p class="cliente-perfil__identity-note">
+            Ya puedes iniciar sesion con Google usando este mismo correo.
+          </p>
+        }
+      </article>
+
       <form
         appFormularioPanel
         appFormularioUnaColumna
@@ -52,10 +89,10 @@
         </label>
 
         <label appCampoFormulario>
-          Teléfono
+          Telefono
           <input type="tel" formControlName="telefono" autocomplete="tel" placeholder="Ej. 999888777" />
           @if (campoTieneError('telefono')) {
-            <small appErrorCampo>El teléfono no debe superar 20 caracteres.</small>
+            <small appErrorCampo>El telefono no debe superar 20 caracteres.</small>
           }
         </label>
 

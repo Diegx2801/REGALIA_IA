@@ -170,6 +170,7 @@
 
               <app-boton-google-login
                 [disabled]="estaBloqueado()"
+                [mostrarCuentaGoogle]="false"
                 modo="login"
                 (idTokenObtenido)="enviarLoginGoogle($event)"
                 (errorAutenticacion)="mostrarErrorGoogle($event)"
@@ -322,6 +323,7 @@
 
               <app-boton-google-login
                 [disabled]="estaBloqueado()"
+                [mostrarCuentaGoogle]="false"
                 modo="registro"
                 (idTokenObtenido)="enviarLoginGoogle($event)"
                 (errorAutenticacion)="mostrarErrorGoogle($event)"

@@ -3,6 +3,7 @@ package com.regalia.backend.usuarioidentidad.infrastructure.repository;
 import com.regalia.backend.usuarioidentidad.infrastructure.entity.UsuarioIdentidadEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,4 +17,6 @@ public interface UsuarioIdentidadJpaRepository extends JpaRepository<UsuarioIden
     );
 
     boolean existsByUsuario_IdUsuarioAndProveedorAndEstadoTrue(Long idUsuario, String proveedor);
+
+    List<UsuarioIdentidadEntity> findByUsuario_IdUsuarioAndEstadoTrueOrderByFechaCreacionDesc(Long idUsuario);
 }

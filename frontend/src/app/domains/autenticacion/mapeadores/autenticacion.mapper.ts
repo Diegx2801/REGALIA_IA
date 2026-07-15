@@ -1,6 +1,12 @@
 import { RolUsuario } from '../../../core/autenticacion/sesion-autenticacion.model';
-import { GoogleLoginRequestDto, LoginRequestDto, LoginResponseDto } from '../modelos/autenticacion.dto';
-import { CredencialesLogin, ResultadoLogin } from '../modelos/autenticacion.model';
+import {
+  AccountIdentityResponseDto,
+  GoogleIdentityLinkResponseDto,
+  GoogleLoginRequestDto,
+  LoginRequestDto,
+  LoginResponseDto,
+} from '../modelos/autenticacion.dto';
+import { CredencialesLogin, IdentidadCuenta, ResultadoLogin } from '../modelos/autenticacion.model';
 
 export function mapearCredencialesLoginADto(credenciales: CredencialesLogin): LoginRequestDto {
   return {
@@ -22,6 +28,26 @@ export function mapearLoginDesdeDto(dto: LoginResponseDto): ResultadoLogin {
     roles: dto.roles.map(mapearRolDesdeBackend).filter((rol): rol is RolUsuario => rol !== null),
     contextoAutenticacion: dto.authContext,
     expiraEnMinutos: dto.expiraEnMinutos,
+  };
+}
+
+export function mapearIdentidadCuentaDesdeDto(dto: AccountIdentityResponseDto): IdentidadCuenta {
+  return {
+    proveedor: dto.proveedor ?? 'DESCONOCIDO',
+    correo: dto.correo ?? 'Correo no disponible',
+    correoVerificado: Boolean(dto.correoVerificado),
+    vinculada: Boolean(dto.vinculada),
+    fechaVinculacion: dto.fechaVinculacion,
+  };
+}
+
+export function mapearGoogleIdentityLinkDesdeDto(dto: GoogleIdentityLinkResponseDto): IdentidadCuenta {
+  return {
+    proveedor: dto.proveedor ?? 'GOOGLE',
+    correo: dto.correo ?? 'Correo no disponible',
+    correoVerificado: true,
+    vinculada: Boolean(dto.vinculada),
+    fechaVinculacion: null,
   };
 }
 

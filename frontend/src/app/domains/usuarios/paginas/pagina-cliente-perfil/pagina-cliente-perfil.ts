@@ -7,6 +7,7 @@ import {
   FormularioPanelDirective,
 } from '../../../../shared/directivas/formulario-panel.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
+import { BotonGoogleLogin } from '../../../autenticacion/componentes/boton-google-login/boton-google-login';
 import { ClientePanelStore } from '../../estado/cliente-panel.store';
 
 @Component({
@@ -18,6 +19,7 @@ import { ClientePanelStore } from '../../estado/cliente-panel.store';
     ErrorCampoDirective,
     FormularioPanelDirective,
     EstadoPantallaComponent,
+    BotonGoogleLogin,
   ],
   templateUrl: './pagina-cliente-perfil.html',
   styleUrl: './pagina-cliente-perfil.css',
@@ -79,5 +81,13 @@ export class PaginaClientePerfil implements OnInit {
   campoTieneError(campo: keyof typeof this.formularioPerfil.controls): boolean {
     const control = this.formularioPerfil.controls[campo];
     return control.invalid && (control.touched || control.dirty);
+  }
+
+  vincularGoogle(idToken: string): void {
+    this.store.vincularGoogle(idToken);
+  }
+
+  registrarErrorGoogle(mensaje: string): void {
+    this.store.registrarErrorCuenta(mensaje);
   }
 }

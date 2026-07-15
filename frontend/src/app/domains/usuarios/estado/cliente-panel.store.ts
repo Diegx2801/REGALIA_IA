@@ -2,6 +2,8 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, forkJoin } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../core/http/modelos/error-api.model';
+import { CuentaIdentidadApiService } from '../../autenticacion/acceso-datos/cuenta-identidad-api.service';
+import { IdentidadCuenta } from '../../autenticacion/modelos/autenticacion.model';
 import { PedidoClienteApiService } from '../acceso-datos/pedido-cliente-api.service';
 import { UsuarioApiService } from '../acceso-datos/usuario-api.service';
 import { PedidoCliente } from '../modelos/pedido-cliente.model';
@@ -11,16 +13,19 @@ import { SolicitudActualizarPerfilUsuario, UsuarioPerfil } from '../modelos/usua
 export class ClientePanelStore {
   private readonly usuarioApi = inject(UsuarioApiService);
   private readonly pedidoApi = inject(PedidoClienteApiService);
+  private readonly cuentaIdentidadApi = inject(CuentaIdentidadApiService);
   private readonly destroyRef = inject(DestroyRef);
   private panelCargado = false;
 
   readonly perfil = signal<UsuarioPerfil | null>(null);
   readonly pedidos = signal<PedidoCliente[]>([]);
   readonly pedidoDetalle = signal<PedidoCliente | null>(null);
+  readonly identidadesCuenta = signal<IdentidadCuenta[]>([]);
   readonly cargando = signal(false);
   readonly cargandoDetalle = signal(false);
   readonly guardandoPerfil = signal(false);
   readonly registrandoPago = signal(false);
+  readonly vinculandoGoogle = signal(false);
   readonly mensajeError = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
 
@@ -40,6 +45,10 @@ export class ClientePanelStore {
     this.pedidos().reduce((total, pedido) => total + pedido.montoPagado, 0),
   );
   readonly pedidosRecientes = computed(() => this.pedidos().slice(0, 5));
+  readonly identidadGoogle = computed(
+    () => this.identidadesCuenta().find((identidad) => identidad.proveedor === 'GOOGLE') ?? null,
+  );
+  readonly googleVinculado = computed(() => Boolean(this.identidadGoogle()?.vinculada));
 
   cargarPanel(forzar = false): void {
     if (this.panelCargado && !forzar) return;
@@ -51,15 +60,17 @@ export class ClientePanelStore {
     forkJoin({
       perfil: this.usuarioApi.obtenerPerfilActual(),
       pedidos: this.pedidoApi.obtenerMisPedidos(),
+      identidades: this.cuentaIdentidadApi.listarIdentidades(),
     })
       .pipe(
         finalize(() => this.cargando.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ({ perfil, pedidos }) => {
+        next: ({ perfil, pedidos, identidades }) => {
           this.perfil.set(perfil);
           this.pedidos.set(pedidos);
+          this.identidadesCuenta.set(identidades);
           this.panelCargado = true;
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
@@ -138,6 +149,34 @@ export class ClientePanelStore {
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
+  }
+
+  vincularGoogle(idToken: string): void {
+    this.vinculandoGoogle.set(true);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    this.cuentaIdentidadApi
+      .vincularGoogle(idToken)
+      .pipe(
+        finalize(() => this.vinculandoGoogle.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (identidad) => {
+          this.identidadesCuenta.update((identidades) => [
+            identidad,
+            ...identidades.filter((actual) => actual.proveedor !== identidad.proveedor),
+          ]);
+          this.mensajeExito.set('Google vinculado correctamente.');
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  registrarErrorCuenta(mensaje: string): void {
+    this.mensajeError.set(mensaje);
+    this.mensajeExito.set(null);
   }
 
   limpiarMensajes(): void {

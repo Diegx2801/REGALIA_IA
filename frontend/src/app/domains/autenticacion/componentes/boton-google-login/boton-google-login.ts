@@ -9,6 +9,7 @@ import { GoogleIdentidadService } from '../../acceso-datos/google-identidad.serv
 export class BotonGoogleLogin implements AfterViewInit, OnDestroy {
   @Input() disabled = false;
   @Input() modo: 'login' | 'registro' = 'login';
+  @Input() mostrarCuentaGoogle = true;
   @Output() idTokenObtenido = new EventEmitter<string>();
   @Output() errorAutenticacion = new EventEmitter<string>();
 
@@ -28,6 +29,7 @@ export class BotonGoogleLogin implements AfterViewInit, OnDestroy {
       onError: (mensaje) => this.emitirError(mensaje),
     }, {
       text: this.modo === 'registro' ? 'signup_with' : 'continue_with',
+      mostrarCuentaGoogle: this.mostrarCuentaGoogle,
     });
   }
 

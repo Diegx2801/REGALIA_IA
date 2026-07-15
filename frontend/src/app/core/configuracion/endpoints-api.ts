@@ -7,6 +7,10 @@ export const ENDPOINTS_API = {
     google: `${RUTA_BASE_API}/auth/google`,
     loginAdministracion: `${RUTA_BASE_API}/admin/auth/login`,
   },
+  cuenta: {
+    identidades: `${RUTA_BASE_API}/account/identities`,
+    vincularGoogle: `${RUTA_BASE_API}/account/identities/google/link`,
+  },
   usuarios: {
     crear: `${RUTA_BASE_API}/usuarios`,
     perfilActual: `${RUTA_BASE_API}/usuarios/me`,

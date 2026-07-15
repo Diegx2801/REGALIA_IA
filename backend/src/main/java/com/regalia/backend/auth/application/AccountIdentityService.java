@@ -1,15 +1,19 @@
 package com.regalia.backend.auth.application;
 
 import com.regalia.backend.auth.application.oauth.GoogleUserIdentity;
+import com.regalia.backend.auth.application.result.AccountIdentityResult;
 import com.regalia.backend.auth.application.result.GoogleIdentityLinkResult;
 import com.regalia.backend.shared.exception.CredencialesInvalidasException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
+import com.regalia.backend.usuarioidentidad.infrastructure.entity.UsuarioIdentidadEntity;
+import com.regalia.backend.usuarioidentidad.infrastructure.repository.UsuarioIdentidadJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -24,6 +28,18 @@ public class AccountIdentityService {
 
     private final GoogleSsoService googleSsoService;
     private final UsuarioJpaRepository usuarioRepository;
+    private final UsuarioIdentidadJpaRepository usuarioIdentidadRepository;
+
+    @Transactional(readOnly = true)
+    public List<AccountIdentityResult> listarIdentidades(String correoAutenticado) {
+        UsuarioEntity usuario = obtenerUsuarioAutenticado(correoAutenticado);
+
+        return usuarioIdentidadRepository
+                .findByUsuario_IdUsuarioAndEstadoTrueOrderByFechaCreacionDesc(usuario.getIdUsuario())
+                .stream()
+                .map(this::mapearIdentidad)
+                .toList();
+    }
 
     @Transactional
     public GoogleIdentityLinkResult vincularGoogle(String correoAutenticado, String idToken) {
@@ -64,5 +80,15 @@ public class AccountIdentityService {
         }
 
         return correo.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private AccountIdentityResult mapearIdentidad(UsuarioIdentidadEntity identidad) {
+        return new AccountIdentityResult(
+                identidad.getProveedor(),
+                identidad.getCorreoProveedor(),
+                Boolean.TRUE.equals(identidad.getCorreoVerificado()),
+                Boolean.TRUE.equals(identidad.getEstado()),
+                identidad.getFechaCreacion()
+        );
     }
 }

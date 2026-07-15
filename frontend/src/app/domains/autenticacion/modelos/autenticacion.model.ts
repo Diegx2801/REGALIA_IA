@@ -14,3 +14,11 @@ export interface ResultadoLogin {
   contextoAutenticacion: 'PUBLIC' | 'ADMIN';
   expiraEnMinutos: number;
 }
+
+export interface IdentidadCuenta {
+  proveedor: 'GOOGLE' | string;
+  correo: string;
+  correoVerificado: boolean;
+  vinculada: boolean;
+  fechaVinculacion: string | null;
+}

@@ -1,10 +1,12 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { AlmacenamientoAutenticacionService } from './almacenamiento-autenticacion.service';
 import { RolUsuario, SesionAutenticacion } from './sesion-autenticacion.model';
+import { GoogleIdentidadService } from '../../domains/autenticacion/acceso-datos/google-identidad.service';
 
 @Injectable({ providedIn: 'root' })
 export class SesionAutenticacionService {
   private readonly almacenamiento = inject(AlmacenamientoAutenticacionService);
+  private readonly googleIdentidad = inject(GoogleIdentidadService);
   private readonly sesionActual = signal<SesionAutenticacion | null>(
     this.almacenamiento.obtenerSesion(),
   );
@@ -22,6 +24,7 @@ export class SesionAutenticacionService {
 
   cerrarSesion(): void {
     this.almacenamiento.limpiarSesion();
+    this.googleIdentidad.limpiarSeleccionAutomatica();
     this.sesionActual.set(null);
   }
 

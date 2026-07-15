@@ -27,9 +27,15 @@ interface GoogleButtonOptions {
   logo_alignment?: 'left' | 'center';
 }
 
+interface GoogleRenderOptions {
+  text?: GoogleButtonOptions['text'];
+  mostrarCuentaGoogle?: boolean;
+}
+
 interface GoogleAccountsId {
   initialize(configuracion: GoogleIdentityInitializeConfig): void;
   renderButton(contenedor: HTMLElement, opciones: GoogleButtonOptions): void;
+  disableAutoSelect(): void;
 }
 
 interface GoogleIdentityApi {
@@ -55,7 +61,7 @@ export class GoogleIdentidadService {
       onCredential: (idToken: string) => void;
       onError: (mensaje: string) => void;
     },
-    opciones?: Pick<GoogleButtonOptions, 'text'>,
+    opciones?: GoogleRenderOptions,
   ): void {
     this.cargarScript()
       .then(() => {
@@ -82,17 +88,25 @@ export class GoogleIdentidadService {
           },
         });
 
+        const mostrarCuentaGoogle = opciones?.mostrarCuentaGoogle ?? true;
+
         googleId.renderButton(contenedor, {
           theme: 'outline',
-          size: 'large',
+          size: mostrarCuentaGoogle ? 'large' : 'medium',
           text: opciones?.text ?? 'continue_with',
           shape: 'pill',
-          width: 320,
+          width: mostrarCuentaGoogle ? 320 : 190,
           locale: 'es',
           logo_alignment: 'left',
         });
       })
       .catch(() => callbacks.onError('No se pudo cargar el inicio con Google.'));
+  }
+
+  // Limpia la seleccion automatica de Google al cerrar sesion en REGALIA.
+  // No cierra la cuenta Google del navegador; solo evita reutilizar la ultima cuenta sin contexto.
+  limpiarSeleccionAutomatica(): void {
+    window.google?.accounts?.id?.disableAutoSelect();
   }
 
   private cargarScript(): Promise<void> {
