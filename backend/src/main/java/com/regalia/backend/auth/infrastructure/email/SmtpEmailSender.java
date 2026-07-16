@@ -32,7 +32,7 @@ public class SmtpEmailSender implements EmailSender {
             MimeMessage mensaje = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(
                     mensaje,
-                    false,
+                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
                     StandardCharsets.UTF_8.name()
             );
 

@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable, timeout } from 'rxjs';
+import { catchError, map, Observable, throwError, timeout } from 'rxjs';
 
 import { ENDPOINTS_API } from '../../../core/configuracion/endpoints-api';
 import { RespuestaApi } from '../../../shared/modelos/respuesta-api.model';
@@ -33,6 +33,18 @@ export class VerificacionCorreoApiService {
             correo: respuesta.data.correo,
             verificado: respuesta.data.verificado,
           };
+        }),
+        catchError((error: unknown) => {
+          if (error instanceof HttpErrorResponse) {
+            const mensaje = (error.error as RespuestaApi<unknown> | undefined)?.message;
+            return throwError(() => new Error(mensaje ?? 'No se pudo confirmar el correo.'));
+          }
+
+          if (error instanceof Error) {
+            return throwError(() => error);
+          }
+
+          return throwError(() => new Error('No se pudo confirmar el correo.'));
         }),
       );
   }

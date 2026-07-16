@@ -40,9 +40,15 @@ export class PaginaVerificarCorreo implements OnInit {
           this.titulo.set('Correo confirmado');
           this.mensaje.set('Tu cuenta ya puede recibir notificaciones importantes de REGALIA.');
         },
-        error: () => {
+        error: (error: unknown) => {
+          const mensaje =
+            error instanceof Error
+              ? error.message
+              : 'El enlace expiro, ya fue usado o no se pudo validar. Solicita uno nuevo desde tu perfil.';
+
           this.marcarError(
-            'El enlace expiro, ya fue usado o no se pudo validar. Solicita uno nuevo desde tu perfil.',
+            mensaje ||
+              'El enlace expiro, ya fue usado o no se pudo validar. Solicita uno nuevo desde tu perfil.',
           );
         },
       });
