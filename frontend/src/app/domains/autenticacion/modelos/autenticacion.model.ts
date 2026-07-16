@@ -10,6 +10,7 @@ export interface ResultadoLogin {
   tipoToken: string;
   idUsuario: number;
   correo: string;
+  correoVerificado: boolean;
   roles: RolUsuario[];
   contextoAutenticacion: 'PUBLIC' | 'ADMIN';
   expiraEnMinutos: number;

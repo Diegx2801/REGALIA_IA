@@ -228,6 +228,7 @@ public class AuthService {
                 TIPO_TOKEN,
                 usuario.getIdUsuario(),
                 usuario.getCorreo(),
+                Boolean.TRUE.equals(usuario.getCorreoVerificado()),
                 roles,
                 authContext.name(),
                 jwtService.obtenerExpirationMinutes(authContext)

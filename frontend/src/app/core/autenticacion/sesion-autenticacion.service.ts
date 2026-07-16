@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { AlmacenamientoAutenticacionService } from './almacenamiento-autenticacion.service';
-import { RolUsuario, SesionAutenticacion } from './sesion-autenticacion.model';
+import { RolUsuario, SesionAutenticacion, UsuarioSesion } from './sesion-autenticacion.model';
 import { GoogleIdentidadService } from '../../domains/autenticacion/acceso-datos/google-identidad.service';
 
 @Injectable({ providedIn: 'root' })
@@ -20,6 +20,22 @@ export class SesionAutenticacionService {
   iniciarSesion(sesion: SesionAutenticacion, recordar: boolean): void {
     this.almacenamiento.guardarSesion(sesion, recordar);
     this.sesionActual.set(sesion);
+  }
+
+  actualizarUsuarioActual(cambios: Partial<UsuarioSesion>): void {
+    const sesion = this.sesionActual();
+    if (!sesion) return;
+
+    const sesionActualizada: SesionAutenticacion = {
+      ...sesion,
+      usuario: {
+        ...sesion.usuario,
+        ...cambios,
+      },
+    };
+
+    this.almacenamiento.actualizarSesion(sesionActualizada);
+    this.sesionActual.set(sesionActualizada);
   }
 
   cerrarSesion(): void {

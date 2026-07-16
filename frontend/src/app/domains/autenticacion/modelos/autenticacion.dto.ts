@@ -26,6 +26,7 @@ export interface LoginResponseDto {
   tipo: string;
   idUsuario: number;
   correo: string;
+  correoVerificado: boolean;
   roles: string[];
   authContext: 'PUBLIC' | 'ADMIN';
   expiraEnMinutos: number;

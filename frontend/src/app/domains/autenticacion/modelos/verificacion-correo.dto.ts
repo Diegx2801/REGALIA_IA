@@ -3,3 +3,7 @@ export interface VerificacionCorreoResponseDto {
   correo: string;
   verificado: boolean;
 }
+
+export interface ConfirmarVerificacionCorreoRequestDto {
+  token: string;
+}

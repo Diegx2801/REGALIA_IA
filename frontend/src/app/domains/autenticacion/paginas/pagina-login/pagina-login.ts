@@ -136,11 +136,14 @@ export class PaginaLogin implements OnInit {
       .pipe(finalize(() => this.estaEnviando.set(false)))
       .subscribe({
         next: () => {
-          this.formularioLogin.controls.correo.setValue(this.formularioRegistro.controls.correo.value);
+          const correoRegistrado = this.formularioRegistro.controls.correo.value.trim().toLowerCase();
+          this.formularioLogin.controls.correo.setValue(correoRegistrado);
           this.formularioLogin.controls.contrasena.setValue('');
           this.formularioRegistro.reset();
           this.modo.set('login');
-          this.mensajeRegistro.set('Cuenta creada correctamente. Ahora puedes iniciar sesion.');
+          this.mensajeRegistro.set(
+            `Cuenta creada. Revisa ${correoRegistrado} y confirma tu correo. Podras navegar, pero necesitaremos verificarlo antes de confirmar pedidos o gestionar una tienda.`,
+          );
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorRegistro(error)),
       });
@@ -233,6 +236,7 @@ export class PaginaLogin implements OnInit {
         correo: resultado.correo,
         nombreCompleto: resultado.correo,
         rol: rolPrincipal,
+        correoVerificado: resultado.correoVerificado,
       },
     };
 

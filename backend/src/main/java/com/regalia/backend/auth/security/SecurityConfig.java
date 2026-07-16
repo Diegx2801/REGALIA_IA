@@ -42,6 +42,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ObjectMapper objectMapper;
     private final SecurityHeadersProperties securityHeadersProperties;
+    private final EmailVerifiedAuthorizationManager emailVerifiedAuthorizationManager;
 
     @Bean
     // SECURITY FILTER CHAIN: define el flujo de seguridad que se ejecuta en cada request.
@@ -111,7 +112,7 @@ public class SecurityConfig {
                          */
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/google").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/email-verification/confirm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/email-verification/confirm").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admin/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 
@@ -141,7 +142,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").access(publicAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/checkout/sessions").access(clienteAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/sessions").access(clienteVerificadoAccess())
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/mercado-pago").permitAll()
 
                         /*
@@ -154,9 +155,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/vendedores/me").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*").access(publicAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").access(publicAccess())
-                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*").access(publicAccess())
-                        .requestMatchers("/api/vendedores/me/**").access(vendedorAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").access(publicVerificadoAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/vendedores/me/tiendas/*").access(vendedorVerificadoAccess())
+                        .requestMatchers("/api/vendedores/me/**").access(vendedorVerificadoAccess())
 
                         /*
                          * Panel administrativo.
@@ -167,8 +168,8 @@ public class SecurityConfig {
                         /*
                          * Pedidos del cliente autenticado.
                          */
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").access(clienteAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/pagos").access(clienteAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").access(clienteVerificadoAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/pagos").access(clienteVerificadoAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos").access(clienteAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/**").access(clienteAccess())
 
@@ -196,12 +197,38 @@ public class SecurityConfig {
         return requireAuthorities(ROLE_CLIENTE, AUTH_CONTEXT_PUBLIC);
     }
 
+    private AuthorizationManager<RequestAuthorizationContext> clienteVerificadoAccess() {
+        return requireVerifiedAuthorities(ROLE_CLIENTE, AUTH_CONTEXT_PUBLIC);
+    }
+
     private static AuthorizationManager<RequestAuthorizationContext> vendedorAccess() {
         return requireAuthorities(ROLE_VENDEDOR, AUTH_CONTEXT_PUBLIC);
     }
 
+    private AuthorizationManager<RequestAuthorizationContext> vendedorVerificadoAccess() {
+        return requireVerifiedAuthorities(ROLE_VENDEDOR, AUTH_CONTEXT_PUBLIC);
+    }
+
     private static AuthorizationManager<RequestAuthorizationContext> publicAccess() {
         return requireAuthorities(AUTH_CONTEXT_PUBLIC);
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> publicVerificadoAccess() {
+        return requireVerifiedAuthorities(AUTH_CONTEXT_PUBLIC);
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> requireVerifiedAuthorities(String... requiredAuthorities) {
+        AuthorizationManager<RequestAuthorizationContext> authoritiesManager = requireAuthorities(requiredAuthorities);
+
+        return (authenticationSupplier, context) -> {
+            AuthorizationDecision authoritiesDecision = authoritiesManager.check(authenticationSupplier, context);
+
+            if (authoritiesDecision == null || !authoritiesDecision.isGranted()) {
+                return new AuthorizationDecision(false);
+            }
+
+            return emailVerifiedAuthorizationManager.check(authenticationSupplier, context);
+        };
     }
 
     private static AuthorizationManager<RequestAuthorizationContext> requireAuthorities(String... requiredAuthorities) {

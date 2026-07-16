@@ -31,6 +31,7 @@ public final class AuthApiMapper {
                 result.tipo(),
                 result.idUsuario(),
                 result.correo(),
+                result.correoVerificado(),
                 result.roles(),
                 result.authContext(),
                 result.expiraEnMinutos()

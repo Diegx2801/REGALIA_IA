@@ -91,6 +91,7 @@ export class PaginaAdminLogin {
         correo: resultado.correo,
         nombreCompleto: resultado.correo,
         rol: rolPrincipal,
+        correoVerificado: resultado.correoVerificado,
       },
     };
 

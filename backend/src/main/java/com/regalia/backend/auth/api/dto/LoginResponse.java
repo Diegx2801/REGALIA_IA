@@ -10,6 +10,7 @@ public record LoginResponse(
         String tipo,
         Long idUsuario,
         String correo,
+        boolean correoVerificado,
         List<String> roles,
         String authContext,
         Long expiraEnMinutos

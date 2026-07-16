@@ -58,20 +58,16 @@ public class UsuarioTokenSeguridadService {
             throw new ReglaNegocioException(MENSAJE_TOKEN_INVALIDO);
         }
 
-        UsuarioTokenSeguridadEntity tokenEntity = tokenRepository
-                .findByTokenHashAndTipoTokenAndEstadoTrue(hashearToken(token.trim()), tipoToken)
-                .orElseThrow(() -> new ReglaNegocioException(MENSAJE_TOKEN_INVALIDO));
+        String tokenHash = hashearToken(token.trim());
+        LocalDateTime fechaConsumo = LocalDateTime.now();
+        int tokensConsumidos = tokenRepository.consumirAtomico(tokenHash, tipoToken, fechaConsumo);
 
-        if (tokenEntity.getFechaConsumo() != null || tokenEntity.getFechaExpiracion().isBefore(LocalDateTime.now())) {
-            tokenEntity.setEstado(false);
-            tokenRepository.save(tokenEntity);
+        if (tokensConsumidos != 1) {
             throw new ReglaNegocioException(MENSAJE_TOKEN_INVALIDO);
         }
 
-        tokenEntity.setFechaConsumo(LocalDateTime.now());
-        tokenEntity.setEstado(false);
-
-        return tokenRepository.save(tokenEntity);
+        return tokenRepository.findByTokenHashAndTipoToken(tokenHash, tipoToken)
+                .orElseThrow(() -> new IllegalStateException("No se encontro el token consumido"));
     }
 
     private void invalidarTokensActivos(Long idUsuario, UsuarioTokenSeguridadTipo tipoToken) {

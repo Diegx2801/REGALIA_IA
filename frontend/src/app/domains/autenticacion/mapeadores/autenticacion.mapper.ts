@@ -25,6 +25,7 @@ export function mapearLoginDesdeDto(dto: LoginResponseDto): ResultadoLogin {
     tipoToken: dto.tipo,
     idUsuario: dto.idUsuario,
     correo: dto.correo,
+    correoVerificado: dto.correoVerificado,
     roles: dto.roles.map(mapearRolDesdeBackend).filter((rol): rol is RolUsuario => rol !== null),
     contextoAutenticacion: dto.authContext,
     expiraEnMinutos: dto.expiraEnMinutos,

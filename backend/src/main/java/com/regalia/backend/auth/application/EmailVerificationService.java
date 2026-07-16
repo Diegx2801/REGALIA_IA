@@ -85,7 +85,7 @@ public class EmailVerificationService {
     private String construirUrlConfirmacion(String token) {
         return UriComponentsBuilder
                 .fromUriString(properties.getConfirmationUrl())
-                .queryParam("token", token)
+                .fragment("token=" + token)
                 .build()
                 .toUriString();
     }
