@@ -22,6 +22,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'verificar-correo',
+        loadComponent: () =>
+          import(
+            './domains/autenticacion/paginas/pagina-verificar-correo/pagina-verificar-correo'
+          ).then((m) => m.PaginaVerificarCorreo),
+      },
+      {
         path: 'catalogo',
         loadChildren: () =>
           import('./domains/catalogo/catalogo.routes').then((m) => m.CATALOGO_ROUTES),

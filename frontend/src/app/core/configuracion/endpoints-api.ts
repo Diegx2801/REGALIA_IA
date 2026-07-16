@@ -6,6 +6,7 @@ export const ENDPOINTS_API = {
     login: `${RUTA_BASE_API}/auth/login`,
     google: `${RUTA_BASE_API}/auth/google`,
     loginAdministracion: `${RUTA_BASE_API}/admin/auth/login`,
+    confirmarVerificacionCorreo: `${RUTA_BASE_API}/auth/email-verification/confirm`,
   },
   cuenta: {
     identidades: `${RUTA_BASE_API}/account/identities`,

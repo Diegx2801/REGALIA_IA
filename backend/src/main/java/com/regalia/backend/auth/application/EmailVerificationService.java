@@ -1,6 +1,6 @@
 package com.regalia.backend.auth.application;
 
-import com.regalia.backend.auth.application.email.EmailSender;
+import com.regalia.backend.auth.application.email.EmailDeliveryService;
 import com.regalia.backend.auth.application.result.EmailVerificationResult;
 import com.regalia.backend.auth.application.result.UsuarioTokenSeguridadCreado;
 import com.regalia.backend.auth.infrastructure.email.EmailVerificationProperties;
@@ -11,6 +11,8 @@ import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepositor
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
@@ -24,7 +26,7 @@ public class EmailVerificationService {
 
     private final UsuarioTokenSeguridadService tokenSeguridadService;
     private final UsuarioJpaRepository usuarioRepository;
-    private final EmailSender emailSender;
+    private final EmailDeliveryService emailDeliveryService;
     private final EmailVerificationProperties properties;
 
     @Transactional
@@ -39,7 +41,7 @@ public class EmailVerificationService {
                 properties.getExpirationMinutes()
         );
 
-        emailSender.enviarVerificacionCorreo(
+        programarEnvioVerificacion(
                 usuario.getCorreo(),
                 usuario.getNombre(),
                 construirUrlConfirmacion(token.token())
@@ -86,5 +88,19 @@ public class EmailVerificationService {
                 .queryParam("token", token)
                 .build()
                 .toUriString();
+    }
+
+    private void programarEnvioVerificacion(String correo, String nombre, String enlaceConfirmacion) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            emailDeliveryService.enviarVerificacionCorreo(correo, nombre, enlaceConfirmacion);
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                emailDeliveryService.enviarVerificacionCorreo(correo, nombre, enlaceConfirmacion);
+            }
+        });
     }
 }

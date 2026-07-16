@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "regalia.security.email-verification")
 public class EmailVerificationProperties {
 
-    private String confirmationUrl = "http://localhost:8080/api/auth/email-verification/confirm";
+    private String confirmationUrl = "http://localhost:4200/verificar-correo";
     private int expirationMinutes = 1440;
 
     public String getConfirmationUrl() {
