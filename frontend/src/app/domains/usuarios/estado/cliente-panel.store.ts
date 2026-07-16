@@ -26,6 +26,8 @@ export class ClientePanelStore {
   readonly guardandoPerfil = signal(false);
   readonly registrandoPago = signal(false);
   readonly vinculandoGoogle = signal(false);
+  readonly reenviandoVerificacion = signal(false);
+  readonly refrescandoPerfil = signal(false);
   readonly mensajeError = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
 
@@ -83,6 +85,28 @@ export class ClientePanelStore {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (pedidos) => this.pedidos.set(pedidos),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  refrescarPerfil(mensajeExito?: string): void {
+    this.refrescandoPerfil.set(true);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    this.usuarioApi
+      .obtenerPerfilActual()
+      .pipe(
+        finalize(() => this.refrescandoPerfil.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (perfil) => {
+          this.perfil.set(perfil);
+          if (mensajeExito) {
+            this.mensajeExito.set(mensajeExito);
+          }
+        },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
@@ -170,6 +194,23 @@ export class ClientePanelStore {
           ]);
           this.mensajeExito.set('Google vinculado correctamente.');
         },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  reenviarVerificacionCorreo(): void {
+    this.reenviandoVerificacion.set(true);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    this.usuarioApi
+      .reenviarVerificacionCorreo()
+      .pipe(
+        finalize(() => this.reenviandoVerificacion.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (mensaje) => this.refrescarPerfil(mensaje),
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }

@@ -5,6 +5,7 @@ import com.regalia.backend.auth.application.result.EmailVerificationResult;
 import com.regalia.backend.auth.application.result.UsuarioTokenSeguridadCreado;
 import com.regalia.backend.auth.infrastructure.email.EmailVerificationProperties;
 import com.regalia.backend.auth.infrastructure.entity.UsuarioTokenSeguridadEntity;
+import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,20 @@ public class EmailVerificationService {
                 usuarioActualizado.getIdUsuario(),
                 usuarioActualizado.getCorreo(),
                 Boolean.TRUE.equals(usuarioActualizado.getCorreoVerificado())
+        );
+    }
+
+    @Transactional
+    public EmailVerificationResult reenviarVerificacionCuentaLocal(String correoAutenticado) {
+        UsuarioEntity usuario = usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrue(correoAutenticado)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el usuario autenticado"));
+
+        enviarVerificacionCuentaLocal(usuario);
+
+        return new EmailVerificationResult(
+                usuario.getIdUsuario(),
+                usuario.getCorreo(),
+                Boolean.TRUE.equals(usuario.getCorreoVerificado())
         );
     }
 

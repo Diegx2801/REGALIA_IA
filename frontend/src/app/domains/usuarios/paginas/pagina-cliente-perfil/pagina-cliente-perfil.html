@@ -35,9 +35,27 @@
           </strong>
         </div>
         @if (!store.perfil()?.correoVerificado) {
-          <p class="cliente-perfil__verification-note">
-            Confirma tu correo para proteger tu cuenta y recibir avisos importantes.
-          </p>
+          <div class="cliente-perfil__verification-note">
+            <p>Confirma tu correo para proteger tu cuenta y recibir avisos importantes.</p>
+            <div class="cliente-perfil__verification-actions">
+              <button
+                type="button"
+                class="cliente-perfil__verification-action"
+                [disabled]="store.reenviandoVerificacion()"
+                (click)="reenviarVerificacionCorreo()"
+              >
+                {{ store.reenviandoVerificacion() ? 'Reenviando...' : 'Reenviar enlace' }}
+              </button>
+              <button
+                type="button"
+                class="cliente-perfil__verification-action cliente-perfil__verification-action--ghost"
+                [disabled]="store.refrescandoPerfil()"
+                (click)="refrescarEstadoCorreo()"
+              >
+                {{ store.refrescandoPerfil() ? 'Actualizando...' : 'Actualizar estado' }}
+              </button>
+            </div>
+          </div>
         }
       </article>
 

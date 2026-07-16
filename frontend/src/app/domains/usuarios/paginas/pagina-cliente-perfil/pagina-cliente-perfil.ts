@@ -90,4 +90,12 @@ export class PaginaClientePerfil implements OnInit {
   registrarErrorGoogle(mensaje: string): void {
     this.store.registrarErrorCuenta(mensaje);
   }
+
+  reenviarVerificacionCorreo(): void {
+    this.store.reenviarVerificacionCorreo();
+  }
+
+  refrescarEstadoCorreo(): void {
+    this.store.refrescarPerfil('Estado del correo actualizado.');
+  }
 }
