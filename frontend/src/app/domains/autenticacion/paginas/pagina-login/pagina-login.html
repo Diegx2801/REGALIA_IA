@@ -71,13 +71,6 @@
           </button>
         </div>
 
-        @if (esLoginAdministracion() && modo() === 'login') {
-          <div class="auth-seller-note">
-            <span aria-hidden="true">&#10022;</span>
-            <p>Acceso administrativo activo. Este formulario validara contra el endpoint protegido del backoffice.</p>
-          </div>
-        }
-
         @if (modo() === 'login') {
           <form
             class="auth-form"
@@ -163,22 +156,20 @@
               }
             </button>
 
-            @if (!esLoginAdministracion()) {
-              <div class="auth-divider" aria-hidden="true">
-                <span>o continua con</span>
-              </div>
+            <div class="auth-divider" aria-hidden="true">
+              <span>o continua con</span>
+            </div>
 
-              <app-boton-google-login
-                [disabled]="estaBloqueado()"
-                [mostrarCuentaGoogle]="false"
-                modo="login"
-                (idTokenObtenido)="enviarLoginGoogle($event)"
-                (errorAutenticacion)="mostrarErrorGoogle($event)"
-              />
+            <app-boton-google-login
+              [disabled]="estaBloqueado()"
+              [mostrarCuentaGoogle]="false"
+              modo="login"
+              (idTokenObtenido)="enviarLoginGoogle($event)"
+              (errorAutenticacion)="mostrarErrorGoogle($event)"
+            />
 
-              @if (estaProcesandoGoogle()) {
-                <p class="auth-google-status" role="status">Validando acceso seguro con Google...</p>
-              }
+            @if (estaProcesandoGoogle()) {
+              <p class="auth-google-status" role="status">Validando acceso seguro con Google...</p>
             }
 
             <p class="auth-form__switch">
@@ -316,22 +307,20 @@
               }
             </button>
 
-            @if (!esLoginAdministracion()) {
-              <div class="auth-divider" aria-hidden="true">
-                <span>o crea tu cuenta con</span>
-              </div>
+            <div class="auth-divider" aria-hidden="true">
+              <span>o crea tu cuenta con</span>
+            </div>
 
-              <app-boton-google-login
-                [disabled]="estaBloqueado()"
-                [mostrarCuentaGoogle]="false"
-                modo="registro"
-                (idTokenObtenido)="enviarLoginGoogle($event)"
-                (errorAutenticacion)="mostrarErrorGoogle($event)"
-              />
+            <app-boton-google-login
+              [disabled]="estaBloqueado()"
+              [mostrarCuentaGoogle]="false"
+              modo="registro"
+              (idTokenObtenido)="enviarLoginGoogle($event)"
+              (errorAutenticacion)="mostrarErrorGoogle($event)"
+            />
 
-              @if (estaProcesandoGoogle()) {
-                <p class="auth-google-status" role="status">Creando acceso seguro con Google...</p>
-              }
+            @if (estaProcesandoGoogle()) {
+              <p class="auth-google-status" role="status">Creando acceso seguro con Google...</p>
             }
 
             <a class="auth-seller-link" routerLink="/login" [queryParams]="{ origen: 'vendedor' }">

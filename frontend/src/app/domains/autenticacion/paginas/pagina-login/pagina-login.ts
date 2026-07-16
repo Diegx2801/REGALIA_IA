@@ -33,7 +33,6 @@ export class PaginaLogin implements OnInit {
   readonly estaBloqueado = computed(() => this.estaEnviando() || this.estaProcesandoGoogle());
   readonly mensajeError = signal('');
   readonly mensajeRegistro = signal('');
-  readonly esLoginAdministracion = signal(false);
   readonly mostrarContrasena = signal(false);
   readonly mostrarContrasenaRegistro = signal(false);
   readonly mostrarConfirmacionRegistro = signal(false);
@@ -83,7 +82,11 @@ export class PaginaLogin implements OnInit {
     this.rutaActiva.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((parametros) => {
-        this.esLoginAdministracion.set(parametros.get('contexto') === 'admin');
+        if (parametros.get('contexto') === 'admin') {
+          void this.router.navigate(['/admin/login'], { replaceUrl: true });
+          return;
+        }
+
         this.mensajeError.set('');
         this.mensajeRegistro.set('');
       });
@@ -106,9 +109,7 @@ export class PaginaLogin implements OnInit {
     }
 
     const credenciales = this.obtenerCredenciales();
-    const solicitud = this.esLoginAdministracion()
-      ? this.autenticacionApi.iniciarSesionAdministracion(credenciales)
-      : this.autenticacionApi.iniciarSesionPublica(credenciales);
+    const solicitud = this.autenticacionApi.iniciarSesionPublica(credenciales);
 
     this.estaEnviando.set(true);
 
@@ -146,7 +147,7 @@ export class PaginaLogin implements OnInit {
   }
 
   enviarLoginGoogle(idToken: string): void {
-    if (this.esLoginAdministracion() || this.estaBloqueado()) return;
+    if (this.estaBloqueado()) return;
 
     this.mensajeError.set('');
     this.mensajeRegistro.set('');

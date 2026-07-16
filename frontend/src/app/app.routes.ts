@@ -14,13 +14,20 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),
       },
-      {
-        path: 'login',
-        loadChildren: () =>
-          import('./domains/autenticacion/autenticacion.routes').then(
-            (m) => m.AUTENTICACION_ROUTES,
-          ),
-      },
+  {
+    path: 'login',
+    loadChildren: () =>
+      import('./domains/autenticacion/autenticacion.routes').then(
+        (m) => m.AUTENTICACION_ROUTES,
+      ),
+  },
+  {
+    path: 'admin/login',
+    loadComponent: () =>
+      import('./domains/autenticacion/paginas/pagina-admin-login/pagina-admin-login').then(
+        (m) => m.PaginaAdminLogin,
+      ),
+  },
       {
         path: 'verificar-correo',
         loadComponent: () =>

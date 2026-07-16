@@ -1,0 +1,77 @@
+<section class="admin-login">
+  <a class="admin-login__brand" routerLink="/">
+    <span class="admin-login__mark">R</span>
+    <span>
+      <strong>REGALIA</strong>
+      <small>Administracion</small>
+    </span>
+  </a>
+
+  <main class="admin-login__shell">
+    <section class="admin-login__intro">
+      <p class="admin-login__eyebrow">Backoffice seguro</p>
+      <h1>Acceso administrativo</h1>
+      <p>
+        Ingresa solo con la cuenta asignada por REGALIA. Este espacio queda
+        separado del login publico de clientes y vendedores.
+      </p>
+    </section>
+
+    <form
+      class="admin-login__form"
+      [formGroup]="formularioLogin"
+      (ngSubmit)="enviarLogin()"
+      novalidate
+    >
+      <div>
+        <p class="admin-login__eyebrow">Sesion protegida</p>
+        <h2>Centro de control</h2>
+      </div>
+
+      <label class="admin-login__field">
+        <span>Correo administrativo</span>
+        <input
+          type="email"
+          formControlName="correo"
+          autocomplete="username"
+          placeholder="admin@regalia.com"
+        />
+      </label>
+
+      <label class="admin-login__field">
+        <span>Contrasena</span>
+        <div class="admin-login__password">
+          <input
+            [type]="mostrarContrasena() ? 'text' : 'password'"
+            formControlName="contrasena"
+            autocomplete="current-password"
+            placeholder="Tu contrasena"
+          />
+          <button type="button" (click)="alternarContrasena()">
+            {{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}
+          </button>
+        </div>
+      </label>
+
+      <label class="admin-login__remember">
+        <input type="checkbox" formControlName="recordarSesion" />
+        <span>Recordar esta sesion administrativa</span>
+      </label>
+
+      @if (mensajeError()) {
+        <div class="admin-login__message" role="alert">
+          {{ mensajeError() }}
+        </div>
+      }
+
+      <button class="admin-login__submit" type="submit" [disabled]="estaEnviando()">
+        {{ estaEnviando() ? 'Validando...' : 'Ingresar al panel' }}
+      </button>
+
+      <p class="admin-login__note">
+        Las cuentas administrativas se crean y asignan internamente. No hay
+        registro publico para administradores.
+      </p>
+    </form>
+  </main>
+</section>

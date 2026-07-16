@@ -218,28 +218,6 @@
   color: var(--rg-color-primary) !important;
 }
 
-.auth-seller-note {
-  align-items: flex-start;
-  background: rgba(246, 196, 83, 0.13);
-  border: 1px solid rgba(213, 160, 46, 0.24);
-  border-radius: 14px;
-  display: flex;
-  gap: 0.7rem;
-  margin-bottom: 1.2rem;
-  padding: 0.9rem;
-}
-
-.auth-seller-note > span {
-  color: #b67900;
-}
-
-.auth-seller-note p {
-  color: #65552e;
-  font-size: 0.8rem;
-  line-height: 1.55;
-  margin: 0;
-}
-
 .auth-form {
   display: grid;
   gap: 1rem;
