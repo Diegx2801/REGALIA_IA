@@ -104,4 +104,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(ApiResponse.error(ex.getMessage()));
     }
+
+    @ExceptionHandler(LimiteReenvioVerificacionException.class)
+    public ResponseEntity<ApiResponse<Void>> manejarLimiteReenvioVerificacion(
+            LimiteReenvioVerificacionException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
 }

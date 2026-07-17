@@ -9,19 +9,16 @@
     <h1>{{ titulo() }}</h1>
     <p>{{ mensaje() }}</p>
 
-    @if (correo()) {
-      <p class="email-verification__email">{{ correo() }}</p>
-    }
-
     @if (estado() === 'cargando') {
       <span class="email-verification__progress" aria-hidden="true"></span>
     }
 
-    <div class="email-verification__actions">
-      <a class="email-verification__button email-verification__button--primary" routerLink="/login">
-        Ir a iniciar sesion
-      </a>
-      <a class="email-verification__button" routerLink="/">Volver al inicio</a>
-    </div>
+    @if (estado() === 'error') {
+      <div class="email-verification__actions">
+        <a class="email-verification__button email-verification__button--primary" routerLink="/">
+          Abrir REGALIA
+        </a>
+      </div>
+    }
   </div>
 </section>

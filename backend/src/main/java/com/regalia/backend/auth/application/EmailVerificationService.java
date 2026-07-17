@@ -28,6 +28,7 @@ public class EmailVerificationService {
     private final UsuarioJpaRepository usuarioRepository;
     private final EmailDeliveryService emailDeliveryService;
     private final EmailVerificationProperties properties;
+    private final EmailVerificationResendPolicy resendPolicy;
 
     @Transactional
     public void enviarVerificacionCuentaLocal(UsuarioEntity usuario) {
@@ -70,8 +71,12 @@ public class EmailVerificationService {
 
     @Transactional
     public EmailVerificationResult reenviarVerificacionCuentaLocal(String correoAutenticado) {
-        UsuarioEntity usuario = usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrue(correoAutenticado)
+        UsuarioEntity usuario = usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrueForUpdate(correoAutenticado)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el usuario autenticado"));
+
+        if (!Boolean.TRUE.equals(usuario.getCorreoVerificado())) {
+            resendPolicy.registrarReenvioPermitido(usuario);
+        }
 
         enviarVerificacionCuentaLocal(usuario);
 

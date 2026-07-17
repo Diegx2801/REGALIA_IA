@@ -64,18 +64,6 @@
   line-height: 1.7;
 }
 
-.email-verification__email {
-  display: inline-flex;
-  justify-content: center;
-  max-width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 999px;
-  background: #f7f0ec;
-  color: #4b1532;
-  font-weight: 800;
-  overflow-wrap: anywhere;
-}
-
 .email-verification__progress {
   display: block;
   width: min(12rem, 80%);
