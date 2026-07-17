@@ -8,11 +8,14 @@ import com.regalia.backend.tipodocumento.infrastructure.repository.TipoDocumento
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
 import com.regalia.backend.usuariodocumento.api.dto.AdminUsuarioDocumentoResponse;
+import com.regalia.backend.usuariodocumento.api.dto.ConsultaRucResponse;
+import com.regalia.backend.usuariodocumento.api.dto.RegistrarRucRequest;
 import com.regalia.backend.usuariodocumento.api.dto.UsuarioDocumentoRequest;
 import com.regalia.backend.usuariodocumento.api.dto.UsuarioDocumentoResponse;
 import com.regalia.backend.usuariodocumento.infrastructure.entity.UsuarioDocumentoEntity;
 import com.regalia.backend.usuariodocumento.infrastructure.mapper.UsuarioDocumentoMapper;
 import com.regalia.backend.usuariodocumento.infrastructure.repository.UsuarioDocumentoJpaRepository;
+import com.regalia.backend.usuariodocumento.infrastructure.client.ApisPeruRucClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +33,7 @@ public class UsuarioDocumentoService {
     private final UsuarioJpaRepository usuarioRepository;
     private final TipoDocumentoJpaRepository tipoDocumentoRepository;
     private final UsuarioDocumentoMapper usuarioDocumentoMapper;
+    private final ApisPeruRucClient apisPeruRucClient;
 
     @Transactional(readOnly = true)
     public List<UsuarioDocumentoResponse> listarMisDocumentos(String correoUsuario) {
@@ -53,6 +57,40 @@ public class UsuarioDocumentoService {
         UsuarioDocumentoEntity documentoGuardado = usuarioDocumentoRepository.save(documento);
 
         return usuarioDocumentoMapper.toResponse(documentoGuardado);
+    }
+
+    /**
+     * Consulta un RUC sin persistirlo para que el vendedor confirme sus datos tributarios.
+     */
+    @Transactional(readOnly = true)
+    public ConsultaRucResponse consultarRuc(String numeroRuc) {
+        return apisPeruRucClient.consultar(normalizarRuc(numeroRuc));
+    }
+
+    /**
+     * Registra el RUC validado como pendiente de revision administrativa.
+     * La consulta externa valida el dato, pero no reemplaza la decision del administrador.
+     */
+    @Transactional
+    public UsuarioDocumentoResponse registrarRucPendiente(String correoUsuario, RegistrarRucRequest request) {
+        UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
+        String numeroRuc = normalizarRuc(request.numeroRuc());
+        ConsultaRucResponse consulta = apisPeruRucClient.consultar(numeroRuc);
+
+        if (!numeroRuc.equals(consulta.ruc())) {
+            throw new ReglaNegocioException("La respuesta del servicio no corresponde al RUC consultado");
+        }
+
+        TipoDocumentoEntity tipoRuc = tipoDocumentoRepository.findByAbreviaturaIgnoreCaseAndEstadoTrue("RUC")
+                .orElseThrow(() -> new RecursoNoEncontradoException("El tipo de documento RUC no esta disponible"));
+
+        return usuarioDocumentoRepository
+                .findByTipoDocumentoIdTipoDocumentoAndNumeroDocumentoIgnoreCase(
+                        tipoRuc.getIdTipoDocumento(),
+                        numeroRuc
+                )
+                .map(documento -> resolverDocumentoRucExistente(documento, usuario))
+                .orElseGet(() -> crearDocumentoRucPendiente(usuario, tipoRuc, numeroRuc));
     }
 
     @Transactional(readOnly = true)
@@ -199,6 +237,46 @@ public class UsuarioDocumentoService {
         if (existeDocumentoVerificado) {
             throw new RecursoDuplicadoException("No se puede verificar este documento porque ya existe una cuenta verificada con el mismo número de documento");
         }
+    }
+
+    private UsuarioDocumentoResponse resolverDocumentoRucExistente(
+            UsuarioDocumentoEntity documento,
+            UsuarioEntity usuario
+    ) {
+        if (!documento.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            throw new RecursoDuplicadoException("El RUC indicado ya esta registrado en otra cuenta");
+        }
+
+        if (!Boolean.TRUE.equals(documento.getEstado())) {
+            throw new ReglaNegocioException("El RUC indicado se encuentra inactivo y no puede reutilizarse");
+        }
+
+        return usuarioDocumentoMapper.toResponse(documento);
+    }
+
+    private UsuarioDocumentoResponse crearDocumentoRucPendiente(
+            UsuarioEntity usuario,
+            TipoDocumentoEntity tipoRuc,
+            String numeroRuc
+    ) {
+        UsuarioDocumentoEntity documento = new UsuarioDocumentoEntity();
+        documento.setUsuario(usuario);
+        documento.setTipoDocumento(tipoRuc);
+        documento.setNumeroDocumento(numeroRuc);
+        documento.setEstadoVerificacion("PENDIENTE");
+        documento.setEstado(true);
+
+        return usuarioDocumentoMapper.toResponse(usuarioDocumentoRepository.save(documento));
+    }
+
+    private String normalizarRuc(String numeroRuc) {
+        String ruc = usuarioDocumentoMapper.normalizarDocumento(numeroRuc);
+
+        if (!ruc.matches("\\d{11}")) {
+            throw new ReglaNegocioException("El RUC debe tener exactamente 11 digitos");
+        }
+
+        return ruc;
     }
 
     private String normalizarEstadoVerificacion(String estadoVerificacion) {

@@ -143,6 +143,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos/ruc").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/checkout/sessions").access(clienteVerificadoAccess())

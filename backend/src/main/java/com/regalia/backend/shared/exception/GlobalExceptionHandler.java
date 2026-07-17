@@ -43,6 +43,15 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
+    @ExceptionHandler(ServicioExternoNoDisponibleException.class)
+    public ResponseEntity<ApiResponse<Void>> manejarServicioExternoNoDisponible(
+            ServicioExternoNoDisponibleException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> manejarValidaciones(MethodArgumentNotValidException ex) {
         Map<String, String> errores = new LinkedHashMap<>();

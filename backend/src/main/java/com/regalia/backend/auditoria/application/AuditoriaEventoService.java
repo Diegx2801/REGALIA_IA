@@ -22,16 +22,8 @@ public class AuditoriaEventoService {
     private final AuditoriaEventoJpaRepository auditoriaEventoRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void registrarLoginExitoso(
-            AuthContext authContext,
-            Long idUsuarioActor,
-            String correoActor,
-            String ip,
-            String userAgent
-    ) {
-        AuditoriaAccion accion = AuthContext.ADMIN.equals(authContext)
-                ? AuditoriaAccion.LOGIN_ADMIN_EXITOSO
-                : AuditoriaAccion.LOGIN_PUBLICO_EXITOSO;
+    public void registrarLoginExitoso(AuthContext authContext,Long idUsuarioActor,String correoActor,String ip,String userAgent) {
+        AuditoriaAccion accion = AuthContext.ADMIN.equals(authContext)? AuditoriaAccion.LOGIN_ADMIN_EXITOSO: AuditoriaAccion.LOGIN_PUBLICO_EXITOSO;
 
         registrar(
                 accion,
