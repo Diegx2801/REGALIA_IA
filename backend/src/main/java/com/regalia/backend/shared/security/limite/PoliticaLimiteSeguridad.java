@@ -5,5 +5,6 @@ package com.regalia.backend.shared.security.limite;
  * no requiere cambiar el esquema de base de datos.
  */
 public enum PoliticaLimiteSeguridad {
-    REENVIO_VERIFICACION_CORREO
+    REENVIO_VERIFICACION_CORREO,
+    SOLICITUD_RECUPERACION_CONTRASENA
 }

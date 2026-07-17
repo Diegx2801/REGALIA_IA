@@ -25,4 +25,14 @@ public class LoggingEmailSender implements EmailSender {
                 enlaceConfirmacion
         );
     }
+
+    @Override
+    public void enviarRecuperacionContrasena(String destino, String nombre, String enlaceRestablecimiento) {
+        LOGGER.info(
+                "Recuperacion de contrasena REGALIA para {} <{}>: {}",
+                nombre,
+                destino,
+                enlaceRestablecimiento
+        );
+    }
 }

@@ -1,0 +1,50 @@
+<section class="password-recovery">
+  <main class="password-recovery__card">
+    <span class="password-recovery__eyebrow">Seguridad de cuenta</span>
+
+    @if (modo() === 'solicitud') {
+      <h1>Recupera tu contrasena</h1>
+      <p>Ingresa tu correo y, si tiene una cuenta local asociada, te enviaremos un enlace seguro.</p>
+      <form [formGroup]="formularioSolicitud" (ngSubmit)="solicitarRecuperacion()">
+        <label for="recovery-email">Correo electronico</label>
+        <input id="recovery-email" type="email" autocomplete="email" formControlName="correo" placeholder="nombre@correo.com" />
+        @if (formularioSolicitud.controls.correo.invalid && formularioSolicitud.controls.correo.touched) {
+          <small>Ingresa un correo valido.</small>
+        }
+        <button type="submit" [disabled]="enviando()">{{ enviando() ? 'Enviando...' : 'Enviar enlace' }}</button>
+      </form>
+    } @else if (modo() === 'restablecimiento') {
+      <h1>Crea una nueva contrasena</h1>
+      <p>Elige una contrasena de al menos 8 caracteres. Este enlace solo puede usarse una vez.</p>
+      <form [formGroup]="formularioRestablecimiento" (ngSubmit)="restablecerContrasena()">
+        <label for="recovery-password">Nueva contrasena</label>
+        <div class="password-recovery__password">
+          <input id="recovery-password" [type]="mostrarContrasena() ? 'text' : 'password'" autocomplete="new-password" formControlName="nuevaContrasena" />
+          <button type="button" class="password-recovery__toggle" (click)="alternarVisibilidadContrasena()">{{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}</button>
+        </div>
+        <label for="recovery-password-confirmation">Confirmar contrasena</label>
+        <div class="password-recovery__password">
+          <input id="recovery-password-confirmation" [type]="mostrarConfirmacion() ? 'text' : 'password'" autocomplete="new-password" formControlName="confirmarContrasena" />
+          <button type="button" class="password-recovery__toggle" (click)="alternarVisibilidadConfirmacion()">{{ mostrarConfirmacion() ? 'Ocultar' : 'Ver' }}</button>
+        </div>
+        @if (formularioRestablecimiento.controls.nuevaContrasena.touched && !contrasenasCoinciden()) {
+          <small>Las contrasenas deben coincidir.</small>
+        }
+        <button type="submit" [disabled]="enviando()">{{ enviando() ? 'Guardando...' : 'Restablecer contrasena' }}</button>
+      </form>
+    } @else {
+      <span class="password-recovery__status">OK</span>
+      <h1>Contrasena restablecida</h1>
+      <p>Tu nueva contrasena ya esta activa. Puedes iniciar sesion en REGALIA.</p>
+      <a class="password-recovery__link" routerLink="/login">Ir a iniciar sesion</a>
+    }
+
+    @if (mensaje()) {
+      <p class="password-recovery__message" [class.password-recovery__message--error]="esError()" role="status">{{ mensaje() }}</p>
+    }
+
+    @if (modo() !== 'completado') {
+      <a class="password-recovery__back" routerLink="/login">Volver a iniciar sesion</a>
+    }
+  </main>
+</section>

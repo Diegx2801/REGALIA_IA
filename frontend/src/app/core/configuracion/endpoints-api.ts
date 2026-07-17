@@ -7,6 +7,8 @@ export const ENDPOINTS_API = {
     google: `${RUTA_BASE_API}/auth/google`,
     loginAdministracion: `${RUTA_BASE_API}/admin/auth/login`,
     confirmarVerificacionCorreo: `${RUTA_BASE_API}/auth/email-verification/confirm`,
+    solicitarRecuperacionContrasena: `${RUTA_BASE_API}/auth/password-recovery/request`,
+    restablecerContrasena: `${RUTA_BASE_API}/auth/password-recovery/reset`,
   },
   cuenta: {
     identidades: `${RUTA_BASE_API}/account/identities`,

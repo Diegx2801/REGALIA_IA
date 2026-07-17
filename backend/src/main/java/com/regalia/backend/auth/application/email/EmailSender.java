@@ -6,4 +6,6 @@ package com.regalia.backend.auth.application.email;
 public interface EmailSender {
 
     void enviarVerificacionCorreo(String destino, String nombre, String enlaceConfirmacion);
+
+    void enviarRecuperacionContrasena(String destino, String nombre, String enlaceRestablecimiento);
 }

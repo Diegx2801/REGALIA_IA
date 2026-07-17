@@ -36,6 +36,13 @@ export const routes: Routes = [
           ).then((m) => m.PaginaVerificarCorreo),
       },
       {
+        path: 'restablecer-contrasena',
+        loadComponent: () =>
+          import(
+            './domains/autenticacion/paginas/pagina-recuperar-contrasena/pagina-recuperar-contrasena'
+          ).then((m) => m.PaginaRecuperarContrasena),
+      },
+      {
         path: 'catalogo',
         loadChildren: () =>
           import('./domains/catalogo/catalogo.routes').then((m) => m.CATALOGO_ROUTES),

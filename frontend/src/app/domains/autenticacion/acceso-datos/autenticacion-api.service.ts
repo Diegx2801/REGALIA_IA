@@ -32,6 +32,21 @@ export class AutenticacionApiService {
       .pipe(map((respuesta) => this.mapearRespuestaLogin(respuesta)));
   }
 
+  solicitarRecuperacionContrasena(correo: string): Observable<string> {
+    return this.http
+      .post<RespuestaApi<null>>(ENDPOINTS_API.autenticacion.solicitarRecuperacionContrasena, { correo })
+      .pipe(map((respuesta) => respuesta.message ?? 'Revisa tu correo para continuar.'));
+  }
+
+  restablecerContrasena(token: string, nuevaContrasena: string): Observable<string> {
+    return this.http
+      .post<RespuestaApi<null>>(ENDPOINTS_API.autenticacion.restablecerContrasena, {
+        token,
+        nuevaContrasena,
+      })
+      .pipe(map((respuesta) => respuesta.message ?? 'Contrasena restablecida correctamente.'));
+  }
+
   private iniciarSesion(
     endpoint: string,
     credenciales: CredencialesLogin,

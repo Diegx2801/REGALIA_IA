@@ -21,6 +21,7 @@ public class EmailConfigurationValidator {
 
     private final EmailSenderProperties emailProperties;
     private final EmailVerificationProperties verificationProperties;
+    private final PasswordRecoveryProperties passwordRecoveryProperties;
     private final MailProperties mailProperties;
     private final Environment environment;
 
@@ -45,6 +46,10 @@ public class EmailConfigurationValidator {
 
             if (!verificationProperties.getConfirmationUrl().trim().toLowerCase(Locale.ROOT).startsWith("https://")) {
                 throw new IllegalStateException("Produccion requiere una URL HTTPS para confirmar correos");
+            }
+
+            if (!passwordRecoveryProperties.getResetUrl().trim().toLowerCase(Locale.ROOT).startsWith("https://")) {
+                throw new IllegalStateException("Produccion requiere una URL HTTPS para recuperar contrasenas");
             }
         }
     }

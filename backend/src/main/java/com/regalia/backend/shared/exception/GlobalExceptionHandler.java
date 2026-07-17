@@ -113,4 +113,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(ApiResponse.error(ex.getMessage()));
     }
+
+    @ExceptionHandler(LimiteSolicitudSeguridadException.class)
+    public ResponseEntity<ApiResponse<Void>> manejarLimiteSolicitudSeguridad(
+            LimiteSolicitudSeguridadException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
 }

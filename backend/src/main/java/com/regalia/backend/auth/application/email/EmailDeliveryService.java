@@ -25,4 +25,13 @@ public class EmailDeliveryService {
             LOGGER.error("No se pudo enviar el correo de verificacion a {}", destino, exception);
         }
     }
+
+    @Async("emailTaskExecutor")
+    public void enviarRecuperacionContrasena(String destino, String nombre, String enlaceRestablecimiento) {
+        try {
+            emailSender.enviarRecuperacionContrasena(destino, nombre, enlaceRestablecimiento);
+        } catch (RuntimeException exception) {
+            LOGGER.error("No se pudo enviar el correo de recuperacion de contrasena a {}", destino, exception);
+        }
+    }
 }
