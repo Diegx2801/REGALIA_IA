@@ -14,6 +14,7 @@ import com.regalia.backend.pago.infrastructure.gateway.PaymentGatewayProperties;
 import com.regalia.backend.pago.infrastructure.repository.PagoJpaRepository;
 import com.regalia.backend.pedido.api.dto.ConfirmarPedidoRequest;
 import com.regalia.backend.pedido.api.dto.OpcionPagoResponse;
+import com.regalia.backend.pedido.api.dto.PedidoClienteResumenResponse;
 import com.regalia.backend.pedido.api.dto.PedidoDetalleRequest;
 import com.regalia.backend.pedido.api.dto.PedidoResponse;
 import com.regalia.backend.pedido.api.dto.RegistrarPagoPedidoRequest;
@@ -73,9 +74,9 @@ public class PedidoService {
     private static final String ESTADO_REVISION_APROBADA = "APROBADA";
 
     private static final BigDecimal CIEN = new BigDecimal("100.00");
-    private static final int DEFAULT_ADMIN_PAGE = 0;
-    private static final int DEFAULT_ADMIN_PAGE_SIZE = 10;
-    private static final int MAX_ADMIN_PAGE_SIZE = 50;
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final PedidoJpaRepository pedidoRepository;
     private final DetallePedidoJpaRepository detallePedidoRepository;
@@ -298,13 +299,55 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> listarMisPedidos(String correoUsuario) {
+    public PaginaResponse<PedidoClienteResumenResponse> listarMisPedidos(
+            String correoUsuario,
+            String q,
+            String estado,
+            String estadoPago,
+            Integer page,
+            Integer size,
+            String sort
+    ) {
         UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
+        String busqueda = normalizarBusqueda(q);
+        Long idPedidoBuscado = obtenerIdPedidoSiAplica(busqueda);
+        PedidoClienteEstadoFiltro filtroEstado = PedidoClienteEstadoFiltro.desde(estado);
+        PedidoPagoFiltro filtroPago = PedidoPagoFiltro.desde(estadoPago);
+        PedidoClienteSortField sortField = PedidoClienteSortField.desde(sort);
+        Sort.Direction sortDirection = PedidoClienteSortField.direccionDesde(sort);
+        int pagina = normalizarPagina(page);
+        int tamanioPagina = normalizarTamanioPagina(size);
 
-        return pedidoRepository.findByUsuarioIdUsuarioAndEstadoTrueOrderByIdPedidoDesc(usuario.getIdUsuario())
+        PageRequest pageable = PageRequest.of(
+                pagina,
+                tamanioPagina,
+                Sort.by(sortDirection, sortField.apiName())
+        );
+
+        Page<PedidoClienteResumen> pedidos = pedidoRepository.findPedidosCliente(
+                usuario.getIdUsuario(),
+                busqueda,
+                idPedidoBuscado,
+                filtroEstado,
+                filtroPago,
+                sortField,
+                sortDirection,
+                pageable
+        );
+
+        List<PedidoClienteResumenResponse> contenido = pedidos.getContent()
                 .stream()
-                .map(this::construirResponse)
+                .map(this::construirResumenClienteResponse)
                 .toList();
+
+        return new PaginaResponse<>(
+                contenido,
+                pedidos.getNumber(),
+                pedidos.getSize(),
+                pedidos.getTotalElements(),
+                pedidos.getTotalPages(),
+                pedidos.isLast()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -460,6 +503,23 @@ public class PedidoService {
         return pedidoMapper.toResponse(pedido, detalles, montoPagado, saldoPendiente);
     }
 
+    private PedidoClienteResumenResponse construirResumenClienteResponse(PedidoClienteResumen pedido) {
+        BigDecimal montoPagado = pedido.montoPagado().setScale(2, RoundingMode.HALF_UP);
+        BigDecimal saldoPendiente = calcularSaldoPendiente(pedido.total(), montoPagado);
+
+        return new PedidoClienteResumenResponse(
+                pedido.idPedido(),
+                pedido.nombreTienda(),
+                pedido.tipoEntrega(),
+                pedido.fechaEntrega(),
+                pedido.estadoPedido(),
+                pedido.total().setScale(2, RoundingMode.HALF_UP),
+                montoPagado,
+                saldoPendiente,
+                pedido.fechaCreacion()
+        );
+    }
+
     private String normalizarBusqueda(String valor) {
         if (valor == null || valor.isBlank()) {
             return null;
@@ -483,9 +543,21 @@ public class PedidoService {
         }
     }
 
+    private Long obtenerIdPedidoSiAplica(String busqueda) {
+        if (busqueda == null) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
     private int normalizarPagina(Integer page) {
         if (page == null) {
-            return DEFAULT_ADMIN_PAGE;
+            return DEFAULT_PAGE;
         }
 
         if (page < 0) {
@@ -497,14 +569,14 @@ public class PedidoService {
 
     private int normalizarTamanioPagina(Integer size) {
         if (size == null) {
-            return DEFAULT_ADMIN_PAGE_SIZE;
+            return DEFAULT_PAGE_SIZE;
         }
 
         if (size < 1) {
             throw new ReglaNegocioException("El tamanio de pagina debe ser mayor a cero");
         }
 
-        if (size > MAX_ADMIN_PAGE_SIZE) {
+        if (size > MAX_PAGE_SIZE) {
             throw new ReglaNegocioException("El tamanio maximo permitido por pagina es 50");
         }
 

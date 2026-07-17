@@ -15,9 +15,9 @@ import java.util.Optional;
  * y vendedor. Las consultas del vendedor validan la propiedad del pedido
  * mediante la relación pedido -> tienda -> vendedor -> usuario.
  */
-public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>, PedidoAdminRepositoryCustom {
-
-    List<PedidoEntity> findByUsuarioIdUsuarioAndEstadoTrueOrderByIdPedidoDesc(Long idUsuario);
+public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>,
+        PedidoAdminRepositoryCustom,
+        PedidoClienteRepositoryCustom {
 
     Optional<PedidoEntity> findByIdPedidoAndUsuarioIdUsuarioAndEstadoTrue(
             Long idPedido,
