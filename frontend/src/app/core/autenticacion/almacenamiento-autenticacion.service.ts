@@ -30,6 +30,11 @@ export class AlmacenamientoAutenticacionService {
     destino.setItem(CLAVE_SESION, JSON.stringify(sesion));
   }
 
+  actualizarSesion(sesion: SesionAutenticacion): void {
+    const destino = localStorage.getItem(CLAVE_SESION) !== null ? localStorage : sessionStorage;
+    destino.setItem(CLAVE_SESION, JSON.stringify(sesion));
+  }
+
   limpiarSesion(): void {
     localStorage.removeItem(CLAVE_SESION);
     sessionStorage.removeItem(CLAVE_SESION);

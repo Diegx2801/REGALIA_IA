@@ -20,6 +20,7 @@ export function mapearUsuarioPerfilDesdeDto(dto: UsuarioPerfilDto): UsuarioPerfi
     nombreCompleto: `${nombres} ${apellidos}`.trim(),
     correo: dto.correo?.trim() || 'correo no disponible',
     telefono: dto.telefono?.trim() || 'Telefono pendiente',
+    correoVerificado: Boolean(dto.correoVerificado),
     estado: Boolean(dto.estado),
     fechaCreacion: dto.fechaCreacion,
     fechaActualizacion: dto.fechaActualizacion,

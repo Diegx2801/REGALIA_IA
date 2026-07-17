@@ -1,8 +1,10 @@
 package com.regalia.backend.auth.application;
 
 import com.regalia.backend.auditoria.application.AuditoriaEventoService;
-import com.regalia.backend.auth.api.dto.LoginRequest;
-import com.regalia.backend.auth.api.dto.LoginResponse;
+import com.regalia.backend.auth.application.command.GoogleLoginCommand;
+import com.regalia.backend.auth.application.command.LoginCommand;
+import com.regalia.backend.auth.application.oauth.GoogleUserIdentity;
+import com.regalia.backend.auth.application.result.LoginResult;
 import com.regalia.backend.auth.security.AuthContext;
 import com.regalia.backend.auth.security.JwtService;
 import com.regalia.backend.shared.exception.CredencialesInvalidasException;
@@ -18,7 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Servicio de aplicación para autenticar usuarios y emitir tokens JWT.
+ * Servicio de aplicacion para autenticar usuarios y emitir tokens JWT.
  */
 @Service
 @RequiredArgsConstructor
@@ -28,46 +30,94 @@ public class AuthService {
     private static final String ROL_ADMIN = "ADMIN";
     private static final String ROL_CLIENTE = "CLIENTE";
     private static final String ROL_VENDEDOR = "VENDEDOR";
-    private static final String MENSAJE_CREDENCIALES_INVALIDAS = "Credenciales inválidas";
+    private static final String MENSAJE_CREDENCIALES_INVALIDAS = "Credenciales invalidas";
 
     private final UsuarioJpaRepository usuarioRepository;
     private final UsuarioRolJpaRepository usuarioRolRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final GoogleSsoService googleSsoService;
     private final LoginAttemptLimiter loginAttemptLimiter;
     private final AuditoriaEventoService auditoriaEventoService;
 
     @Transactional(readOnly = true)
-    public LoginResponse loginPublico(LoginRequest request) {
+    public LoginResult loginPublico(LoginCommand request) {
         return loginPublico(request, "unknown", null);
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse loginPublico(LoginRequest request, String ipCliente) {
+    public LoginResult loginPublico(LoginCommand request, String ipCliente) {
         return loginPublico(request, ipCliente, null);
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse loginPublico(LoginRequest request, String ipCliente, String userAgent) {
+    public LoginResult loginPublico(LoginCommand request, String ipCliente, String userAgent) {
         return login(request, ipCliente, userAgent, AuthContext.PUBLIC);
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse loginAdmin(LoginRequest request) {
+    public LoginResult loginAdmin(LoginCommand request) {
         return loginAdmin(request, "unknown", null);
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse loginAdmin(LoginRequest request, String ipCliente) {
+    public LoginResult loginAdmin(LoginCommand request, String ipCliente) {
         return loginAdmin(request, ipCliente, null);
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse loginAdmin(LoginRequest request, String ipCliente, String userAgent) {
+    public LoginResult loginAdmin(LoginCommand request, String ipCliente, String userAgent) {
         return login(request, ipCliente, userAgent, AuthContext.ADMIN);
     }
 
-    private LoginResponse login(LoginRequest request,String ipCliente,String userAgent,AuthContext authContext) {
+    @Transactional
+    public LoginResult loginGoogle(GoogleLoginCommand request, String ipCliente, String userAgent) {
+        GoogleUserIdentity googleIdentity = googleSsoService.verificarIdentidad(request.idToken());
+        String correoNormalizado = normalizarCorreo(googleIdentity.email());
+
+        loginAttemptLimiter.validarPermitido(AuthContext.PUBLIC, correoNormalizado, ipCliente);
+
+        UsuarioEntity usuario = null;
+
+        try {
+            usuario = googleSsoService.obtenerOCrearUsuario(googleIdentity, correoNormalizado);
+            List<String> roles = obtenerRolesActivos(usuario.getIdUsuario());
+            validarAccesoPublico(roles);
+
+            loginAttemptLimiter.registrarExito(AuthContext.PUBLIC, correoNormalizado, ipCliente);
+            auditoriaEventoService.registrarLoginExitoso(
+                    AuthContext.PUBLIC,
+                    usuario.getIdUsuario(),
+                    correoNormalizado,
+                    ipCliente,
+                    userAgent
+            );
+
+            return construirLoginResult(usuario, roles, AuthContext.PUBLIC);
+        } catch (CredencialesInvalidasException ex) {
+            boolean bloqueoAplicado = loginAttemptLimiter.registrarFallo(
+                    AuthContext.PUBLIC,
+                    correoNormalizado,
+                    ipCliente
+            );
+            auditarLoginFallido(
+                    AuthContext.PUBLIC,
+                    usuario,
+                    correoNormalizado,
+                    ipCliente,
+                    userAgent,
+                    bloqueoAplicado
+            );
+            throw ex;
+        }
+    }
+
+    private LoginResult login(
+            LoginCommand request,
+            String ipCliente,
+            String userAgent,
+            AuthContext authContext
+    ) {
         String correoNormalizado = normalizarCorreo(request.correo());
 
         loginAttemptLimiter.validarPermitido(authContext, correoNormalizado, ipCliente);
@@ -92,7 +142,7 @@ public class AuthService {
                     userAgent
             );
 
-            return construirLoginResponse(usuario, roles, authContext);
+            return construirLoginResult(usuario, roles, authContext);
         } catch (CredencialesInvalidasException ex) {
             boolean bloqueoAplicado = loginAttemptLimiter.registrarFallo(
                     authContext,
@@ -117,7 +167,11 @@ public class AuthService {
     }
 
     private void validarCredenciales(UsuarioEntity usuario, String contrasena) {
-        if (usuario == null || !passwordEncoder.matches(contrasena, usuario.getContrasenaHash())) {
+        if (
+                usuario == null
+                        || usuario.getContrasenaHash() == null
+                        || !passwordEncoder.matches(contrasena, usuario.getContrasenaHash())
+        ) {
             throw new CredencialesInvalidasException(MENSAJE_CREDENCIALES_INVALIDAS);
         }
     }
@@ -157,19 +211,25 @@ public class AuthService {
         return correo.trim().toLowerCase(Locale.ROOT);
     }
 
-    private LoginResponse construirLoginResponse(UsuarioEntity usuario,List<String> roles,AuthContext authContext) {
+    private LoginResult construirLoginResult(
+            UsuarioEntity usuario,
+            List<String> roles,
+            AuthContext authContext
+    ) {
         String token = jwtService.generarToken(
                 usuario.getIdUsuario(),
                 usuario.getCorreo(),
                 roles,
-                authContext
+                authContext,
+                usuario.getVersionAutenticacion()
         );
 
-        return new LoginResponse(
+        return new LoginResult(
                 token,
                 TIPO_TOKEN,
                 usuario.getIdUsuario(),
                 usuario.getCorreo(),
+                Boolean.TRUE.equals(usuario.getCorreoVerificado()),
                 roles,
                 authContext.name(),
                 jwtService.obtenerExpirationMinutes(authContext)

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,13 +9,14 @@ import { normalizarErrorApi, obtenerMensajeErrorUsuario } from '../../../../core
 import { UsuarioApiService } from '../../../usuarios/acceso-datos/usuario-api.service';
 import { SolicitudCrearUsuario } from '../../../usuarios/modelos/usuario.model';
 import { AutenticacionApiService } from '../../acceso-datos/autenticacion-api.service';
+import { BotonGoogleLogin } from '../../componentes/boton-google-login/boton-google-login';
 import { CredencialesLogin, ResultadoLogin } from '../../modelos/autenticacion.model';
 
 type ModoAutenticacion = 'login' | 'registro';
 
 @Component({
   selector: 'app-pagina-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, BotonGoogleLogin],
   templateUrl: './pagina-login.html',
   styleUrl: './pagina-login.css',
 })
@@ -28,9 +29,10 @@ export class PaginaLogin implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly estaEnviando = signal(false);
+  readonly estaProcesandoGoogle = signal(false);
+  readonly estaBloqueado = computed(() => this.estaEnviando() || this.estaProcesandoGoogle());
   readonly mensajeError = signal('');
   readonly mensajeRegistro = signal('');
-  readonly esLoginAdministracion = signal(false);
   readonly mostrarContrasena = signal(false);
   readonly mostrarContrasenaRegistro = signal(false);
   readonly mostrarConfirmacionRegistro = signal(false);
@@ -80,9 +82,17 @@ export class PaginaLogin implements OnInit {
     this.rutaActiva.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((parametros) => {
-        this.esLoginAdministracion.set(parametros.get('contexto') === 'admin');
+        if (parametros.get('contexto') === 'admin') {
+          void this.router.navigate(['/admin/login'], { replaceUrl: true });
+          return;
+        }
+
         this.mensajeError.set('');
         this.mensajeRegistro.set('');
+
+        if (parametros.get('contrasenaActualizada') === 'true') {
+          this.mensajeRegistro.set('Contrasena actualizada. Inicia sesion nuevamente con tu nueva contrasena.');
+        }
       });
   }
 
@@ -90,10 +100,12 @@ export class PaginaLogin implements OnInit {
     this.modo.set(modo);
     this.mensajeError.set('');
     this.mensajeRegistro.set('');
+    this.estaProcesandoGoogle.set(false);
   }
 
   enviarLogin(): void {
     this.mensajeError.set('');
+    this.estaProcesandoGoogle.set(false);
 
     if (this.formularioLogin.invalid) {
       this.formularioLogin.markAllAsTouched();
@@ -101,9 +113,7 @@ export class PaginaLogin implements OnInit {
     }
 
     const credenciales = this.obtenerCredenciales();
-    const solicitud = this.esLoginAdministracion()
-      ? this.autenticacionApi.iniciarSesionAdministracion(credenciales)
-      : this.autenticacionApi.iniciarSesionPublica(credenciales);
+    const solicitud = this.autenticacionApi.iniciarSesionPublica(credenciales);
 
     this.estaEnviando.set(true);
 
@@ -116,6 +126,7 @@ export class PaginaLogin implements OnInit {
   enviarRegistro(): void {
     this.mensajeError.set('');
     this.mensajeRegistro.set('');
+    this.estaProcesandoGoogle.set(false);
 
     if (this.formularioRegistro.invalid || !this.contrasenasRegistroCoinciden()) {
       this.formularioRegistro.markAllAsTouched();
@@ -129,14 +140,41 @@ export class PaginaLogin implements OnInit {
       .pipe(finalize(() => this.estaEnviando.set(false)))
       .subscribe({
         next: () => {
-          this.formularioLogin.controls.correo.setValue(this.formularioRegistro.controls.correo.value);
+          const correoRegistrado = this.formularioRegistro.controls.correo.value.trim().toLowerCase();
+          this.formularioLogin.controls.correo.setValue(correoRegistrado);
           this.formularioLogin.controls.contrasena.setValue('');
           this.formularioRegistro.reset();
           this.modo.set('login');
-          this.mensajeRegistro.set('Cuenta creada correctamente. Ahora puedes iniciar sesion.');
+          this.mensajeRegistro.set(
+            `Cuenta creada. Revisa ${correoRegistrado} y confirma tu correo. Podras navegar, pero necesitaremos verificarlo antes de confirmar pedidos o gestionar una tienda.`,
+          );
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorRegistro(error)),
       });
+  }
+
+  enviarLoginGoogle(idToken: string): void {
+    if (this.estaBloqueado()) return;
+
+    this.mensajeError.set('');
+    this.mensajeRegistro.set('');
+    this.estaProcesandoGoogle.set(true);
+
+    this.autenticacionApi
+      .iniciarSesionGoogle(idToken)
+      .pipe(finalize(() => {
+        this.estaProcesandoGoogle.set(false);
+      }))
+      .subscribe({
+        next: (resultado) => this.procesarLoginExitoso(resultado),
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorGoogle(error)),
+      });
+  }
+
+  mostrarErrorGoogle(mensaje: string): void {
+    this.estaProcesandoGoogle.set(false);
+    this.mensajeRegistro.set('');
+    this.mensajeError.set(mensaje);
   }
 
   alternarVisibilidadContrasena(): void {
@@ -202,6 +240,7 @@ export class PaginaLogin implements OnInit {
         correo: resultado.correo,
         nombreCompleto: resultado.correo,
         rol: rolPrincipal,
+        correoVerificado: resultado.correoVerificado,
       },
     };
 
@@ -237,5 +276,36 @@ export class PaginaLogin implements OnInit {
 
   private obtenerMensajeErrorRegistro(error: unknown): string {
     return obtenerMensajeErrorUsuario(error, 'No se pudo crear la cuenta.');
+  }
+
+  private obtenerMensajeErrorGoogle(error: unknown): string {
+    const errorNormalizado = normalizarErrorApi(error);
+    const accion = this.modo() === 'registro' ? 'crear tu cuenta' : 'iniciar sesion';
+
+    if (errorNormalizado.tipo === 'red' || errorNormalizado.tipo === 'timeout') {
+      return 'No pudimos conectar con Google o REGALIA. Intentalo nuevamente en unos segundos.';
+    }
+
+    if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
+      return `No pudimos validar tu cuenta de Google para ${accion}. Vuelve a intentarlo.`;
+    }
+
+    if (errorNormalizado.estado === 403 || errorNormalizado.tipo === 'autorizacion') {
+      return 'Tu cuenta no tiene permisos para acceder a REGALIA con Google.';
+    }
+
+    if (errorNormalizado.estado === 409 || errorNormalizado.tipo === 'conflicto') {
+      return 'Este correo ya esta registrado. Inicia sesion con tu contrasena y vincula Google desde tu perfil.';
+    }
+
+    if (errorNormalizado.tipo === 'validacion') {
+      return 'Google no devolvio una identidad valida. Elige otra cuenta o intenta nuevamente.';
+    }
+
+    if (errorNormalizado.tipo === 'servidor') {
+      return 'REGALIA no pudo completar el acceso con Google. Intentalo nuevamente en unos minutos.';
+    }
+
+    return errorNormalizado.message || `No se pudo ${accion} con Google.`;
   }
 }

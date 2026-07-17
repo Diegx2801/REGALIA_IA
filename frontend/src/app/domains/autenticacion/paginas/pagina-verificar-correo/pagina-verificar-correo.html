@@ -1,0 +1,24 @@
+<section class="email-verification">
+  <div class="email-verification__card">
+    <span class="email-verification__eyebrow">Seguridad de cuenta</span>
+
+    <span class="email-verification__status" [attr.data-state]="estado()">
+      {{ etiquetaEstado() }}
+    </span>
+
+    <h1>{{ titulo() }}</h1>
+    <p>{{ mensaje() }}</p>
+
+    @if (estado() === 'cargando') {
+      <span class="email-verification__progress" aria-hidden="true"></span>
+    }
+
+    @if (estado() === 'error') {
+      <div class="email-verification__actions">
+        <a class="email-verification__button email-verification__button--primary" routerLink="/">
+          Abrir REGALIA
+        </a>
+      </div>
+    }
+  </div>
+</section>

@@ -50,8 +50,7 @@ export class LayoutAdministracion {
     },
     {
       etiqueta: 'Login admin',
-      ruta: '/login',
-      queryParams: { contexto: 'admin' },
+      ruta: '/admin/login',
       descripcion: 'Cambiar sesion administrativa',
     },
   ];

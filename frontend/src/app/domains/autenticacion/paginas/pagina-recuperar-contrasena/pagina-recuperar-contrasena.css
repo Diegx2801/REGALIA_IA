@@ -1,0 +1,18 @@
+.password-recovery { min-height: calc(100vh - 96px); display: grid; place-items: center; padding: 4rem 1.5rem; background: linear-gradient(135deg, #fffaf6, #f4ebe4); }
+.password-recovery__card { width: min(100%, 32rem); padding: 2.5rem; border: 1px solid #ead8cc; border-radius: 18px; background: #fffaf6; box-shadow: 0 24px 70px rgba(43, 25, 35, .12); }
+.password-recovery__eyebrow { display: block; color: #8a5b0f; font-size: .75rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.password-recovery h1 { margin: .75rem 0; color: #20182a; font-size: clamp(2rem, 6vw, 2.75rem); line-height: 1.05; }
+.password-recovery p { color: #6f6074; line-height: 1.6; }
+.password-recovery form { display: grid; gap: .65rem; margin-top: 1.75rem; }
+.password-recovery label { color: #3b2d40; font-weight: 700; }
+.password-recovery input { width: 100%; box-sizing: border-box; min-height: 3rem; padding: .75rem .9rem; border: 1px solid #d8c9ce; border-radius: 9px; font: inherit; }
+.password-recovery button, .password-recovery__link { min-height: 3rem; margin-top: .8rem; border: 0; border-radius: 999px; background: #6b2248; color: #fff; font: inherit; font-weight: 800; text-align: center; text-decoration: none; cursor: pointer; }
+.password-recovery button:disabled { opacity: .65; cursor: wait; }
+.password-recovery small { color: #9f2f39; }
+.password-recovery__password { position: relative; }
+.password-recovery__password input { padding-right: 4.5rem; }
+.password-recovery button.password-recovery__toggle { position: absolute; right: .35rem; top: .05rem; min-height: 2.9rem; margin: 0; padding: 0 .65rem; background: transparent; color: #6b2248; font-size: .8rem; }
+.password-recovery__message { margin: 1.25rem 0 0; padding: .85rem; border-radius: 9px; background: #e2f0e9; color: #20745f; }
+.password-recovery__message--error { background: #fde8e8; color: #9f2f39; }
+.password-recovery__back { display: inline-block; margin-top: 1.5rem; color: #6b2248; font-weight: 700; }
+.password-recovery__status { display: inline-grid; place-items: center; width: 3rem; height: 3rem; margin-top: 1.5rem; border-radius: 50%; background: #e2f0e9; color: #20745f; font-weight: 900; }

@@ -5,6 +5,7 @@ export interface UsuarioPerfil {
   nombreCompleto: string;
   correo: string;
   telefono: string;
+  correoVerificado: boolean;
   estado: boolean;
   fechaCreacion: string | null;
   fechaActualizacion: string | null;
@@ -22,4 +23,9 @@ export interface SolicitudCrearUsuario {
   correo: string;
   telefono: string | null;
   contrasena: string;
+}
+
+export interface SolicitudCambioContrasena {
+  contrasenaActual: string;
+  nuevaContrasena: string;
 }

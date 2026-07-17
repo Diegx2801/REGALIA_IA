@@ -2,7 +2,10 @@ package com.regalia.backend.auth.api;
 
 import com.regalia.backend.auth.api.dto.LoginRequest;
 import com.regalia.backend.auth.api.dto.LoginResponse;
+import com.regalia.backend.auth.api.dto.GoogleLoginRequest;
+import com.regalia.backend.auth.api.mapper.AuthApiMapper;
 import com.regalia.backend.auth.application.AuthService;
+import com.regalia.backend.auth.application.result.LoginResult;
 import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.shared.web.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,14 +34,30 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest
     ) {
-        LoginResponse response = authService.loginPublico(
-                request,
+        LoginResult result = authService.loginPublico(
+                AuthApiMapper.toCommand(request),
                 clientIpResolver.resolve(httpRequest),
                 clientIpResolver.resolveUserAgent(httpRequest)
         );
 
         return ResponseEntity.ok(
-                ApiResponse.success(response, "Inicio de sesi\u00f3n correcto")
+                ApiResponse.success(AuthApiMapper.toResponse(result), "Inicio de sesi\u00f3n correcto")
+        );
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<LoginResponse>> loginGoogle(
+            @Valid @RequestBody GoogleLoginRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        LoginResult result = authService.loginGoogle(
+                AuthApiMapper.toCommand(request),
+                clientIpResolver.resolve(httpRequest),
+                clientIpResolver.resolveUserAgent(httpRequest)
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success(AuthApiMapper.toResponse(result), "Inicio de sesi\u00f3n con Google correcto")
         );
     }
 }

@@ -19,6 +19,7 @@ describe('autenticacion.mapper', () => {
       tipo: 'Bearer',
       idUsuario: 5,
       correo: 'cliente.demo@regalia.local',
+      correoVerificado: false,
       roles: ['CLIENTE', 'ROL_INVALIDO', 'VENDEDOR'],
       authContext: 'PUBLIC',
       expiraEnMinutos: 240,
@@ -26,5 +27,6 @@ describe('autenticacion.mapper', () => {
 
     expect(login.roles).toEqual(['CLIENTE', 'VENDEDOR']);
     expect(login.contextoAutenticacion).toBe('PUBLIC');
+    expect(login.correoVerificado).toBe(false);
   });
 });

@@ -5,6 +5,7 @@ export interface UsuarioSesion {
   nombreCompleto: string;
   correo: string;
   rol: RolUsuario;
+  correoVerificado: boolean;
 }
 
 export interface SesionAutenticacion {

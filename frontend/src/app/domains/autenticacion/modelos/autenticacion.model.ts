@@ -10,7 +10,16 @@ export interface ResultadoLogin {
   tipoToken: string;
   idUsuario: number;
   correo: string;
+  correoVerificado: boolean;
   roles: RolUsuario[];
   contextoAutenticacion: 'PUBLIC' | 'ADMIN';
   expiraEnMinutos: number;
+}
+
+export interface IdentidadCuenta {
+  proveedor: 'GOOGLE' | string;
+  correo: string;
+  correoVerificado: boolean;
+  vinculada: boolean;
+  fechaVinculacion: string | null;
 }

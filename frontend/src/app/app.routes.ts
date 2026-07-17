@@ -14,12 +14,33 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),
       },
+  {
+    path: 'login',
+    loadChildren: () =>
+      import('./domains/autenticacion/autenticacion.routes').then(
+        (m) => m.AUTENTICACION_ROUTES,
+      ),
+  },
+  {
+    path: 'admin/login',
+    loadComponent: () =>
+      import('./domains/autenticacion/paginas/pagina-admin-login/pagina-admin-login').then(
+        (m) => m.PaginaAdminLogin,
+      ),
+  },
       {
-        path: 'login',
-        loadChildren: () =>
-          import('./domains/autenticacion/autenticacion.routes').then(
-            (m) => m.AUTENTICACION_ROUTES,
-          ),
+        path: 'verificar-correo',
+        loadComponent: () =>
+          import(
+            './domains/autenticacion/paginas/pagina-verificar-correo/pagina-verificar-correo'
+          ).then((m) => m.PaginaVerificarCorreo),
+      },
+      {
+        path: 'restablecer-contrasena',
+        loadComponent: () =>
+          import(
+            './domains/autenticacion/paginas/pagina-recuperar-contrasena/pagina-recuperar-contrasena'
+          ).then((m) => m.PaginaRecuperarContrasena),
       },
       {
         path: 'catalogo',

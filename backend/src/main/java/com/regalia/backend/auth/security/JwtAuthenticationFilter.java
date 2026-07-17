@@ -29,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String PREFIX_BEARER = "Bearer ";
 
     private final JwtService jwtService;
+    private final EstadoAutenticacionService estadoAutenticacionService;
 
     @Override
     protected void doFilterInternal(
@@ -46,32 +47,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authorizationHeader.substring(PREFIX_BEARER.length());
 
-        if (jwtService.esTokenValido(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // AUTORIZACION JWT: convierte roles del token en authorities que luego protegen las rutas.
-            String correo = jwtService.obtenerCorreo(token);
-            AuthContext authContext = jwtService.obtenerAuthContext(token);
-
-            List<SimpleGrantedAuthority> authorities = jwtService.obtenerRoles(token)
-                    .stream()
-                    .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol))
-                    .toList();
-
-            List<SimpleGrantedAuthority> authoritiesConContexto = new ArrayList<>(authorities);
-            authoritiesConContexto.add(new SimpleGrantedAuthority("AUTH_CONTEXT_" + authContext.name()));
-
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    correo,
-                    null,
-                    authoritiesConContexto
-            );
-
-            authentication.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+        jwtService.extraerAccessTokenValido(token)
+                .filter(tokenAcceso -> SecurityContextHolder.getContext().getAuthentication() == null)
+                .filter(tokenAcceso -> estadoAutenticacionService.correspondeAVersionVigente(
+                        tokenAcceso.idUsuario(),
+                        tokenAcceso.versionAutenticacion()
+                ))
+                .ifPresent(tokenAcceso -> autenticarRequest(tokenAcceso, request));
 
         filterChain.doFilter(request, response);
+    }
+
+    private void autenticarRequest(JwtAccessToken tokenAcceso, HttpServletRequest request) {
+        // AUTORIZACION JWT: convierte roles del token en authorities que luego protegen las rutas.
+        String correo = tokenAcceso.correo();
+        AuthContext authContext = tokenAcceso.authContext();
+
+        List<SimpleGrantedAuthority> authorities = tokenAcceso.roles()
+                .stream()
+                .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol))
+                .toList();
+
+        List<SimpleGrantedAuthority> authoritiesConContexto = new ArrayList<>(authorities);
+        authoritiesConContexto.add(new SimpleGrantedAuthority("AUTH_CONTEXT_" + authContext.name()));
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                correo,
+                null,
+                authoritiesConContexto
+        );
+
+        authentication.setDetails(
+                new WebAuthenticationDetailsSource().buildDetails(request)
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }
