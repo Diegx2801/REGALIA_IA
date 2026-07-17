@@ -85,6 +85,60 @@ public class AuditoriaEventoService {
         );
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarRecuperacionContrasenaSolicitada(
+            Long idUsuarioActor,
+            String correoActor,
+            String ip,
+            String userAgent
+    ) {
+        registrar(
+                AuditoriaAccion.RECUPERACION_CONTRASENA_SOLICITADA,
+                AuditoriaResultado.EXITOSO,
+                AuthContext.PUBLIC,
+                idUsuarioActor,
+                correoActor,
+                ip,
+                userAgent
+        );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarRecuperacionContrasenaCompletada(
+            Long idUsuarioActor,
+            String correoActor,
+            String ip,
+            String userAgent
+    ) {
+        registrar(
+                AuditoriaAccion.RECUPERACION_CONTRASENA_COMPLETADA,
+                AuditoriaResultado.EXITOSO,
+                AuthContext.PUBLIC,
+                idUsuarioActor,
+                correoActor,
+                ip,
+                userAgent
+        );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarContrasenaCambiada(
+            Long idUsuarioActor,
+            String correoActor,
+            String ip,
+            String userAgent
+    ) {
+        registrar(
+                AuditoriaAccion.CONTRASENA_CAMBIADA,
+                AuditoriaResultado.EXITOSO,
+                AuthContext.PUBLIC,
+                idUsuarioActor,
+                correoActor,
+                ip,
+                userAgent
+        );
+    }
+
     private void registrar(
             AuditoriaAccion accion,
             AuditoriaResultado resultado,

@@ -1,5 +1,6 @@
 package com.regalia.backend.auth.application;
 
+import com.regalia.backend.auditoria.application.AuditoriaCredencialesService;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
@@ -19,9 +20,16 @@ public class PasswordCredentialsService {
 
     private final UsuarioJpaRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaCredencialesService auditoriaCredencialesService;
 
     @Transactional
-    public void cambiarContrasena(String correoAutenticado, String contrasenaActual, String nuevaContrasena) {
+    public void cambiarContrasena(
+            String correoAutenticado,
+            String contrasenaActual,
+            String nuevaContrasena,
+            String ip,
+            String userAgent
+    ) {
         UsuarioEntity usuario = usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrueForUpdate(correoAutenticado)
                 .orElseThrow(() -> new ReglaNegocioException("No se encontro una cuenta activa para cambiar la contrasena"));
 
@@ -36,6 +44,12 @@ public class PasswordCredentialsService {
         }
 
         actualizarContrasenaYRevocarTokens(usuario, nuevaContrasena);
+        auditoriaCredencialesService.programarContrasenaCambiada(
+                usuario.getIdUsuario(),
+                usuario.getCorreo(),
+                ip,
+                userAgent
+        );
     }
 
     @Transactional

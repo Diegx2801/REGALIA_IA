@@ -25,3 +25,20 @@ CREATE TABLE limite_seguridad_solicitud (
 -- Invalida JWT emitidos antes de un cambio de credenciales sin crear una tabla de sesiones.
 ALTER TABLE usuario
     ADD COLUMN version_autenticacion INTEGER NOT NULL DEFAULT 0;
+
+-- V16 ya existe: se amplian sus acciones sin crear una tabla adicional.
+ALTER TABLE auditoria_evento
+    DROP CONSTRAINT ck_auditoria_evento_accion;
+
+ALTER TABLE auditoria_evento
+    ADD CONSTRAINT ck_auditoria_evento_accion
+        CHECK (accion IN (
+            'LOGIN_PUBLICO_EXITOSO',
+            'LOGIN_ADMIN_EXITOSO',
+            'LOGIN_ADMIN_FALLIDO',
+            'LOGIN_PUBLICO_LIMITADO',
+            'LOGIN_ADMIN_LIMITADO',
+            'RECUPERACION_CONTRASENA_SOLICITADA',
+            'RECUPERACION_CONTRASENA_COMPLETADA',
+            'CONTRASENA_CAMBIADA'
+        ));

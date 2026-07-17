@@ -4,6 +4,8 @@ import com.regalia.backend.auth.api.dto.PasswordRecoveryRequest;
 import com.regalia.backend.auth.api.dto.PasswordResetConfirmRequest;
 import com.regalia.backend.auth.application.PasswordRecoveryService;
 import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.web.ClientIpResolver;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,20 +27,32 @@ public class PasswordRecoveryController {
             "Si existe una cuenta local asociada al correo, recibiras instrucciones para restablecer tu contrasena";
 
     private final PasswordRecoveryService passwordRecoveryService;
+    private final ClientIpResolver clientIpResolver;
 
     @PostMapping("/request")
     public ResponseEntity<ApiResponse<Void>> solicitarRecuperacion(
-            @Valid @RequestBody PasswordRecoveryRequest request
+            @Valid @RequestBody PasswordRecoveryRequest request,
+            HttpServletRequest httpRequest
     ) {
-        passwordRecoveryService.solicitarRecuperacion(request.correo());
+        passwordRecoveryService.solicitarRecuperacion(
+                request.correo(),
+                clientIpResolver.resolve(httpRequest),
+                clientIpResolver.resolveUserAgent(httpRequest)
+        );
         return ResponseEntity.ok(ApiResponse.success(null, MENSAJE_SOLICITUD));
     }
 
     @PostMapping("/reset")
     public ResponseEntity<ApiResponse<Void>> restablecerContrasena(
-            @Valid @RequestBody PasswordResetConfirmRequest request
+            @Valid @RequestBody PasswordResetConfirmRequest request,
+            HttpServletRequest httpRequest
     ) {
-        passwordRecoveryService.restablecerContrasena(request.token(), request.nuevaContrasena());
+        passwordRecoveryService.restablecerContrasena(
+                request.token(),
+                request.nuevaContrasena(),
+                clientIpResolver.resolve(httpRequest),
+                clientIpResolver.resolveUserAgent(httpRequest)
+        );
         return ResponseEntity.ok(ApiResponse.success(null, "Contrasena restablecida correctamente"));
     }
 }

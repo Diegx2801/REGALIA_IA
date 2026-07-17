@@ -9,9 +9,9 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 
 /**
- * Gestiona el estado de limites reutilizables. La coordinacion concurrente del
- * sujeto la realiza el flujo que consume la politica; en reenvios de correo se
- * bloquea la fila de usuario antes de llegar a este servicio.
+ * Gestiona el estado de limites reutilizables. Cada regla y sujeto se actualiza
+ * bajo un bloqueo transaccional de PostgreSQL para que el contador sea correcto
+ * tambien cuando la aplicacion se ejecute en varias instancias.
  */
 @Service
 @RequiredArgsConstructor
@@ -30,10 +30,15 @@ public class LimiteSeguridadSolicitudService {
             throw new IllegalArgumentException("La clave del sujeto es obligatoria");
         }
 
+        String claveSujetoNormalizada = claveSujeto.trim();
+        limiteRepository.adquirirBloqueoTransaccional(
+                construirClaveBloqueo(clavePolitica, tipoSujeto, claveSujetoNormalizada)
+        );
+
         LocalDateTime ahora = LocalDateTime.now();
         LimiteSeguridadSolicitudEntity limite = limiteRepository
-                .findByClavePoliticaAndTipoSujetoAndClaveSujeto(clavePolitica, tipoSujeto, claveSujeto.trim())
-                .orElseGet(() -> crearLimite(clavePolitica, tipoSujeto, claveSujeto.trim(), ahora, regla));
+                .findByClavePoliticaAndTipoSujetoAndClaveSujeto(clavePolitica, tipoSujeto, claveSujetoNormalizada)
+                .orElseGet(() -> crearLimite(clavePolitica, tipoSujeto, claveSujetoNormalizada, ahora, regla));
 
         reiniciarVentanaSiExpirada(limite, ahora, regla);
         validarCooldown(limite, ahora, regla);
@@ -42,6 +47,14 @@ public class LimiteSeguridadSolicitudService {
         limite.setCantidadSolicitudes(limite.getCantidadSolicitudes() + 1);
         limite.setFechaUltimaSolicitud(ahora);
         limiteRepository.save(limite);
+    }
+
+    private String construirClaveBloqueo(
+            PoliticaLimiteSeguridad clavePolitica,
+            TipoSujetoLimiteSeguridad tipoSujeto,
+            String claveSujeto
+    ) {
+        return clavePolitica.name() + ':' + tipoSujeto.name() + ':' + claveSujeto;
     }
 
     private LimiteSeguridadSolicitudEntity crearLimite(

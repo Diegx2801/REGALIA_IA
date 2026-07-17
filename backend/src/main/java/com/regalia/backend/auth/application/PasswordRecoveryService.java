@@ -4,6 +4,7 @@ import com.regalia.backend.auth.application.email.EmailDeliveryService;
 import com.regalia.backend.auth.application.result.UsuarioTokenSeguridadCreado;
 import com.regalia.backend.auth.infrastructure.email.PasswordRecoveryProperties;
 import com.regalia.backend.auth.infrastructure.entity.UsuarioTokenSeguridadEntity;
+import com.regalia.backend.auditoria.application.AuditoriaCredencialesService;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +28,12 @@ public class PasswordRecoveryService {
     private final PasswordRecoveryProperties properties;
     private final EmailDeliveryService emailDeliveryService;
     private final PasswordCredentialsService passwordCredentialsService;
+    private final AuditoriaCredencialesService auditoriaCredencialesService;
 
     @Transactional
-    public void solicitarRecuperacion(String correo) {
+    public void solicitarRecuperacion(String correo, String ip, String userAgent) {
+        recoveryRequestPolicy.registrarSolicitudPermitidaDesdeIp(ip);
+
         String correoNormalizado = correo.trim().toLowerCase();
         UsuarioEntity usuario = usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrueForUpdate(correoNormalizado)
                 .orElse(null);
@@ -39,7 +43,7 @@ public class PasswordRecoveryService {
             return;
         }
 
-        recoveryRequestPolicy.registrarSolicitudPermitida(usuario);
+        recoveryRequestPolicy.registrarSolicitudPermitidaPorUsuario(usuario);
 
         UsuarioTokenSeguridadCreado token = tokenSeguridadService.emitirToken(
                 usuario,
@@ -48,10 +52,16 @@ public class PasswordRecoveryService {
         );
 
         programarEnvio(usuario.getCorreo(), usuario.getNombre(), construirUrlRestablecimiento(token.token()));
+        auditoriaCredencialesService.programarRecuperacionSolicitada(
+                usuario.getIdUsuario(),
+                usuario.getCorreo(),
+                ip,
+                userAgent
+        );
     }
 
     @Transactional
-    public void restablecerContrasena(String token, String nuevaContrasena) {
+    public void restablecerContrasena(String token, String nuevaContrasena, String ip, String userAgent) {
         UsuarioTokenSeguridadEntity tokenConsumido = tokenSeguridadService.consumirToken(
                 token,
                 UsuarioTokenSeguridadTipo.PASSWORD_RESET
@@ -60,6 +70,12 @@ public class PasswordRecoveryService {
         passwordCredentialsService.restablecerContrasena(
                 tokenConsumido.getUsuario().getIdUsuario(),
                 nuevaContrasena
+        );
+        auditoriaCredencialesService.programarRecuperacionCompletada(
+                tokenConsumido.getUsuario().getIdUsuario(),
+                tokenConsumido.getUsuario().getCorreo(),
+                ip,
+                userAgent
         );
     }
 
