@@ -20,6 +20,19 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
     Optional<UsuarioEntity> findByCorreoIgnoreCaseAndEstadoTrue(String correo);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select usuario from UsuarioEntity usuario where usuario.idUsuario = :idUsuario")
+    Optional<UsuarioEntity> findByIdForUpdate(@Param("idUsuario") Long idUsuario);
+
+    @Query("""
+            select usuario.estado as estado, usuario.versionAutenticacion as versionAutenticacion
+            from UsuarioEntity usuario
+            where usuario.idUsuario = :idUsuario
+            """)
+    Optional<UsuarioEstadoAutenticacionProjection> findEstadoAutenticacionByIdUsuario(
+            @Param("idUsuario") Long idUsuario
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select usuario
             from UsuarioEntity usuario

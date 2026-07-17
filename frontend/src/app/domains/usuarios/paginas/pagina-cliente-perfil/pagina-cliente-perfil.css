@@ -224,6 +224,22 @@
   grid-row: 1 / span 2;
 }
 
+.cliente-perfil__formulario--contrasena {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.cliente-perfil__formulario-header h3,
+.cliente-perfil__formulario-header p {
+  margin: 0.25rem 0;
+}
+
+.cliente-perfil__password-error {
+  color: #a22c3d;
+  font-weight: 700;
+  margin: 0;
+}
+
 @media (max-width: 899.98px) {
   .cliente-perfil__grid {
     grid-template-columns: 1fr;

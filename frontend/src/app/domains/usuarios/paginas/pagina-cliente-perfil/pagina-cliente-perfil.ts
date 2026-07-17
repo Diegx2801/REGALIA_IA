@@ -1,5 +1,10 @@
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
+import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import {
   CampoFormularioDirective,
@@ -9,6 +14,7 @@ import {
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { BotonGoogleLogin } from '../../../autenticacion/componentes/boton-google-login/boton-google-login';
 import { ClientePanelStore } from '../../estado/cliente-panel.store';
+import { UsuarioApiService } from '../../acceso-datos/usuario-api.service';
 
 @Component({
   selector: 'app-pagina-cliente-perfil',
@@ -26,6 +32,13 @@ import { ClientePanelStore } from '../../estado/cliente-panel.store';
 })
 export class PaginaClientePerfil implements OnInit {
   readonly store = inject(ClientePanelStore);
+  private readonly usuarioApi = inject(UsuarioApiService);
+  private readonly sesionAutenticacion = inject(SesionAutenticacionService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly cambiandoContrasena = signal(false);
+  readonly mensajeCambioContrasena = signal<string | null>(null);
 
   readonly formularioPerfil = new FormGroup({
     nombres: new FormControl('', {
@@ -40,6 +53,18 @@ export class PaginaClientePerfil implements OnInit {
       nonNullable: true,
       validators: [Validators.maxLength(20)],
     }),
+  });
+
+  readonly formularioContrasena = new FormGroup({
+    contrasenaActual: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(100)],
+    }),
+    nuevaContrasena: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(8), Validators.maxLength(100)],
+    }),
+    confirmarContrasena: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
   constructor() {
@@ -97,5 +122,53 @@ export class PaginaClientePerfil implements OnInit {
 
   refrescarEstadoCorreo(): void {
     this.store.refrescarPerfil('Estado del correo actualizado.');
+  }
+
+  cambiarContrasena(): void {
+    this.mensajeCambioContrasena.set(null);
+
+    if (this.formularioContrasena.invalid || !this.contrasenasCoinciden()) {
+      this.formularioContrasena.markAllAsTouched();
+      return;
+    }
+
+    const valor = this.formularioContrasena.getRawValue();
+    this.cambiandoContrasena.set(true);
+
+    this.usuarioApi
+      .cambiarContrasena({
+        contrasenaActual: valor.contrasenaActual,
+        nuevaContrasena: valor.nuevaContrasena,
+      })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.cambiandoContrasena.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.sesionAutenticacion.cerrarSesion();
+          void this.router.navigate(['/login'], {
+            queryParams: { contrasenaActualizada: 'true' },
+          });
+        },
+        error: (error: unknown) =>
+          this.mensajeCambioContrasena.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos cambiar tu contrasena.'),
+          ),
+      });
+  }
+
+  contrasenasCoinciden(): boolean {
+    return (
+      this.formularioContrasena.controls.nuevaContrasena.value ===
+      this.formularioContrasena.controls.confirmarContrasena.value
+    );
+  }
+
+  campoContrasenaTieneError(
+    campo: keyof typeof this.formularioContrasena.controls,
+  ): boolean {
+    const control = this.formularioContrasena.controls[campo];
+    return control.invalid && (control.touched || control.dirty);
   }
 }

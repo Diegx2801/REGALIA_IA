@@ -4,11 +4,9 @@ import com.regalia.backend.auth.application.email.EmailDeliveryService;
 import com.regalia.backend.auth.application.result.UsuarioTokenSeguridadCreado;
 import com.regalia.backend.auth.infrastructure.email.PasswordRecoveryProperties;
 import com.regalia.backend.auth.infrastructure.entity.UsuarioTokenSeguridadEntity;
-import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -28,7 +26,7 @@ public class PasswordRecoveryService {
     private final PasswordRecoveryRequestPolicy recoveryRequestPolicy;
     private final PasswordRecoveryProperties properties;
     private final EmailDeliveryService emailDeliveryService;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordCredentialsService passwordCredentialsService;
 
     @Transactional
     public void solicitarRecuperacion(String correo) {
@@ -59,13 +57,10 @@ public class PasswordRecoveryService {
                 UsuarioTokenSeguridadTipo.PASSWORD_RESET
         );
 
-        UsuarioEntity usuario = tokenConsumido.getUsuario();
-        if (!Boolean.TRUE.equals(usuario.getEstado())) {
-            throw new ReglaNegocioException("No se pudo restablecer la contrasena de esta cuenta");
-        }
-
-        usuario.setContrasenaHash(passwordEncoder.encode(nuevaContrasena));
-        usuarioRepository.save(usuario);
+        passwordCredentialsService.restablecerContrasena(
+                tokenConsumido.getUsuario().getIdUsuario(),
+                nuevaContrasena
+        );
     }
 
     private String construirUrlRestablecimiento(String token) {

@@ -21,3 +21,7 @@ CREATE TABLE limite_seguridad_solicitud (
     CONSTRAINT chk_limite_seguridad_solicitud_tipo_sujeto
         CHECK (tipo_sujeto IN ('USUARIO', 'CORREO', 'IP'))
 );
+
+-- Invalida JWT emitidos antes de un cambio de credenciales sin crear una tabla de sesiones.
+ALTER TABLE usuario
+    ADD COLUMN version_autenticacion INTEGER NOT NULL DEFAULT 0;

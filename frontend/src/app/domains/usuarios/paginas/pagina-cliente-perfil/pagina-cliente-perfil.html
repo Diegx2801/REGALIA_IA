@@ -137,6 +137,61 @@
           {{ store.guardandoPerfil() ? 'Guardando...' : 'Guardar perfil' }}
         </button>
       </form>
+
+      <form
+        appFormularioPanel
+        appFormularioUnaColumna
+        class="cliente-perfil__formulario cliente-perfil__formulario--contrasena"
+        [formGroup]="formularioContrasena"
+        (ngSubmit)="cambiarContrasena()"
+      >
+        <header class="cliente-perfil__formulario-header">
+          <span>Seguridad</span>
+          <h3>Cambiar contrasena</h3>
+          <p>Por seguridad, cerraremos tu sesion despues de actualizarla.</p>
+        </header>
+
+        <label appCampoFormulario>
+          Contrasena actual
+          <input type="password" autocomplete="current-password" formControlName="contrasenaActual" />
+          @if (campoContrasenaTieneError('contrasenaActual')) {
+            <small appErrorCampo>Ingresa tu contrasena actual.</small>
+          }
+        </label>
+
+        <label appCampoFormulario>
+          Nueva contrasena
+          <input type="password" autocomplete="new-password" formControlName="nuevaContrasena" />
+          @if (campoContrasenaTieneError('nuevaContrasena')) {
+            <small appErrorCampo>Usa entre 8 y 100 caracteres.</small>
+          }
+        </label>
+
+        <label appCampoFormulario>
+          Confirmar nueva contrasena
+          <input type="password" autocomplete="new-password" formControlName="confirmarContrasena" />
+          @if (
+            campoContrasenaTieneError('confirmarContrasena') ||
+            (formularioContrasena.controls.confirmarContrasena.touched && !contrasenasCoinciden())
+          ) {
+            <small appErrorCampo>Las contrasenas deben coincidir.</small>
+          }
+        </label>
+
+        @if (mensajeCambioContrasena()) {
+          <p class="cliente-perfil__password-error" role="alert">{{ mensajeCambioContrasena() }}</p>
+        }
+
+        <button
+          appBoton
+          appBotonBloque
+          [appBotonCargando]="cambiandoContrasena()"
+          type="submit"
+          [disabled]="cambiandoContrasena()"
+        >
+          {{ cambiandoContrasena() ? 'Actualizando...' : 'Actualizar contrasena' }}
+        </button>
+      </form>
     </section>
   }
 </section>

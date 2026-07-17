@@ -220,7 +220,8 @@ public class AuthService {
                 usuario.getIdUsuario(),
                 usuario.getCorreo(),
                 roles,
-                authContext
+                authContext,
+                usuario.getVersionAutenticacion()
         );
 
         return new LoginResult(

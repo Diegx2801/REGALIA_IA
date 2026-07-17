@@ -14,6 +14,7 @@ export const ENDPOINTS_API = {
     identidades: `${RUTA_BASE_API}/account/identities`,
     vincularGoogle: `${RUTA_BASE_API}/account/identities/google/link`,
     reenviarVerificacionCorreo: `${RUTA_BASE_API}/account/email-verification/resend`,
+    cambiarContrasena: `${RUTA_BASE_API}/account/password`,
   },
   usuarios: {
     crear: `${RUTA_BASE_API}/usuarios`,

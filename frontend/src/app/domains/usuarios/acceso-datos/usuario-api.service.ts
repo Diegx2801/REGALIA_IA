@@ -11,6 +11,7 @@ import {
 import { UsuarioPerfilDto } from '../modelos/usuario.dto';
 import {
   SolicitudActualizarPerfilUsuario,
+  SolicitudCambioContrasena,
   SolicitudCrearUsuario,
   UsuarioPerfil,
 } from '../modelos/usuario.model';
@@ -76,6 +77,15 @@ export class UsuarioApiService {
       .pipe(
         timeout(TIEMPO_ESPERA_USUARIO_MS),
         map((respuesta) => respuesta.message ?? 'Enlace de verificacion reenviado.'),
+      );
+  }
+
+  cambiarContrasena(solicitud: SolicitudCambioContrasena): Observable<string> {
+    return this.http
+      .put<RespuestaApi<null>>(ENDPOINTS_API.cuenta.cambiarContrasena, solicitud)
+      .pipe(
+        timeout(TIEMPO_ESPERA_USUARIO_MS),
+        map((respuesta) => respuesta.message ?? 'Contrasena actualizada correctamente.'),
       );
   }
 }

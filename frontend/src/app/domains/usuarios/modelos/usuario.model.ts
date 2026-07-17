@@ -24,3 +24,8 @@ export interface SolicitudCrearUsuario {
   telefono: string | null;
   contrasena: string;
 }
+
+export interface SolicitudCambioContrasena {
+  contrasenaActual: string;
+  nuevaContrasena: string;
+}

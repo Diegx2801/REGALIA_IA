@@ -139,6 +139,7 @@ public class SecurityConfig {
                          */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").access(publicAccess())
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.PUT, "/api/account/password").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/me/documentos").access(publicAccess())

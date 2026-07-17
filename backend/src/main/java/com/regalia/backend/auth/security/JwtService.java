@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Servicio encargado de generar, leer y validar tokens JWT.
@@ -23,6 +24,7 @@ public class JwtService {
     private static final String CLAIM_ID_USUARIO = "idUsuario";
     private static final String CLAIM_ROLES = "roles";
     private static final String CLAIM_AUTH_CONTEXT = "authContext";
+    private static final String CLAIM_AUTH_VERSION = "authVersion";
     private static final String CLAIM_TOKEN_TYPE = "tokenType";
     private static final String TOKEN_TYPE_ACCESS = "ACCESS";
 
@@ -35,7 +37,8 @@ public class JwtService {
             Long idUsuario,
             String correo,
             List<String> roles,
-            AuthContext authContext
+            AuthContext authContext,
+            Integer versionAutenticacion
     ) {
         Date fechaActual = new Date();
         Long expirationMinutes = jwtProperties.obtenerExpirationMinutes(authContext);
@@ -49,6 +52,7 @@ public class JwtService {
                 .claim(CLAIM_ID_USUARIO, idUsuario)
                 .claim(CLAIM_ROLES, roles)
                 .claim(CLAIM_AUTH_CONTEXT, authContext.name())
+                .claim(CLAIM_AUTH_VERSION, versionAutenticacion)
                 .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
                 .issuedAt(fechaActual)
                 .expiration(fechaExpiracion)
@@ -57,43 +61,38 @@ public class JwtService {
     }
 
     /**
-     * Obtiene el correo almacenado como subject dentro del token.
+     * Valida firma, emisor, audiencia, expiracion y claims obligatorios.
      */
-    public String obtenerCorreo(String token) {
-        return obtenerClaims(token).getSubject();
-    }
-
-    /**
-     * Obtiene los roles almacenados dentro del token.
-     */
-    public List<String> obtenerRoles(String token) {
-        return obtenerRoles(obtenerClaims(token));
-    }
-
-    /**
-     * Obtiene el contexto de autenticacion del token.
-     */
-    public AuthContext obtenerAuthContext(String token) {
-        return obtenerAuthContext(obtenerClaims(token));
-    }
-
-    /**
-     * Valida que el token sea legible, firmado correctamente, no este expirado
-     * y pertenezca a REGALIA como token de acceso.
-     */
-    public boolean esTokenValido(String token) {
+    public Optional<JwtAccessToken> extraerAccessTokenValido(String token) {
         try {
             Claims claims = obtenerClaims(token);
+            Long idUsuario = claims.get(CLAIM_ID_USUARIO, Long.class);
+            Integer versionAutenticacion = claims.get(CLAIM_AUTH_VERSION, Integer.class);
+            AuthContext authContext = obtenerAuthContext(claims);
+            List<String> roles = obtenerRoles(claims);
 
-            return claims.getExpiration() != null
+            boolean esValido = claims.getExpiration() != null
                     && claims.getExpiration().after(new Date())
                     && TOKEN_TYPE_ACCESS.equals(claims.get(CLAIM_TOKEN_TYPE, String.class))
                     && StringUtils.hasText(claims.getSubject())
-                    && claims.get(CLAIM_ID_USUARIO) != null
-                    && !obtenerRoles(claims).isEmpty()
-                    && obtenerAuthContext(claims) != null;
+                    && idUsuario != null
+                    && versionAutenticacion != null
+                    && !roles.isEmpty()
+                    && authContext != null;
+
+            if (!esValido) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new JwtAccessToken(
+                    idUsuario,
+                    claims.getSubject(),
+                    roles,
+                    authContext,
+                    versionAutenticacion
+            ));
         } catch (JwtException | IllegalArgumentException ex) {
-            return false;
+            return Optional.empty();
         }
     }
 

@@ -38,6 +38,13 @@ public class UsuarioEntity {
     @Column(name = "contrasena_hash", length = 255)
     private String contrasenaHash;
 
+    /**
+     * Se incrementa cuando cambian credenciales. Los JWT emitidos con una
+     * version anterior dejan de autenticar al usuario.
+     */
+    @Column(name = "version_autenticacion", nullable = false)
+    private Integer versionAutenticacion = 0;
+
     @Column(name = "correo_verificado", nullable = false)
     private Boolean correoVerificado = false;
 
@@ -66,6 +73,10 @@ public class UsuarioEntity {
 
         if (this.correoVerificado == null) {
             this.correoVerificado = false;
+        }
+
+        if (this.versionAutenticacion == null) {
+            this.versionAutenticacion = 0;
         }
     }
 

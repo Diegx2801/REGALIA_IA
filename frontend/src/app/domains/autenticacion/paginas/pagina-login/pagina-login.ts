@@ -89,6 +89,10 @@ export class PaginaLogin implements OnInit {
 
         this.mensajeError.set('');
         this.mensajeRegistro.set('');
+
+        if (parametros.get('contrasenaActualizada') === 'true') {
+          this.mensajeRegistro.set('Contrasena actualizada. Inicia sesion nuevamente con tu nueva contrasena.');
+        }
       });
   }
 
