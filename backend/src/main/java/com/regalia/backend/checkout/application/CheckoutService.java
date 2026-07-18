@@ -32,6 +32,7 @@ import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepositor
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -67,7 +68,7 @@ public class CheckoutService {
     private final PaymentGatewayProperties paymentGatewayProperties;
     private final CheckoutSessionJpaRepository checkoutSessionRepository;
 
-    @Transactional
+    @Transactional(noRollbackFor = ReglaNegocioException.class)
     public CheckoutSessionResponse crearSesionCheckout(
             String correoUsuario,
             CheckoutSessionRequest request
@@ -106,7 +107,8 @@ public class CheckoutService {
         );
         checkoutSessionRepository.save(checkoutSession);
 
-        PaymentGatewayCheckoutResult checkoutResult = paymentGatewayRegistry.createCheckout(
+        PaymentGatewayCheckoutResult checkoutResult = prepararCheckoutExterno(
+                checkoutSession,
                 new PaymentGatewayCheckoutCommand(
                         PaymentGatewayProvider.from(request.provider()),
                         montoCheckout,
@@ -121,9 +123,6 @@ public class CheckoutService {
                         null
                 )
         );
-        checkoutSession.setProvider(checkoutResult.provider().name());
-        checkoutSession.setPreferenceId(checkoutResult.preferenceId());
-        checkoutSession.setRedirectUrl(checkoutResult.redirectUrl());
 
         return construirRespuesta(checkoutResult);
     }
@@ -131,7 +130,7 @@ public class CheckoutService {
     /**
      * Crea o reutiliza una sesion externa para pagar solo el saldo de un pedido existente.
      */
-    @Transactional
+    @Transactional(noRollbackFor = ReglaNegocioException.class)
     public CheckoutSessionResponse crearSesionPagoRestante(String correoUsuario, Long idPedido) {
         UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
         PedidoEntity pedido = pedidoRepository
@@ -148,7 +147,11 @@ public class CheckoutService {
                 .orElse(null);
 
         if (sesionActiva != null) {
-            return construirRespuestaSesionActiva(sesionActiva);
+            if (tieneUrlRedireccionValida(sesionActiva)) {
+                return construirRespuestaSesionActiva(sesionActiva);
+            }
+
+            marcarSesionComoError(sesionActiva);
         }
 
         BigDecimal saldoPendiente = calcularSaldoPendiente(pedido);
@@ -160,6 +163,7 @@ public class CheckoutService {
         PaymentGatewayProvider provider = PaymentGatewayProvider.from(
                 paymentGatewayProperties.getDefaultProvider()
         );
+        PaymentGatewayRedirectUrls redirectUrls = construirUrlsRetornoPagoRestante(pedido.getIdPedido());
         String externalReference = generarExternalReference(usuario, pedido.getTienda());
         CheckoutSessionEntity checkoutSession = crearSesionPagoRestante(
                 pedido,
@@ -170,7 +174,8 @@ public class CheckoutService {
         );
         checkoutSessionRepository.save(checkoutSession);
 
-        PaymentGatewayCheckoutResult checkoutResult = paymentGatewayRegistry.createCheckout(
+        PaymentGatewayCheckoutResult checkoutResult = prepararCheckoutExterno(
+                checkoutSession,
                 new PaymentGatewayCheckoutCommand(
                         provider,
                         saldoPendiente,
@@ -182,12 +187,9 @@ public class CheckoutService {
                         CODIGO_TIPO_PAGO_RESTANTE,
                         "Pago de saldo pendiente del pedido #" + pedido.getIdPedido(),
                         externalReference,
-                        construirUrlsRetornoPagoRestante(pedido.getIdPedido())
+                        redirectUrls
                 )
         );
-        checkoutSession.setProvider(checkoutResult.provider().name());
-        checkoutSession.setPreferenceId(checkoutResult.preferenceId());
-        checkoutSession.setRedirectUrl(checkoutResult.redirectUrl());
 
         return construirRespuesta(checkoutResult);
     }
@@ -503,10 +505,6 @@ public class CheckoutService {
     }
 
     private CheckoutSessionResponse construirRespuestaSesionActiva(CheckoutSessionEntity session) {
-        if (session.getRedirectUrl() == null || session.getRedirectUrl().isBlank()) {
-            throw new ReglaNegocioException("La sesion de pago pendiente no tiene una URL valida");
-        }
-
         return new CheckoutSessionResponse(
                 session.getProvider(),
                 session.getPreferenceId(),
@@ -517,6 +515,38 @@ public class CheckoutService {
                 null,
                 session.getRedirectUrl()
         );
+    }
+
+    private PaymentGatewayCheckoutResult prepararCheckoutExterno(
+            CheckoutSessionEntity checkoutSession,
+            PaymentGatewayCheckoutCommand command
+    ) {
+        try {
+            PaymentGatewayCheckoutResult checkoutResult = paymentGatewayRegistry.createCheckout(command);
+
+            if (!StringUtils.hasText(checkoutResult.redirectUrl())) {
+                throw new ReglaNegocioException("La pasarela no devolvio una URL de pago valida");
+            }
+
+            checkoutSession.setProvider(checkoutResult.provider().name());
+            checkoutSession.setPreferenceId(checkoutResult.preferenceId());
+            checkoutSession.setRedirectUrl(checkoutResult.redirectUrl());
+
+            return checkoutResult;
+        } catch (ReglaNegocioException exception) {
+            marcarSesionComoError(checkoutSession);
+            throw exception;
+        }
+    }
+
+    private boolean tieneUrlRedireccionValida(CheckoutSessionEntity checkoutSession) {
+        return StringUtils.hasText(checkoutSession.getRedirectUrl());
+    }
+
+    private void marcarSesionComoError(CheckoutSessionEntity checkoutSession) {
+        checkoutSession.setEstadoCheckout(CheckoutSessionEstado.ERROR.name());
+        checkoutSession.setProviderStatusDetail("No se pudo preparar el checkout externo");
+        checkoutSessionRepository.saveAndFlush(checkoutSession);
     }
 
     private String normalizarTextoOpcional(String texto) {

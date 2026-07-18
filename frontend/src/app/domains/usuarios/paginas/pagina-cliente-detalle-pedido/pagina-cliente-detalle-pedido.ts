@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -8,9 +8,11 @@ import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
 import { ListaPanelComponent } from '../../../../shared/ui/lista-panel/lista-panel';
+import { CheckoutApiService } from '../../../checkout/acceso-datos/checkout-api.service';
 import { PedidosClienteStore } from '../../estado/pedidos-cliente.store';
 import { obtenerEtiquetaEstadoPedidoCliente } from '../../modelos/pedido-cliente.model';
-import { CheckoutApiService } from '../../../checkout/acceso-datos/checkout-api.service';
+
+type EstadoMensajePago = 'exito' | 'advertencia' | 'error';
 
 @Component({
   selector: 'app-pagina-cliente-detalle-pedido',
@@ -35,6 +37,22 @@ export class PaginaClienteDetallePedido implements OnInit {
   private readonly checkoutApi = inject(CheckoutApiService);
   readonly preparandoPago = signal(false);
   readonly mensajePago = signal<string | null>(null);
+  readonly estadoMensajePago = signal<EstadoMensajePago | null>(null);
+  private readonly estadoRetornoPago = signal<string | null>(null);
+
+  constructor() {
+    effect(() => {
+      const pedido = this.store.pedidoDetalle();
+      const estadoPago = this.estadoRetornoPago();
+
+      if (!pedido || !estadoPago) return;
+
+      this.mensajePago.set(this.obtenerMensajeRetornoPago(estadoPago, pedido.saldoPendiente));
+      this.estadoMensajePago.set(this.obtenerEstadoMensajeRetornoPago(estadoPago, pedido.saldoPendiente));
+      this.estadoRetornoPago.set(null);
+      void this.limpiarParametrosRetornoPago();
+    });
+  }
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
@@ -51,8 +69,7 @@ export class PaginaClienteDetallePedido implements OnInit {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
       if (parametros.get('checkout') !== 'confirmacion') return;
 
-      const estadoPago = parametros.get('payment');
-      this.mensajePago.set(this.obtenerMensajeRetornoPago(estadoPago));
+      this.estadoRetornoPago.set(parametros.get('payment') ?? 'success');
     });
   }
 
@@ -68,6 +85,7 @@ export class PaginaClienteDetallePedido implements OnInit {
   pagarSaldoPendiente(idPedido: number): void {
     this.preparandoPago.set(true);
     this.mensajePago.set(null);
+    this.estadoMensajePago.set(null);
 
     this.checkoutApi
       .crearSesionPagoRestante(idPedido)
@@ -79,19 +97,38 @@ export class PaginaClienteDetallePedido implements OnInit {
         next: (resultado) => {
           if (!resultado.urlRedireccion) {
             this.mensajePago.set('No pudimos abrir el proveedor de pago. Inténtalo nuevamente.');
+            this.estadoMensajePago.set('error');
             return;
           }
 
           window.location.assign(resultado.urlRedireccion);
         },
-        error: (error: unknown) =>
+        error: (error: unknown) => {
           this.mensajePago.set(
             obtenerMensajeErrorUsuario(error, 'No pudimos preparar tu pago. Inténtalo nuevamente.'),
-          ),
+          );
+          this.estadoMensajePago.set('error');
+        },
       });
   }
 
-  private obtenerMensajeRetornoPago(estadoPago: string | null): string {
+  private limpiarParametrosRetornoPago(): Promise<boolean> {
+    return this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        checkout: null,
+        payment: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private obtenerMensajeRetornoPago(estadoPago: string, saldoPendiente: number): string {
+    if (estadoPago === 'success' && saldoPendiente <= 0) {
+      return 'Pago confirmado. Tu saldo está al día.';
+    }
+
     if (estadoPago === 'failure') {
       return 'El pago no se completó. Puedes intentarlo nuevamente cuando estés listo.';
     }
@@ -101,5 +138,15 @@ export class PaginaClienteDetallePedido implements OnInit {
     }
 
     return 'Estamos verificando tu pago. El saldo se actualizará cuando la pasarela lo confirme.';
+  }
+
+  private obtenerEstadoMensajeRetornoPago(
+    estadoPago: string,
+    saldoPendiente: number,
+  ): EstadoMensajePago {
+    if (estadoPago === 'success' && saldoPendiente <= 0) return 'exito';
+    if (estadoPago === 'failure') return 'error';
+
+    return 'advertencia';
   }
 }

@@ -55,7 +55,14 @@
           </button>
         }
         @if (mensajePago()) {
-          <p class="detalle-pedido__mensaje-pago" role="status">{{ mensajePago() }}</p>
+          <p
+            class="detalle-pedido__mensaje-pago"
+            [class.detalle-pedido__mensaje-pago--exito]="estadoMensajePago() === 'exito'"
+            [class.detalle-pedido__mensaje-pago--error]="estadoMensajePago() === 'error'"
+            role="status"
+          >
+            {{ mensajePago() }}
+          </p>
         }
       </article>
     </section>
