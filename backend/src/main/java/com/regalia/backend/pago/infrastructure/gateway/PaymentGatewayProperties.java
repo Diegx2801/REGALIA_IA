@@ -15,6 +15,7 @@ public class PaymentGatewayProperties {
 
     private String defaultProvider = "MANUAL";
     private String currency = "PEN";
+    private String clientBaseUrl = "http://localhost:4200";
     private List<String> manualAllowedMethods = new ArrayList<>();
     private MercadoPago mercadoPago = new MercadoPago();
 
@@ -32,6 +33,14 @@ public class PaymentGatewayProperties {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public String getClientBaseUrl() {
+        return clientBaseUrl;
+    }
+
+    public void setClientBaseUrl(String clientBaseUrl) {
+        this.clientBaseUrl = clientBaseUrl;
     }
 
     public List<String> getManualAllowedMethods() {

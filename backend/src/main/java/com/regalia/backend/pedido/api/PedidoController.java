@@ -4,7 +4,6 @@ import com.regalia.backend.pedido.api.dto.ConfirmarPedidoRequest;
 import com.regalia.backend.pedido.api.dto.OpcionPagoResponse;
 import com.regalia.backend.pedido.api.dto.PedidoClienteResumenResponse;
 import com.regalia.backend.pedido.api.dto.PedidoResponse;
-import com.regalia.backend.pedido.api.dto.RegistrarPagoPedidoRequest;
 import com.regalia.backend.pedido.application.PedidoService;
 import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.shared.response.PaginaResponse;
@@ -89,20 +88,4 @@ public class PedidoController {
                 );
         }
 
-        @PostMapping("/{idPedido}/pagos")
-        public ResponseEntity<ApiResponse<PedidoResponse>> registrarPagoPedido(
-                Principal principal,
-                @PathVariable Long idPedido,
-                @Valid @RequestBody RegistrarPagoPedidoRequest request
-        ) {
-                PedidoResponse response = pedidoService.registrarPagoPedido(
-                        principal.getName(),
-                        idPedido,
-                        request
-                );
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(
-                        ApiResponse.success(response)
-                );
-        }
 }

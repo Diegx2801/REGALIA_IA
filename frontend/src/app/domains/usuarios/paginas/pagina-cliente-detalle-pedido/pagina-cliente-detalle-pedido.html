@@ -42,6 +42,21 @@
           <div><dt>Pagado</dt><dd>{{ pedido.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
           <div><dt>Saldo pendiente</dt><dd>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
         </dl>
+        @if (pedido.saldoPendiente > 0) {
+          <button
+            appBoton
+            appBotonBloque
+            type="button"
+            [appBotonCargando]="preparandoPago()"
+            [disabled]="preparandoPago()"
+            (click)="pagarSaldoPendiente(pedido.idPedido)"
+          >
+            {{ preparandoPago() ? 'Redirigiendo...' : 'Pagar saldo pendiente' }}
+          </button>
+        }
+        @if (mensajePago()) {
+          <p class="detalle-pedido__mensaje-pago" role="status">{{ mensajePago() }}</p>
+        }
       </article>
     </section>
 

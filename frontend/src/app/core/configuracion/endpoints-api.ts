@@ -49,6 +49,8 @@ export const ENDPOINTS_API = {
   },
   checkout: {
     sesiones: `${RUTA_BASE_API}/checkout/sessions`,
+    sesionPagoRestante: (idPedido: number) =>
+      `${RUTA_BASE_API}/checkout/orders/${idPedido}/remaining-payment-session`,
   },
   ia: {
     recomendarProductos: `${RUTA_BASE_API}/builder-ia/recomendar-productos`,

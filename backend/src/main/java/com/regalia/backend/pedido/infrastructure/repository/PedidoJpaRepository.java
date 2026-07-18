@@ -1,7 +1,9 @@
 package com.regalia.backend.pedido.infrastructure.repository;
 
 import com.regalia.backend.pedido.infrastructure.entity.PedidoEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -22,6 +24,19 @@ public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>,
     Optional<PedidoEntity> findByIdPedidoAndUsuarioIdUsuarioAndEstadoTrue(
             Long idPedido,
             Long idUsuario
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT p
+            FROM PedidoEntity p
+            WHERE p.idPedido = :idPedido
+              AND p.usuario.idUsuario = :idUsuario
+              AND p.estado = true
+            """)
+    Optional<PedidoEntity> findMiPedidoActivoParaActualizar(
+            @Param("idPedido") Long idPedido,
+            @Param("idUsuario") Long idUsuario
     );
 
     Optional<PedidoEntity> findByIdPedidoAndEstadoTrue(Long idPedido);

@@ -17,6 +17,21 @@ public interface CheckoutSessionJpaRepository extends JpaRepository<CheckoutSess
     @Query("""
             SELECT session
             FROM CheckoutSessionEntity session
+            WHERE session.pedido.idPedido = :idPedido
+              AND session.tipoOperacion = :tipoOperacion
+              AND session.estado = true
+              AND session.estadoCheckout IN ('CREADA', 'PENDIENTE')
+            ORDER BY session.idCheckoutSession DESC
+            """)
+    Optional<CheckoutSessionEntity> findPagoRestanteActivoParaActualizar(
+            @Param("idPedido") Long idPedido,
+            @Param("tipoOperacion") String tipoOperacion
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT session
+            FROM CheckoutSessionEntity session
             WHERE session.externalReference = :externalReference
               AND session.estado = true
             """)

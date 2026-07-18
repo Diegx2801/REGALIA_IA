@@ -81,6 +81,9 @@ public class CheckoutSessionEntity {
     @Column(name = "codigo_tipo_pago", nullable = false, length = 50)
     private String codigoTipoPago;
 
+    @Column(name = "tipo_operacion", nullable = false, length = 30)
+    private String tipoOperacion;
+
     @Column(name = "fecha_entrega", nullable = false)
     private LocalDate fechaEntrega;
 
@@ -95,6 +98,9 @@ public class CheckoutSessionEntity {
 
     @Column(name = "saldo_restante", nullable = false, precision = 10, scale = 2)
     private BigDecimal saldoRestante;
+
+    @Column(name = "redirect_url", columnDefinition = "TEXT")
+    private String redirectUrl;
 
     @Column(name = "moneda", nullable = false, length = 10)
     private String moneda;

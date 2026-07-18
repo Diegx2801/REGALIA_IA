@@ -76,6 +76,11 @@
   min-height: 2.9rem;
 }
 
+.cliente-pedidos__resumen-pedido {
+  display: grid;
+  gap: 0.25rem;
+}
+
 @media (max-width: 959.98px) {
   .cliente-pedidos__filtros {
     grid-template-columns: repeat(2, minmax(0, 1fr));

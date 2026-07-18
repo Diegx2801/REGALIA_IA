@@ -147,6 +147,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/checkout/sessions").access(clienteVerificadoAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/remaining-payment-session")
+                        .access(clienteVerificadoAccess())
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/mercado-pago").permitAll()
 
                         /*
@@ -173,7 +175,6 @@ public class SecurityConfig {
                          * Pedidos del cliente autenticado.
                          */
                         .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").access(clienteVerificadoAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/pagos").access(clienteVerificadoAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos").access(clienteAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/**").access(clienteAccess())
 

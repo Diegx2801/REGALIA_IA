@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 
 /**
- * API publica autenticada para preparar pagos externos antes de crear pedidos.
+ * API autenticada para preparar operaciones de pago externas.
  */
 @RestController
 @RequestMapping("/api/checkout")
@@ -38,5 +39,20 @@ public class CheckoutController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Checkout preparado correctamente"));
+    }
+
+    @PostMapping("/orders/{idPedido}/remaining-payment-session")
+    public ResponseEntity<ApiResponse<CheckoutSessionResponse>> crearSesionPagoRestante(
+            Principal principal,
+            @PathVariable Long idPedido
+    ) {
+        CheckoutSessionResponse response = checkoutService.crearSesionPagoRestante(
+                principal.getName(),
+                idPedido
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response, "Sesion de pago preparada correctamente"));
     }
 }

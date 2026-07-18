@@ -67,7 +67,7 @@
         <app-lista-panel ariaEtiqueta="Listado de tus pedidos">
           @for (pedido of store.pedidos(); track pedido.idPedido) {
             <app-fila-panel tipo="triple" [ariaEtiqueta]="'Pedido número ' + pedido.idPedido">
-              <div>
+              <div class="cliente-pedidos__resumen-pedido">
                 <strong>Pedido #{{ pedido.idPedido }} · {{ etiquetaEstado(pedido.estadoPedido) }}</strong>
                 <small>{{ pedido.nombreTienda }} · Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}</small>
               </div>

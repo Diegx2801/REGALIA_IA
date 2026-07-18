@@ -10,7 +10,11 @@ import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayRegistry;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutResult;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayRedirectUrls;
 import com.regalia.backend.pago.infrastructure.gateway.PaymentGatewayProperties;
+import com.regalia.backend.pago.infrastructure.repository.PagoJpaRepository;
+import com.regalia.backend.pedido.infrastructure.entity.PedidoEntity;
+import com.regalia.backend.pedido.infrastructure.repository.PedidoJpaRepository;
 import com.regalia.backend.politicacomercial.application.PoliticaComercialService;
 import com.regalia.backend.producto.infrastructure.entity.ProductoEntity;
 import com.regalia.backend.producto.infrastructure.repository.ProductoJpaRepository;
@@ -56,6 +60,8 @@ public class CheckoutService {
     private final TipoEntregaJpaRepository tipoEntregaRepository;
     private final TipoPagoJpaRepository tipoPagoRepository;
     private final ProductoJpaRepository productoRepository;
+    private final PedidoJpaRepository pedidoRepository;
+    private final PagoJpaRepository pagoRepository;
     private final PoliticaComercialService politicaComercialService;
     private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final PaymentGatewayProperties paymentGatewayProperties;
@@ -111,22 +117,79 @@ public class CheckoutService {
                         tienda.getNombre(),
                         codigoTipoPago,
                         buildDescription(tienda, tipoEntrega, codigoTipoPago),
-                        externalReference
+                        externalReference,
+                        null
                 )
         );
         checkoutSession.setProvider(checkoutResult.provider().name());
         checkoutSession.setPreferenceId(checkoutResult.preferenceId());
+        checkoutSession.setRedirectUrl(checkoutResult.redirectUrl());
 
-        return new CheckoutSessionResponse(
-                checkoutResult.provider().name(),
-                checkoutResult.preferenceId(),
-                checkoutResult.externalReference(),
-                checkoutResult.amount(),
-                checkoutResult.currency(),
-                checkoutResult.initPoint(),
-                checkoutResult.sandboxInitPoint(),
-                checkoutResult.redirectUrl()
+        return construirRespuesta(checkoutResult);
+    }
+
+    /**
+     * Crea o reutiliza una sesion externa para pagar solo el saldo de un pedido existente.
+     */
+    @Transactional
+    public CheckoutSessionResponse crearSesionPagoRestante(String correoUsuario, Long idPedido) {
+        UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
+        PedidoEntity pedido = pedidoRepository
+                .findMiPedidoActivoParaActualizar(idPedido, usuario.getIdUsuario())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el pedido solicitado"));
+
+        validarPedidoDisponibleParaPagoRestante(pedido);
+
+        CheckoutSessionEntity sesionActiva = checkoutSessionRepository
+                .findPagoRestanteActivoParaActualizar(
+                        pedido.getIdPedido(),
+                        CheckoutSessionOperacion.PAGO_RESTANTE.name()
+                )
+                .orElse(null);
+
+        if (sesionActiva != null) {
+            return construirRespuestaSesionActiva(sesionActiva);
+        }
+
+        BigDecimal saldoPendiente = calcularSaldoPendiente(pedido);
+        if (saldoPendiente.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("El pedido no tiene saldo pendiente por pagar");
+        }
+
+        TipoPagoEntity tipoPagoRestante = obtenerTipoPagoActivoPorCodigo(CODIGO_TIPO_PAGO_RESTANTE);
+        PaymentGatewayProvider provider = PaymentGatewayProvider.from(
+                paymentGatewayProperties.getDefaultProvider()
         );
+        String externalReference = generarExternalReference(usuario, pedido.getTienda());
+        CheckoutSessionEntity checkoutSession = crearSesionPagoRestante(
+                pedido,
+                tipoPagoRestante,
+                provider,
+                saldoPendiente,
+                externalReference
+        );
+        checkoutSessionRepository.save(checkoutSession);
+
+        PaymentGatewayCheckoutResult checkoutResult = paymentGatewayRegistry.createCheckout(
+                new PaymentGatewayCheckoutCommand(
+                        provider,
+                        saldoPendiente,
+                        paymentGatewayProperties.getCurrency(),
+                        usuario.getIdUsuario(),
+                        usuario.getCorreo(),
+                        pedido.getTienda().getIdTienda(),
+                        pedido.getTienda().getNombre(),
+                        CODIGO_TIPO_PAGO_RESTANTE,
+                        "Pago de saldo pendiente del pedido #" + pedido.getIdPedido(),
+                        externalReference,
+                        construirUrlsRetornoPagoRestante(pedido.getIdPedido())
+                )
+        );
+        checkoutSession.setProvider(checkoutResult.provider().name());
+        checkoutSession.setPreferenceId(checkoutResult.preferenceId());
+        checkoutSession.setRedirectUrl(checkoutResult.redirectUrl());
+
+        return construirRespuesta(checkoutResult);
     }
 
     private CheckoutSessionEntity crearCheckoutSession(
@@ -149,6 +212,7 @@ public class CheckoutService {
         session.setTipoEntrega(tipoEntrega);
         session.setTipoPago(tipoPago);
         session.setCodigoTipoPago(codigoTipoPago);
+        session.setTipoOperacion(CheckoutSessionOperacion.PAGO_INICIAL.name());
         session.setFechaEntrega(request.fechaEntrega());
         session.setObservacion(normalizarTextoOpcional(request.observacion()));
         session.setSubtotal(total);
@@ -161,6 +225,34 @@ public class CheckoutService {
             validarProductoDisponibleParaCheckout(producto, tienda.getIdTienda(), itemRequest.cantidad());
             session.addItem(crearCheckoutSessionItem(producto, itemRequest.cantidad()));
         }
+
+        return session;
+    }
+
+    private CheckoutSessionEntity crearSesionPagoRestante(
+            PedidoEntity pedido,
+            TipoPagoEntity tipoPagoRestante,
+            PaymentGatewayProvider provider,
+            BigDecimal saldoPendiente,
+            String externalReference
+    ) {
+        CheckoutSessionEntity session = new CheckoutSessionEntity();
+        session.setExternalReference(externalReference);
+        session.setProvider(provider.name());
+        session.setEstadoCheckout(CheckoutSessionEstado.CREADA.name());
+        session.setUsuario(pedido.getUsuario());
+        session.setTienda(pedido.getTienda());
+        session.setTipoEntrega(pedido.getTipoEntrega());
+        session.setTipoPago(tipoPagoRestante);
+        session.setCodigoTipoPago(CODIGO_TIPO_PAGO_RESTANTE);
+        session.setTipoOperacion(CheckoutSessionOperacion.PAGO_RESTANTE.name());
+        session.setFechaEntrega(pedido.getFechaEntrega());
+        session.setObservacion(pedido.getObservacion());
+        session.setSubtotal(pedido.getTotal().setScale(2, RoundingMode.HALF_UP));
+        session.setMontoInicial(saldoPendiente.setScale(2, RoundingMode.HALF_UP));
+        session.setSaldoRestante(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+        session.setMoneda(paymentGatewayProperties.getCurrency());
+        session.setPedido(pedido);
 
         return session;
     }
@@ -346,6 +438,19 @@ public class CheckoutService {
                 .divide(CIEN, 2, RoundingMode.HALF_UP);
     }
 
+    private BigDecimal calcularSaldoPendiente(PedidoEntity pedido) {
+        BigDecimal montoPagado = pagoRepository.sumarPagosAprobadosPorPedido(pedido.getIdPedido());
+        BigDecimal saldo = pedido.getTotal().subtract(montoPagado == null ? BigDecimal.ZERO : montoPagado);
+
+        return saldo.max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void validarPedidoDisponibleParaPagoRestante(PedidoEntity pedido) {
+        if (PedidoEntity.ESTADO_ANULADO.equals(pedido.getEstadoPedido())) {
+            throw new ReglaNegocioException("No se puede pagar el saldo de un pedido anulado");
+        }
+    }
+
     private String buildDescription(
             TiendaEntity tienda,
             TipoEntregaEntity tipoEntrega,
@@ -366,6 +471,51 @@ public class CheckoutService {
                 usuario.getIdUsuario(),
                 tienda.getIdTienda(),
                 UUID.randomUUID()
+        );
+    }
+
+    private PaymentGatewayRedirectUrls construirUrlsRetornoPagoRestante(Long idPedido) {
+        String baseUrl = paymentGatewayProperties.getClientBaseUrl();
+        if (baseUrl == null || baseUrl.isBlank()) {
+            throw new ReglaNegocioException("La URL publica del cliente para pagos no esta configurada");
+        }
+
+        String rutaPedido = baseUrl.replaceAll("/+$", "") + "/cliente/pedidos/" + idPedido;
+
+        return new PaymentGatewayRedirectUrls(
+                rutaPedido + "?checkout=confirmacion&payment=success",
+                rutaPedido + "?checkout=confirmacion&payment=failure",
+                rutaPedido + "?checkout=confirmacion&payment=pending"
+        );
+    }
+
+    private CheckoutSessionResponse construirRespuesta(PaymentGatewayCheckoutResult checkoutResult) {
+        return new CheckoutSessionResponse(
+                checkoutResult.provider().name(),
+                checkoutResult.preferenceId(),
+                checkoutResult.externalReference(),
+                checkoutResult.amount(),
+                checkoutResult.currency(),
+                checkoutResult.initPoint(),
+                checkoutResult.sandboxInitPoint(),
+                checkoutResult.redirectUrl()
+        );
+    }
+
+    private CheckoutSessionResponse construirRespuestaSesionActiva(CheckoutSessionEntity session) {
+        if (session.getRedirectUrl() == null || session.getRedirectUrl().isBlank()) {
+            throw new ReglaNegocioException("La sesion de pago pendiente no tiene una URL valida");
+        }
+
+        return new CheckoutSessionResponse(
+                session.getProvider(),
+                session.getPreferenceId(),
+                session.getExternalReference(),
+                session.getMontoInicial(),
+                session.getMoneda(),
+                null,
+                null,
+                session.getRedirectUrl()
         );
     }
 
