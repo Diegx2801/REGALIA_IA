@@ -1576,8 +1576,7 @@ Metodos:
 - `crearProducto()`.
 - `actualizarProducto()`.
 - `desactivarProducto()`.
-- `obtenerPedidosRecibidos()`.
-- `obtenerPedidosPorTienda()`.
+- `obtenerPedidosRecibidos(consulta)`: listado paginado y filtrable por tienda, estado, pago o busqueda.
 - `obtenerDetallePedidoRecibido()`.
 
 Endpoints:

@@ -1,8 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, timeout } from 'rxjs';
 import { ENDPOINTS_API } from '../../../core/configuracion/endpoints-api';
-import { RespuestaApi } from '../../../shared/modelos/respuesta-api.model';
+import { RespuestaApi, RespuestaPaginada } from '../../../shared/modelos/respuesta-api.model';
 import {
   mapearPedidoRecibidoDetalleDesdeDto,
   mapearPedidoRecibidoDesdeDto,
@@ -30,6 +30,16 @@ import {
 } from '../modelos/vendedor.model';
 
 const TIEMPO_ESPERA_VENDEDOR_MS = 10000;
+
+export interface ConsultaPedidosVendedor {
+  page?: number;
+  size?: number;
+  idTienda?: number;
+  q?: string;
+  estado?: string;
+  estadoPago?: 'PAGADO' | 'CON_SALDO';
+  sort?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class VendedorApiService {
@@ -129,21 +139,35 @@ export class VendedorApiService {
       );
   }
 
-  obtenerPedidosRecibidos(): Observable<PedidoRecibidoResumen[]> {
-    return this.http
-      .get<RespuestaApi<PedidoRecibidoResumenDto[]>>(ENDPOINTS_API.vendedores.pedidosRecibidos)
-      .pipe(
-        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
-        map((respuesta) => (respuesta.data ?? []).map(mapearPedidoRecibidoDesdeDto)),
-      );
-  }
+  obtenerPedidosRecibidos(
+    consulta: ConsultaPedidosVendedor = {},
+  ): Observable<RespuestaPaginada<PedidoRecibidoResumen>> {
+    let params = new HttpParams()
+      .set('page', consulta.page ?? 0)
+      .set('size', consulta.size ?? 10)
+      .set('sort', consulta.sort ?? 'fechaCreacion,desc');
 
-  obtenerPedidosPorTienda(idTienda: number): Observable<PedidoRecibidoResumen[]> {
+    if (consulta.idTienda !== undefined) params = params.set('idTienda', consulta.idTienda);
+    if (consulta.q?.trim()) params = params.set('q', consulta.q.trim());
+    if (consulta.estado) params = params.set('estado', consulta.estado);
+    if (consulta.estadoPago) params = params.set('estadoPago', consulta.estadoPago);
+
     return this.http
-      .get<RespuestaApi<PedidoRecibidoResumenDto[]>>(ENDPOINTS_API.vendedores.pedidosPorTienda(idTienda))
+      .get<RespuestaApi<RespuestaPaginada<PedidoRecibidoResumenDto>>>(
+        ENDPOINTS_API.vendedores.pedidosRecibidos,
+        { params },
+      )
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
-        map((respuesta) => (respuesta.data ?? []).map(mapearPedidoRecibidoDesdeDto)),
+        map((respuesta) => {
+          const pagina = respuesta.data;
+          if (!pagina) throw new Error(respuesta.message ?? 'No se pudieron cargar los pedidos recibidos.');
+
+          return {
+            ...pagina,
+            contenido: pagina.contenido.map(mapearPedidoRecibidoDesdeDto),
+          };
+        }),
       );
   }
 

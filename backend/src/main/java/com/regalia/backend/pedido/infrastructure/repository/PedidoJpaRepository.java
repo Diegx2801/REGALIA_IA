@@ -7,19 +7,16 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
- * Repositorio JPA para operaciones sobre la tabla pedido.
- *
- * Contiene consultas para el contexto del cliente, administrador
- * y vendedor. Las consultas del vendedor validan la propiedad del pedido
- * mediante la relación pedido -> tienda -> vendedor -> usuario.
+ * Repositorio JPA de pedidos. Las consultas privadas de vendedor validan la
+ * propiedad mediante pedido, tienda, vendedor y usuario autenticado.
  */
 public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>,
         PedidoAdminRepositoryCustom,
-        PedidoClienteRepositoryCustom {
+        PedidoClienteRepositoryCustom,
+        PedidoVendedorRepositoryCustom {
 
     Optional<PedidoEntity> findByIdPedidoAndUsuarioIdUsuarioAndEstadoTrue(
             Long idPedido,
@@ -42,64 +39,18 @@ public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>,
     Optional<PedidoEntity> findByIdPedidoAndEstadoTrue(Long idPedido);
 
     /**
-     * Lista los pedidos recibidos en todas las tiendas del vendedor autenticado.
-     *
-     * La relación de seguridad se valida por:
-     * pedido -> tienda -> vendedor -> usuario.
+     * Devuelve pedido solo si pertenece al vendedor autenticado. Un pedido de
+     * otro vendedor no se distingue de uno inexistente.
      */
     @Query("""
             SELECT p
             FROM PedidoEntity p
-            JOIN FETCH p.usuario u
-            JOIN FETCH p.tienda t
-            JOIN FETCH t.vendedor v
-            JOIN FETCH v.usuario vu
-            JOIN FETCH p.tipoEntrega te
-            WHERE vu.correo = :correoVendedor
-              AND p.estado = true
-            ORDER BY p.fechaCreacion DESC
-            """)
-    List<PedidoEntity> listarPedidosRecibidosPorVendedor(
-            @Param("correoVendedor") String correoVendedor
-    );
-
-    /**
-     * Lista los pedidos recibidos en una tienda específica, siempre que
-     * dicha tienda pertenezca al vendedor autenticado.
-     */
-    @Query("""
-            SELECT p
-            FROM PedidoEntity p
-            JOIN FETCH p.usuario u
-            JOIN FETCH p.tienda t
-            JOIN FETCH t.vendedor v
-            JOIN FETCH v.usuario vu
-            JOIN FETCH p.tipoEntrega te
-            WHERE vu.correo = :correoVendedor
-              AND t.idTienda = :idTienda
-              AND p.estado = true
-            ORDER BY p.fechaCreacion DESC
-            """)
-    List<PedidoEntity> listarPedidosRecibidosPorTiendaDelVendedor(
-            @Param("correoVendedor") String correoVendedor,
-            @Param("idTienda") Long idTienda
-    );
-
-    /**
-     * Busca un pedido recibido por el vendedor autenticado.
-     *
-     * Si el pedido existe pero pertenece a otra tienda/vendedor,
-     * no se devuelve resultado. Esto evita exponer pedidos ajenos.
-     */
-    @Query("""
-            SELECT p
-            FROM PedidoEntity p
-            JOIN FETCH p.usuario u
-            JOIN FETCH p.tienda t
-            JOIN FETCH t.vendedor v
-            JOIN FETCH v.usuario vu
-            JOIN FETCH p.tipoEntrega te
-            WHERE vu.correo = :correoVendedor
+            JOIN FETCH p.usuario cliente
+            JOIN FETCH p.tienda tienda
+            JOIN FETCH tienda.vendedor vendedor
+            JOIN FETCH vendedor.usuario usuarioVendedor
+            JOIN FETCH p.tipoEntrega tipoEntrega
+            WHERE usuarioVendedor.correo = :correoVendedor
               AND p.idPedido = :idPedido
               AND p.estado = true
             """)

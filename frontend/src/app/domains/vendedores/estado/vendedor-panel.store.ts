@@ -6,7 +6,7 @@ import { RubroApiService } from '../../datos-maestros/acceso-datos/rubro-api.ser
 import { TipoProductoApiService } from '../../datos-maestros/acceso-datos/tipo-producto-api.service';
 import { Rubro } from '../../datos-maestros/modelos/rubro.model';
 import { TipoProducto } from '../../datos-maestros/modelos/tipo-producto.model';
-import { VendedorApiService } from '../acceso-datos/vendedor-api.service';
+import { ConsultaPedidosVendedor, VendedorApiService } from '../acceso-datos/vendedor-api.service';
 import {
   PedidoRecibidoDetalle,
   PedidoRecibidoResumen,
@@ -30,6 +30,11 @@ export class VendedorPanelStore {
   readonly productos = signal<ProductoVendedor[]>([]);
   readonly pedidosTodos = signal<PedidoRecibidoResumen[]>([]);
   readonly pedidos = signal<PedidoRecibidoResumen[]>([]);
+  readonly paginaPedidosActual = signal(0);
+  readonly tamanioPaginaPedidos = signal(10);
+  readonly totalPedidos = signal(0);
+  readonly totalPaginasPedidos = signal(0);
+  readonly ultimaPaginaPedidos = signal(true);
   readonly pedidoDetalle = signal<PedidoRecibidoDetalle | null>(null);
   readonly rubros = signal<Rubro[]>([]);
   readonly tiposProducto = signal<TipoProducto[]>([]);
@@ -72,7 +77,7 @@ export class VendedorPanelStore {
     (this.mensajeError() ?? '').toLowerCase().includes('perfil vendedor'),
   );
 
-  cargarPanel(forzar = false): void {
+  cargarPanel(forzar = false, incluirPedidos = true): void {
     if (this.panelCargado && !forzar) return;
 
     this.cargando.set(true);
@@ -82,7 +87,16 @@ export class VendedorPanelStore {
     forkJoin({
       perfil: this.vendedorApi.obtenerPerfilActual(),
       tiendas: this.vendedorApi.obtenerTiendas(),
-      pedidos: this.vendedorApi.obtenerPedidosRecibidos(),
+      pedidos: incluirPedidos
+        ? this.vendedorApi.obtenerPedidosRecibidos({ page: 0, size: 5 })
+        : of({
+            contenido: [] as PedidoRecibidoResumen[],
+            paginaActual: 0,
+            tamanioPagina: 10,
+            totalElementos: 0,
+            totalPaginas: 0,
+            ultimaPagina: true,
+          }),
       rubros: this.rubroApi.obtenerRubros(),
       tiposProducto: this.tipoProductoApi.obtenerTiposProducto(),
     })
@@ -90,8 +104,10 @@ export class VendedorPanelStore {
         switchMap(({ perfil, tiendas, pedidos, rubros, tiposProducto }) => {
           this.perfil.set(perfil);
           this.tiendas.set(tiendas);
-          this.pedidosTodos.set(pedidos);
-          this.pedidos.set(pedidos);
+          if (incluirPedidos) {
+            this.actualizarPaginaPedidos(pedidos);
+            this.pedidosTodos.set(pedidos.contenido);
+          }
           this.rubros.set(rubros);
           this.tiposProducto.set(tiposProducto);
 
@@ -228,26 +244,20 @@ export class VendedorPanelStore {
       });
   }
 
-  cargarPedidosPorTienda(idTienda: number | null): void {
-    this.idTiendaPedidosSeleccionada.set(idTienda);
+  cargarPedidosPaginados(consulta: ConsultaPedidosVendedor): void {
+    this.idTiendaPedidosSeleccionada.set(consulta.idTienda ?? null);
     this.pedidoDetalle.set(null);
     this.cargandoPedidos.set(true);
     this.mensajeError.set(null);
 
-    const consulta = idTienda
-      ? this.vendedorApi.obtenerPedidosPorTienda(idTienda)
-      : this.vendedorApi.obtenerPedidosRecibidos();
-
-    consulta
+    this.vendedorApi
+      .obtenerPedidosRecibidos(consulta)
       .pipe(
         finalize(() => this.cargandoPedidos.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (pedidos) => {
-          this.pedidos.set(pedidos);
-          if (idTienda === null) this.pedidosTodos.set(pedidos);
-        },
+        next: (pagina) => this.actualizarPaginaPedidos(pagina),
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
@@ -276,5 +286,21 @@ export class VendedorPanelStore {
 
   private obtenerMensajeError(error: unknown): string {
     return obtenerMensajeErrorUsuario(error, 'No pudimos cargar la informacion del vendedor.');
+  }
+
+  private actualizarPaginaPedidos(pagina: {
+    contenido: PedidoRecibidoResumen[];
+    paginaActual: number;
+    tamanioPagina: number;
+    totalElementos: number;
+    totalPaginas: number;
+    ultimaPagina: boolean;
+  }): void {
+    this.pedidos.set(pagina.contenido);
+    this.paginaPedidosActual.set(pagina.paginaActual);
+    this.tamanioPaginaPedidos.set(pagina.tamanioPagina);
+    this.totalPedidos.set(pagina.totalElementos);
+    this.totalPaginasPedidos.set(pagina.totalPaginas);
+    this.ultimaPaginaPedidos.set(pagina.ultimaPagina);
   }
 }

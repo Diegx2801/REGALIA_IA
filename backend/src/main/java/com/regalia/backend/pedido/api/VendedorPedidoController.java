@@ -1,26 +1,20 @@
 package com.regalia.backend.pedido.api;
 
-import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.pedido.api.dto.PedidoRecibidoDetalleResponse;
 import com.regalia.backend.pedido.api.dto.PedidoRecibidoResumenResponse;
 import com.regalia.backend.pedido.application.PedidoRecibidoService;
+import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.response.PaginaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-/**
- * Controller para que el vendedor autenticado consulte los pedidos
- * recibidos en sus propias tiendas.
- *
- * Se usa el prefijo /me para evitar recibir idVendedor por URL.
- * El vendedor se obtiene a partir del token JWT autenticado.
- */
+/** Rutas privadas de pedidos recibidos por las tiendas del vendedor autenticado. */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/vendedores/me")
@@ -28,40 +22,45 @@ public class VendedorPedidoController {
 
     private final PedidoRecibidoService pedidoRecibidoService;
 
-    /**
-     * Lista todos los pedidos recibidos por las tiendas del vendedor autenticado.
-     */
     @GetMapping("/pedidos")
-    public ResponseEntity<ApiResponse<List<PedidoRecibidoResumenResponse>>> listarPedidosRecibidos(
-            Authentication authentication
+    public ResponseEntity<ApiResponse<PaginaResponse<PedidoRecibidoResumenResponse>>> listarPedidosRecibidos(
+            Authentication authentication,
+            @RequestParam(required = false) Long idTienda,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String estadoPago,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "fechaCreacion,desc") String sort
     ) {
-        List<PedidoRecibidoResumenResponse> pedidos = pedidoRecibidoService
-                .listarPedidosRecibidos(authentication.getName());
+        PaginaResponse<PedidoRecibidoResumenResponse> pedidos = pedidoRecibidoService
+                .listarPedidosRecibidos(
+                        authentication.getName(), idTienda, q, estado, estadoPago, page, size, sort
+                );
 
-        return ResponseEntity.ok(
-                ApiResponse.success(pedidos)
-        );
+        return ResponseEntity.ok(ApiResponse.success(pedidos));
     }
 
-    /**
-     * Lista los pedidos recibidos en una tienda específica del vendedor autenticado.
-     */
+    /** Mantiene una URL por tienda para consumidores existentes, con el mismo contrato paginado. */
     @GetMapping("/tiendas/{idTienda}/pedidos")
-    public ResponseEntity<ApiResponse<List<PedidoRecibidoResumenResponse>>> listarPedidosRecibidosPorTienda(
+    public ResponseEntity<ApiResponse<PaginaResponse<PedidoRecibidoResumenResponse>>> listarPedidosPorTienda(
             @PathVariable Long idTienda,
-            Authentication authentication
+            Authentication authentication,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String estadoPago,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "fechaCreacion,desc") String sort
     ) {
-        List<PedidoRecibidoResumenResponse> pedidos = pedidoRecibidoService
-                .listarPedidosRecibidosPorTienda(authentication.getName(), idTienda);
+        PaginaResponse<PedidoRecibidoResumenResponse> pedidos = pedidoRecibidoService
+                .listarPedidosRecibidos(
+                        authentication.getName(), idTienda, q, estado, estadoPago, page, size, sort
+                );
 
-        return ResponseEntity.ok(
-                ApiResponse.success(pedidos)
-        );
+        return ResponseEntity.ok(ApiResponse.success(pedidos));
     }
 
-    /**
-     * Obtiene el detalle de un pedido recibido por el vendedor autenticado.
-     */
     @GetMapping("/pedidos/{idPedido}")
     public ResponseEntity<ApiResponse<PedidoRecibidoDetalleResponse>> buscarPedidoRecibidoPorId(
             @PathVariable Long idPedido,
@@ -70,8 +69,6 @@ public class VendedorPedidoController {
         PedidoRecibidoDetalleResponse pedido = pedidoRecibidoService
                 .buscarPedidoRecibidoPorId(authentication.getName(), idPedido);
 
-        return ResponseEntity.ok(
-                ApiResponse.success(pedido)
-        );
+        return ResponseEntity.ok(ApiResponse.success(pedido));
     }
 }

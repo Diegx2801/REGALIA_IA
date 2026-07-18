@@ -38,10 +38,5 @@ export class LayoutVendedor {
       ruta: '/catalogo',
       descripcion: 'Revisar como se ven tus productos',
     },
-    {
-      etiqueta: 'Inicio',
-      ruta: '/',
-      descripcion: 'Volver a la experiencia publica',
-    },
   ];
 }
