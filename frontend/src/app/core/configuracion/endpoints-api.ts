@@ -5,6 +5,7 @@ export const ENDPOINTS_API = {
   autenticacion: {
     login: `${RUTA_BASE_API}/auth/login`,
     google: `${RUTA_BASE_API}/auth/google`,
+    refrescarSesion: `${RUTA_BASE_API}/auth/session/refresh`,
     loginAdministracion: `${RUTA_BASE_API}/admin/auth/login`,
     confirmarVerificacionCorreo: `${RUTA_BASE_API}/auth/email-verification/confirm`,
     solicitarRecuperacionContrasena: `${RUTA_BASE_API}/auth/password-recovery/request`,

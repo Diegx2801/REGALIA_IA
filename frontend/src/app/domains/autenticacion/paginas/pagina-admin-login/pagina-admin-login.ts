@@ -90,6 +90,7 @@ export class PaginaAdminLogin {
         idUsuario: resultado.idUsuario,
         correo: resultado.correo,
         nombreCompleto: resultado.correo,
+        roles: resultado.roles,
         rol: rolPrincipal,
         correoVerificado: resultado.correoVerificado,
       },

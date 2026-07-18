@@ -139,6 +139,7 @@ public class SecurityConfig {
                          */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").access(publicAccess())
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/auth/session/refresh").access(publicAccess())
                         .requestMatchers(HttpMethod.PUT, "/api/account/password").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").access(publicAccess())
@@ -158,7 +159,7 @@ public class SecurityConfig {
                          * pedidos y demas acciones operativas requieren rol VENDEDOR.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me").access(publicAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").access(publicVerificadoAccess())
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").access(publicVerificadoAccess())
