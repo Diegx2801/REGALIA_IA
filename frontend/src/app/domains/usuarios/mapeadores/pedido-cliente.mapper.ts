@@ -1,5 +1,5 @@
-import { PedidoClienteDto } from '../modelos/pedido-cliente.dto';
-import { PedidoCliente } from '../modelos/pedido-cliente.model';
+import { PedidoClienteDto, PedidoClienteResumenDto } from '../modelos/pedido-cliente.dto';
+import { PedidoCliente, PedidoClienteResumen } from '../modelos/pedido-cliente.model';
 
 export function mapearPedidoClienteDesdeDto(dto: PedidoClienteDto): PedidoCliente {
   return {
@@ -25,5 +25,21 @@ export function mapearPedidoClienteDesdeDto(dto: PedidoClienteDto): PedidoClient
       precioUnitario: Number(detalle.precioUnitario ?? 0),
       subtotal: Number(detalle.subtotal ?? 0),
     })),
+  };
+}
+
+export function mapearPedidoClienteResumenDesdeDto(
+  dto: PedidoClienteResumenDto,
+): PedidoClienteResumen {
+  return {
+    idPedido: dto.idPedido,
+    nombreTienda: dto.nombreTienda?.trim() || 'Tienda REGALIA',
+    tipoEntrega: dto.tipoEntrega?.trim() || 'Entrega por coordinar',
+    fechaEntrega: dto.fechaEntrega,
+    estadoPedido: dto.estadoPedido?.trim() || 'PENDIENTE',
+    total: Number(dto.total ?? 0),
+    montoPagado: Number(dto.montoPagado ?? 0),
+    saldoPendiente: Number(dto.saldoPendiente ?? 0),
+    fechaCreacion: dto.fechaCreacion,
   };
 }

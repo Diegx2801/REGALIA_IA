@@ -4,14 +4,7 @@ export const USUARIOS_ROUTES: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'resumen',
-  },
-  {
-    path: 'resumen',
-    loadComponent: () =>
-      import('./paginas/pagina-cliente-resumen/pagina-cliente-resumen').then(
-        (m) => m.PaginaClienteResumen,
-      ),
+    redirectTo: 'pedidos',
   },
   {
     path: 'perfil',
@@ -28,10 +21,10 @@ export const USUARIOS_ROUTES: Routes = [
       ),
   },
   {
-    path: 'pagos',
+    path: 'pedidos/:idPedido',
     loadComponent: () =>
-      import('./paginas/pagina-cliente-pagos/pagina-cliente-pagos').then(
-        (m) => m.PaginaClientePagos,
+      import('./paginas/pagina-cliente-detalle-pedido/pagina-cliente-detalle-pedido').then(
+        (m) => m.PaginaClienteDetallePedido,
       ),
   },
 ];

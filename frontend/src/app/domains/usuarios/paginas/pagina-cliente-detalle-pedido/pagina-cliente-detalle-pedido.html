@@ -1,0 +1,62 @@
+<section class="detalle-pedido">
+  <a appBoton="fantasma" appBotonTamano="sm" routerLink="/cliente/pedidos">← Volver a mis pedidos</a>
+
+  @if (store.cargandoDetalle()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Pedido" titulo="Cargando el detalle de tu pedido." />
+  } @else if (store.mensajeErrorDetalle()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Pedido"
+      [titulo]="store.mensajeErrorDetalle() ?? 'No pudimos cargar el detalle del pedido.'"
+      textoAccion="Reintentar"
+      (accion)="recargarDetalle()"
+    />
+  } @else if (store.pedidoDetalle(); as pedido) {
+    <header class="detalle-pedido__hero">
+      <div>
+        <span>Pedido #{{ pedido.idPedido }}</span>
+        <h2>{{ etiquetaEstado(pedido.estadoPedido) }}</h2>
+        <p>{{ pedido.nombreTienda }} · Creado el {{ pedido.fechaCreacion | date: 'dd/MM/yyyy' }}</p>
+      </div>
+      <strong class="detalle-pedido__total">{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+    </header>
+
+    <section class="detalle-pedido__grid">
+      <article class="detalle-pedido__card">
+        <span>Entrega</span>
+        <h3>{{ pedido.tipoEntrega }}</h3>
+        <p>
+          @if (pedido.fechaEntrega) {
+            Fecha prevista: {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}.
+          } @else {
+            La fecha de entrega se coordinará contigo.
+          }
+        </p>
+        <p>{{ pedido.observacion }}</p>
+      </article>
+
+      <article class="detalle-pedido__card">
+        <span>Resumen de pago</span>
+        <dl class="detalle-pedido__montos">
+          <div><dt>Total</dt><dd>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
+          <div><dt>Pagado</dt><dd>{{ pedido.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
+          <div><dt>Saldo pendiente</dt><dd>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <article class="detalle-pedido__card detalle-pedido__productos">
+      <span>Productos</span>
+      <h3>Incluye {{ pedido.productos.length }} {{ pedido.productos.length === 1 ? 'producto' : 'productos' }}</h3>
+      <app-lista-panel ariaEtiqueta="Productos de este pedido">
+        @for (producto of pedido.productos; track producto.idDetallePedido) {
+          <app-fila-panel tipo="triple" [ariaEtiqueta]="producto.nombreProducto">
+            <strong>{{ producto.nombreProducto }}</strong>
+            <small>{{ producto.cantidad }} × {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+            <b>{{ producto.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+          </app-fila-panel>
+        }
+      </app-lista-panel>
+    </article>
+  }
+</section>

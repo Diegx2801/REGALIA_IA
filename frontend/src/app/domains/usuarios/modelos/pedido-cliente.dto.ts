@@ -27,7 +27,14 @@ export interface PedidoClienteDto {
   detalles: ProductoPedidoClienteDto[] | null;
 }
 
-export interface RegistrarPagoPedidoRequestDto {
-  metodoPagoPasarela: string;
-  codigoTransaccion: string;
+export interface PedidoClienteResumenDto {
+  idPedido: number;
+  nombreTienda: string | null;
+  tipoEntrega: string | null;
+  fechaEntrega: string | null;
+  estadoPedido: string | null;
+  total: number | null;
+  montoPagado: number | null;
+  saldoPendiente: number | null;
+  fechaCreacion: string | null;
 }

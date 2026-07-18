@@ -44,7 +44,6 @@ export const ENDPOINTS_API = {
   pedidos: {
     propios: `${RUTA_BASE_API}/pedidos`,
     propioPorId: (idPedido: number) => `${RUTA_BASE_API}/pedidos/${idPedido}`,
-    registrarPago: (idPedido: number) => `${RUTA_BASE_API}/pedidos/${idPedido}/pagos`,
     opcionesPagoInicial: `${RUTA_BASE_API}/pedidos/opciones/pago-inicial`,
     confirmar: `${RUTA_BASE_API}/pedidos/confirmar`,
   },
