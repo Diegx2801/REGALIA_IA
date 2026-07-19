@@ -147,16 +147,16 @@ export class VendedorApiService {
       .set('size', consulta.size ?? 10)
       .set('sort', consulta.sort ?? 'fechaCreacion,desc');
 
-    if (consulta.idTienda !== undefined) params = params.set('idTienda', consulta.idTienda);
     if (consulta.q?.trim()) params = params.set('q', consulta.q.trim());
     if (consulta.estado) params = params.set('estado', consulta.estado);
     if (consulta.estadoPago) params = params.set('estadoPago', consulta.estadoPago);
 
+    const endpoint = consulta.idTienda === undefined
+      ? ENDPOINTS_API.vendedores.pedidosRecibidos
+      : ENDPOINTS_API.vendedores.pedidosPorTienda(consulta.idTienda);
+
     return this.http
-      .get<RespuestaApi<RespuestaPaginada<PedidoRecibidoResumenDto>>>(
-        ENDPOINTS_API.vendedores.pedidosRecibidos,
-        { params },
-      )
+      .get<RespuestaApi<RespuestaPaginada<PedidoRecibidoResumenDto>>>(endpoint, { params })
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => {
@@ -169,6 +169,52 @@ export class VendedorApiService {
           };
         }),
       );
+  }
+
+  obtenerProductoPorId(idTienda: number, idProducto: number): Observable<ProductoVendedor> {
+    return this.http
+      .get<RespuestaApi<ProductoVendedorDto>>(ENDPOINTS_API.vendedores.productoPorId(idTienda, idProducto))
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar el producto.');
+          return mapearProductoVendedorDesdeDto(respuesta.data);
+        }),
+      );
+  }
+
+  obtenerTiendaPorId(idTienda: number): Observable<TiendaVendedor> {
+    return this.http
+      .get<RespuestaApi<TiendaVendedorDto>>(ENDPOINTS_API.vendedores.tiendaPorId(idTienda))
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar la tienda.');
+          return mapearTiendaVendedorDesdeDto(respuesta.data);
+        }),
+      );
+  }
+
+  actualizarTienda(idTienda: number, solicitud: SolicitudTiendaVendedor): Observable<TiendaVendedor> {
+    return this.http
+      .put<RespuestaApi<TiendaVendedorDto>>(
+        ENDPOINTS_API.vendedores.tiendaPorId(idTienda),
+        mapearSolicitudTiendaADto(solicitud),
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo actualizar la tienda.');
+          return mapearTiendaVendedorDesdeDto(respuesta.data);
+        }),
+      );
+  }
+
+  eliminarTienda(idTienda: number): Observable<void> {
+    return this.http.delete<RespuestaApi<void>>(ENDPOINTS_API.vendedores.tiendaPorId(idTienda)).pipe(
+      timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+      map(() => undefined),
+    );
   }
 
   obtenerDetallePedidoRecibido(idPedido: number): Observable<PedidoRecibidoDetalle> {

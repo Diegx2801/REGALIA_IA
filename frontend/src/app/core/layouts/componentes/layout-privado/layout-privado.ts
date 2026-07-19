@@ -27,8 +27,20 @@ export class LayoutPrivadoComponent {
   readonly enlaces = input<EnlaceLayoutPrivado[]>([]);
 
   readonly sesion = inject(SesionAutenticacionService);
+  readonly nombreVisible = computed(() => {
+    const usuario = this.sesion.usuarioActual();
+    const nombre = usuario?.nombreCompleto?.trim();
+    const correo = usuario?.correo?.trim();
+
+    // Durante el login actual, el backend aun no entrega nombres; evita repetir el correo como nombre y subtitulo.
+    if (!nombre || (correo && nombre.localeCompare(correo, undefined, { sensitivity: 'accent' }) === 0)) {
+      return 'Cuenta REGALIA';
+    }
+
+    return nombre;
+  });
   readonly inicialesUsuario = computed(() => {
-    const nombre = this.sesion.usuarioActual()?.nombreCompleto ?? 'Usuario REGALIA';
+    const nombre = this.nombreVisible();
     return nombre
       .split(' ')
       .filter(Boolean)

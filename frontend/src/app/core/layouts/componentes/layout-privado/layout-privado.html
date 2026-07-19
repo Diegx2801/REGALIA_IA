@@ -35,7 +35,7 @@
     <footer class="layout-privado__usuario">
       <div class="layout-privado__avatar" aria-hidden="true">{{ inicialesUsuario() }}</div>
       <div>
-        <strong>{{ sesion.usuarioActual()?.nombreCompleto ?? 'Usuario REGALIA' }}</strong>
+        <strong>{{ nombreVisible() }}</strong>
         <small>{{ sesion.usuarioActual()?.correo ?? 'Sesion activa' }}</small>
       </div>
       <span class="layout-privado__rol">{{ rolVisible() }}</span>
@@ -55,7 +55,7 @@
     <header class="layout-privado__topbar">
       <div>
         <span>{{ etiqueta() }}</span>
-        <strong>{{ sesion.usuarioActual()?.nombreCompleto ?? 'REGALIA' }}</strong>
+        <strong>{{ nombreVisible() }}</strong>
       </div>
       <nav aria-label="Acciones rapidas privadas">
         <a routerLink="/catalogo">Catalogo</a>

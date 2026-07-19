@@ -34,6 +34,7 @@ describe('VendedorPanelStore', () => {
                   direccionReferencia: 'Centro',
                   estadoRevision: 'APROBADA',
                   formalizada: true,
+                  idDocumentoFiscal: null,
                   rubros: [{ idRubro: 1, nombre: 'Regalos' }],
                   estado: true,
                 },

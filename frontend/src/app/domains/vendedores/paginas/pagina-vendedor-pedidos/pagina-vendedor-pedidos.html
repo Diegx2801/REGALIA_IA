@@ -1,8 +1,8 @@
 <section class="vendedor-pedidos">
   <header class="vendedor-pedidos__hero">
     <span>Pedidos recibidos</span>
-    <h2>Solicitudes y pagos</h2>
-    <p>Consulta pedidos reales de tus tiendas y revisa sus pagos registrados.</p>
+    <h2>{{ idTiendaFija() ? 'Pedidos de esta tienda' : 'Solicitudes y pagos' }}</h2>
+    <p>{{ idTiendaFija() ? 'Consulta pedidos y pagos asociados únicamente a esta tienda.' : 'Consulta pedidos reales de tus tiendas y revisa sus pagos registrados.' }}</p>
   </header>
 
   @if (store.cargando()) {
@@ -25,15 +25,17 @@
           </div>
 
           <form class="vendedor-pedidos__filtros" [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
-            <label>
-              Tienda
-              <select formControlName="idTienda">
-                <option value="">Todas</option>
-                @for (tienda of store.tiendas(); track tienda.idTienda) {
-                  <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
-                }
-              </select>
-            </label>
+            @if (!idTiendaFija()) {
+              <label>
+                Tienda
+                <select formControlName="idTienda">
+                  <option value="">Todas</option>
+                  @for (tienda of store.tiendas(); track tienda.idTienda) {
+                    <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
+                  }
+                </select>
+              </label>
+            }
             <label>
               Estado
               <select formControlName="estado">

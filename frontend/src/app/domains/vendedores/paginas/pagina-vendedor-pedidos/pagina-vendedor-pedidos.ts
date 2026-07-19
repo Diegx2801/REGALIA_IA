@@ -33,6 +33,7 @@ export class PaginaVendedorPedidos implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly store = inject(VendedorPanelStore);
+  readonly idTiendaFija = signal<number | null>(null);
   readonly consultaActual = signal<ConsultaPedidosVendedor>({ page: 0, size: 10 });
   readonly formularioFiltros = new FormGroup({
     idTienda: new FormControl('', { nonNullable: true }),
@@ -45,8 +46,14 @@ export class PaginaVendedorPedidos implements OnInit {
     // El contexto comercial solo se carga una vez; los pedidos se consultan por URL y pagina.
     this.store.cargarPanel(false, false);
 
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
+      this.idTiendaFija.set(this.obtenerNumeroPositivo(parametros.get('idTienda')) ?? null);
+    });
+
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
       const consulta = this.construirConsulta(parametros);
+      const idTiendaFija = this.idTiendaFija();
+      if (idTiendaFija !== null) consulta.idTienda = idTiendaFija;
       this.consultaActual.set(consulta);
       this.formularioFiltros.patchValue(
         {
@@ -66,7 +73,7 @@ export class PaginaVendedorPedidos implements OnInit {
     this.actualizarUrl({
       page: 0,
       size: this.consultaActual().size ?? 10,
-      idTienda: this.obtenerNumeroPositivo(filtros.idTienda),
+      idTienda: this.idTiendaFija() ?? this.obtenerNumeroPositivo(filtros.idTienda),
       q: filtros.q.trim() || undefined,
       estado: filtros.estado || undefined,
       estadoPago: (filtros.estadoPago || undefined) as ConsultaPedidosVendedor['estadoPago'],
@@ -75,7 +82,7 @@ export class PaginaVendedorPedidos implements OnInit {
   }
 
   limpiarFiltros(): void {
-    this.actualizarUrl({ page: 0, size: 10 });
+    this.actualizarUrl({ page: 0, size: 10, idTienda: this.idTiendaFija() ?? undefined });
   }
 
   paginaAnterior(): void {

@@ -35,8 +35,11 @@ export const ENDPOINTS_API = {
   vendedores: {
     perfilActual: `${RUTA_BASE_API}/vendedores/me`,
     tiendas: `${RUTA_BASE_API}/vendedores/me/tiendas`,
+    tiendaPorId: (idTienda: number) => `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}`,
     productosPorTienda: (idTienda: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos`,
+    productoPorId: (idTienda: number, idProducto: number) =>
+      `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos/${idProducto}`,
     pedidosRecibidos: `${RUTA_BASE_API}/vendedores/me/pedidos`,
     pedidosPorTienda: (idTienda: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/pedidos`,

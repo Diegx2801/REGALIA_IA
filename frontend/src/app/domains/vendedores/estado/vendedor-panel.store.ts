@@ -46,6 +46,8 @@ export class VendedorPanelStore {
   readonly cargandoDetallePedido = signal(false);
   readonly guardandoPerfil = signal(false);
   readonly guardandoTienda = signal(false);
+  readonly cargandoTienda = signal<number | null>(null);
+  readonly eliminandoTienda = signal<number | null>(null);
   readonly guardandoProducto = signal(false);
   readonly desactivandoProducto = signal<number | null>(null);
   readonly mensajeError = signal<string | null>(null);
@@ -77,8 +79,11 @@ export class VendedorPanelStore {
     (this.mensajeError() ?? '').toLowerCase().includes('perfil vendedor'),
   );
 
-  cargarPanel(forzar = false, incluirPedidos = true): void {
-    if (this.panelCargado && !forzar) return;
+  cargarPanel(forzar = false, incluirPedidos = true, idTiendaPreseleccionada?: number): void {
+    if (this.panelCargado && !forzar) {
+      if (idTiendaPreseleccionada !== undefined) this.seleccionarTienda(idTiendaPreseleccionada);
+      return;
+    }
 
     this.cargando.set(true);
     this.mensajeError.set(null);
@@ -111,7 +116,12 @@ export class VendedorPanelStore {
           this.rubros.set(rubros);
           this.tiposProducto.set(tiposProducto);
 
-          const primeraTienda = tiendas[0]?.idTienda ?? null;
+          const tiendaPreseleccionadaExiste = tiendas.some(
+            (tienda) => tienda.idTienda === idTiendaPreseleccionada,
+          );
+          const primeraTienda = tiendaPreseleccionadaExiste
+            ? idTiendaPreseleccionada ?? null
+            : tiendas[0]?.idTienda ?? null;
           this.idTiendaSeleccionada.set(primeraTienda);
 
           // Los productos dependen de la tienda activa; no se consultan si el vendedor aun no tiene tiendas.
@@ -286,6 +296,74 @@ export class VendedorPanelStore {
 
   private obtenerMensajeError(error: unknown): string {
     return obtenerMensajeErrorUsuario(error, 'No pudimos cargar la informacion del vendedor.');
+  }
+
+  cargarTienda(idTienda: number): void {
+    this.cargandoTienda.set(idTienda);
+    this.mensajeError.set(null);
+
+    this.vendedorApi
+      .obtenerTiendaPorId(idTienda)
+      .pipe(
+        finalize(() => this.cargandoTienda.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (tienda) => {
+          this.tiendas.update((tiendas) =>
+            tiendas.map((actual) => (actual.idTienda === tienda.idTienda ? tienda : actual)),
+          );
+          this.idTiendaSeleccionada.set(tienda.idTienda);
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  actualizarTienda(idTienda: number, solicitud: SolicitudTiendaVendedor): void {
+    this.guardandoTienda.set(true);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    this.vendedorApi
+      .actualizarTienda(idTienda, solicitud)
+      .pipe(
+        finalize(() => this.guardandoTienda.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (tienda) => {
+          this.tiendas.update((tiendas) =>
+            tiendas.map((actual) => (actual.idTienda === tienda.idTienda ? tienda : actual)),
+          );
+          this.idTiendaSeleccionada.set(tienda.idTienda);
+          this.mensajeExito.set('Tienda actualizada correctamente.');
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  eliminarTienda(idTienda: number): void {
+    this.eliminandoTienda.set(idTienda);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    this.vendedorApi
+      .eliminarTienda(idTienda)
+      .pipe(
+        finalize(() => this.eliminandoTienda.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.tiendas.update((tiendas) => tiendas.filter((tienda) => tienda.idTienda !== idTienda));
+          if (this.idTiendaSeleccionada() === idTienda) {
+            this.idTiendaSeleccionada.set(null);
+            this.productos.set([]);
+          }
+          this.mensajeExito.set('Tienda eliminada correctamente.');
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
   }
 
   private actualizarPaginaPedidos(pagina: {

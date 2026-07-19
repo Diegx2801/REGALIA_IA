@@ -1572,6 +1572,9 @@ Metodos:
 - `crearPerfilVendedor()`.
 - `obtenerTiendas()`.
 - `crearTienda()`.
+- `obtenerTiendaPorId()`.
+- `actualizarTienda()`.
+- `eliminarTienda()`.
 - `obtenerProductosPorTienda()`.
 - `crearProducto()`.
 - `actualizarProducto()`.
@@ -1595,6 +1598,7 @@ Responsabilidades:
 - Cargar perfil, tiendas, pedidos, rubros y tipos de producto.
 - Crear perfil vendedor si no existe.
 - Crear tienda.
+- Consultar, editar y eliminar la tienda propia.
 - Seleccionar tienda.
 - Crear producto.
 - Editar producto.

@@ -20,6 +20,7 @@ export interface TiendaVendedor {
   direccionReferencia: string;
   estadoRevision: string;
   formalizada: boolean;
+  idDocumentoFiscal: number | null;
   rubros: RubroTiendaVendedor[];
   estado: boolean;
 }
@@ -28,6 +29,7 @@ export interface ProductoVendedor {
   idProducto: number;
   idTienda: number;
   nombreTienda: string;
+  idTipoProducto: number;
   tipoProducto: string;
   nombre: string;
   descripcion: string;
@@ -85,6 +87,7 @@ export interface SolicitudTiendaVendedor {
   nombre: string;
   descripcion: string | null;
   direccionReferencia: string | null;
+  idDocumentoFiscal?: number | null;
   idsRubros: number[];
 }
 

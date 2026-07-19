@@ -1,17 +1,17 @@
 <section class="vendedor-tiendas">
   <header class="vendedor-tiendas__hero">
-    <span>Tiendas</span>
+    <span>Mi tienda</span>
     <h2>Presencia comercial</h2>
-    <p>Crea tiendas reales para publicar productos. La aprobación sigue dependiendo del backend administrativo.</p>
+    <p>Completa tus datos comerciales y prepara tu catálogo mientras revisamos tu tienda.</p>
   </header>
 
   @if (store.cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tus tiendas." />
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tu tienda." />
   } @else if (store.mensajeError()) {
     <app-estado-pantalla
       tipo="error"
       etiqueta="Error"
-      [titulo]="store.mensajeError() ?? 'No pudimos cargar tus tiendas.'"
+      [titulo]="store.mensajeError() ?? 'No pudimos cargar tu tienda.'"
       textoAccion="Reintentar"
       (accion)="store.cargarPanel(true)"
     />
@@ -23,89 +23,82 @@
     <section class="vendedor-tiendas__layout">
       <article class="vendedor-card">
         <header>
-          <span>Nueva tienda</span>
-          <h3>Registra una unidad comercial</h3>
+          <span>{{ idTiendaEditando() === null ? 'Nueva tienda' : 'Editar tienda' }}</span>
+          <h3>{{ idTiendaEditando() === null ? 'Registra tu vitrina' : 'Actualiza tu información comercial' }}</h3>
         </header>
 
-        <form appFormularioPanel appFormularioUnaColumna [formGroup]="formularioTienda" (ngSubmit)="crearTienda()">
-          <label appCampoFormulario>
-            Nombre comercial
-            <input type="text" formControlName="nombre" placeholder="Ej. Detalles Ana" />
-            @if (campoTieneError('nombre')) {
-              <small appErrorCampo>El nombre de la tienda es obligatorio.</small>
-            }
-          </label>
+        @if (store.tiendas().length > 0 && idTiendaEditando() === null) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Plan actual"
+            titulo="Ya tienes una tienda activa en tu plan."
+            descripcion="Puedes editarla o eliminarla antes de crear otra."
+          />
+        } @else {
+          <form appFormularioPanel appFormularioUnaColumna [formGroup]="formularioTienda" (ngSubmit)="guardarTienda()">
+            <label appCampoFormulario>
+              Nombre comercial
+              <input type="text" formControlName="nombre" placeholder="Ej. Detalles Ana" />
+              @if (campoTieneError('nombre')) { <small appErrorCampo>El nombre de la tienda es obligatorio.</small> }
+            </label>
 
-          <label appCampoFormulario>
-            Rubro
-            <select formControlName="idRubro">
-              @for (rubro of store.rubros(); track rubro.idRubro) {
-                <option [ngValue]="rubro.idRubro">{{ rubro.nombre }}</option>
+            <section class="vendedor-tiendas__selector-rubros" [class.vendedor-tiendas__selector-rubros--error]="campoTieneError('idsRubros')">
+              <div>
+                <strong>Rubros comerciales</strong>
+                <p>{{ resumenRubrosSeleccionados() }}</p>
+              </div>
+              <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="abrirSelectorRubros()">
+                {{ formularioTienda.controls.idsRubros.value.length > 0 ? 'Modificar rubros' : 'Seleccionar rubros' }}
+              </button>
+              @if (campoTieneError('idsRubros')) { <small appErrorCampo>Selecciona al menos un rubro comercial.</small> }
+            </section>
+
+            <label appCampoFormulario>
+              Dirección de referencia
+              <input type="text" formControlName="direccionReferencia" placeholder="Zona, distrito o referencia" />
+            </label>
+
+            <label appCampoFormulario>
+              Descripción
+              <textarea rows="4" formControlName="descripcion" placeholder="Cuenta qué tipo de regalos personalizados preparas"></textarea>
+            </label>
+
+            <div class="vendedor-tiendas__acciones-formulario">
+              <button appBoton appBotonBloque [appBotonCargando]="store.guardandoTienda()" type="submit" [disabled]="store.guardandoTienda()">
+                {{ store.guardandoTienda() ? 'Guardando...' : (idTiendaEditando() === null ? 'Crear tienda' : 'Guardar cambios') }}
+              </button>
+              @if (idTiendaEditando() !== null) {
+                <button appBoton="fantasma" appBotonBloque type="button" (click)="cancelarEdicion()">Cancelar</button>
               }
-            </select>
-            @if (campoTieneError('idRubro')) {
-              <small appErrorCampo>Selecciona un rubro comercial.</small>
-            }
-          </label>
-
-          <label appCampoFormulario>
-            Dirección de referencia
-            <input type="text" formControlName="direccionReferencia" placeholder="Zona, distrito o referencia" />
-          </label>
-
-          <label appCampoFormulario>
-            Descripción
-            <textarea
-              rows="4"
-              formControlName="descripcion"
-              placeholder="Cuenta qué tipo de regalos personalizados prepara tu tienda"
-            ></textarea>
-          </label>
-
-          <button
-            appBoton
-            appBotonBloque
-            [appBotonCargando]="store.guardandoTienda()"
-            type="submit"
-            [disabled]="store.guardandoTienda()"
-            ngbTooltip="La tienda quedará disponible para revisión administrativa"
-          >
-            {{ store.guardandoTienda() ? 'Creando tienda...' : 'Crear tienda' }}
-          </button>
-        </form>
+            </div>
+          </form>
+        }
       </article>
 
       <article class="vendedor-card">
         <header>
-          <span>Mis tiendas</span>
-          <h3>{{ store.tiendas().length }} registradas</h3>
+          <span>Mi vitrina</span>
+          <h3>{{ store.tiendas().length === 0 ? 'Aún no tienes tienda' : store.tiendas().length === 1 ? '1 tienda registrada' : store.tiendas().length + ' tiendas registradas' }}</h3>
         </header>
 
         @if (store.tiendas().length === 0) {
-          <app-estado-pantalla
-            tipo="vacio"
-            etiqueta="Sin tiendas"
-            titulo="Aún no tienes tiendas registradas."
-            descripcion="Crea tu primera tienda para empezar a publicar productos."
-          />
+          <app-estado-pantalla tipo="vacio" etiqueta="Sin tienda" titulo="Registra tu tienda para preparar tu catálogo." />
         } @else {
           <app-lista-panel ariaEtiqueta="Tiendas del vendedor">
             @for (tienda of store.tiendas(); track tienda.idTienda) {
-              <app-fila-panel tipo="triple" [ariaEtiqueta]="tienda.nombre">
-                <div>
-                  <strong>{{ tienda.nombre }}</strong>
-                  <small>{{ tienda.rubros.length ? tienda.rubros[0].nombre : 'Sin rubro' }} - {{ tienda.direccionReferencia }}</small>
+              <app-fila-panel tipo="apilada" [ariaEtiqueta]="tienda.nombre">
+                <strong>{{ tienda.nombre }}</strong>
+                <span>{{ estadoComercial(tienda.estadoRevision) }}</span>
+                <small>{{ describirRubros(tienda) }} · {{ tienda.direccionReferencia }}</small>
+                <div class="vendedor-tiendas__acciones-tienda">
+                  <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="editarTienda(tienda)" [disabled]="store.cargandoTienda() === tienda.idTienda">
+                    {{ store.cargandoTienda() === tienda.idTienda ? 'Cargando...' : 'Editar' }}
+                  </button>
+                  <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="abrirCentroTienda(tienda.idTienda)">Abrir centro</button>
+                  <button appBoton="peligro" appBotonTamano="sm" type="button" (click)="eliminarTienda(tienda)" [disabled]="store.eliminandoTienda() === tienda.idTienda">
+                    {{ store.eliminandoTienda() === tienda.idTienda ? 'Eliminando...' : 'Eliminar' }}
+                  </button>
                 </div>
-                <b>{{ tienda.estadoRevision }}</b>
-                <button
-                  appBoton="secundario"
-                  appBotonTamano="sm"
-                  type="button"
-                  (click)="store.seleccionarTienda(tienda.idTienda)"
-                  ngbTooltip="Seleccionar esta tienda para productos"
-                >
-                  Activar
-                </button>
               </app-fila-panel>
             }
           </app-lista-panel>
@@ -114,3 +107,42 @@
     </section>
   }
 </section>
+
+@if (mostrandoSelectorRubros()) {
+  <div class="vendedor-tiendas__modal-fondo" (click)="cerrarSelectorRubros()">
+    <section
+      class="vendedor-tiendas__modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="selector-rubros-titulo"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="vendedor-tiendas__modal-encabezado">
+        <div>
+          <span>Rubros comerciales</span>
+          <h3 id="selector-rubros-titulo">Selecciona los rubros de tu tienda</h3>
+          <p>Elige todos los que representen los productos que ofreces.</p>
+        </div>
+        <button class="vendedor-tiendas__modal-cerrar" type="button" aria-label="Cerrar selector de rubros" (click)="cerrarSelectorRubros()">×</button>
+      </header>
+
+      <div class="vendedor-tiendas__modal-opciones">
+        @for (rubro of store.rubros(); track rubro.idRubro) {
+          <label class="vendedor-tiendas__modal-opcion">
+            <input
+              type="checkbox"
+              [checked]="rubroTemporalSeleccionado(rubro.idRubro)"
+              (change)="alternarRubroTemporal(rubro.idRubro, $event)"
+            />
+            <span>{{ rubro.nombre }}</span>
+          </label>
+        }
+      </div>
+
+      <footer class="vendedor-tiendas__modal-acciones">
+        <button appBoton="fantasma" type="button" (click)="cerrarSelectorRubros()">Cancelar</button>
+        <button appBoton type="button" (click)="aplicarRubrosSeleccionados()">Aplicar selección</button>
+      </footer>
+    </section>
+  </div>
+}

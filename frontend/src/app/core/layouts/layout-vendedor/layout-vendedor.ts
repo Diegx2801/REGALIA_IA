@@ -24,19 +24,9 @@ export class LayoutVendedor {
       descripcion: 'Gestionar presencia comercial',
     },
     {
-      etiqueta: 'Productos',
-      ruta: '/vendedor/productos',
-      descripcion: 'Catalogo y disponibilidad',
-    },
-    {
       etiqueta: 'Pedidos',
       ruta: '/vendedor/pedidos',
       descripcion: 'Solicitudes y pagos recibidos',
-    },
-    {
-      etiqueta: 'Catalogo publico',
-      ruta: '/catalogo',
-      descripcion: 'Revisar como se ven tus productos',
     },
   ];
 }
