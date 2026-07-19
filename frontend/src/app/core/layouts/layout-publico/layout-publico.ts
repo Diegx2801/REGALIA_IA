@@ -30,6 +30,7 @@ export class LayoutPublico {
     { etiqueta: 'Pedir con IA', ruta: '/pedir-con-ia' },
     { etiqueta: 'Catálogo', ruta: '/catalogo' },
     { etiqueta: 'Vendedores', ruta: '/vendedores' },
+    { etiqueta: 'Vender en REGALIA', ruta: '/vender' },
     { etiqueta: 'Cómo funciona', ruta: '/modelo' },
   ];
 

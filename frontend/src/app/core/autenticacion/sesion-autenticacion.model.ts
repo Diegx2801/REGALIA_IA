@@ -4,6 +4,7 @@ export interface UsuarioSesion {
   idUsuario: number;
   nombreCompleto: string;
   correo: string;
+  roles: RolUsuario[];
   rol: RolUsuario;
   correoVerificado: boolean;
 }

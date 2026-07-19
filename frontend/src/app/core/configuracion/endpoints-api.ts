@@ -5,6 +5,7 @@ export const ENDPOINTS_API = {
   autenticacion: {
     login: `${RUTA_BASE_API}/auth/login`,
     google: `${RUTA_BASE_API}/auth/google`,
+    refrescarSesion: `${RUTA_BASE_API}/auth/session/refresh`,
     loginAdministracion: `${RUTA_BASE_API}/admin/auth/login`,
     confirmarVerificacionCorreo: `${RUTA_BASE_API}/auth/email-verification/confirm`,
     solicitarRecuperacionContrasena: `${RUTA_BASE_API}/auth/password-recovery/request`,
@@ -34,8 +35,11 @@ export const ENDPOINTS_API = {
   vendedores: {
     perfilActual: `${RUTA_BASE_API}/vendedores/me`,
     tiendas: `${RUTA_BASE_API}/vendedores/me/tiendas`,
+    tiendaPorId: (idTienda: number) => `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}`,
     productosPorTienda: (idTienda: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos`,
+    productoPorId: (idTienda: number, idProducto: number) =>
+      `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos/${idProducto}`,
     pedidosRecibidos: `${RUTA_BASE_API}/vendedores/me/pedidos`,
     pedidosPorTienda: (idTienda: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/pedidos`,
@@ -44,12 +48,13 @@ export const ENDPOINTS_API = {
   pedidos: {
     propios: `${RUTA_BASE_API}/pedidos`,
     propioPorId: (idPedido: number) => `${RUTA_BASE_API}/pedidos/${idPedido}`,
-    registrarPago: (idPedido: number) => `${RUTA_BASE_API}/pedidos/${idPedido}/pagos`,
     opcionesPagoInicial: `${RUTA_BASE_API}/pedidos/opciones/pago-inicial`,
     confirmar: `${RUTA_BASE_API}/pedidos/confirmar`,
   },
   checkout: {
     sesiones: `${RUTA_BASE_API}/checkout/sessions`,
+    sesionPagoRestante: (idPedido: number) =>
+      `${RUTA_BASE_API}/checkout/orders/${idPedido}/remaining-payment-session`,
   },
   ia: {
     recomendarProductos: `${RUTA_BASE_API}/builder-ia/recomendar-productos`,

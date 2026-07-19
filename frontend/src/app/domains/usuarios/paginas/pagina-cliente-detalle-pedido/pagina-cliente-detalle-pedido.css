@@ -1,0 +1,115 @@
+:host {
+  display: block;
+}
+
+.detalle-pedido {
+  display: grid;
+  gap: 1rem;
+}
+
+.detalle-pedido__hero,
+.detalle-pedido__card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.35rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.detalle-pedido__hero {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.detalle-pedido span {
+  color: var(--rg-color-primary);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.detalle-pedido h2,
+.detalle-pedido h3 {
+  color: var(--rg-color-ink);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  margin: 0.25rem 0;
+}
+
+.detalle-pedido p,
+.detalle-pedido dt,
+.detalle-pedido small {
+  color: var(--rg-color-muted);
+}
+
+.detalle-pedido__total {
+  color: var(--rg-color-ink);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  white-space: nowrap;
+}
+
+.detalle-pedido__grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detalle-pedido__montos {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0 0;
+}
+
+.detalle-pedido__montos div {
+  align-items: baseline;
+  border-bottom: 1px solid var(--rg-color-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding-bottom: 0.65rem;
+}
+
+.detalle-pedido__montos dd {
+  color: var(--rg-color-ink);
+  font-weight: 900;
+  margin: 0;
+}
+
+.detalle-pedido__mensaje-pago {
+  background: #fff5dd;
+  border: 1px solid #efd39b;
+  border-radius: 0.85rem;
+  color: var(--rg-color-ink);
+  margin: 1rem 0 0;
+  padding: 0.8rem;
+}
+
+.detalle-pedido__mensaje-pago--exito {
+  background: #e8f6ed;
+  border-color: #a8d9b8;
+  color: #1f6a3a;
+}
+
+.detalle-pedido__mensaje-pago--error {
+  background: #fdebec;
+  border-color: #efb5b8;
+  color: #9a2832;
+}
+
+.detalle-pedido__productos {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (max-width: 639.98px) {
+  .detalle-pedido__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-pedido__hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

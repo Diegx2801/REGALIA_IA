@@ -6,6 +6,7 @@ import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
 import com.regalia.backend.pago.application.gateway.PaymentGatewayStatus;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckoutResult;
+import com.regalia.backend.pago.application.gateway.model.PaymentGatewayRedirectUrls;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationResult;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
@@ -145,10 +146,11 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("items", List.of(buildItem(command, amount, currency)));
         payload.put("payer", Map.of("email", normalizeEmail(command.payerEmail())));
+        PaymentGatewayRedirectUrls redirectUrls = command.redirectUrls();
         payload.put("back_urls", Map.of(
-                "success", mercadoPago.getSuccessUrl(),
-                "failure", mercadoPago.getFailureUrl(),
-                "pending", mercadoPago.getPendingUrl()
+                "success", redirectUrls == null ? mercadoPago.getSuccessUrl() : redirectUrls.successUrl(),
+                "failure", redirectUrls == null ? mercadoPago.getFailureUrl() : redirectUrls.failureUrl(),
+                "pending", redirectUrls == null ? mercadoPago.getPendingUrl() : redirectUrls.pendingUrl()
         ));
         payload.put("auto_return", "approved");
         payload.put("external_reference", externalReference);

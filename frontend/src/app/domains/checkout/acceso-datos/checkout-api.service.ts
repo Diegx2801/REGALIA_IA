@@ -40,4 +40,22 @@ export class CheckoutApiService {
         }),
       );
   }
+
+  crearSesionPagoRestante(idPedido: number): Observable<ResultadoCheckout> {
+    return this.http
+      .post<RespuestaApi<CheckoutSessionResponseDto>>(
+        ENDPOINTS_API.checkout.sesionPagoRestante(idPedido),
+        null,
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_CHECKOUT_MS),
+        map((respuesta) => {
+          if (!respuesta.data) {
+            throw new Error(respuesta.message ?? 'No se pudo preparar el pago pendiente.');
+          }
+
+          return mapearResultadoCheckoutDesdeDto(respuesta.data);
+        }),
+      );
+  }
 }

@@ -62,6 +62,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'vender',
+        loadComponent: () =>
+          import('./domains/vendedores/onboarding/paginas/pagina-empezar-a-vender/pagina-empezar-a-vender').then(
+            (m) => m.PaginaEmpezarAVender,
+          ),
+      },
+      {
         path: 'modelo',
         loadComponent: () =>
           import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),

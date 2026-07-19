@@ -1,7 +1,7 @@
 import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
@@ -26,6 +26,7 @@ import { UsuarioApiService } from '../../acceso-datos/usuario-api.service';
     FormularioPanelDirective,
     EstadoPantallaComponent,
     BotonGoogleLogin,
+    RouterLink,
   ],
   templateUrl: './pagina-cliente-perfil.html',
   styleUrl: './pagina-cliente-perfil.css',

@@ -14,34 +14,14 @@ import {
 export class LayoutCliente {
   readonly enlaces: EnlaceLayoutPrivado[] = [
     {
-      etiqueta: 'Resumen',
-      ruta: '/cliente/resumen',
-      descripcion: 'Actividad, pedidos y preferencias',
-    },
-    {
-      etiqueta: 'Perfil',
-      ruta: '/cliente/perfil',
-      descripcion: 'Datos personales y contacto',
-    },
-    {
-      etiqueta: 'Pedidos',
+      etiqueta: 'Mis pedidos',
       ruta: '/cliente/pedidos',
       descripcion: 'Historial y seguimiento',
     },
     {
-      etiqueta: 'Pagos',
-      ruta: '/cliente/pagos',
-      descripcion: 'Saldos pendientes y pagos',
-    },
-    {
-      etiqueta: 'Catalogo',
-      ruta: '/catalogo',
-      descripcion: 'Explorar regalos personalizados',
-    },
-    {
-      etiqueta: 'Carrito',
-      ruta: '/carrito',
-      descripcion: 'Preparar una solicitud',
+      etiqueta: 'Mi perfil',
+      ruta: '/cliente/perfil',
+      descripcion: 'Datos y seguridad',
     },
   ];
 }

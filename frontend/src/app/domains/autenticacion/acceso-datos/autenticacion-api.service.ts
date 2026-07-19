@@ -32,6 +32,12 @@ export class AutenticacionApiService {
       .pipe(map((respuesta) => this.mapearRespuestaLogin(respuesta)));
   }
 
+  refrescarSesionPublica(): Observable<ResultadoLogin> {
+    return this.http
+      .post<RespuestaApi<LoginResponseDto>>(ENDPOINTS_API.autenticacion.refrescarSesion, {})
+      .pipe(map((respuesta) => this.mapearRespuestaLogin(respuesta)));
+  }
+
   solicitarRecuperacionContrasena(correo: string): Observable<string> {
     return this.http
       .post<RespuestaApi<null>>(ENDPOINTS_API.autenticacion.solicitarRecuperacionContrasena, { correo })

@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,6 +59,15 @@ public class AuthController {
 
         return ResponseEntity.ok(
                 ApiResponse.success(AuthApiMapper.toResponse(result), "Inicio de sesi\u00f3n con Google correcto")
+        );
+    }
+
+    @PostMapping("/session/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refrescarSesion(Authentication authentication) {
+        LoginResult result = authService.refrescarSesionPublica(authentication.getName());
+
+        return ResponseEntity.ok(
+                ApiResponse.success(AuthApiMapper.toResponse(result), "Sesion actualizada correctamente")
         );
     }
 }

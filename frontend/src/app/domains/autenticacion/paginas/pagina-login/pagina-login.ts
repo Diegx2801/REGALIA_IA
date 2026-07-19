@@ -37,6 +37,7 @@ export class PaginaLogin implements OnInit {
   readonly mostrarContrasenaRegistro = signal(false);
   readonly mostrarConfirmacionRegistro = signal(false);
   readonly modo = signal<ModoAutenticacion>('login');
+  private retornoSeguro: string | null = null;
 
   readonly formularioLogin = new FormGroup({
     correo: new FormControl('', {
@@ -89,6 +90,11 @@ export class PaginaLogin implements OnInit {
 
         this.mensajeError.set('');
         this.mensajeRegistro.set('');
+        this.retornoSeguro = this.obtenerRetornoSeguro(parametros.get('retorno'));
+
+        if (parametros.get('modo') === 'registro') {
+          this.modo.set('registro');
+        }
 
         if (parametros.get('contrasenaActualizada') === 'true') {
           this.mensajeRegistro.set('Contrasena actualizada. Inicia sesion nuevamente con tu nueva contrasena.');
@@ -239,6 +245,7 @@ export class PaginaLogin implements OnInit {
         idUsuario: resultado.idUsuario,
         correo: resultado.correo,
         nombreCompleto: resultado.correo,
+        roles: resultado.roles,
         rol: rolPrincipal,
         correoVerificado: resultado.correoVerificado,
       },
@@ -249,7 +256,7 @@ export class PaginaLogin implements OnInit {
       this.formularioLogin.controls.recordarSesion.value,
     );
 
-    void this.router.navigateByUrl(this.obtenerRutaInicial(rolPrincipal));
+    void this.router.navigateByUrl(this.retornoSeguro ?? this.obtenerRutaInicial(rolPrincipal));
   }
 
   private obtenerRolPrincipal(roles: RolUsuario[]): RolUsuario {
@@ -262,6 +269,14 @@ export class PaginaLogin implements OnInit {
     if (rol === 'ADMIN') return '/admin';
     if (rol === 'VENDEDOR') return '/vendedor';
     return '/cliente';
+  }
+
+  private obtenerRetornoSeguro(retorno: string | null): string | null {
+    if (!retorno || !retorno.startsWith('/') || retorno.startsWith('//')) {
+      return null;
+    }
+
+    return retorno;
   }
 
   private obtenerMensajeErrorLogin(error: unknown): string {

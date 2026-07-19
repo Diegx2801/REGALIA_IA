@@ -1,8 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, timeout } from 'rxjs';
 import { ENDPOINTS_API } from '../../../core/configuracion/endpoints-api';
-import { RespuestaApi } from '../../../shared/modelos/respuesta-api.model';
+import { RespuestaApi, RespuestaPaginada } from '../../../shared/modelos/respuesta-api.model';
 import {
   mapearPedidoRecibidoDetalleDesdeDto,
   mapearPedidoRecibidoDesdeDto,
@@ -30,6 +30,16 @@ import {
 } from '../modelos/vendedor.model';
 
 const TIEMPO_ESPERA_VENDEDOR_MS = 10000;
+
+export interface ConsultaPedidosVendedor {
+  page?: number;
+  size?: number;
+  idTienda?: number;
+  q?: string;
+  estado?: string;
+  estadoPago?: 'PAGADO' | 'CON_SALDO';
+  sort?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class VendedorApiService {
@@ -129,22 +139,82 @@ export class VendedorApiService {
       );
   }
 
-  obtenerPedidosRecibidos(): Observable<PedidoRecibidoResumen[]> {
+  obtenerPedidosRecibidos(
+    consulta: ConsultaPedidosVendedor = {},
+  ): Observable<RespuestaPaginada<PedidoRecibidoResumen>> {
+    let params = new HttpParams()
+      .set('page', consulta.page ?? 0)
+      .set('size', consulta.size ?? 10)
+      .set('sort', consulta.sort ?? 'fechaCreacion,desc');
+
+    if (consulta.q?.trim()) params = params.set('q', consulta.q.trim());
+    if (consulta.estado) params = params.set('estado', consulta.estado);
+    if (consulta.estadoPago) params = params.set('estadoPago', consulta.estadoPago);
+
+    const endpoint = consulta.idTienda === undefined
+      ? ENDPOINTS_API.vendedores.pedidosRecibidos
+      : ENDPOINTS_API.vendedores.pedidosPorTienda(consulta.idTienda);
+
     return this.http
-      .get<RespuestaApi<PedidoRecibidoResumenDto[]>>(ENDPOINTS_API.vendedores.pedidosRecibidos)
+      .get<RespuestaApi<RespuestaPaginada<PedidoRecibidoResumenDto>>>(endpoint, { params })
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
-        map((respuesta) => (respuesta.data ?? []).map(mapearPedidoRecibidoDesdeDto)),
+        map((respuesta) => {
+          const pagina = respuesta.data;
+          if (!pagina) throw new Error(respuesta.message ?? 'No se pudieron cargar los pedidos recibidos.');
+
+          return {
+            ...pagina,
+            contenido: pagina.contenido.map(mapearPedidoRecibidoDesdeDto),
+          };
+        }),
       );
   }
 
-  obtenerPedidosPorTienda(idTienda: number): Observable<PedidoRecibidoResumen[]> {
+  obtenerProductoPorId(idTienda: number, idProducto: number): Observable<ProductoVendedor> {
     return this.http
-      .get<RespuestaApi<PedidoRecibidoResumenDto[]>>(ENDPOINTS_API.vendedores.pedidosPorTienda(idTienda))
+      .get<RespuestaApi<ProductoVendedorDto>>(ENDPOINTS_API.vendedores.productoPorId(idTienda, idProducto))
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
-        map((respuesta) => (respuesta.data ?? []).map(mapearPedidoRecibidoDesdeDto)),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar el producto.');
+          return mapearProductoVendedorDesdeDto(respuesta.data);
+        }),
       );
+  }
+
+  obtenerTiendaPorId(idTienda: number): Observable<TiendaVendedor> {
+    return this.http
+      .get<RespuestaApi<TiendaVendedorDto>>(ENDPOINTS_API.vendedores.tiendaPorId(idTienda))
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar la tienda.');
+          return mapearTiendaVendedorDesdeDto(respuesta.data);
+        }),
+      );
+  }
+
+  actualizarTienda(idTienda: number, solicitud: SolicitudTiendaVendedor): Observable<TiendaVendedor> {
+    return this.http
+      .put<RespuestaApi<TiendaVendedorDto>>(
+        ENDPOINTS_API.vendedores.tiendaPorId(idTienda),
+        mapearSolicitudTiendaADto(solicitud),
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo actualizar la tienda.');
+          return mapearTiendaVendedorDesdeDto(respuesta.data);
+        }),
+      );
+  }
+
+  eliminarTienda(idTienda: number): Observable<void> {
+    return this.http.delete<RespuestaApi<void>>(ENDPOINTS_API.vendedores.tiendaPorId(idTienda)).pipe(
+      timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+      map(() => undefined),
+    );
   }
 
   obtenerDetallePedidoRecibido(idPedido: number): Observable<PedidoRecibidoDetalle> {

@@ -6,7 +6,7 @@ import { RubroApiService } from '../../datos-maestros/acceso-datos/rubro-api.ser
 import { TipoProductoApiService } from '../../datos-maestros/acceso-datos/tipo-producto-api.service';
 import { Rubro } from '../../datos-maestros/modelos/rubro.model';
 import { TipoProducto } from '../../datos-maestros/modelos/tipo-producto.model';
-import { VendedorApiService } from '../acceso-datos/vendedor-api.service';
+import { ConsultaPedidosVendedor, VendedorApiService } from '../acceso-datos/vendedor-api.service';
 import {
   PedidoRecibidoDetalle,
   PedidoRecibidoResumen,
@@ -30,6 +30,11 @@ export class VendedorPanelStore {
   readonly productos = signal<ProductoVendedor[]>([]);
   readonly pedidosTodos = signal<PedidoRecibidoResumen[]>([]);
   readonly pedidos = signal<PedidoRecibidoResumen[]>([]);
+  readonly paginaPedidosActual = signal(0);
+  readonly tamanioPaginaPedidos = signal(10);
+  readonly totalPedidos = signal(0);
+  readonly totalPaginasPedidos = signal(0);
+  readonly ultimaPaginaPedidos = signal(true);
   readonly pedidoDetalle = signal<PedidoRecibidoDetalle | null>(null);
   readonly rubros = signal<Rubro[]>([]);
   readonly tiposProducto = signal<TipoProducto[]>([]);
@@ -41,6 +46,8 @@ export class VendedorPanelStore {
   readonly cargandoDetallePedido = signal(false);
   readonly guardandoPerfil = signal(false);
   readonly guardandoTienda = signal(false);
+  readonly cargandoTienda = signal<number | null>(null);
+  readonly eliminandoTienda = signal<number | null>(null);
   readonly guardandoProducto = signal(false);
   readonly desactivandoProducto = signal<number | null>(null);
   readonly mensajeError = signal<string | null>(null);
@@ -72,8 +79,11 @@ export class VendedorPanelStore {
     (this.mensajeError() ?? '').toLowerCase().includes('perfil vendedor'),
   );
 
-  cargarPanel(forzar = false): void {
-    if (this.panelCargado && !forzar) return;
+  cargarPanel(forzar = false, incluirPedidos = true, idTiendaPreseleccionada?: number): void {
+    if (this.panelCargado && !forzar) {
+      if (idTiendaPreseleccionada !== undefined) this.seleccionarTienda(idTiendaPreseleccionada);
+      return;
+    }
 
     this.cargando.set(true);
     this.mensajeError.set(null);
@@ -82,7 +92,16 @@ export class VendedorPanelStore {
     forkJoin({
       perfil: this.vendedorApi.obtenerPerfilActual(),
       tiendas: this.vendedorApi.obtenerTiendas(),
-      pedidos: this.vendedorApi.obtenerPedidosRecibidos(),
+      pedidos: incluirPedidos
+        ? this.vendedorApi.obtenerPedidosRecibidos({ page: 0, size: 5 })
+        : of({
+            contenido: [] as PedidoRecibidoResumen[],
+            paginaActual: 0,
+            tamanioPagina: 10,
+            totalElementos: 0,
+            totalPaginas: 0,
+            ultimaPagina: true,
+          }),
       rubros: this.rubroApi.obtenerRubros(),
       tiposProducto: this.tipoProductoApi.obtenerTiposProducto(),
     })
@@ -90,12 +109,19 @@ export class VendedorPanelStore {
         switchMap(({ perfil, tiendas, pedidos, rubros, tiposProducto }) => {
           this.perfil.set(perfil);
           this.tiendas.set(tiendas);
-          this.pedidosTodos.set(pedidos);
-          this.pedidos.set(pedidos);
+          if (incluirPedidos) {
+            this.actualizarPaginaPedidos(pedidos);
+            this.pedidosTodos.set(pedidos.contenido);
+          }
           this.rubros.set(rubros);
           this.tiposProducto.set(tiposProducto);
 
-          const primeraTienda = tiendas[0]?.idTienda ?? null;
+          const tiendaPreseleccionadaExiste = tiendas.some(
+            (tienda) => tienda.idTienda === idTiendaPreseleccionada,
+          );
+          const primeraTienda = tiendaPreseleccionadaExiste
+            ? idTiendaPreseleccionada ?? null
+            : tiendas[0]?.idTienda ?? null;
           this.idTiendaSeleccionada.set(primeraTienda);
 
           // Los productos dependen de la tienda activa; no se consultan si el vendedor aun no tiene tiendas.
@@ -228,26 +254,20 @@ export class VendedorPanelStore {
       });
   }
 
-  cargarPedidosPorTienda(idTienda: number | null): void {
-    this.idTiendaPedidosSeleccionada.set(idTienda);
+  cargarPedidosPaginados(consulta: ConsultaPedidosVendedor): void {
+    this.idTiendaPedidosSeleccionada.set(consulta.idTienda ?? null);
     this.pedidoDetalle.set(null);
     this.cargandoPedidos.set(true);
     this.mensajeError.set(null);
 
-    const consulta = idTienda
-      ? this.vendedorApi.obtenerPedidosPorTienda(idTienda)
-      : this.vendedorApi.obtenerPedidosRecibidos();
-
-    consulta
+    this.vendedorApi
+      .obtenerPedidosRecibidos(consulta)
       .pipe(
         finalize(() => this.cargandoPedidos.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (pedidos) => {
-          this.pedidos.set(pedidos);
-          if (idTienda === null) this.pedidosTodos.set(pedidos);
-        },
+        next: (pagina) => this.actualizarPaginaPedidos(pagina),
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
@@ -276,5 +296,89 @@ export class VendedorPanelStore {
 
   private obtenerMensajeError(error: unknown): string {
     return obtenerMensajeErrorUsuario(error, 'No pudimos cargar la informacion del vendedor.');
+  }
+
+  cargarTienda(idTienda: number): void {
+    this.cargandoTienda.set(idTienda);
+    this.mensajeError.set(null);
+
+    this.vendedorApi
+      .obtenerTiendaPorId(idTienda)
+      .pipe(
+        finalize(() => this.cargandoTienda.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (tienda) => {
+          this.tiendas.update((tiendas) =>
+            tiendas.map((actual) => (actual.idTienda === tienda.idTienda ? tienda : actual)),
+          );
+          this.idTiendaSeleccionada.set(tienda.idTienda);
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  actualizarTienda(idTienda: number, solicitud: SolicitudTiendaVendedor): void {
+    this.guardandoTienda.set(true);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    this.vendedorApi
+      .actualizarTienda(idTienda, solicitud)
+      .pipe(
+        finalize(() => this.guardandoTienda.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (tienda) => {
+          this.tiendas.update((tiendas) =>
+            tiendas.map((actual) => (actual.idTienda === tienda.idTienda ? tienda : actual)),
+          );
+          this.idTiendaSeleccionada.set(tienda.idTienda);
+          this.mensajeExito.set('Tienda actualizada correctamente.');
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  eliminarTienda(idTienda: number): void {
+    this.eliminandoTienda.set(idTienda);
+    this.mensajeError.set(null);
+    this.mensajeExito.set(null);
+
+    this.vendedorApi
+      .eliminarTienda(idTienda)
+      .pipe(
+        finalize(() => this.eliminandoTienda.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.tiendas.update((tiendas) => tiendas.filter((tienda) => tienda.idTienda !== idTienda));
+          if (this.idTiendaSeleccionada() === idTienda) {
+            this.idTiendaSeleccionada.set(null);
+            this.productos.set([]);
+          }
+          this.mensajeExito.set('Tienda eliminada correctamente.');
+        },
+        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+      });
+  }
+
+  private actualizarPaginaPedidos(pagina: {
+    contenido: PedidoRecibidoResumen[];
+    paginaActual: number;
+    tamanioPagina: number;
+    totalElementos: number;
+    totalPaginas: number;
+    ultimaPagina: boolean;
+  }): void {
+    this.pedidos.set(pagina.contenido);
+    this.paginaPedidosActual.set(pagina.paginaActual);
+    this.tamanioPaginaPedidos.set(pagina.tamanioPagina);
+    this.totalPedidos.set(pagina.totalElementos);
+    this.totalPaginasPedidos.set(pagina.totalPaginas);
+    this.ultimaPaginaPedidos.set(pagina.ultimaPagina);
   }
 }

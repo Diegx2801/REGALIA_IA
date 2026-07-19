@@ -44,6 +44,7 @@ export function mapearTiendaVendedorDesdeDto(dto: TiendaVendedorDto): TiendaVend
     direccionReferencia: dto.direccionReferencia?.trim() || 'Direccion pendiente',
     estadoRevision: dto.estadoRevision?.trim() || 'PENDIENTE',
     formalizada: Boolean(dto.tiendaFormalizada),
+    idDocumentoFiscal: dto.idDocumentoFiscal,
     rubros: (dto.rubros ?? []).map((rubro) => ({
       idRubro: rubro.idRubro,
       nombre: rubro.nombre?.trim() || 'Rubro',
@@ -61,6 +62,7 @@ export function mapearProductoVendedorDesdeDto(dto: ProductoVendedorDto): Produc
     idProducto: dto.idProducto,
     idTienda: dto.idTienda,
     nombreTienda: dto.nombreTienda?.trim() || 'Tienda REGALIA',
+    idTipoProducto: dto.idTipoProducto,
     tipoProducto: dto.tipoProducto?.trim() || 'Producto personalizado',
     nombre: dto.nombre?.trim() || 'Producto REGALIA',
     descripcion: dto.descripcion?.trim() || 'Sin descripcion registrada.',
@@ -125,7 +127,7 @@ export function mapearSolicitudTiendaADto(
     nombre: solicitud.nombre,
     descripcion: solicitud.descripcion,
     direccionReferencia: solicitud.direccionReferencia,
-    idDocumentoFiscal: null,
+    idDocumentoFiscal: solicitud.idDocumentoFiscal ?? null,
     idsRubros: solicitud.idsRubros,
   };
 }

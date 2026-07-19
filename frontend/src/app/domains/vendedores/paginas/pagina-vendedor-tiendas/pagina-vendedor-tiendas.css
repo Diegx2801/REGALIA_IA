@@ -79,6 +79,174 @@
     linear-gradient(145deg, #fff 0%, #fff6ee 100%);
 }
 
+.vendedor-tiendas__acciones-formulario,
+.vendedor-tiendas__acciones-tienda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.vendedor-tiendas__acciones-formulario {
+  margin-top: 0.35rem;
+}
+
+.vendedor-tiendas__selector-rubros {
+  align-items: center;
+  background: #fffaf6;
+  border: 1px solid rgba(90, 36, 64, 0.18);
+  border-radius: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.8rem;
+}
+
+.vendedor-tiendas__selector-rubros strong {
+  color: var(--rg-color-ink);
+}
+
+.vendedor-tiendas__selector-rubros p {
+  color: var(--rg-color-muted);
+  font-size: 0.875rem;
+  margin: 0.2rem 0 0;
+  max-width: 28rem;
+}
+
+.vendedor-tiendas__selector-rubros--error {
+  border-color: var(--rg-color-danger, #b42318);
+}
+
+.vendedor-tiendas__selector-rubros [appErrorCampo] {
+  flex-basis: 100%;
+}
+
+.vendedor-tiendas__modal-fondo {
+  align-items: center;
+  background: rgba(31, 19, 35, 0.55);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 1050;
+}
+
+.vendedor-tiendas__modal {
+  background: #fffdfb;
+  border: 1px solid rgba(90, 36, 64, 0.16);
+  border-radius: 1.25rem;
+  box-shadow: 0 28px 80px rgba(31, 19, 35, 0.34);
+  max-height: min(44rem, calc(100vh - 2rem));
+  max-width: 42rem;
+  overflow: auto;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  width: 100%;
+}
+
+.vendedor-tiendas__modal-encabezado {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.vendedor-tiendas__modal-encabezado span {
+  color: var(--rg-color-primary);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.vendedor-tiendas__modal h3 {
+  color: var(--rg-color-ink);
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  margin: 0.3rem 0;
+}
+
+.vendedor-tiendas__modal p {
+  color: var(--rg-color-muted);
+  margin: 0;
+}
+
+.vendedor-tiendas__modal-cerrar {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: var(--rg-color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 2rem;
+  height: 2.25rem;
+  justify-content: center;
+  line-height: 1;
+  width: 2.25rem;
+}
+
+.vendedor-tiendas__modal-cerrar:hover,
+.vendedor-tiendas__modal-cerrar:focus-visible {
+  background: rgba(90, 36, 64, 0.1);
+}
+
+.vendedor-tiendas__modal-opciones {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1.5rem 0;
+}
+
+.vendedor-tiendas__modal-opcion {
+  align-items: center;
+  background: #fffaf6;
+  border: 1px solid rgba(90, 36, 64, 0.16);
+  border-radius: 0.75rem;
+  color: var(--rg-color-ink);
+  cursor: pointer;
+  display: flex;
+  font-weight: 750;
+  gap: 0.6rem;
+  min-height: 3.15rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.vendedor-tiendas__modal-opcion:has(input:checked) {
+  background: rgba(90, 36, 64, 0.1);
+  border-color: var(--rg-color-primary);
+}
+
+.vendedor-tiendas__modal-opcion input {
+  accent-color: var(--rg-color-primary);
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.vendedor-tiendas__modal-acciones {
+  display: flex;
+  gap: 0.7rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 639.98px) {
+  .vendedor-tiendas__acciones-formulario > * {
+    flex: 1 1 100%;
+  }
+
+  .vendedor-tiendas__selector-rubros > button,
+  .vendedor-tiendas__modal-acciones > * {
+    flex: 1 1 100%;
+  }
+
+  .vendedor-tiendas__modal-opciones {
+    grid-template-columns: 1fr;
+  }
+
+  .vendedor-tiendas__modal-acciones {
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 1199.98px) {
   .vendedor-tiendas__layout {
     grid-template-columns: 1fr;

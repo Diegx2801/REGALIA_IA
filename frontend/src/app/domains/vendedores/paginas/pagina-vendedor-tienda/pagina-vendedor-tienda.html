@@ -1,0 +1,80 @@
+@if (cargandoTienda()) {
+  <app-estado-pantalla tipo="carga" etiqueta="Tienda" titulo="Preparando el centro de tu tienda." />
+} @else if (store.mensajeError()) {
+  <app-estado-pantalla
+    tipo="error"
+    etiqueta="Tienda"
+    [titulo]="store.mensajeError() ?? 'No pudimos cargar esta tienda.'"
+    textoAccion="Volver a mis tiendas"
+    rutaAccion="/vendedor/tiendas"
+  />
+} @else if (tienda(); as tiendaActual) {
+  <section class="centro-tienda">
+    <a class="centro-tienda__volver" routerLink="/vendedor/tiendas">← Volver a mis tiendas</a>
+
+    <header class="centro-tienda__encabezado">
+      <div>
+        <span>Centro privado</span>
+        <h2>{{ tiendaActual.nombre }}</h2>
+        <p>{{ tiendaActual.descripcion }}</p>
+      </div>
+      <div class="centro-tienda__estado">
+        <strong>{{ estadoComercial(tiendaActual.estadoRevision) }}</strong>
+        @if (tiendaActual.formalizada) { <small>Tienda verificada</small> }
+      </div>
+    </header>
+
+    <nav class="centro-tienda__acciones" aria-label="Acciones de la tienda">
+      <a appBoton [routerLink]="['/vendedor/tiendas', tiendaActual.idTienda, 'productos', 'nuevo']">Agregar producto</a>
+      <a appBoton="secundario" [routerLink]="['/vendedor/tiendas', tiendaActual.idTienda, 'pedidos']">Ver pedidos de esta tienda</a>
+      <a appBoton="fantasma" routerLink="/vendedor/tiendas">Información comercial</a>
+    </nav>
+
+    <section class="centro-tienda__metricas" aria-label="Resumen de inventario">
+      <article><span>Productos</span><strong>{{ store.productos().length }}</strong></article>
+      <article><span>Visibles</span><strong>{{ store.productosVisibles() }}</strong></article>
+      <article><span>Sin stock</span><strong>{{ store.productosSinStock() }}</strong></article>
+      <article><span>Rubros</span><strong>{{ tiendaActual.rubros.length }}</strong></article>
+    </section>
+
+    <section class="centro-tienda__inventario" aria-labelledby="inventario-titulo">
+      <header>
+        <div>
+          <span>Inventario</span>
+          <h3 id="inventario-titulo">Productos de {{ tiendaActual.nombre }}</h3>
+        </div>
+        <a appBoton="secundario" appBotonTamano="sm" [routerLink]="['/vendedor/tiendas', tiendaActual.idTienda, 'productos', 'nuevo']">Nuevo producto</a>
+      </header>
+
+      @if (store.cargandoProductos()) {
+        <app-estado-pantalla tipo="carga" etiqueta="Inventario" titulo="Consultando productos." />
+      } @else if (store.productos().length === 0) {
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Sin productos"
+          titulo="Aún no agregaste productos a esta tienda."
+          descripcion="Crea el primer producto para preparar tu vitrina."
+          textoAccion="Agregar producto"
+          [rutaAccion]="'/vendedor/tiendas/' + tiendaActual.idTienda + '/productos/nuevo'"
+        />
+      } @else {
+        <div class="centro-tienda__productos">
+          @for (producto of store.productos(); track producto.idProducto) {
+            <article class="centro-tienda__producto">
+              <img [src]="producto.urlImagen" [alt]="producto.nombre" loading="lazy" decoding="async" />
+              <div>
+                <small>{{ producto.tipoProducto }} · {{ producto.visibleEnTienda ? 'Visible' : 'Oculto' }}</small>
+                <h4>{{ producto.nombre }}</h4>
+                <p>Stock disponible: {{ producto.stock }}</p>
+              </div>
+              <div class="centro-tienda__producto-acciones">
+                <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+                <a appBoton="secundario" appBotonTamano="sm" [routerLink]="['/vendedor/tiendas', tiendaActual.idTienda, 'productos', producto.idProducto, 'editar']">Editar</a>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </section>
+}

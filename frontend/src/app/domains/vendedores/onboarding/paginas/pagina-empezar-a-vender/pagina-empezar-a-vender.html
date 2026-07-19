@@ -1,0 +1,66 @@
+<section class="empezar-vender">
+  <header class="empezar-vender__hero">
+    <span>Vender en REGALIA</span>
+    <h1>Abre tu vitrina con la misma cuenta.</h1>
+    <p>Registra tu perfil vendedor y administra tu futura tienda desde un espacio comercial separado.</p>
+  </header>
+
+  <section class="empezar-vender__beneficios" aria-label="Cómo funciona vender en REGALIA">
+    <article>
+      <strong>1</strong>
+      <h2>Confirma tu cuenta</h2>
+      <p>Usamos tu correo confirmado para proteger tu perfil comercial.</p>
+    </article>
+    <article>
+      <strong>2</strong>
+      <h2>Crea tu tienda</h2>
+      <p>Podrás completar sus datos, productos y rubros mientras la revisamos.</p>
+    </article>
+    <article>
+      <strong>3</strong>
+      <h2>Empieza a vender</h2>
+      <p>Las tiendas aprobadas se muestran a los clientes de REGALIA.</p>
+    </article>
+  </section>
+
+  <section class="empezar-vender__accion">
+    @if (!sesion.estaAutenticado()) {
+      <span>Tu cuenta REGALIA</span>
+      <h2>Inicia sesión para empezar.</h2>
+      <p>Si eres nuevo, crea una cuenta. Después podrás continuar con tu perfil vendedor.</p>
+      <div class="empezar-vender__acciones">
+        <a routerLink="/login" [queryParams]="{ retorno: '/vender' }">Iniciar sesión</a>
+        <a routerLink="/login" [queryParams]="{ modo: 'registro', retorno: '/vender' }">Crear cuenta</a>
+      </div>
+    } @else if (yaEsVendedor()) {
+      <span>Perfil vendedor activo</span>
+      <h2>Tu espacio comercial ya está listo.</h2>
+      <p>Puedes continuar administrando tu tienda, productos y pedidos recibidos.</p>
+      <button type="button" (click)="irAlPanelVendedor()">Ir a mi panel vendedor</button>
+    } @else if (!correoVerificado()) {
+      <span>Confirmación necesaria</span>
+      <h2>Confirma tu correo para vender.</h2>
+      <p>Cuando confirmes el enlace enviado a tu correo, actualiza el estado de tu cuenta aquí.</p>
+      <div class="empezar-vender__acciones">
+        <a routerLink="/cliente/perfil">Ir a mi perfil</a>
+        <button type="button" [disabled]="actualizandoEstado()" (click)="actualizarEstadoCuenta()">
+          {{ actualizandoEstado() ? 'Actualizando...' : 'Ya confirmé mi correo' }}
+        </button>
+      </div>
+    } @else {
+      <span>Cuenta lista</span>
+      <h2>Activa tu perfil vendedor.</h2>
+      <p>Conservarás tus pedidos y podrás seguir comprando con esta misma cuenta.</p>
+      <button type="button" [disabled]="procesando()" (click)="crearPerfilVendedor()">
+        {{ procesando() ? 'Preparando tu perfil...' : 'Continuar como vendedor' }}
+      </button>
+    }
+
+    @if (mensajeExito()) {
+      <p class="empezar-vender__mensaje empezar-vender__mensaje--exito" role="status">{{ mensajeExito() }}</p>
+    }
+    @if (mensajeError()) {
+      <p class="empezar-vender__mensaje empezar-vender__mensaje--error" role="alert">{{ mensajeError() }}</p>
+    }
+  </section>
+</section>

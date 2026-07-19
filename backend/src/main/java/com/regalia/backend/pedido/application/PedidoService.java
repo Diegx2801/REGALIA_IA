@@ -14,9 +14,9 @@ import com.regalia.backend.pago.infrastructure.gateway.PaymentGatewayProperties;
 import com.regalia.backend.pago.infrastructure.repository.PagoJpaRepository;
 import com.regalia.backend.pedido.api.dto.ConfirmarPedidoRequest;
 import com.regalia.backend.pedido.api.dto.OpcionPagoResponse;
+import com.regalia.backend.pedido.api.dto.PedidoClienteResumenResponse;
 import com.regalia.backend.pedido.api.dto.PedidoDetalleRequest;
 import com.regalia.backend.pedido.api.dto.PedidoResponse;
-import com.regalia.backend.pedido.api.dto.RegistrarPagoPedidoRequest;
 import com.regalia.backend.pedido.infrastructure.entity.DetallePedidoEntity;
 import com.regalia.backend.pedido.infrastructure.entity.PedidoEntity;
 import com.regalia.backend.pedido.infrastructure.mapper.PedidoMapper;
@@ -73,9 +73,9 @@ public class PedidoService {
     private static final String ESTADO_REVISION_APROBADA = "APROBADA";
 
     private static final BigDecimal CIEN = new BigDecimal("100.00");
-    private static final int DEFAULT_ADMIN_PAGE = 0;
-    private static final int DEFAULT_ADMIN_PAGE_SIZE = 10;
-    private static final int MAX_ADMIN_PAGE_SIZE = 50;
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final PedidoJpaRepository pedidoRepository;
     private final DetallePedidoJpaRepository detallePedidoRepository;
@@ -297,14 +297,113 @@ public class PedidoService {
         return pedidoGuardado;
     }
 
-    @Transactional(readOnly = true)
-    public List<PedidoResponse> listarMisPedidos(String correoUsuario) {
-        UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
+    /**
+     * Registra el pago restante de un pedido solo despues de que una pasarela externa lo confirme.
+     */
+    @Transactional
+    public void confirmarPagoRestanteDesdeCheckoutSession(
+            CheckoutSessionEntity checkoutSession,
+            PaymentGatewayVerificationResult paymentResult
+    ) {
+        if (checkoutSession.getPedido() == null) {
+            throw new ReglaNegocioException("La sesion de pago restante no esta asociada a un pedido");
+        }
 
-        return pedidoRepository.findByUsuarioIdUsuarioAndEstadoTrueOrderByIdPedidoDesc(usuario.getIdUsuario())
+        if (!PaymentGatewayStatus.APPROVED.equals(paymentResult.status())) {
+            throw new ReglaNegocioException("El pago no fue aprobado por la pasarela");
+        }
+
+        validarMontoPagoCheckout(checkoutSession, paymentResult);
+        validarCodigoTransaccionDisponible(paymentResult.transactionCode());
+
+        PedidoEntity pedido = pedidoRepository
+                .findMiPedidoActivoParaActualizar(
+                        checkoutSession.getPedido().getIdPedido(),
+                        checkoutSession.getUsuario().getIdUsuario()
+                )
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el pedido solicitado"));
+
+        if (PedidoEntity.ESTADO_ANULADO.equals(pedido.getEstadoPedido())) {
+            throw new ReglaNegocioException("No se puede registrar pagos sobre un pedido anulado");
+        }
+
+        String codigoTipoPago = normalizarCodigo(checkoutSession.getCodigoTipoPago());
+        if (!CODIGO_TIPO_PAGO_RESTANTE.equals(codigoTipoPago)) {
+            throw new ReglaNegocioException("La sesion no corresponde a un pago restante");
+        }
+
+        BigDecimal saldoPendiente = calcularSaldoPendiente(
+                pedido.getTotal(),
+                obtenerMontoPagadoAprobado(pedido.getIdPedido())
+        );
+        BigDecimal montoCheckout = checkoutSession.getMontoInicial().setScale(2, RoundingMode.HALF_UP);
+
+        if (saldoPendiente.compareTo(montoCheckout) != 0) {
+            throw new ReglaNegocioException(
+                    "El saldo del pedido cambio; solicita una nueva sesion de pago"
+            );
+        }
+
+        PagoEntity pago = crearPago(pedido, checkoutSession.getTipoPago(), paymentResult);
+        PagoEntity pagoGuardado = pagoRepository.save(pago);
+
+        ComisionEntity comision = crearComision(
+                pagoGuardado,
+                politicaComercialService.obtenerPorcentajeComision()
+        );
+        comisionRepository.save(comision);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginaResponse<PedidoClienteResumenResponse> listarMisPedidos(
+            String correoUsuario,
+            String q,
+            String estado,
+            String estadoPago,
+            Integer page,
+            Integer size,
+            String sort
+    ) {
+        UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
+        String busqueda = normalizarBusqueda(q);
+        Long idPedidoBuscado = obtenerIdPedidoSiAplica(busqueda);
+        PedidoClienteEstadoFiltro filtroEstado = PedidoClienteEstadoFiltro.desde(estado);
+        PedidoPagoFiltro filtroPago = PedidoPagoFiltro.desde(estadoPago);
+        PedidoClienteSortField sortField = PedidoClienteSortField.desde(sort);
+        Sort.Direction sortDirection = PedidoClienteSortField.direccionDesde(sort);
+        int pagina = normalizarPagina(page);
+        int tamanioPagina = normalizarTamanioPagina(size);
+
+        PageRequest pageable = PageRequest.of(
+                pagina,
+                tamanioPagina,
+                Sort.by(sortDirection, sortField.apiName())
+        );
+
+        Page<PedidoClienteResumen> pedidos = pedidoRepository.findPedidosCliente(
+                usuario.getIdUsuario(),
+                busqueda,
+                idPedidoBuscado,
+                filtroEstado,
+                filtroPago,
+                sortField,
+                sortDirection,
+                pageable
+        );
+
+        List<PedidoClienteResumenResponse> contenido = pedidos.getContent()
                 .stream()
-                .map(this::construirResponse)
+                .map(this::construirResumenClienteResponse)
                 .toList();
+
+        return new PaginaResponse<>(
+                contenido,
+                pedidos.getNumber(),
+                pedidos.getSize(),
+                pedidos.getTotalElements(),
+                pedidos.getTotalPages(),
+                pedidos.isLast()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -380,76 +479,6 @@ public class PedidoService {
         return construirResponse(pedido);
     }
 
-    @Transactional
-    public PedidoResponse registrarPagoPedido(
-            String correoUsuario,
-            Long idPedido,
-            RegistrarPagoPedidoRequest request
-    ) {
-        UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
-
-        PedidoEntity pedido = pedidoRepository
-                .findByIdPedidoAndUsuarioIdUsuarioAndEstadoTrue(idPedido, usuario.getIdUsuario())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No se encontró el pedido solicitado"
-                ));
-
-        if (PedidoEntity.ESTADO_ANULADO.equals(pedido.getEstadoPedido())) {
-            throw new ReglaNegocioException(
-                    "No se puede registrar pagos sobre un pedido anulado"
-            );
-        }
-
-        BigDecimal montoPagadoActual = obtenerMontoPagadoAprobado(pedido.getIdPedido());
-        BigDecimal saldoPendiente = calcularSaldoPendiente(pedido.getTotal(), montoPagadoActual);
-
-        if (saldoPendiente.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ReglaNegocioException(
-                    "El pedido no tiene saldo pendiente por pagar"
-            );
-        }
-
-        TipoPagoEntity tipoPagoRestante = obtenerTipoPagoActivoPorCodigo(CODIGO_TIPO_PAGO_RESTANTE);
-        BigDecimal porcentajeComision = politicaComercialService.obtenerPorcentajeComision();
-
-        PaymentGatewayVerificationResult paymentResult = verifyPayment(
-                usuario,
-                pedido.getTienda(),
-                pedido.getIdPedido(),
-                CODIGO_TIPO_PAGO_RESTANTE,
-                saldoPendiente,
-                request.metodoPagoPasarela(),
-                request.codigoTransaccion()
-        );
-        validarCodigoTransaccionDisponible(paymentResult.transactionCode());
-
-        PagoEntity pago = crearPago(
-                pedido,
-                tipoPagoRestante,
-                paymentResult
-        );
-
-        PagoEntity pagoGuardado = pagoRepository.save(pago);
-
-        ComisionEntity comision = crearComision(pagoGuardado, porcentajeComision);
-        comisionRepository.save(comision);
-
-        BigDecimal montoPagadoFinal = montoPagadoActual.add(pagoGuardado.getMonto())
-                .setScale(2, RoundingMode.HALF_UP);
-
-        BigDecimal saldoPendienteFinal = calcularSaldoPendiente(pedido.getTotal(), montoPagadoFinal);
-
-        List<DetallePedidoEntity> detalles = detallePedidoRepository
-                .findByPedidoIdPedidoAndEstadoTrueOrderByIdDetallePedidoAsc(pedido.getIdPedido());
-
-        return pedidoMapper.toResponse(
-                pedido,
-                detalles,
-                montoPagadoFinal,
-                saldoPendienteFinal
-        );
-    }
-
     private PedidoResponse construirResponse(PedidoEntity pedido) {
         List<DetallePedidoEntity> detalles = detallePedidoRepository
                 .findByPedidoIdPedidoAndEstadoTrueOrderByIdDetallePedidoAsc(pedido.getIdPedido());
@@ -458,6 +487,23 @@ public class PedidoService {
         BigDecimal saldoPendiente = calcularSaldoPendiente(pedido.getTotal(), montoPagado);
 
         return pedidoMapper.toResponse(pedido, detalles, montoPagado, saldoPendiente);
+    }
+
+    private PedidoClienteResumenResponse construirResumenClienteResponse(PedidoClienteResumen pedido) {
+        BigDecimal montoPagado = pedido.montoPagado().setScale(2, RoundingMode.HALF_UP);
+        BigDecimal saldoPendiente = calcularSaldoPendiente(pedido.total(), montoPagado);
+
+        return new PedidoClienteResumenResponse(
+                pedido.idPedido(),
+                pedido.nombreTienda(),
+                pedido.tipoEntrega(),
+                pedido.fechaEntrega(),
+                pedido.estadoPedido(),
+                pedido.total().setScale(2, RoundingMode.HALF_UP),
+                montoPagado,
+                saldoPendiente,
+                pedido.fechaCreacion()
+        );
     }
 
     private String normalizarBusqueda(String valor) {
@@ -483,9 +529,21 @@ public class PedidoService {
         }
     }
 
+    private Long obtenerIdPedidoSiAplica(String busqueda) {
+        if (busqueda == null) {
+            return null;
+        }
+
+        try {
+            return Long.valueOf(busqueda);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
     private int normalizarPagina(Integer page) {
         if (page == null) {
-            return DEFAULT_ADMIN_PAGE;
+            return DEFAULT_PAGE;
         }
 
         if (page < 0) {
@@ -497,14 +555,14 @@ public class PedidoService {
 
     private int normalizarTamanioPagina(Integer size) {
         if (size == null) {
-            return DEFAULT_ADMIN_PAGE_SIZE;
+            return DEFAULT_PAGE_SIZE;
         }
 
         if (size < 1) {
             throw new ReglaNegocioException("El tamanio de pagina debe ser mayor a cero");
         }
 
-        if (size > MAX_ADMIN_PAGE_SIZE) {
+        if (size > MAX_PAGE_SIZE) {
             throw new ReglaNegocioException("El tamanio maximo permitido por pagina es 50");
         }
 

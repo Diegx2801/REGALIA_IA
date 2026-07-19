@@ -25,7 +25,26 @@ export interface PedidoCliente {
   productos: ProductoPedidoCliente[];
 }
 
-export interface SolicitudRegistrarPagoPedido {
-  metodoPagoPasarela: string;
-  codigoTransaccion: string;
+export interface PedidoClienteResumen {
+  idPedido: number;
+  nombreTienda: string;
+  tipoEntrega: string;
+  fechaEntrega: string | null;
+  estadoPedido: string;
+  total: number;
+  montoPagado: number;
+  saldoPendiente: number;
+  fechaCreacion: string | null;
+}
+
+const ETIQUETAS_ESTADO_PEDIDO_CLIENTE: Record<string, string> = {
+  RESERVADO: 'Reservado',
+  EN_PREPARACION: 'En preparación',
+  LISTO: 'Listo para entrega',
+  ENTREGADO: 'Entregado',
+  ANULADO: 'Anulado',
+};
+
+export function obtenerEtiquetaEstadoPedidoCliente(estado: string): string {
+  return ETIQUETAS_ESTADO_PEDIDO_CLIENTE[estado] ?? estado;
 }

@@ -15,10 +15,23 @@ export class SesionAutenticacionService {
   readonly tokenActual = computed(() => this.sesionActual()?.token ?? null);
   readonly estaAutenticado = computed(() => Boolean(this.tokenActual()));
   readonly rolActual = computed<RolUsuario | null>(() => this.usuarioActual()?.rol ?? null);
+  readonly rolesActuales = computed<RolUsuario[]>(() => {
+    const usuario = this.usuarioActual();
+    if (!usuario) return [];
+
+    // Mantiene compatibles las sesiones locales emitidas antes de guardar todos los roles.
+    return usuario.roles?.length ? usuario.roles : [usuario.rol];
+  });
 
   // Punto unico para actualizar sesion despues de login o refresh token futuro.
   iniciarSesion(sesion: SesionAutenticacion, recordar: boolean): void {
     this.almacenamiento.guardarSesion(sesion, recordar);
+    this.sesionActual.set(sesion);
+  }
+
+  /** Reemplaza la sesion sin alterar la preferencia de persistencia elegida. */
+  reemplazarSesion(sesion: SesionAutenticacion): void {
+    this.almacenamiento.actualizarSesion(sesion);
     this.sesionActual.set(sesion);
   }
 
@@ -45,7 +58,6 @@ export class SesionAutenticacionService {
   }
 
   tieneRol(rolesPermitidos: RolUsuario[]): boolean {
-    const rol = this.rolActual();
-    return rol !== null && rolesPermitidos.includes(rol);
+    return this.rolesActuales().some((rol) => rolesPermitidos.includes(rol));
   }
 }

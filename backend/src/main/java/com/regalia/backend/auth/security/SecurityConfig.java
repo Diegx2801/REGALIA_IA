@@ -139,6 +139,7 @@ public class SecurityConfig {
                          */
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").access(publicAccess())
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/auth/session/refresh").access(publicAccess())
                         .requestMatchers(HttpMethod.PUT, "/api/account/password").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me/documentos/**").access(publicAccess())
@@ -147,6 +148,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/tipos-documento/**").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/checkout/sessions").access(clienteVerificadoAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/remaining-payment-session")
+                        .access(clienteVerificadoAccess())
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/mercado-pago").permitAll()
 
                         /*
@@ -156,7 +159,7 @@ public class SecurityConfig {
                          * pedidos y demas acciones operativas requieren rol VENDEDOR.
                          */
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me").access(publicAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").access(publicAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/vendedores/me").access(publicVerificadoAccess())
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas").access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/vendedores/me/tiendas/*").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/vendedores/me/tiendas").access(publicVerificadoAccess())
@@ -173,7 +176,6 @@ public class SecurityConfig {
                          * Pedidos del cliente autenticado.
                          */
                         .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").access(clienteVerificadoAccess())
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/pagos").access(clienteVerificadoAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos").access(clienteAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/**").access(clienteAccess())
 

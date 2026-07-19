@@ -34,15 +34,20 @@ describe('VendedorPanelStore', () => {
                   direccionReferencia: 'Centro',
                   estadoRevision: 'APROBADA',
                   formalizada: true,
+                  idDocumentoFiscal: null,
                   rubros: [{ idRubro: 1, nombre: 'Regalos' }],
                   estado: true,
                 },
               ]),
             obtenerPedidosRecibidos: () =>
-              of([
-                crearPedidoVendedor(1, 150, 80, 70),
-                crearPedidoVendedor(2, 90, 90, 0),
-              ]),
+              of({
+                contenido: [crearPedidoVendedor(1, 150, 80, 70), crearPedidoVendedor(2, 90, 90, 0)],
+                paginaActual: 0,
+                tamanioPagina: 5,
+                totalElementos: 2,
+                totalPaginas: 1,
+                ultimaPagina: true,
+              }),
             obtenerProductosPorTienda: () =>
               of([
                 {
@@ -64,7 +69,6 @@ describe('VendedorPanelStore', () => {
             crearProducto: () => of({}),
             actualizarProducto: () => of({}),
             desactivarProducto: () => of(undefined),
-            obtenerPedidosPorTienda: () => of([crearPedidoVendedor(1, 150, 80, 70)]),
             obtenerDetallePedidoRecibido: (idPedido: number) =>
               of({ ...crearPedidoVendedor(idPedido, 150, 80, 70), tipoEntrega: 'Recojo', observacion: 'Coordinar', estado: true, fechaActualizacion: null, productos: [], pagos: [] }),
           },

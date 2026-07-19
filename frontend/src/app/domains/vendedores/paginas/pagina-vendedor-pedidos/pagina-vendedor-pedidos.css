@@ -85,6 +85,13 @@
   grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
 }
 
+.vendedor-pedidos__acciones-filtro {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
 .vendedor-pedidos__filtros label {
   color: var(--rg-color-ink);
   display: grid;
@@ -139,6 +146,10 @@
 }
 
 @media (max-width: 739.98px) {
+  .vendedor-pedidos__acciones-filtro > * {
+    flex: 1 1 8rem;
+  }
+
   .vendedor-pedidos__totales {
     grid-template-columns: 1fr;
   }

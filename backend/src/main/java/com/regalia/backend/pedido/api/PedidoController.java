@@ -2,10 +2,11 @@ package com.regalia.backend.pedido.api;
 
 import com.regalia.backend.pedido.api.dto.ConfirmarPedidoRequest;
 import com.regalia.backend.pedido.api.dto.OpcionPagoResponse;
+import com.regalia.backend.pedido.api.dto.PedidoClienteResumenResponse;
 import com.regalia.backend.pedido.api.dto.PedidoResponse;
-import com.regalia.backend.pedido.api.dto.RegistrarPagoPedidoRequest;
 import com.regalia.backend.pedido.application.PedidoService;
 import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.response.PaginaResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,10 +52,24 @@ public class PedidoController {
         }
 
         @GetMapping
-        public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarMisPedidos(
-                Principal principal
+        public ResponseEntity<ApiResponse<PaginaResponse<PedidoClienteResumenResponse>>> listarMisPedidos(
+                Principal principal,
+                @RequestParam(required = false) String q,
+                @RequestParam(required = false) String estado,
+                @RequestParam(required = false) String estadoPago,
+                @RequestParam(defaultValue = "0") Integer page,
+                @RequestParam(defaultValue = "10") Integer size,
+                @RequestParam(defaultValue = "fechaCreacion,desc") String sort
         ) {
-                List<PedidoResponse> pedidos = pedidoService.listarMisPedidos(principal.getName());
+                PaginaResponse<PedidoClienteResumenResponse> pedidos = pedidoService.listarMisPedidos(
+                        principal.getName(),
+                        q,
+                        estado,
+                        estadoPago,
+                        page,
+                        size,
+                        sort
+                );
 
                 return ResponseEntity.ok(
                         ApiResponse.success(pedidos)
@@ -73,20 +88,4 @@ public class PedidoController {
                 );
         }
 
-        @PostMapping("/{idPedido}/pagos")
-        public ResponseEntity<ApiResponse<PedidoResponse>> registrarPagoPedido(
-                Principal principal,
-                @PathVariable Long idPedido,
-                @Valid @RequestBody RegistrarPagoPedidoRequest request
-        ) {
-                PedidoResponse response = pedidoService.registrarPagoPedido(
-                        principal.getName(),
-                        idPedido,
-                        request
-                );
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(
-                        ApiResponse.success(response)
-                );
-        }
 }

@@ -8,17 +8,12 @@ import com.regalia.backend.pago.application.gateway.PaymentGatewayStatus;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationResult;
 import com.regalia.backend.pago.infrastructure.gateway.PaymentGatewayProperties;
-import com.regalia.backend.pedido.application.PedidoService;
-import com.regalia.backend.pedido.infrastructure.entity.PedidoEntity;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Locale;
 import java.util.Objects;
 
 @Service
@@ -28,7 +23,7 @@ public class MercadoPagoWebhookService {
     private final CheckoutSessionJpaRepository checkoutSessionRepository;
     private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final PaymentGatewayProperties paymentGatewayProperties;
-    private final PedidoService pedidoService;
+    private final CheckoutPaymentConfirmationService checkoutPaymentConfirmationService;
 
     @Transactional
     public void procesarPago(String paymentId) {
@@ -73,17 +68,15 @@ public class MercadoPagoWebhookService {
             return;
         }
 
-        if (checkoutSession.getPedido() != null) {
+        if (CheckoutSessionEstado.APROBADA.name().equals(checkoutSession.getEstadoCheckout())) {
             checkoutSession.setEstadoCheckout(CheckoutSessionEstado.APROBADA.name());
             return;
         }
 
-        validarMontoYMoneda(checkoutSession, paymentResult);
-        PedidoEntity pedido = pedidoService.confirmarPedidoDesdeCheckoutSession(
+        checkoutPaymentConfirmationService.confirmarPagoAprobado(
                 checkoutSession,
                 paymentResult
         );
-        checkoutSession.setPedido(pedido);
         checkoutSession.setEstadoCheckout(CheckoutSessionEstado.APROBADA.name());
     }
 
@@ -122,31 +115,6 @@ public class MercadoPagoWebhookService {
                 });
     }
 
-    private void validarMontoYMoneda(
-            CheckoutSessionEntity checkoutSession,
-            PaymentGatewayVerificationResult paymentResult
-    ) {
-        BigDecimal montoEsperado = checkoutSession.getMontoInicial()
-                .setScale(2, RoundingMode.HALF_UP);
-        BigDecimal montoAprobado = paymentResult.amount()
-                .setScale(2, RoundingMode.HALF_UP);
-
-        if (montoEsperado.compareTo(montoAprobado) != 0) {
-            checkoutSession.setEstadoCheckout(CheckoutSessionEstado.ERROR.name());
-            throw new ReglaNegocioException(
-                    "El monto aprobado no coincide con la sesion de checkout"
-            );
-        }
-
-        if (!normalizarCodigo(checkoutSession.getMoneda())
-                .equals(normalizarCodigo(paymentResult.currency()))) {
-            checkoutSession.setEstadoCheckout(CheckoutSessionEstado.ERROR.name());
-            throw new ReglaNegocioException(
-                    "La moneda aprobada no coincide con la sesion de checkout"
-            );
-        }
-    }
-
     private String normalizarTextoObligatorio(String texto, String mensajeError) {
         if (texto == null || texto.isBlank()) {
             throw new ReglaNegocioException(mensajeError);
@@ -155,10 +123,4 @@ public class MercadoPagoWebhookService {
         return texto.trim();
     }
 
-    private String normalizarCodigo(String codigo) {
-        return normalizarTextoObligatorio(
-                codigo,
-                "El codigo interno requerido no esta configurado correctamente"
-        ).toUpperCase(Locale.ROOT);
-    }
 }

@@ -1,23 +1,59 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, timeout } from 'rxjs';
 import { ENDPOINTS_API } from '../../../core/configuracion/endpoints-api';
-import { RespuestaApi } from '../../../shared/modelos/respuesta-api.model';
-import { mapearPedidoClienteDesdeDto } from '../mapeadores/pedido-cliente.mapper';
-import { PedidoClienteDto, RegistrarPagoPedidoRequestDto } from '../modelos/pedido-cliente.dto';
-import { PedidoCliente, SolicitudRegistrarPagoPedido } from '../modelos/pedido-cliente.model';
+import { RespuestaApi, RespuestaPaginada } from '../../../shared/modelos/respuesta-api.model';
+import {
+  mapearPedidoClienteDesdeDto,
+  mapearPedidoClienteResumenDesdeDto,
+} from '../mapeadores/pedido-cliente.mapper';
+import { PedidoClienteDto, PedidoClienteResumenDto } from '../modelos/pedido-cliente.dto';
+import { PedidoCliente, PedidoClienteResumen } from '../modelos/pedido-cliente.model';
 
 const TIEMPO_ESPERA_PEDIDOS_CLIENTE_MS = 10000;
+
+export interface ConsultaPedidosCliente {
+  page?: number;
+  size?: number;
+  q?: string;
+  estado?: string;
+  estadoPago?: 'PAGADO' | 'CON_SALDO';
+  sort?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class PedidoClienteApiService {
   private readonly http = inject(HttpClient);
 
-  obtenerMisPedidos(): Observable<PedidoCliente[]> {
-    return this.http.get<RespuestaApi<PedidoClienteDto[]>>(ENDPOINTS_API.pedidos.propios).pipe(
-      timeout(TIEMPO_ESPERA_PEDIDOS_CLIENTE_MS),
-      map((respuesta) => (respuesta.data ?? []).map(mapearPedidoClienteDesdeDto)),
-    );
+  obtenerMisPedidos(
+    consulta: ConsultaPedidosCliente = {},
+  ): Observable<RespuestaPaginada<PedidoClienteResumen>> {
+    let params = new HttpParams()
+      .set('page', consulta.page ?? 0)
+      .set('size', consulta.size ?? 10)
+      .set('sort', consulta.sort ?? 'fechaCreacion,desc');
+
+    if (consulta.q?.trim()) params = params.set('q', consulta.q.trim());
+    if (consulta.estado) params = params.set('estado', consulta.estado);
+    if (consulta.estadoPago) params = params.set('estadoPago', consulta.estadoPago);
+
+    return this.http
+      .get<RespuestaApi<RespuestaPaginada<PedidoClienteResumenDto>>>(
+        ENDPOINTS_API.pedidos.propios,
+        { params },
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_PEDIDOS_CLIENTE_MS),
+        map((respuesta) => {
+          const pagina = respuesta.data;
+          if (!pagina) throw new Error(respuesta.message ?? 'No se pudieron cargar tus pedidos.');
+
+          return {
+            ...pagina,
+            contenido: pagina.contenido.map(mapearPedidoClienteResumenDesdeDto),
+          };
+        }),
+      );
   }
 
   obtenerMiPedidoPorId(idPedido: number): Observable<PedidoCliente> {
@@ -27,26 +63,6 @@ export class PedidoClienteApiService {
         timeout(TIEMPO_ESPERA_PEDIDOS_CLIENTE_MS),
         map((respuesta) => {
           if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar el pedido.');
-          return mapearPedidoClienteDesdeDto(respuesta.data);
-        }),
-      );
-  }
-
-  registrarPagoRestante(
-    idPedido: number,
-    solicitud: SolicitudRegistrarPagoPedido,
-  ): Observable<PedidoCliente> {
-    const cuerpo: RegistrarPagoPedidoRequestDto = {
-      metodoPagoPasarela: solicitud.metodoPagoPasarela,
-      codigoTransaccion: solicitud.codigoTransaccion,
-    };
-
-    return this.http
-      .post<RespuestaApi<PedidoClienteDto>>(ENDPOINTS_API.pedidos.registrarPago(idPedido), cuerpo)
-      .pipe(
-        timeout(TIEMPO_ESPERA_PEDIDOS_CLIENTE_MS),
-        map((respuesta) => {
-          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo registrar el pago.');
           return mapearPedidoClienteDesdeDto(respuesta.data);
         }),
       );

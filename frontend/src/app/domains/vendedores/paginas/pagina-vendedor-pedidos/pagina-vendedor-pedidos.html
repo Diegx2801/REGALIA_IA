@@ -1,71 +1,89 @@
 <section class="vendedor-pedidos">
   <header class="vendedor-pedidos__hero">
     <span>Pedidos recibidos</span>
-    <h2>Solicitudes y pagos</h2>
-    <p>Visualiza pedidos reales por tienda, productos solicitados y pagos registrados.</p>
+    <h2>{{ idTiendaFija() ? 'Pedidos de esta tienda' : 'Solicitudes y pagos' }}</h2>
+    <p>{{ idTiendaFija() ? 'Consulta pedidos y pagos asociados únicamente a esta tienda.' : 'Consulta pedidos reales de tus tiendas y revisa sus pagos registrados.' }}</p>
   </header>
 
   @if (store.cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando pedidos recibidos." />
-  } @else if (store.mensajeError()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Preparando tus pedidos." />
+  } @else if (store.mensajeError() && !store.cargandoPedidos()) {
     <app-estado-pantalla
       tipo="error"
       etiqueta="Error"
       [titulo]="store.mensajeError() ?? 'No pudimos cargar tus pedidos.'"
       textoAccion="Reintentar"
-      (accion)="store.cargarPanel(true)"
+      (accion)="recargarPedidos()"
     />
   } @else {
     <section class="vendedor-pedidos__layout">
       <article class="vendedor-card">
         <header class="vendedor-pedidos__toolbar">
           <div>
-            <span>Solicitudes</span>
-            <h3>{{ pedidosFiltrados().length }} pedidos</h3>
+            <span>Solicitudes encontradas</span>
+            <h3>{{ store.totalPedidos() }} {{ store.totalPedidos() === 1 ? 'pedido' : 'pedidos' }}</h3>
           </div>
-          <div class="vendedor-pedidos__filtros">
-            <label>
-              Tienda
-              <select (change)="filtrarPorTienda($event)">
-                <option value="">Todas</option>
-                @for (tienda of store.tiendas(); track tienda.idTienda) {
-                  <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
-                }
-              </select>
-            </label>
 
+          <form class="vendedor-pedidos__filtros" [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
+            @if (!idTiendaFija()) {
+              <label>
+                Tienda
+                <select formControlName="idTienda">
+                  <option value="">Todas</option>
+                  @for (tienda of store.tiendas(); track tienda.idTienda) {
+                    <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
+                  }
+                </select>
+              </label>
+            }
             <label>
               Estado
-              <select (change)="filtrarPorEstado($event)">
+              <select formControlName="estado">
                 <option value="">Todos</option>
-                @for (estado of estadosDisponibles(); track estado) {
-                  <option [value]="estado">{{ estado }}</option>
-                }
+                <option value="RESERVADO">Reservado</option>
+                <option value="EN_PREPARACION">En preparación</option>
+                <option value="LISTO">Listo para entrega</option>
+                <option value="ENTREGADO">Entregado</option>
+                <option value="ANULADO">Anulado</option>
               </select>
             </label>
-
+            <label>
+              Pago
+              <select formControlName="estadoPago">
+                <option value="">Todos</option>
+                <option value="PAGADO">Pagado</option>
+                <option value="CON_SALDO">Con saldo pendiente</option>
+              </select>
+            </label>
             <label>
               Buscar
-              <input type="search" placeholder="Pedido, tienda o cliente" [value]="busqueda()" (input)="buscar($event)" />
+              <input type="search" formControlName="q" placeholder="Pedido, tienda o cliente" />
             </label>
-          </div>
+            <div class="vendedor-pedidos__acciones-filtro">
+              <button appBoton="secundario" appBotonTamano="sm" type="submit">Aplicar</button>
+              <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="limpiarFiltros()">Limpiar</button>
+            </div>
+          </form>
         </header>
 
         @if (store.cargandoPedidos()) {
-          <app-estado-pantalla tipo="carga" etiqueta="Pedidos" titulo="Consultando pedidos de la tienda." />
-        } @else if (pedidosFiltrados().length === 0) {
+          <app-estado-pantalla tipo="carga" etiqueta="Pedidos" titulo="Consultando pedidos recibidos." />
+        } @else if (store.pedidos().length === 0) {
           <app-estado-pantalla
             tipo="vacio"
             etiqueta="Sin resultados"
             titulo="No hay pedidos que coincidan con los filtros actuales."
+            descripcion="Prueba con otra tienda, estado o búsqueda."
+            textoAccion="Limpiar filtros"
+            (accion)="limpiarFiltros()"
           />
         } @else {
           <app-lista-panel ariaEtiqueta="Pedidos recibidos del vendedor">
-            @for (pedido of pedidosFiltrados(); track pedido.idPedido) {
+            @for (pedido of store.pedidos(); track pedido.idPedido) {
               <app-fila-panel tipo="apilada" [ariaEtiqueta]="'Pedido ' + pedido.idPedido">
-                <strong>#{{ pedido.idPedido }} - {{ pedido.estadoPedido }}</strong>
+                <strong>Pedido #{{ pedido.idPedido }} · {{ pedido.estadoPedido }}</strong>
                 <span>{{ pedido.nombreTienda }}</span>
-                <small>{{ pedido.correoCliente }} - {{ pedido.cantidadItems }} item(s)</small>
+                <small>{{ pedido.correoCliente }} · {{ pedido.cantidadItems }} producto(s)</small>
                 <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
                 <button
                   appBoton="secundario"
@@ -79,6 +97,14 @@
               </app-fila-panel>
             }
           </app-lista-panel>
+
+          <app-paginacion-panel
+            [paginaActual]="store.paginaPedidosActual()"
+            [totalPaginas]="store.totalPaginasPedidos()"
+            ariaEtiqueta="Paginación de pedidos recibidos"
+            (anterior)="paginaAnterior()"
+            (siguiente)="paginaSiguiente()"
+          />
         }
       </article>
 
@@ -87,32 +113,23 @@
           <app-estado-pantalla tipo="carga" etiqueta="Detalle" titulo="Cargando detalle del pedido." />
         } @else if (store.pedidoDetalle()) {
           <span>Detalle</span>
-          <h3>#{{ store.pedidoDetalle()?.idPedido }} - {{ store.pedidoDetalle()?.estadoPedido }}</h3>
-          <p>{{ store.pedidoDetalle()?.tipoEntrega }} - {{ store.pedidoDetalle()?.correoCliente }}</p>
+          <h3>Pedido #{{ store.pedidoDetalle()?.idPedido }} · {{ store.pedidoDetalle()?.estadoPedido }}</h3>
+          <p>{{ store.pedidoDetalle()?.tipoEntrega }} · {{ store.pedidoDetalle()?.correoCliente }}</p>
 
           <div class="vendedor-pedidos__totales">
-            <article>
-              <small>Total</small>
-              <strong>{{ store.pedidoDetalle()?.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-            </article>
-            <article>
-              <small>Pagado</small>
-              <strong>{{ store.pedidoDetalle()?.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-            </article>
-            <article>
-              <small>Saldo</small>
-              <strong>{{ store.pedidoDetalle()?.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-            </article>
+            <article><small>Total</small><strong>{{ store.pedidoDetalle()?.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong></article>
+            <article><small>Pagado</small><strong>{{ store.pedidoDetalle()?.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong></article>
+            <article><small>Saldo</small><strong>{{ store.pedidoDetalle()?.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong></article>
           </div>
 
-          <p>{{ store.pedidoDetalle()?.observacion }}</p>
+          @if (store.pedidoDetalle()?.observacion) { <p>{{ store.pedidoDetalle()?.observacion }}</p> }
 
           <app-lista-panel ariaEtiqueta="Productos solicitados">
             <strong>Productos solicitados</strong>
             @for (producto of store.pedidoDetalle()?.productos ?? []; track producto.idDetallePedido) {
               <app-fila-panel tipo="tres-columnas" [ariaEtiqueta]="producto.nombreProducto">
                 <span>{{ producto.nombreProducto }}</span>
-                <small>{{ producto.cantidad }} x {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+                <small>{{ producto.cantidad }} × {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
                 <b>{{ producto.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
               </app-fila-panel>
             }
@@ -123,19 +140,13 @@
             @for (pago of store.pedidoDetalle()?.pagos ?? []; track pago.idPago) {
               <app-fila-panel tipo="tres-columnas" [ariaEtiqueta]="pago.tipoPago">
                 <span>{{ pago.tipoPago }}</span>
-                <small>{{ pago.estadoPago }} - {{ pago.metodoPagoPasarela }}</small>
+                <small>{{ pago.estadoPago }} · {{ pago.metodoPagoPasarela }}</small>
                 <b>{{ pago.monto | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
               </app-fila-panel>
-            } @empty {
-              <p>No hay pagos registrados para este pedido.</p>
-            }
+            } @empty { <p>No hay pagos registrados para este pedido.</p> }
           </app-lista-panel>
         } @else {
-          <app-estado-pantalla
-            tipo="vacio"
-            etiqueta="Detalle"
-            titulo="Selecciona un pedido para revisar productos y pagos."
-          />
+          <app-estado-pantalla tipo="vacio" etiqueta="Detalle" titulo="Selecciona un pedido para revisar productos y pagos." />
         }
       </aside>
     </section>

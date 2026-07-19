@@ -298,12 +298,12 @@ Pedidos cliente:
 
 - `GET /api/pedidos`.
 - `GET /api/pedidos/{idPedido}`.
-- `POST /api/pedidos/{idPedido}/pagos`.
 - `GET /api/pedidos/opciones/pago-inicial`.
 
 Checkout:
 
 - `POST /api/checkout/sessions`.
+- `POST /api/checkout/orders/{idPedido}/remaining-payment-session`.
 
 Administracion:
 
@@ -1492,58 +1492,36 @@ Endpoints:
 
 - `GET /api/pedidos`.
 - `GET /api/pedidos/{idPedido}`.
-- `POST /api/pedidos/{idPedido}/pagos`.
 
 Metodos:
 
 - `obtenerMisPedidos()`.
 - `obtenerMiPedidoPorId()`.
-- `registrarPagoRestante()`.
 
-### `paginas/pagina-panel-cliente`
+### `acceso-datos/checkout-api.service.ts`
 
-#### `pagina-panel-cliente.ts`
+AdemÃ¡s de crear el checkout inicial, prepara el pago seguro del saldo pendiente:
 
-Responsabilidades:
+- `POST /api/checkout/orders/{idPedido}/remaining-payment-session`.
+- `crearSesionPagoRestante(idPedido)`.
 
-- Cargar perfil y pedidos con `forkJoin`.
-- Editar perfil.
-- Ver detalle de pedido.
-- Registrar pago restante.
-- Calcular metricas:
-  - pedidos activos;
-  - saldo pendiente;
-  - total invertido;
-  - pedidos recientes;
-  - puede registrar pago.
+El cliente solo recibe una URL de redirecciÃ³n de la pasarela. Nunca registra
+cÃ³digos de pago ni confirma montos desde el navegador.
 
-Usa:
+### `paginas/pagina-cliente-pedidos`
 
-- `UsuarioApiService`.
-- `PedidoClienteApiService`.
-- `EstadoPantallaComponent`.
-- `TarjetaMetricaComponent`.
-- `ListaPanelComponent`.
-- `FilaPanelComponent`.
-- directivas de boton/formulario.
+Muestra exclusivamente el historial del cliente, con filtros sincronizados con la
+URL, paginaciÃ³n y acceso al detalle de cada pedido.
 
-#### `pagina-panel-cliente.html`
+### `paginas/pagina-cliente-detalle-pedido`
 
-Renderiza:
+Muestra entrega, productos y resumen de pago. Cuando existe saldo pendiente,
+solicita una sesiÃ³n externa de pago y redirige a la pasarela; no captura ni
+confirma pagos en el navegador.
 
-- hero privado;
-- estado carga/error/exito;
-- perfil;
-- metricas;
-- formulario de perfil;
-- historial de pedidos;
-- detalle de pedido;
-- productos del pedido;
-- formulario de pago restante.
+### `paginas/pagina-cliente-perfil`
 
-#### `pagina-panel-cliente.css`
-
-Estilos para panel cliente.
+Gestiona los datos y la seguridad de la cuenta del cliente.
 
 ## 15. Dominio Vendedores
 
@@ -1594,12 +1572,14 @@ Metodos:
 - `crearPerfilVendedor()`.
 - `obtenerTiendas()`.
 - `crearTienda()`.
+- `obtenerTiendaPorId()`.
+- `actualizarTienda()`.
+- `eliminarTienda()`.
 - `obtenerProductosPorTienda()`.
 - `crearProducto()`.
 - `actualizarProducto()`.
 - `desactivarProducto()`.
-- `obtenerPedidosRecibidos()`.
-- `obtenerPedidosPorTienda()`.
+- `obtenerPedidosRecibidos(consulta)`: listado paginado y filtrable por tienda, estado, pago o busqueda.
 - `obtenerDetallePedidoRecibido()`.
 
 Endpoints:
@@ -1618,6 +1598,7 @@ Responsabilidades:
 - Cargar perfil, tiendas, pedidos, rubros y tipos de producto.
 - Crear perfil vendedor si no existe.
 - Crear tienda.
+- Consultar, editar y eliminar la tienda propia.
 - Seleccionar tienda.
 - Crear producto.
 - Editar producto.
@@ -2115,7 +2096,7 @@ Si backend no esta activo:
 - Carga perfil.
 - Carga pedidos.
 - Ver detalle de pedido.
-- Registrar pago restante.
+- Iniciar pago restante desde el detalle y confirmar el resultado mediante webhook.
 
 ### Vendedor
 
@@ -2395,12 +2376,12 @@ Este anexo complementa las secciones anteriores. Su objetivo es que cualquier in
 | `frontend/src/app/domains/usuarios/mapeadores/usuario.mapper.ts` | Convierte usuario DTO a modelo interno. | Adaptacion REST. |
 | `frontend/src/app/domains/usuarios/acceso-datos/usuario-api.service.ts` | Consulta perfil del usuario autenticado. | HTTP GET usuario. |
 | `frontend/src/app/domains/usuarios/modelos/pedido-cliente.dto.ts` | Contrato de pedido del cliente recibido del backend. | API pedidos. |
-| `frontend/src/app/domains/usuarios/modelos/pedido-cliente.model.ts` | Modelo interno para historial/seguimiento. | Panel cliente. |
+| `frontend/src/app/domains/usuarios/modelos/pedido-cliente.model.ts` | Modelo interno para historial/seguimiento. | Pedidos cliente. |
 | `frontend/src/app/domains/usuarios/mapeadores/pedido-cliente.mapper.ts` | Convierte pedido DTO a modelo interno. | Adaptacion REST. |
-| `frontend/src/app/domains/usuarios/acceso-datos/pedido-cliente-api.service.ts` | Consulta pedidos y pagos del cliente. | HTTP GET pedidos. |
-| `frontend/src/app/domains/usuarios/paginas/pagina-panel-cliente/pagina-panel-cliente.ts` | Orquesta perfil, pedidos, metricas y estados del cliente. | Panel cliente real. |
-| `frontend/src/app/domains/usuarios/paginas/pagina-panel-cliente/pagina-panel-cliente.html` | Template del panel cliente. | UX cliente. |
-| `frontend/src/app/domains/usuarios/paginas/pagina-panel-cliente/pagina-panel-cliente.css` | Estilos del panel cliente. | UI privada. |
+| `frontend/src/app/domains/usuarios/acceso-datos/pedido-cliente-api.service.ts` | Consulta pedidos del cliente. | HTTP GET pedidos. |
+| `frontend/src/app/domains/usuarios/paginas/pagina-cliente-pedidos/pagina-cliente-pedidos.ts` | Orquesta filtros, URL y paginaciÃ³n de pedidos. | Historial cliente. |
+| `frontend/src/app/domains/usuarios/paginas/pagina-cliente-detalle-pedido/pagina-cliente-detalle-pedido.ts` | Muestra el pedido y prepara el pago restante externo. | Detalle cliente. |
+| `frontend/src/app/domains/usuarios/paginas/pagina-cliente-perfil/pagina-cliente-perfil.ts` | Edita datos y seguridad de la cuenta. | Perfil cliente. |
 
 ### 27.13 Dominio Vendedores
 

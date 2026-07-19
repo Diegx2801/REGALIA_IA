@@ -70,6 +70,24 @@ public class AuthService {
         return login(request, ipCliente, userAgent, AuthContext.ADMIN);
     }
 
+    /**
+     * Emite un nuevo token del contexto publico con los roles y estado actuales
+     * de la cuenta despues de un cambio de autorizacion.
+     */
+    @Transactional(readOnly = true)
+    public LoginResult refrescarSesionPublica(String correoUsuario) {
+        UsuarioEntity usuario = buscarUsuarioActivoPorCorreo(normalizarCorreo(correoUsuario));
+
+        if (usuario == null) {
+            throw new CredencialesInvalidasException(MENSAJE_CREDENCIALES_INVALIDAS);
+        }
+
+        List<String> roles = obtenerRolesActivos(usuario.getIdUsuario());
+        validarAccesoPublico(roles);
+
+        return construirLoginResult(usuario, roles, AuthContext.PUBLIC);
+    }
+
     @Transactional
     public LoginResult loginGoogle(GoogleLoginCommand request, String ipCliente, String userAgent) {
         GoogleUserIdentity googleIdentity = googleSsoService.verificarIdentidad(request.idToken());

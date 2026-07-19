@@ -5,7 +5,8 @@ import com.regalia.backend.shared.exception.ReglaNegocioException;
 import java.util.Locale;
 
 /**
- * Filtro administrativo para consultar pedidos por estado de pago.
+ * Filtro de pedidos por estado de pago para los contextos que tengan acceso
+ * autorizado al historial consultado.
  */
 public enum PedidoPagoFiltro {
     TODOS,
