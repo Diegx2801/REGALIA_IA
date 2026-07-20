@@ -57,6 +57,15 @@ SET
     estado = TRUE,
     fecha_actualizacion = CURRENT_TIMESTAMP;
 
+-- La cuenta vendedor demo representa un comercio ya habilitado para probar
+-- productos y pedidos. Se verifica de forma explicita sin relajar la regla
+-- de seguridad aplicada a las cuentas reales.
+UPDATE usuario
+SET correo_verificado = TRUE,
+    fecha_verificacion_correo = COALESCE(fecha_verificacion_correo, CURRENT_TIMESTAMP),
+    fecha_actualizacion = CURRENT_TIMESTAMP
+WHERE correo = 'vendedor.demo@regalia.local';
+
 -- ---------------------------------------------------------
 -- 2. Roles necesarios para probar flujos publicos y vendedor
 -- ---------------------------------------------------------
