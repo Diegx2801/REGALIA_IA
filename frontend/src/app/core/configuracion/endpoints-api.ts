@@ -20,6 +20,10 @@ export const ENDPOINTS_API = {
   usuarios: {
     crear: `${RUTA_BASE_API}/usuarios`,
     perfilActual: `${RUTA_BASE_API}/usuarios/me`,
+    documentos: `${RUTA_BASE_API}/usuarios/me/documentos`,
+    consultarRuc: (numeroRuc: string) =>
+      `${RUTA_BASE_API}/usuarios/me/documentos/ruc/${encodeURIComponent(numeroRuc)}`,
+    registrarRuc: `${RUTA_BASE_API}/usuarios/me/documentos/ruc`,
   },
   catalogo: {
     productos: `${RUTA_BASE_API}/productos`,
@@ -74,5 +78,6 @@ export const ENDPOINTS_API = {
   },
   datosMaestros: {
     tiposEntrega: `${RUTA_BASE_API}/tipos-entrega`,
+    tiposDocumento: `${RUTA_BASE_API}/tipos-documento`,
   },
 } as const;

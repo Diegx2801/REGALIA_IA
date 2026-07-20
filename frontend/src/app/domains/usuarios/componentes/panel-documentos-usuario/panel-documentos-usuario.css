@@ -1,0 +1,239 @@
+:host {
+  display: block;
+}
+
+.documentos-panel {
+  background:
+    radial-gradient(circle at 92% 8%, rgba(215, 173, 75, 0.16), transparent 10rem),
+    rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.6rem;
+  box-shadow: 0 22px 54px rgba(35, 25, 39, 0.1);
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.documentos-panel__encabezado {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.documentos-panel__encabezado span,
+.documentos-panel__formulario header span,
+.documentos-panel__consulta-ruc > span {
+  color: var(--rg-color-primary);
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.documentos-panel__encabezado h3,
+.documentos-panel__formulario h4,
+.documentos-panel__consulta-ruc h5 {
+  color: var(--rg-color-ink);
+  margin: 0.25rem 0;
+}
+
+.documentos-panel__encabezado p,
+.documentos-panel__consulta-ruc p {
+  color: var(--rg-color-muted);
+  margin: 0;
+}
+
+.documentos-panel__encabezado > strong {
+  background: rgba(90, 36, 64, 0.08);
+  border-radius: 999px;
+  color: var(--rg-color-primary);
+  flex: 0 0 auto;
+  padding: 0.55rem 0.8rem;
+}
+
+.documentos-panel__contenido {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.72fr);
+}
+
+.documentos-panel__lista {
+  align-content: start;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.documentos-panel__documento {
+  align-items: center;
+  background: #fffaf6;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 1.15rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.9rem;
+}
+
+.documentos-panel__documento-principal {
+  align-items: center;
+  display: flex;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.documentos-panel__documento-principal > span {
+  align-items: center;
+  background: var(--rg-color-primary);
+  border-radius: 0.9rem;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 950;
+  justify-content: center;
+  min-height: 2.8rem;
+  min-width: 3.6rem;
+  padding: 0.5rem;
+}
+
+.documentos-panel__documento h4,
+.documentos-panel__documento p {
+  margin: 0;
+}
+
+.documentos-panel__documento p {
+  color: var(--rg-color-muted);
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.documentos-panel__documento-meta {
+  align-items: flex-end;
+  display: grid;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+  justify-items: end;
+}
+
+.documentos-panel__documento-meta small {
+  color: var(--rg-color-muted);
+}
+
+.documentos-panel__estado {
+  background: rgba(215, 173, 75, 0.16);
+  border-radius: 999px;
+  color: #805a0b;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 0.38rem 0.65rem;
+}
+
+.documentos-panel__estado--verificado {
+  background: rgba(24, 120, 82, 0.12);
+  color: #187852;
+}
+
+.documentos-panel__estado--observado {
+  background: rgba(184, 106, 17, 0.13);
+  color: #8f520d;
+}
+
+.documentos-panel__estado--rechazado {
+  background: rgba(162, 44, 61, 0.11);
+  color: #a22c3d;
+}
+
+.documentos-panel__formulario {
+  align-content: start;
+  background: linear-gradient(180deg, #fffaf5, #fff);
+  border: 1px solid var(--rg-color-border);
+  border-radius: 1.2rem;
+  padding: 1rem;
+}
+
+.documentos-panel__formulario label small:not(.rg-error-campo) {
+  color: var(--rg-color-muted);
+  font-weight: 650;
+}
+
+.documentos-panel__consulta-ruc {
+  background: rgba(90, 36, 64, 0.05);
+  border: 1px solid rgba(90, 36, 64, 0.12);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.9rem;
+}
+
+.documentos-panel__consulta-ruc dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.documentos-panel__consulta-ruc dl div {
+  display: grid;
+  gap: 0.1rem;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+}
+
+.documentos-panel__consulta-ruc dt {
+  color: var(--rg-color-primary);
+  font-weight: 900;
+}
+
+.documentos-panel__consulta-ruc dd {
+  color: var(--rg-color-ink);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.documentos-panel__mensajes:empty {
+  display: none;
+}
+
+.documentos-panel__mensaje {
+  border-radius: 0.9rem;
+  font-weight: 750;
+  margin: 0;
+  padding: 0.75rem;
+}
+
+.documentos-panel__mensaje--exito {
+  background: rgba(24, 120, 82, 0.1);
+  color: #187852;
+}
+
+.documentos-panel__mensaje--error {
+  background: rgba(162, 44, 61, 0.09);
+  color: #a22c3d;
+}
+
+@media (max-width: 899.98px) {
+  .documentos-panel__contenido {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .documentos-panel__encabezado,
+  .documentos-panel__documento {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .documentos-panel__encabezado > strong {
+    width: fit-content;
+  }
+
+  .documentos-panel__documento-meta {
+    align-items: start;
+    justify-items: start;
+  }
+
+  .documentos-panel__consulta-ruc dl div {
+    grid-template-columns: 1fr;
+  }
+}

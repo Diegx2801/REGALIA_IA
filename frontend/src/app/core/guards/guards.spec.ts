@@ -1,5 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, provideRouter, Router, UrlTree } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  provideRouter,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+} from '@angular/router';
 import { RolUsuario } from '../autenticacion/sesion-autenticacion.model';
 import { SesionAutenticacionService } from '../autenticacion/sesion-autenticacion.service';
 import { autenticacionGuard } from './autenticacion.guard';
@@ -35,7 +41,7 @@ describe('guards de acceso', () => {
     sesion.autenticado = true;
 
     const resultado = TestBed.runInInjectionContext(() =>
-      autenticacionGuard({} as ActivatedRouteSnapshot, {} as never),
+      autenticacionGuard({} as ActivatedRouteSnapshot, crearEstadoNavegacion('/cliente/perfil')),
     );
 
     expect(resultado).toBe(true);
@@ -44,7 +50,7 @@ describe('guards de acceso', () => {
   it('redirige a login cuando no existe sesion activa', () => {
     const router = TestBed.inject(Router);
     const resultado = TestBed.runInInjectionContext(() =>
-      autenticacionGuard({} as ActivatedRouteSnapshot, {} as never),
+      autenticacionGuard({} as ActivatedRouteSnapshot, crearEstadoNavegacion('/cliente/perfil')),
     );
 
     expect(resultado instanceof UrlTree).toBe(true);
@@ -76,4 +82,8 @@ describe('guards de acceso', () => {
 
 function crearRutaConRoles(roles: RolUsuario[]): ActivatedRouteSnapshot {
   return { data: { roles } } as unknown as ActivatedRouteSnapshot;
+}
+
+function crearEstadoNavegacion(url: string): RouterStateSnapshot {
+  return { url } as RouterStateSnapshot;
 }

@@ -15,6 +15,7 @@ import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/e
 import { BotonGoogleLogin } from '../../../autenticacion/componentes/boton-google-login/boton-google-login';
 import { ClientePanelStore } from '../../estado/cliente-panel.store';
 import { UsuarioApiService } from '../../acceso-datos/usuario-api.service';
+import { PanelDocumentosUsuario } from '../../componentes/panel-documentos-usuario/panel-documentos-usuario';
 
 @Component({
   selector: 'app-pagina-cliente-perfil',
@@ -26,6 +27,7 @@ import { UsuarioApiService } from '../../acceso-datos/usuario-api.service';
     FormularioPanelDirective,
     EstadoPantallaComponent,
     BotonGoogleLogin,
+    PanelDocumentosUsuario,
     RouterLink,
   ],
   templateUrl: './pagina-cliente-perfil.html',

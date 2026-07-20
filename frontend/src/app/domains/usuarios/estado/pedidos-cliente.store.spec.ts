@@ -45,8 +45,8 @@ describe('PedidosClienteStore', () => {
   it('conserva los metadatos paginados recibidos del servicio', () => {
     store.cargarListado({ page: 0, size: 10 });
 
-    expect(store.pedidos()).toHaveSize(1);
+    expect(store.pedidos()).toHaveLength(1);
     expect(store.totalElementos()).toBe(1);
-    expect(store.ultimaPagina()).toBeTrue();
+    expect(store.ultimaPagina()).toBe(true);
   });
 });

@@ -1,0 +1,184 @@
+<section class="documentos-panel" aria-labelledby="documentos-usuario-titulo">
+  <header class="documentos-panel__encabezado">
+    <div>
+      <span>Identidad</span>
+      <h3 id="documentos-usuario-titulo">Documentos de verificación</h3>
+      <p>
+        Registra tus documentos y consulta su estado. REGALIA los enviará a revisión administrativa.
+      </p>
+    </div>
+    <strong>{{ documentos().length }} registrado(s)</strong>
+  </header>
+
+  @if (cargando()) {
+    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tus documentos." />
+  } @else if (mensajeErrorCarga()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error"
+      [titulo]="mensajeErrorCarga() ?? 'No pudimos cargar tus documentos.'"
+      textoAccion="Reintentar"
+      (accion)="cargarDatos()"
+    />
+  } @else {
+    <div class="documentos-panel__contenido">
+      <section class="documentos-panel__lista" aria-label="Documentos registrados">
+        @for (documento of documentos(); track documento.idUsuarioDocumento) {
+          <article class="documentos-panel__documento">
+            <div class="documentos-panel__documento-principal">
+              <span>{{ documento.abreviatura }}</span>
+              <div>
+                <h4>{{ documento.tipoDocumento }}</h4>
+                <p>{{ documento.numeroDocumento }}</p>
+              </div>
+            </div>
+            <div class="documentos-panel__documento-meta">
+              <span
+                class="documentos-panel__estado"
+                [class.documentos-panel__estado--verificado]="
+                  documento.estadoVerificacion === 'VERIFICADO'
+                "
+                [class.documentos-panel__estado--observado]="
+                  documento.estadoVerificacion === 'OBSERVADO'
+                "
+                [class.documentos-panel__estado--rechazado]="
+                  documento.estadoVerificacion === 'RECHAZADO'
+                "
+              >
+                {{ etiquetaEstado(documento.estadoVerificacion) }}
+              </span>
+              @if (documento.fechaCreacion) {
+                <small>Enviado {{ documento.fechaCreacion | date: 'dd/MM/yyyy' }}</small>
+              }
+            </div>
+          </article>
+        } @empty {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin documentos"
+            titulo="Todavía no registraste documentos."
+            descripcion="Utiliza el formulario para enviar tu primera solicitud de verificación."
+          />
+        }
+      </section>
+
+      <form
+        appFormularioPanel
+        appFormularioUnaColumna
+        class="documentos-panel__formulario"
+        [formGroup]="formulario"
+        (ngSubmit)="procesarFormulario()"
+      >
+        <header>
+          <span>Nueva solicitud</span>
+          <h4>Registrar documento</h4>
+        </header>
+
+        @if (tiposDisponibles().length > 0) {
+          <label appCampoFormulario>
+            Tipo de documento
+            <select formControlName="idTipoDocumento">
+              @for (tipo of tiposDisponibles(); track tipo.idTipoDocumento) {
+                <option [ngValue]="tipo.idTipoDocumento">
+                  {{ tipo.abreviatura }} - {{ tipo.nombre }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label appCampoFormulario>
+            Número de documento
+            <input
+              type="text"
+              formControlName="numeroDocumento"
+              autocomplete="off"
+              [attr.inputmode]="esRuc() ? 'numeric' : 'text'"
+              [attr.minlength]="tipoSeleccionado()?.longitudMinima ?? null"
+              [attr.maxlength]="tipoSeleccionado()?.longitudMaxima ?? 30"
+              [attr.aria-describedby]="
+                campoTieneError('numeroDocumento') ? 'documento-error' : 'documento-ayuda'
+              "
+            />
+            <small id="documento-ayuda">{{ descripcionLongitudDocumento() }}</small>
+            @if (campoTieneError('numeroDocumento')) {
+              <small id="documento-error" appErrorCampo>
+                Revisa el formato y la longitud del documento.
+              </small>
+            }
+          </label>
+
+          <button
+            appBoton
+            appBotonBloque
+            type="submit"
+            [appBotonCargando]="consultandoRuc() || registrando()"
+            [disabled]="consultandoRuc() || registrando()"
+          >
+            @if (esRuc()) {
+              {{ consultandoRuc() ? 'Consultando...' : 'Consultar RUC' }}
+            } @else {
+              {{ registrando() ? 'Registrando...' : 'Enviar a revisión' }}
+            }
+          </button>
+        } @else {
+          <app-estado-pantalla
+            tipo="exito"
+            etiqueta="Documentación completa"
+            titulo="Ya registraste todos los tipos disponibles."
+          />
+        }
+
+        @if (consultaRucVigente(); as consulta) {
+          <section class="documentos-panel__consulta-ruc" aria-labelledby="consulta-ruc-titulo">
+            <span>Resultado SUNAT</span>
+            <h5 id="consulta-ruc-titulo">{{ consulta.razonSocial }}</h5>
+            @if (consulta.nombreComercial) {
+              <p>{{ consulta.nombreComercial }}</p>
+            }
+            <dl>
+              <div>
+                <dt>RUC</dt>
+                <dd>{{ consulta.ruc }}</dd>
+              </div>
+              <div>
+                <dt>Estado</dt>
+                <dd>{{ consulta.estado }}</dd>
+              </div>
+              <div>
+                <dt>Condición</dt>
+                <dd>{{ consulta.condicion }}</dd>
+              </div>
+              <div>
+                <dt>Dirección</dt>
+                <dd>{{ consulta.direccion }}, {{ consulta.ubicacion }}</dd>
+              </div>
+            </dl>
+            <button
+              appBoton
+              appBotonBloque
+              type="button"
+              [appBotonCargando]="registrando()"
+              [disabled]="registrando()"
+              (click)="registrarRucConsultado()"
+            >
+              {{ registrando() ? 'Registrando...' : 'Confirmar y enviar a revisión' }}
+            </button>
+          </section>
+        }
+
+        <div class="documentos-panel__mensajes" aria-live="polite">
+          @if (mensajeExito()) {
+            <p class="documentos-panel__mensaje documentos-panel__mensaje--exito">
+              {{ mensajeExito() }}
+            </p>
+          }
+          @if (mensajeErrorOperacion()) {
+            <p class="documentos-panel__mensaje documentos-panel__mensaje--error" role="alert">
+              {{ mensajeErrorOperacion() }}
+            </p>
+          }
+        </div>
+      </form>
+    </div>
+  }
+</section>
