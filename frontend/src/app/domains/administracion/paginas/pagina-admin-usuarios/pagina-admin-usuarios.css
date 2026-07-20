@@ -52,3 +52,43 @@
   min-width: 0;
   padding: clamp(0.85rem, 1.8vw, 1.1rem);
 }
+
+.admin-seccion__gestion-usuario {
+  align-items: flex-end;
+  display: grid;
+  gap: 0.55rem;
+  justify-items: end;
+}
+
+.admin-seccion__datos-usuario {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.admin-seccion__datos-usuario :is(p, small) {
+  margin: 0;
+}
+
+.admin-seccion__estado {
+  border-radius: 999px;
+  font-size: 0.78rem;
+  line-height: 1;
+  padding: 0.45rem 0.68rem;
+}
+
+.admin-seccion__estado--activo {
+  background: rgba(24, 120, 82, 0.12);
+  color: #187852;
+}
+
+.admin-seccion__estado--inactivo {
+  background: rgba(157, 74, 62, 0.12);
+  color: #8c4036;
+}
+
+@media (max-width: 899.98px) {
+  .admin-seccion__gestion-usuario {
+    align-items: start;
+    justify-items: start;
+  }
+}

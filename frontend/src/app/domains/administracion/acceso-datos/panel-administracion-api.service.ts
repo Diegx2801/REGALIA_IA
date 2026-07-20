@@ -87,6 +87,14 @@ export class PanelAdministracionApiService {
       );
   }
 
+  desactivarUsuario(idUsuario: number): Observable<UsuarioAdministracion> {
+    return this.cambiarEstadoUsuario(idUsuario, 'desactivar');
+  }
+
+  reactivarUsuario(idUsuario: number): Observable<UsuarioAdministracion> {
+    return this.cambiarEstadoUsuario(idUsuario, 'reactivar');
+  }
+
   obtenerTiendas(
     consulta: ConsultaTiendasAdmin = {},
   ): Observable<RespuestaPaginada<TiendaAdministracion>> {
@@ -151,6 +159,27 @@ export class PanelAdministracionApiService {
 
   rechazarTienda(idTienda: number): Observable<TiendaAdministracion> {
     return this.cambiarEstadoRevisionTienda(idTienda, 'rechazar');
+  }
+
+  private cambiarEstadoUsuario(
+    idUsuario: number,
+    accion: 'desactivar' | 'reactivar',
+  ): Observable<UsuarioAdministracion> {
+    const endpoint =
+      accion === 'desactivar'
+        ? ENDPOINTS_API.administracion.desactivarUsuario(idUsuario)
+        : ENDPOINTS_API.administracion.reactivarUsuario(idUsuario);
+
+    return this.http.patch<RespuestaApi<UsuarioAdministracionDto>>(endpoint, {}).pipe(
+      timeout(TIEMPO_ESPERA_ADMIN_MS),
+      map((respuesta) => {
+        if (!respuesta.data) {
+          throw new Error(respuesta.message ?? 'No se pudo actualizar el usuario.');
+        }
+
+        return mapearUsuarioAdministracionDesdeDto(respuesta.data);
+      }),
+    );
   }
 
   private cambiarEstadoRevisionTienda(

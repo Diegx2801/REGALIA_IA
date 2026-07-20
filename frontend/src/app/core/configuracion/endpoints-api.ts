@@ -66,6 +66,10 @@ export const ENDPOINTS_API = {
   },
   administracion: {
     usuarios: `${RUTA_BASE_API}/admin/usuarios`,
+    desactivarUsuario: (idUsuario: number) =>
+      `${RUTA_BASE_API}/admin/usuarios/${idUsuario}/desactivar`,
+    reactivarUsuario: (idUsuario: number) =>
+      `${RUTA_BASE_API}/admin/usuarios/${idUsuario}/reactivar`,
     vendedores: `${RUTA_BASE_API}/admin/vendedores`,
     tiendas: `${RUTA_BASE_API}/admin/tiendas`,
     pedidos: `${RUTA_BASE_API}/admin/pedidos`,

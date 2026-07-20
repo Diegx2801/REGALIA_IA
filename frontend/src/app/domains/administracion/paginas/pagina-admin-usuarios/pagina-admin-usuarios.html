@@ -32,6 +32,14 @@
       (accion)="cargarUsuarios()"
     />
   } @else {
+    @if (mensajeExito()) {
+      <app-estado-pantalla
+        tipo="exito"
+        etiqueta="Operación correcta"
+        [titulo]="mensajeExito() ?? ''"
+      />
+    }
+
     <app-grupo-metricas-panel ariaEtiqueta="Resumen de usuarios">
       <app-tarjeta-metrica
         etiqueta="Total usuarios"
@@ -43,15 +51,46 @@
     <app-lista-panel class="admin-seccion__lista" ariaEtiqueta="Usuarios administrativos">
       @for (usuario of usuarios(); track usuario.idUsuario) {
         <app-fila-panel [ariaEtiqueta]="usuario.nombreCompleto">
-          <div>
+          <div class="admin-seccion__datos-usuario">
             <strong>{{ usuario.nombreCompleto }}</strong>
             <small>{{ usuario.correo }}</small>
             <p>{{ usuario.telefono }} - Creado {{ usuario.fechaCreacion | date: 'dd/MM/yyyy' }}</p>
           </div>
-          <span>{{ usuario.estado ? 'Activo' : 'Inactivo' }}</span>
+          <div class="admin-seccion__gestion-usuario">
+            <span
+              class="admin-seccion__estado"
+              [class.admin-seccion__estado--activo]="usuario.estado"
+              [class.admin-seccion__estado--inactivo]="!usuario.estado"
+            >
+              {{ usuario.estado ? 'Activo' : 'Inactivo' }}
+            </span>
+            <button
+              [appBoton]="usuario.estado ? 'peligro' : 'secundario'"
+              appBotonTamano="sm"
+              [appBotonCargando]="procesandoUsuario() === usuario.idUsuario"
+              type="button"
+              [disabled]="procesandoUsuario() !== null"
+              [attr.aria-label]="
+                (usuario.estado ? 'Desactivar' : 'Reactivar') +
+                ' cuenta de ' +
+                usuario.nombreCompleto
+              "
+              (click)="cambiarEstadoUsuario(usuario)"
+            >
+              @if (procesandoUsuario() === usuario.idUsuario) {
+                {{ usuario.estado ? 'Desactivando...' : 'Reactivando...' }}
+              } @else {
+                {{ usuario.estado ? 'Desactivar' : 'Reactivar' }}
+              }
+            </button>
+          </div>
         </app-fila-panel>
       } @empty {
-        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay usuarios registrados." />
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Sin resultados"
+          titulo="No hay usuarios registrados."
+        />
       }
     </app-lista-panel>
 
