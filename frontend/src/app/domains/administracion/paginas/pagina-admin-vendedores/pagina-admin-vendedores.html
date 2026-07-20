@@ -17,9 +17,21 @@
     />
   } @else {
     <section class="admin-vendedores__metricas">
-      <app-tarjeta-metrica etiqueta="Vendedores" [valor]="store.totalVendedores()" descripcion="Total reportado por backend." />
-      <app-tarjeta-metrica etiqueta="Verificados" [valor]="verificados()" descripcion="Perfiles comerciales verificados en esta vista." />
-      <app-tarjeta-metrica etiqueta="Tiendas activas" [valor]="tiendasActivas()" descripcion="Suma de tiendas activas asociadas." />
+      <app-tarjeta-metrica
+        etiqueta="Vendedores"
+        [valor]="store.totalVendedores()"
+        descripcion="Total reportado por backend."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Verificados"
+        [valor]="verificados()"
+        descripcion="Perfiles comerciales verificados en esta vista."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Tiendas activas"
+        [valor]="tiendasActivas()"
+        descripcion="Suma de tiendas activas asociadas."
+      />
     </section>
 
     <article class="admin-card">
@@ -35,7 +47,11 @@
       </header>
 
       @if (vendedoresFiltrados().length === 0) {
-        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay vendedores con ese criterio." />
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Sin resultados"
+          titulo="No hay vendedores con ese criterio."
+        />
       } @else {
         <app-lista-panel ariaEtiqueta="Vendedores administrativos">
           @for (vendedor of vendedoresFiltrados(); track vendedor.idVendedor) {
@@ -47,7 +63,17 @@
               <b [ngbTooltip]="'Tiendas totales: ' + vendedor.tiendasTotales">
                 {{ vendedor.tiendasActivas }} activas
               </b>
-              <span>{{ vendedor.verificado ? 'Verificado' : 'Pendiente' }}</span>
+              <div class="admin-vendedores__acciones">
+                <span>{{ vendedor.verificado ? 'Verificado' : 'Pendiente' }}</span>
+                <a
+                  appBoton="secundario"
+                  appBotonTamano="sm"
+                  [routerLink]="['/admin/vendedores', vendedor.idVendedor]"
+                  [attr.aria-label]="'Ver detalle de ' + vendedor.nombreCompleto"
+                >
+                  Ver detalle
+                </a>
+              </div>
             </app-fila-panel>
           }
         </app-lista-panel>

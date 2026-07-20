@@ -21,6 +21,15 @@ export const ADMINISTRACION_ROUTES: Routes = [
       ),
   },
   {
+    path: 'vendedores/:idVendedor',
+    title: 'Detalle de vendedor | REGALIA',
+    data: { tipoDetalle: 'vendedor' },
+    loadComponent: () =>
+      import('./paginas/pagina-admin-detalle/pagina-admin-detalle').then(
+        (m) => m.PaginaAdminDetalle,
+      ),
+  },
+  {
     path: 'vendedores',
     loadComponent: () =>
       import('./paginas/pagina-admin-vendedores/pagina-admin-vendedores').then(
@@ -28,10 +37,28 @@ export const ADMINISTRACION_ROUTES: Routes = [
       ),
   },
   {
+    path: 'tiendas/:idTienda',
+    title: 'Detalle de tienda | REGALIA',
+    data: { tipoDetalle: 'tienda' },
+    loadComponent: () =>
+      import('./paginas/pagina-admin-detalle/pagina-admin-detalle').then(
+        (m) => m.PaginaAdminDetalle,
+      ),
+  },
+  {
     path: 'tiendas',
     loadComponent: () =>
       import('./paginas/pagina-admin-tiendas/pagina-admin-tiendas').then(
         (m) => m.PaginaAdminTiendas,
+      ),
+  },
+  {
+    path: 'pedidos/:idPedido',
+    title: 'Detalle de pedido | REGALIA',
+    data: { tipoDetalle: 'pedido' },
+    loadComponent: () =>
+      import('./paginas/pagina-admin-detalle/pagina-admin-detalle').then(
+        (m) => m.PaginaAdminDetalle,
       ),
   },
   {

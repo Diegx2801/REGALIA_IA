@@ -74,7 +74,10 @@ export class PanelAdministracionApiService {
   }
 
   obtenerVendedores(size = 5): Observable<RespuestaPaginada<VendedorAdministracion>> {
-    const params = new HttpParams().set('page', 0).set('size', size).set('sort', 'fechaCreacion,desc');
+    const params = new HttpParams()
+      .set('page', 0)
+      .set('size', size)
+      .set('sort', 'fechaCreacion,desc');
 
     return this.http
       .get<RespuestaApi<RespuestaPaginada<VendedorAdministracionDto>>>(
@@ -85,6 +88,13 @@ export class PanelAdministracionApiService {
         timeout(TIEMPO_ESPERA_ADMIN_MS),
         map((respuesta) => this.mapearPagina(respuesta, mapearVendedorAdministracionDesdeDto)),
       );
+  }
+
+  obtenerVendedorPorId(idVendedor: number): Observable<VendedorAdministracion> {
+    return this.obtenerDetalle(
+      ENDPOINTS_API.administracion.vendedorPorId(idVendedor),
+      mapearVendedorAdministracionDesdeDto,
+    );
   }
 
   desactivarUsuario(idUsuario: number): Observable<UsuarioAdministracion> {
@@ -122,6 +132,13 @@ export class PanelAdministracionApiService {
       );
   }
 
+  obtenerTiendaPorId(idTienda: number): Observable<TiendaAdministracion> {
+    return this.obtenerDetalle(
+      ENDPOINTS_API.administracion.tiendaPorId(idTienda),
+      mapearTiendaAdministracionDesdeDto,
+    );
+  }
+
   obtenerPedidos(
     consulta: ConsultaPedidosAdmin = {},
   ): Observable<RespuestaPaginada<PedidoAdministracion>> {
@@ -147,6 +164,13 @@ export class PanelAdministracionApiService {
         timeout(TIEMPO_ESPERA_ADMIN_MS),
         map((respuesta) => this.mapearPagina(respuesta, mapearPedidoAdministracionDesdeDto)),
       );
+  }
+
+  obtenerPedidoPorId(idPedido: number): Observable<PedidoAdministracion> {
+    return this.obtenerDetalle(
+      ENDPOINTS_API.administracion.pedidoPorId(idPedido),
+      mapearPedidoAdministracionDesdeDto,
+    );
   }
 
   aprobarTienda(idTienda: number): Observable<TiendaAdministracion> {
@@ -194,10 +218,27 @@ export class PanelAdministracionApiService {
       .pipe(
         timeout(TIEMPO_ESPERA_ADMIN_MS),
         map((respuesta) => {
-          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo actualizar la tienda.');
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo actualizar la tienda.');
           return mapearTiendaAdministracionDesdeDto(respuesta.data);
         }),
       );
+  }
+
+  private obtenerDetalle<TDto, TModelo>(
+    endpoint: string,
+    mapper: (dto: TDto) => TModelo,
+  ): Observable<TModelo> {
+    return this.http.get<RespuestaApi<TDto>>(endpoint).pipe(
+      timeout(TIEMPO_ESPERA_ADMIN_MS),
+      map((respuesta) => {
+        if (!respuesta.data) {
+          throw new Error(respuesta.message ?? 'No se pudo obtener el detalle solicitado.');
+        }
+
+        return mapper(respuesta.data);
+      }),
+    );
   }
 
   private mapearPagina<TDto, TModelo>(

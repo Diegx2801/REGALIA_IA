@@ -16,7 +16,23 @@
       <p>{{ descripcion() }}</p>
     </div>
 
-    <nav class="layout-privado__menu">
+    <button
+      class="layout-privado__alternar-menu"
+      appBoton="fantasma"
+      appBotonTamano="sm"
+      type="button"
+      aria-controls="menu-layout-privado"
+      [attr.aria-expanded]="menuMovilAbierto()"
+      (click)="alternarMenuMovil()"
+    >
+      {{ menuMovilAbierto() ? 'Ocultar menu' : 'Mostrar menu' }}
+    </button>
+
+    <nav
+      id="menu-layout-privado"
+      class="layout-privado__menu"
+      [class.layout-privado__menu--abierto]="menuMovilAbierto()"
+    >
       @for (enlace of enlaces(); track enlace.ruta) {
         <a
           class="layout-privado__enlace"
@@ -25,6 +41,7 @@
           routerLinkActive="layout-privado__enlace--activo"
           ariaCurrentWhenActive="page"
           [routerLinkActiveOptions]="{ exact: true }"
+          (click)="cerrarMenuMovil()"
         >
           <strong>{{ enlace.etiqueta }}</strong>
           <small>{{ enlace.descripcion }}</small>

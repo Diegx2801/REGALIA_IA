@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
@@ -25,6 +25,7 @@ export class LayoutPrivadoComponent {
   readonly descripcion = input.required<string>();
   readonly variante = input<VarianteLayoutPrivado>('cliente');
   readonly enlaces = input<EnlaceLayoutPrivado[]>([]);
+  readonly menuMovilAbierto = signal(false);
 
   readonly sesion = inject(SesionAutenticacionService);
   readonly nombreVisible = computed(() => {
@@ -33,7 +34,10 @@ export class LayoutPrivadoComponent {
     const correo = usuario?.correo?.trim();
 
     // Durante el login actual, el backend aun no entrega nombres; evita repetir el correo como nombre y subtitulo.
-    if (!nombre || (correo && nombre.localeCompare(correo, undefined, { sensitivity: 'accent' }) === 0)) {
+    if (
+      !nombre ||
+      (correo && nombre.localeCompare(correo, undefined, { sensitivity: 'accent' }) === 0)
+    ) {
       return 'Cuenta REGALIA';
     }
 
@@ -51,6 +55,14 @@ export class LayoutPrivadoComponent {
   readonly rolVisible = computed(() => this.sesion.rolActual() ?? 'INVITADO');
 
   private readonly router = inject(Router);
+
+  alternarMenuMovil(): void {
+    this.menuMovilAbierto.update((abierto) => !abierto);
+  }
+
+  cerrarMenuMovil(): void {
+    this.menuMovilAbierto.set(false);
+  }
 
   cerrarSesion(): void {
     this.sesion.cerrarSesion();

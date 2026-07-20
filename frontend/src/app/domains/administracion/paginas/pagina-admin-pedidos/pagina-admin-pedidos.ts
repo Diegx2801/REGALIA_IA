@@ -2,8 +2,10 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
+import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { FiltrosPanelComponent } from '../../../../shared/ui/filtros-panel/filtros-panel';
 import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
@@ -20,6 +22,8 @@ import { PedidoAdministracion } from '../../modelos/panel-administracion.model';
     CurrencyPipe,
     DatePipe,
     ReactiveFormsModule,
+    RouterLink,
+    BotonDirective,
     EstadoPantallaComponent,
     FiltrosPanelComponent,
     FilaPanelComponent,

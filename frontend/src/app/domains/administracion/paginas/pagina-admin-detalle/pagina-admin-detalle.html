@@ -1,0 +1,263 @@
+<section class="detalle-admin">
+  <a appBoton="fantasma" appBotonTamano="sm" [routerLink]="rutaRegreso()">
+    ← {{ textoRegreso() }}
+  </a>
+
+  @if (cargando()) {
+    <app-estado-pantalla
+      tipo="carga"
+      etiqueta="Detalle administrativo"
+      titulo="Consultando información."
+    />
+  } @else if (mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Detalle administrativo"
+      [titulo]="mensajeError() ?? 'No pudimos cargar el detalle solicitado.'"
+      textoAccion="Reintentar"
+      (accion)="cargarDetalle()"
+    />
+  } @else if (vendedor(); as vendedor) {
+    <header class="detalle-admin__hero">
+      <div>
+        <span>Vendedor #{{ vendedor.idVendedor }}</span>
+        <h2>{{ vendedor.nombreCompleto }}</h2>
+        <p>{{ vendedor.correo }}</p>
+      </div>
+      <div class="detalle-admin__insignias" aria-label="Estado del vendedor">
+        <app-insignia-ui
+          [texto]="vendedor.verificado ? 'Verificado' : 'Pendiente de verificación'"
+          [variante]="vendedor.verificado ? 'exito' : 'advertencia'"
+        />
+        <app-insignia-ui
+          [texto]="vendedor.estado ? 'Activo' : 'Inactivo'"
+          [variante]="varianteEstadoGeneral(vendedor.estado)"
+        />
+      </div>
+    </header>
+
+    <section class="detalle-admin__grid" aria-label="Información del vendedor">
+      <app-tarjeta-informativa
+        etiqueta="Cuenta"
+        [titulo]="'Usuario #' + vendedor.idUsuario"
+        [descripcion]="vendedor.correo"
+      >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>Registro</dt>
+            <dd>{{ vendedor.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt>Última actualización</dt>
+            <dd>{{ vendedor.fechaActualizacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+        </dl>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Portafolio"
+        [titulo]="vendedor.tiendasTotales + ' tienda(s)'"
+        [descripcion]="vendedor.tiendasActivas + ' activas actualmente.'"
+      >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>Tiendas inactivas</dt>
+            <dd>{{ vendedor.tiendasTotales - vendedor.tiendasActivas }}</dd>
+          </div>
+        </dl>
+        <a appBoton="secundario" appBotonTamano="sm" routerLink="/admin/tiendas">
+          Revisar tiendas
+        </a>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Validación"
+        [titulo]="vendedor.verificado ? 'Identidad comercial validada' : 'Validación pendiente'"
+        [descripcion]="
+          vendedor.verificado
+            ? 'El vendedor cumple las condiciones documentarias vigentes.'
+            : 'Revisa sus documentos antes de aprobar operaciones comerciales.'
+        "
+      />
+    </section>
+  } @else if (tienda(); as tienda) {
+    <header class="detalle-admin__hero">
+      <div>
+        <span>Tienda #{{ tienda.idTienda }}</span>
+        <h2>{{ tienda.nombre }}</h2>
+        <p>{{ tienda.vendedor }} · {{ tienda.correoVendedor }}</p>
+      </div>
+      <div class="detalle-admin__insignias" aria-label="Estado de la tienda">
+        <app-insignia-ui
+          [texto]="tienda.estadoRevision"
+          [variante]="varianteRevisionTienda(tienda.estadoRevision)"
+        />
+        <app-insignia-ui
+          [texto]="tienda.formalizada ? 'Formalizada' : 'Sin formalizar'"
+          [variante]="tienda.formalizada ? 'exito' : 'advertencia'"
+        />
+      </div>
+    </header>
+
+    <section class="detalle-admin__grid" aria-label="Información de la tienda">
+      <app-tarjeta-informativa
+        etiqueta="Responsable"
+        [titulo]="tienda.vendedor"
+        [descripcion]="tienda.correoVendedor"
+      >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>ID vendedor</dt>
+            <dd>#{{ tienda.idVendedor }}</dd>
+          </div>
+          <div>
+            <dt>ID usuario</dt>
+            <dd>#{{ tienda.idUsuario }}</dd>
+          </div>
+        </dl>
+        <a
+          appBoton="secundario"
+          appBotonTamano="sm"
+          [routerLink]="['/admin/vendedores', tienda.idVendedor]"
+        >
+          Ver vendedor
+        </a>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Información comercial"
+        [titulo]="tienda.direccionReferencia"
+        [descripcion]="tienda.descripcion"
+      >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>Registro</dt>
+            <dd>{{ tienda.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt>Actualización</dt>
+            <dd>{{ tienda.fechaActualizacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+        </dl>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Documento fiscal"
+        [titulo]="tienda.numeroDocumentoFiscal ?? 'No registrado'"
+        [descripcion]="
+          tienda.idDocumentoFiscal
+            ? 'Documento #' + tienda.idDocumentoFiscal + ' asociado a la tienda.'
+            : 'La tienda no tiene un documento fiscal asociado.'
+        "
+      />
+    </section>
+
+    <article class="detalle-admin__card">
+      <span>Rubros comerciales</span>
+      <h3>{{ tienda.rubros.length }} rubro(s) asociado(s)</h3>
+      <div class="detalle-admin__rubros">
+        @for (rubro of tienda.rubros; track rubro) {
+          <app-insignia-ui [texto]="rubro" variante="primaria" />
+        } @empty {
+          <p>Esta tienda todavía no tiene rubros registrados.</p>
+        }
+      </div>
+    </article>
+  } @else if (pedido(); as pedido) {
+    <header class="detalle-admin__hero">
+      <div>
+        <span>Pedido #{{ pedido.idPedido }}</span>
+        <h2>{{ pedido.nombreTienda }}</h2>
+        <p>Creado el {{ pedido.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}</p>
+      </div>
+      <div class="detalle-admin__resumen-pedido">
+        <strong>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        <div class="detalle-admin__insignias" aria-label="Estado del pedido">
+          <app-insignia-ui
+            [texto]="pedido.estadoPedido"
+            [variante]="varianteEstadoPedido(pedido.estadoPedido)"
+          />
+          <app-insignia-ui
+            [texto]="pedido.saldoPendiente > 0 ? 'Con saldo' : 'Pagado'"
+            [variante]="pedido.saldoPendiente > 0 ? 'advertencia' : 'exito'"
+          />
+        </div>
+      </div>
+    </header>
+
+    <section class="detalle-admin__grid" aria-label="Información del pedido">
+      <app-tarjeta-informativa
+        etiqueta="Entrega"
+        [titulo]="pedido.tipoEntrega"
+        [descripcion]="
+          pedido.fechaEntrega
+            ? 'Fecha prevista: ' + (pedido.fechaEntrega | date: 'dd/MM/yyyy')
+            : 'Fecha pendiente de coordinación.'
+        "
+      >
+        <p class="detalle-admin__texto-secundario">{{ pedido.observacion }}</p>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Pago"
+        [titulo]="(pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2') ?? 'S/ 0.00'"
+        descripcion="Resumen financiero registrado por el backend."
+      >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>Subtotal</dt>
+            <dd>{{ pedido.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Pagado</dt>
+            <dd>{{ pedido.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Saldo</dt>
+            <dd>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+          </div>
+        </dl>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Referencias"
+        [titulo]="'Usuario #' + pedido.idUsuario"
+        [descripcion]="'Tienda #' + pedido.idTienda"
+      >
+        <a
+          appBoton="secundario"
+          appBotonTamano="sm"
+          [routerLink]="['/admin/tiendas', pedido.idTienda]"
+        >
+          Ver tienda
+        </a>
+      </app-tarjeta-informativa>
+    </section>
+
+    <article class="detalle-admin__card">
+      <span>Productos</span>
+      <h3>{{ pedido.cantidadItems }} unidad(es) en {{ pedido.productos.length }} producto(s)</h3>
+      <app-lista-panel ariaEtiqueta="Productos del pedido administrativo">
+        @for (producto of pedido.productos; track producto.idDetallePedido) {
+          <app-fila-panel tipo="triple" [ariaEtiqueta]="producto.nombre">
+            <div>
+              <strong>{{ producto.nombre }}</strong>
+              <small>Producto #{{ producto.idProducto }}</small>
+            </div>
+            <small>
+              {{ producto.cantidad }} ×
+              {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
+            </small>
+            <b>{{ producto.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+          </app-fila-panel>
+        } @empty {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin productos"
+            titulo="El pedido no tiene productos registrados."
+          />
+        }
+      </app-lista-panel>
+    </article>
+  }
+</section>

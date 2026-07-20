@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize, switchMap } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
@@ -19,6 +20,7 @@ import { TiendaAdministracion } from '../../modelos/panel-administracion.model';
   selector: 'app-pagina-admin-tiendas',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     BotonDirective,
     EstadoPantallaComponent,
     FiltrosPanelComponent,

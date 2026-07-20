@@ -71,9 +71,21 @@
   min-width: 0;
 }
 
+.admin-vendedores__acciones {
+  align-items: flex-end;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: end;
+}
+
 @media (max-width: 899.98px) {
   .admin-vendedores__metricas,
   .admin-vendedores__toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .admin-vendedores__acciones {
+    align-items: start;
+    justify-items: start;
   }
 }

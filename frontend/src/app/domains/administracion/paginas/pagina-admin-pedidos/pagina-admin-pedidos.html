@@ -57,15 +57,33 @@
           <div>
             <strong>#{{ pedido.idPedido }} - {{ pedido.estadoPedido }}</strong>
             <small>{{ pedido.nombreTienda }} - {{ pedido.tipoEntrega }}</small>
-            <p>Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }} - {{ pedido.cantidadItems }} item(s)</p>
+            <p>
+              Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }} -
+              {{ pedido.cantidadItems }} item(s)
+            </p>
           </div>
-          <div>
+          <div class="admin-seccion__resumen-pedido">
             <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
-            <small>Saldo {{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+            <small
+              >Saldo
+              {{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small
+            >
+            <a
+              appBoton="secundario"
+              appBotonTamano="sm"
+              [routerLink]="['/admin/pedidos', pedido.idPedido]"
+              [attr.aria-label]="'Ver detalle del pedido ' + pedido.idPedido"
+            >
+              Ver detalle
+            </a>
           </div>
         </app-fila-panel>
       } @empty {
-        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay pedidos registrados." />
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Sin resultados"
+          titulo="No hay pedidos registrados."
+        />
       }
     </app-lista-panel>
 

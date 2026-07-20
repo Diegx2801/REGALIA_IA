@@ -19,8 +19,7 @@
 
 .layout-privado__sidebar {
   background:
-    linear-gradient(180deg, rgba(35, 25, 39, 0.97), rgba(50, 21, 37, 0.96)),
-    var(--rg-color-ink);
+    linear-gradient(180deg, rgba(35, 25, 39, 0.97), rgba(50, 21, 37, 0.96)), var(--rg-color-ink);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -88,6 +87,10 @@
   gap: 0.75rem;
 }
 
+.layout-privado__alternar-menu {
+  display: none;
+}
+
 .layout-privado__enlace {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.1rem;
@@ -107,7 +110,9 @@
 .layout-privado__enlace--activo {
   background: rgba(255, 255, 255, 0.1);
   border-color: color-mix(in srgb, var(--layout-acento) 65%, white 15%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 26px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 26px rgba(0, 0, 0, 0.18);
   transform: translateX(0.15rem);
 }
 
@@ -219,8 +224,17 @@
   }
 
   .layout-privado__menu {
-    /* Menu horizontal fluido: evita sidebar alta en tablet sin perder accesibilidad tactil. */
+    display: none;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  }
+
+  .layout-privado__menu--abierto {
+    display: grid;
+  }
+
+  .layout-privado__alternar-menu {
+    display: inline-flex;
+    justify-self: start;
   }
 
   .layout-privado__usuario {

@@ -5,7 +5,12 @@
     <p>Moderacion de tiendas registradas por vendedores de REGALIA.</p>
   </header>
 
-  <form app-filtros-panel class="admin-seccion__filtros--tiendas" [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
+  <form
+    app-filtros-panel
+    class="admin-seccion__filtros--tiendas"
+    [formGroup]="formularioFiltros"
+    (ngSubmit)="aplicarFiltros()"
+  >
     <label>
       Estado de revision
       <select formControlName="estadoRevision">
@@ -35,7 +40,11 @@
     />
   } @else {
     @if (mensajeExito()) {
-      <app-estado-pantalla tipo="exito" etiqueta="Operacion correcta" [titulo]="mensajeExito() ?? ''" />
+      <app-estado-pantalla
+        tipo="exito"
+        etiqueta="Operacion correcta"
+        [titulo]="mensajeExito() ?? ''"
+      />
     }
 
     <app-grupo-metricas-panel ariaEtiqueta="Resumen de tiendas">
@@ -55,19 +64,49 @@
             <p>{{ tienda.rubros.length ? tienda.rubros.join(', ') : 'Sin rubros registrados' }}</p>
           </div>
           <div class="admin-seccion__acciones">
-            <button appBoton appBotonTamano="sm" type="button" [disabled]="procesandoTienda() === tienda.idTienda" (click)="aprobarTienda(tienda)">
+            <a
+              appBoton="fantasma"
+              appBotonTamano="sm"
+              [routerLink]="['/admin/tiendas', tienda.idTienda]"
+              [attr.aria-label]="'Ver detalle de ' + tienda.nombre"
+            >
+              Ver detalle
+            </a>
+            <button
+              appBoton
+              appBotonTamano="sm"
+              type="button"
+              [disabled]="procesandoTienda() === tienda.idTienda"
+              (click)="aprobarTienda(tienda)"
+            >
               Aprobar
             </button>
-            <button appBoton="secundario" appBotonTamano="sm" type="button" [disabled]="procesandoTienda() === tienda.idTienda" (click)="observarTienda(tienda)">
+            <button
+              appBoton="secundario"
+              appBotonTamano="sm"
+              type="button"
+              [disabled]="procesandoTienda() === tienda.idTienda"
+              (click)="observarTienda(tienda)"
+            >
               Observar
             </button>
-            <button appBoton="peligro" appBotonTamano="sm" type="button" [disabled]="procesandoTienda() === tienda.idTienda" (click)="rechazarTienda(tienda)">
+            <button
+              appBoton="peligro"
+              appBotonTamano="sm"
+              type="button"
+              [disabled]="procesandoTienda() === tienda.idTienda"
+              (click)="rechazarTienda(tienda)"
+            >
               Rechazar
             </button>
           </div>
         </app-fila-panel>
       } @empty {
-        <app-estado-pantalla tipo="vacio" etiqueta="Sin resultados" titulo="No hay tiendas registradas." />
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Sin resultados"
+          titulo="No hay tiendas registradas."
+        />
       }
     </app-lista-panel>
 

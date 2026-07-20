@@ -1,5 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
 import { ListaPanelComponent } from '../../../../shared/ui/lista-panel/lista-panel';
@@ -8,7 +10,15 @@ import { AdministracionPanelStore } from '../../estado/administracion-panel.stor
 
 @Component({
   selector: 'app-pagina-admin-vendedores',
-  imports: [NgbTooltip, EstadoPantallaComponent, FilaPanelComponent, ListaPanelComponent, TarjetaMetricaComponent],
+  imports: [
+    RouterLink,
+    NgbTooltip,
+    BotonDirective,
+    EstadoPantallaComponent,
+    FilaPanelComponent,
+    ListaPanelComponent,
+    TarjetaMetricaComponent,
+  ],
   templateUrl: './pagina-admin-vendedores.html',
   styleUrl: './pagina-admin-vendedores.css',
 })
@@ -29,8 +39,8 @@ export class PaginaAdminVendedores implements OnInit {
       );
   });
 
-  readonly verificados = computed(() =>
-    this.store.vendedores().filter((vendedor) => vendedor.verificado).length,
+  readonly verificados = computed(
+    () => this.store.vendedores().filter((vendedor) => vendedor.verificado).length,
   );
   readonly tiendasActivas = computed(() =>
     this.store.vendedores().reduce((total, vendedor) => total + vendedor.tiendasActivas, 0),
