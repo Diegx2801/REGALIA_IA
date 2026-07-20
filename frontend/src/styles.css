@@ -198,6 +198,12 @@ textarea {
   padding: 0.55rem 0.8rem;
 }
 
+@media (hover: none), (pointer: coarse) {
+  .rg-boton--sm {
+    min-height: 2.75rem;
+  }
+}
+
 .rg-boton--lg {
   min-height: 3.2rem;
   padding: 0.85rem 1.2rem;

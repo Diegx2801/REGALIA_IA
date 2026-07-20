@@ -1,0 +1,18 @@
+<dialog
+  #dialogo
+  class="dialogo-ui"
+  [id]="idDialogo()"
+  [attr.aria-labelledby]="idTitulo()"
+  [attr.aria-describedby]="idDescripcion()"
+  (cancel)="solicitarCierre($event)"
+  (click)="cerrarDesdeFondo($event)"
+  (close)="restaurarFoco()"
+>
+  <section
+    class="dialogo-ui__superficie"
+    [class.dialogo-ui__superficie--sm]="tamano() === 'sm'"
+    [class.dialogo-ui__superficie--lg]="tamano() === 'lg'"
+  >
+    <ng-content />
+  </section>
+</dialog>

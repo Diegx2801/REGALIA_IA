@@ -18,18 +18,25 @@ export class LayoutVendedor {
       ruta: '/vendedor/resumen',
       descripcion: 'Pedidos recibidos y estado comercial',
       icono: 'resumen',
+      patronesActivos: [/^\/vendedor\/resumen$/],
     },
     {
       etiqueta: 'Tiendas',
       ruta: '/vendedor/tiendas',
       descripcion: 'Gestionar presencia comercial',
       icono: 'tiendas',
+      patronesActivos: [
+        /^\/vendedor\/tiendas$/,
+        /^\/vendedor\/tiendas\/\d+$/,
+        /^\/vendedor\/tiendas\/\d+\/productos(?:\/.*)?$/,
+      ],
     },
     {
       etiqueta: 'Pedidos',
       ruta: '/vendedor/pedidos',
       descripcion: 'Solicitudes y pagos recibidos',
       icono: 'pedidos',
+      patronesActivos: [/^\/vendedor\/pedidos$/, /^\/vendedor\/tiendas\/\d+\/pedidos$/],
     },
   ];
 }

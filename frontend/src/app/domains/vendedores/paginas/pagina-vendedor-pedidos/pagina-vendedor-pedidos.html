@@ -1,154 +1,519 @@
-<section class="vendedor-pedidos">
-  <header class="vendedor-pedidos__hero">
-    <span>Pedidos recibidos</span>
-    <h2>{{ idTiendaFija() ? 'Pedidos de esta tienda' : 'Solicitudes y pagos' }}</h2>
-    <p>{{ idTiendaFija() ? 'Consulta pedidos y pagos asociados únicamente a esta tienda.' : 'Consulta pedidos reales de tus tiendas y revisa sus pagos registrados.' }}</p>
+<section class="pedidos-vendedor">
+  @if (idTiendaFija()) {
+    <nav class="pedidos-vendedor__miga" aria-label="Ruta de navegación">
+      <a [routerLink]="['/vendedor/tiendas', idTiendaFija()]">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path
+            d="m14.5 6-6 6 6 6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+        {{ tiendaContexto()?.nombre ?? 'Centro de tienda' }}
+      </a>
+      <span aria-hidden="true">/</span>
+      <strong>Pedidos</strong>
+    </nav>
+  }
+
+  <header class="pedidos-vendedor__hero">
+    <div class="pedidos-vendedor__hero-contenido">
+      <span class="pedidos-vendedor__sobrelinea">
+        {{ idTiendaFija() ? 'Operación de tienda' : 'Centro de pedidos' }}
+      </span>
+      <h2>
+        {{
+          idTiendaFija()
+            ? 'Pedidos de ' + (tiendaContexto()?.nombre ?? 'esta tienda')
+            : 'Cada pedido, bajo control'
+        }}
+      </h2>
+      <p>
+        @if (idTiendaFija()) {
+          Prioriza entregas, consulta saldos y revisa el detalle de los pedidos asociados a esta
+          tienda.
+        } @else {
+          Centraliza las solicitudes de todas tus tiendas y detecta rápidamente qué necesita
+          atención.
+        }
+      </p>
+    </div>
+
+    <div class="pedidos-vendedor__hero-dato" aria-live="polite">
+      <span>Pedidos encontrados</span>
+      <strong>{{ store.totalPedidos() }}</strong>
+      <small>{{ idTiendaFija() ? 'en esta tienda' : 'en la consulta actual' }}</small>
+    </div>
   </header>
 
-  @if (store.cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Preparando tus pedidos." />
-  } @else if (store.mensajeError() && !store.cargandoPedidos()) {
-    <app-estado-pantalla
-      tipo="error"
-      etiqueta="Error"
-      [titulo]="store.mensajeError() ?? 'No pudimos cargar tus pedidos.'"
-      textoAccion="Reintentar"
-      (accion)="recargarPedidos()"
-    />
-  } @else {
-    <section class="vendedor-pedidos__layout">
-      <article class="vendedor-card">
-        <header class="vendedor-pedidos__toolbar">
-          <div>
-            <span>Solicitudes encontradas</span>
-            <h3>{{ store.totalPedidos() }} {{ store.totalPedidos() === 1 ? 'pedido' : 'pedidos' }}</h3>
-          </div>
+  <section class="pedidos-vendedor__metricas" aria-label="Resumen de la página actual">
+    <article>
+      <div class="pedidos-vendedor__metrica-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v12.25l-3-1.75-2.75 1.75-2.75-1.75-3 1.75V7A2.25 2.25 0 0 1 10 4.75ZM10 9h5M10 12.5h4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+      </div>
+      <div>
+        <span>Total encontrado</span>
+        <strong>{{ store.totalPedidos() }}</strong>
+        <small>Resultado completo</small>
+      </div>
+    </article>
 
-          <form class="vendedor-pedidos__filtros" [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
-            @if (!idTiendaFija()) {
-              <label>
-                Tienda
-                <select formControlName="idTienda">
-                  <option value="">Todas</option>
-                  @for (tienda of store.tiendas(); track tienda.idTienda) {
-                    <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
-                  }
-                </select>
-              </label>
-            }
-            <label>
-              Estado
-              <select formControlName="estado">
-                <option value="">Todos</option>
-                <option value="RESERVADO">Reservado</option>
-                <option value="EN_PREPARACION">En preparación</option>
-                <option value="LISTO">Listo para entrega</option>
-                <option value="ENTREGADO">Entregado</option>
-                <option value="ANULADO">Anulado</option>
-              </select>
-            </label>
-            <label>
-              Pago
-              <select formControlName="estadoPago">
-                <option value="">Todos</option>
-                <option value="PAGADO">Pagado</option>
-                <option value="CON_SALDO">Con saldo pendiente</option>
-              </select>
-            </label>
-            <label>
-              Buscar
-              <input type="search" formControlName="q" placeholder="Pedido, tienda o cliente" />
-            </label>
-            <div class="vendedor-pedidos__acciones-filtro">
-              <button appBoton="secundario" appBotonTamano="sm" type="submit">Aplicar</button>
-              <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="limpiarFiltros()">Limpiar</button>
-            </div>
-          </form>
-        </header>
+    <article>
+      <div class="pedidos-vendedor__metrica-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+      </div>
+      <div>
+        <span>En proceso</span>
+        <strong>{{ pedidosActivosPagina() }}</strong>
+        <small>En esta página</small>
+      </div>
+    </article>
 
-        @if (store.cargandoPedidos()) {
-          <app-estado-pantalla tipo="carga" etiqueta="Pedidos" titulo="Consultando pedidos recibidos." />
-        } @else if (store.pedidos().length === 0) {
+    <article [class.pedidos-vendedor__metrica--alerta]="pedidosUrgentesPagina() > 0">
+      <div class="pedidos-vendedor__metrica-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M12 8v4.5m0 3h.01M10.05 4.6 3.8 16a2 2 0 0 0 1.75 3h12.9a2 2 0 0 0 1.75-3L13.95 4.6a2.2 2.2 0 0 0-3.9 0Z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+      </div>
+      <div>
+        <span>Urgentes</span>
+        <strong>{{ pedidosUrgentesPagina() }}</strong>
+        <small>En esta página</small>
+      </div>
+    </article>
+
+    <article [class.pedidos-vendedor__metrica--saldo]="saldoPendientePagina() > 0">
+      <div class="pedidos-vendedor__metrica-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M4 7.5h16v10H4v-10Zm0 3h16M7.5 14.5h3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+      </div>
+      <div>
+        <span>Saldo pendiente</span>
+        <strong>{{ saldoPendientePagina() | currency: 'PEN' : 'S/' : '1.2-2' }}</strong>
+        <small>En esta página</small>
+      </div>
+    </article>
+  </section>
+
+  @if (
+    !store.cargandoPedidos() &&
+    store.pedidos().length > 0 &&
+    (pedidosUrgentesPagina() > 0 || pedidosAtencionPagina() > 0)
+  ) {
+    <section class="pedidos-vendedor__alerta" role="status" aria-live="polite">
+      <div class="pedidos-vendedor__alerta-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M12 7v5m0 4h.01M4.5 19h15L12 4 4.5 19Z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+      </div>
+      <div>
+        <span>Prioridad operativa · página actual</span>
+        <h3>
+          @if (pedidosUrgentesPagina() > 0) {
+            {{ pedidosUrgentesPagina() }}
+            {{ pedidosUrgentesPagina() === 1 ? 'pedido necesita' : 'pedidos necesitan' }} atención
+            inmediata
+          } @else {
+            {{ pedidosAtencionPagina() }}
+            {{
+              pedidosAtencionPagina() === 1 ? 'pedido requiere' : 'pedidos requieren'
+            }}
+            seguimiento
+          }
+        </h3>
+        <p>
+          La prioridad se calcula con la fecha de entrega, el estado actual y el saldo registrado.
+        </p>
+      </div>
+    </section>
+  }
+
+  <article class="pedidos-vendedor__bandeja">
+    <header class="pedidos-vendedor__cabecera-bandeja">
+      <div>
+        <span class="pedidos-vendedor__sobrelinea">Bandeja operativa</span>
+        <h3>{{ idTiendaFija() ? 'Pedidos de la tienda' : 'Pedidos de todas tus tiendas' }}</h3>
+        <p>Filtra, ordena y abre cada solicitud sin perder el contexto del listado.</p>
+      </div>
+
+      @if (cantidadFiltrosActivos() > 0) {
+        <span class="pedidos-vendedor__contador-filtros">
+          {{ cantidadFiltrosActivos() }}
+          {{ cantidadFiltrosActivos() === 1 ? 'filtro activo' : 'filtros activos' }}
+        </span>
+      }
+    </header>
+
+    <nav class="pedidos-vendedor__vistas" aria-label="Vistas rápidas de pedidos">
+      <button
+        type="button"
+        [disabled]="store.cargandoPedidos()"
+        [attr.aria-pressed]="vistaRapidaActiva() === 'todos'"
+        (click)="aplicarVistaRapida('todos')"
+      >
+        Todos
+      </button>
+      <button
+        type="button"
+        [disabled]="store.cargandoPedidos()"
+        [attr.aria-pressed]="vistaRapidaActiva() === 'nuevos'"
+        (click)="aplicarVistaRapida('nuevos')"
+      >
+        Nuevos
+      </button>
+      <button
+        type="button"
+        [disabled]="store.cargandoPedidos()"
+        [attr.aria-pressed]="vistaRapidaActiva() === 'preparacion'"
+        (click)="aplicarVistaRapida('preparacion')"
+      >
+        En preparación
+      </button>
+      <button
+        type="button"
+        [disabled]="store.cargandoPedidos()"
+        [attr.aria-pressed]="vistaRapidaActiva() === 'listos'"
+        (click)="aplicarVistaRapida('listos')"
+      >
+        Listos
+      </button>
+      <button
+        type="button"
+        [disabled]="store.cargandoPedidos()"
+        [attr.aria-pressed]="vistaRapidaActiva() === 'con-saldo'"
+        (click)="aplicarVistaRapida('con-saldo')"
+      >
+        Con saldo
+      </button>
+    </nav>
+
+    @if (store.mensajeErrorTiendasPedidos() && !idTiendaFija()) {
+      <div class="pedidos-vendedor__aviso-tiendas" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path
+            d="M12 8v4.5m0 3h.01M4.5 19h15L12 4 4.5 19Z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+        <p>
+          <strong>No pudimos cargar el selector de tiendas.</strong>
+          Puedes seguir consultando todos los pedidos o volver a intentarlo.
+        </p>
+        <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="recargarTiendas()">
+          Reintentar tiendas
+        </button>
+      </div>
+    }
+
+    <form
+      class="pedidos-vendedor__filtros"
+      [formGroup]="formularioFiltros"
+      (ngSubmit)="aplicarFiltros()"
+    >
+      <fieldset [disabled]="store.cargandoPedidos()">
+        <legend class="sr-only">Filtros de la bandeja de pedidos</legend>
+
+        @if (!idTiendaFija()) {
+          <label>
+            <span>Tienda</span>
+            <select formControlName="idTienda">
+              <option value="">Todas las tiendas</option>
+              @for (tienda of store.tiendas(); track tienda.idTienda) {
+                <option [value]="tienda.idTienda">{{ tienda.nombre }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        <label>
+          <span>Estado del pedido</span>
+          <select formControlName="estado">
+            <option value="">Todos los estados</option>
+            <option value="RESERVADO">Nuevo · reservado</option>
+            <option value="EN_PREPARACION">En preparación</option>
+            <option value="LISTO">Listo para entregar</option>
+            <option value="ENTREGADO">Entregado</option>
+            <option value="ANULADO">Anulado</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Estado del pago</span>
+          <select formControlName="estadoPago">
+            <option value="">Todos los pagos</option>
+            <option value="PAGADO">Pago completo</option>
+            <option value="CON_SALDO">Con saldo pendiente</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Ordenar por</span>
+          <select formControlName="sort">
+            <option value="fechaCreacion,desc">Más recientes primero</option>
+            <option value="fechaEntrega,asc">Próxima entrega</option>
+            <option value="saldoPendiente,desc">Mayor saldo pendiente</option>
+            <option value="total,desc">Mayor importe</option>
+            <option value="nombreTienda,asc">Tienda de A a Z</option>
+          </select>
+        </label>
+
+        <label class="pedidos-vendedor__busqueda">
+          <span>Buscar pedido</span>
+          <span class="pedidos-vendedor__control-busqueda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path
+                d="m20 20-4.2-4.2m1.2-5.3a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+                stroke-linecap="round"
+                stroke-width="1.8"
+              />
+            </svg>
+            <input
+              type="search"
+              formControlName="q"
+              placeholder="Número, cliente o tienda"
+              autocomplete="off"
+              aria-describedby="ayuda-busqueda-pedidos"
+            />
+          </span>
+          <small id="ayuda-busqueda-pedidos"
+            >Puedes buscar por número de pedido, correo o nombre de tienda.</small
+          >
+        </label>
+
+        <div class="pedidos-vendedor__acciones-filtro">
+          <button appBoton type="submit">Aplicar filtros</button>
+          <button appBoton="fantasma" type="button" (click)="limpiarFiltros()">Limpiar</button>
+        </div>
+      </fieldset>
+    </form>
+
+    <section
+      class="pedidos-vendedor__resultados"
+      aria-labelledby="titulo-resultados-pedidos"
+      [attr.aria-busy]="store.cargandoPedidos()"
+    >
+      <div class="pedidos-vendedor__resultados-cabecera">
+        <div>
+          <span class="pedidos-vendedor__sobrelinea">Resultados</span>
+          <h4 id="titulo-resultados-pedidos">
+            {{ store.totalPedidos() }}
+            {{ store.totalPedidos() === 1 ? 'pedido encontrado' : 'pedidos encontrados' }}
+          </h4>
+        </div>
+        @if (!store.cargandoPedidos() && !store.mensajeErrorPedidos()) {
+          <small>
+            Página {{ store.paginaPedidosActual() + 1 }} de {{ store.totalPaginasPedidos() || 1 }}
+          </small>
+        }
+      </div>
+
+      @if (store.cargandoPedidos()) {
+        <div class="pedidos-vendedor__cargando" role="status" aria-live="polite">
+          <span class="sr-only">Consultando pedidos recibidos.</span>
+          @for (elemento of [1, 2, 3, 4]; track elemento) {
+            <div aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          }
+        </div>
+      } @else if (store.mensajeErrorPedidos()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="No se pudo cargar la bandeja"
+          [titulo]="store.mensajeErrorPedidos() ?? 'No pudimos cargar tus pedidos.'"
+          descripcion="Comprueba tu conexión y vuelve a intentarlo. Tus filtros se conservarán."
+          textoAccion="Reintentar"
+          (accion)="recargarPedidos()"
+        />
+      } @else if (store.pedidos().length === 0) {
+        @if (hayFiltrosQueReducenResultados()) {
           <app-estado-pantalla
             tipo="vacio"
-            etiqueta="Sin resultados"
-            titulo="No hay pedidos que coincidan con los filtros actuales."
-            descripcion="Prueba con otra tienda, estado o búsqueda."
+            etiqueta="Sin coincidencias"
+            titulo="Ningún pedido coincide con estos filtros."
+            descripcion="Prueba una vista rápida diferente o limpia la búsqueda para recuperar toda la bandeja."
             textoAccion="Limpiar filtros"
             (accion)="limpiarFiltros()"
           />
         } @else {
-          <app-lista-panel ariaEtiqueta="Pedidos recibidos del vendedor">
-            @for (pedido of store.pedidos(); track pedido.idPedido) {
-              <app-fila-panel tipo="apilada" [ariaEtiqueta]="'Pedido ' + pedido.idPedido">
-                <strong>Pedido #{{ pedido.idPedido }} · {{ pedido.estadoPedido }}</strong>
-                <span>{{ pedido.nombreTienda }}</span>
-                <small>{{ pedido.correoCliente }} · {{ pedido.cantidadItems }} producto(s)</small>
-                <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Bandeja preparada"
+            titulo="Aún no tienes pedidos recibidos."
+            descripcion="Cuando un cliente confirme una compra, aparecerá aquí con su entrega y pagos registrados."
+            textoAccion="Revisar catálogo"
+            [rutaAccion]="rutaGestionCatalogo()"
+          />
+        }
+      } @else {
+        <div class="pedidos-vendedor__tabla-cabecera" aria-hidden="true">
+          <span>Pedido</span>
+          <span>Cliente</span>
+          <span>Estado</span>
+          <span>Entrega</span>
+          <span>Pago</span>
+          <span>Total</span>
+          <span>Acción</span>
+        </div>
+
+        <ul class="pedidos-vendedor__lista" aria-label="Pedidos recibidos">
+          @for (item of pedidosPresentados(); track item.pedido.idPedido) {
+            <li
+              class="pedido-vendedor"
+              [class.pedido-vendedor--seleccionado]="
+                store.idPedidoSeleccionado() === item.pedido.idPedido
+              "
+              [class.pedido-vendedor--urgente]="item.prioridad.nivel === 'urgente'"
+              [class.pedido-vendedor--atencion]="item.prioridad.nivel === 'atencion'"
+            >
+              <div class="pedido-vendedor__identidad">
+                <span class="pedido-vendedor__rotulo">Pedido</span>
+                <strong>#{{ item.pedido.idPedido }}</strong>
+                @if (!idTiendaFija()) {
+                  <small>{{ item.pedido.nombreTienda }}</small>
+                }
+                <span
+                  class="pedido-vendedor__prioridad"
+                  [class.pedido-vendedor__prioridad--urgente]="item.prioridad.nivel === 'urgente'"
+                  [class.pedido-vendedor__prioridad--atencion]="item.prioridad.nivel === 'atencion'"
+                >
+                  {{ item.prioridad.etiqueta }} · {{ item.prioridad.mensaje }}
+                </span>
+              </div>
+
+              <div class="pedido-vendedor__cliente">
+                <span class="pedido-vendedor__rotulo">Cliente</span>
+                <strong>{{ item.pedido.correoCliente }}</strong>
+                <small>
+                  {{ item.pedido.cantidadItems }}
+                  {{ item.pedido.cantidadItems === 1 ? 'producto' : 'productos' }}
+                </small>
+              </div>
+
+              <div class="pedido-vendedor__estado">
+                <span class="pedido-vendedor__rotulo">Estado</span>
+                <app-insignia-ui [texto]="item.estado.etiqueta" [variante]="item.estado.variante" />
+              </div>
+
+              <div class="pedido-vendedor__entrega">
+                <span class="pedido-vendedor__rotulo">Entrega</span>
+                @if (item.pedido.fechaEntrega) {
+                  <time [attr.datetime]="item.pedido.fechaEntrega">
+                    {{ formatearFechaEntrega(item.pedido.fechaEntrega) }}
+                  </time>
+                } @else {
+                  <strong>Por coordinar</strong>
+                }
+                @if (item.pedido.fechaCreacion) {
+                  <small>Creado {{ item.pedido.fechaCreacion | date: 'dd/MM/yyyy' }}</small>
+                }
+              </div>
+
+              <div class="pedido-vendedor__pago">
+                <span class="pedido-vendedor__rotulo">Pago</span>
+                <app-insignia-ui [texto]="item.pago.etiqueta" [variante]="item.pago.variante" />
+                @if (item.pedido.saldoPendiente > 0) {
+                  <small>
+                    Saldo {{ item.pedido.saldoPendiente | currency: 'PEN' : 'S/' : '1.2-2' }}
+                  </small>
+                }
+              </div>
+
+              <div class="pedido-vendedor__total">
+                <span class="pedido-vendedor__rotulo">Total</span>
+                <strong>{{ item.pedido.total | currency: 'PEN' : 'S/' : '1.2-2' }}</strong>
+              </div>
+
+              <div class="pedido-vendedor__accion">
                 <button
                   appBoton="secundario"
                   appBotonTamano="sm"
                   type="button"
-                  (click)="store.seleccionarPedido(pedido.idPedido)"
-                  ngbTooltip="Ver productos y pagos del pedido"
+                  [appBotonCargando]="
+                    store.cargandoDetallePedido() &&
+                    store.idPedidoSeleccionado() === item.pedido.idPedido
+                  "
+                  [disabled]="
+                    store.cargandoDetallePedido() &&
+                    store.idPedidoSeleccionado() === item.pedido.idPedido
+                  "
+                  [attr.aria-pressed]="
+                    dialogoDetalleAbierto() && store.idPedidoSeleccionado() === item.pedido.idPedido
+                  "
+                  [attr.aria-label]="'Ver detalle del pedido ' + item.pedido.idPedido"
+                  (click)="abrirDetalle(item.pedido)"
                 >
                   Ver detalle
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path
+                      d="m9 6 6 6-6 6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    />
+                  </svg>
                 </button>
-              </app-fila-panel>
-            }
-          </app-lista-panel>
+              </div>
+            </li>
+          }
+        </ul>
 
-          <app-paginacion-panel
-            [paginaActual]="store.paginaPedidosActual()"
-            [totalPaginas]="store.totalPaginasPedidos()"
-            ariaEtiqueta="Paginación de pedidos recibidos"
-            (anterior)="paginaAnterior()"
-            (siguiente)="paginaSiguiente()"
-          />
-        }
-      </article>
-
-      <aside class="vendedor-card vendedor-pedidos__detalle">
-        @if (store.cargandoDetallePedido()) {
-          <app-estado-pantalla tipo="carga" etiqueta="Detalle" titulo="Cargando detalle del pedido." />
-        } @else if (store.pedidoDetalle()) {
-          <span>Detalle</span>
-          <h3>Pedido #{{ store.pedidoDetalle()?.idPedido }} · {{ store.pedidoDetalle()?.estadoPedido }}</h3>
-          <p>{{ store.pedidoDetalle()?.tipoEntrega }} · {{ store.pedidoDetalle()?.correoCliente }}</p>
-
-          <div class="vendedor-pedidos__totales">
-            <article><small>Total</small><strong>{{ store.pedidoDetalle()?.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong></article>
-            <article><small>Pagado</small><strong>{{ store.pedidoDetalle()?.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong></article>
-            <article><small>Saldo</small><strong>{{ store.pedidoDetalle()?.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong></article>
-          </div>
-
-          @if (store.pedidoDetalle()?.observacion) { <p>{{ store.pedidoDetalle()?.observacion }}</p> }
-
-          <app-lista-panel ariaEtiqueta="Productos solicitados">
-            <strong>Productos solicitados</strong>
-            @for (producto of store.pedidoDetalle()?.productos ?? []; track producto.idDetallePedido) {
-              <app-fila-panel tipo="tres-columnas" [ariaEtiqueta]="producto.nombreProducto">
-                <span>{{ producto.nombreProducto }}</span>
-                <small>{{ producto.cantidad }} × {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
-                <b>{{ producto.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
-              </app-fila-panel>
-            }
-          </app-lista-panel>
-
-          <app-lista-panel ariaEtiqueta="Pagos registrados">
-            <strong>Pagos registrados</strong>
-            @for (pago of store.pedidoDetalle()?.pagos ?? []; track pago.idPago) {
-              <app-fila-panel tipo="tres-columnas" [ariaEtiqueta]="pago.tipoPago">
-                <span>{{ pago.tipoPago }}</span>
-                <small>{{ pago.estadoPago }} · {{ pago.metodoPagoPasarela }}</small>
-                <b>{{ pago.monto | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
-              </app-fila-panel>
-            } @empty { <p>No hay pagos registrados para este pedido.</p> }
-          </app-lista-panel>
-        } @else {
-          <app-estado-pantalla tipo="vacio" etiqueta="Detalle" titulo="Selecciona un pedido para revisar productos y pagos." />
-        }
-      </aside>
+        <app-paginacion-panel
+          [paginaActual]="store.paginaPedidosActual()"
+          [totalPaginas]="store.totalPaginasPedidos()"
+          ariaEtiqueta="Paginación de pedidos recibidos"
+          (anterior)="paginaAnterior()"
+          (siguiente)="paginaSiguiente()"
+        />
+      }
     </section>
-  }
+  </article>
 </section>
+
+<app-dialogo-ui
+  idDialogo="dialogo-detalle-pedido"
+  idTitulo="detalle-pedido-titulo"
+  idDescripcion="detalle-pedido-descripcion"
+  tamano="lg"
+  [abierto]="dialogoDetalleAbierto()"
+  (solicitudCierre)="cerrarDetalle()"
+>
+  <app-detalle-pedido-vendedor
+    [pedido]="store.pedidoDetalle()"
+    [cargando]="store.cargandoDetallePedido()"
+    [mensajeError]="store.mensajeErrorDetallePedido()"
+    (cerrar)="cerrarDetalle()"
+    (reintentar)="reintentarDetalle()"
+  />
+</app-dialogo-ui>

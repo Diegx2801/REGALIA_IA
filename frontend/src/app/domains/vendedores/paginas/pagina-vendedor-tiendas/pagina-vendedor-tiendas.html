@@ -1,148 +1,548 @@
-<section class="vendedor-tiendas">
-  <header class="vendedor-tiendas__hero">
-    <span>Mi tienda</span>
-    <h2>Presencia comercial</h2>
-    <p>Completa tus datos comerciales y prepara tu catálogo mientras revisamos tu tienda.</p>
-  </header>
-
+<section class="vendedor-tiendas grid gap-4">
   @if (store.cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tu tienda." />
+    <div class="grid min-h-[calc(100dvh-12rem)] place-items-center">
+      <app-estado-pantalla
+        class="w-full max-w-3xl"
+        tipo="carga"
+        etiqueta="Cargando"
+        titulo="Preparando la gestión de tu tienda."
+        descripcion="Estamos sincronizando tu información comercial y los rubros disponibles."
+      />
+    </div>
   } @else if (store.mensajeError()) {
-    <app-estado-pantalla
-      tipo="error"
-      etiqueta="Error"
-      [titulo]="store.mensajeError() ?? 'No pudimos cargar tu tienda.'"
-      textoAccion="Reintentar"
-      (accion)="store.cargarPanel(true)"
-    />
+    <div class="grid min-h-[calc(100dvh-12rem)] place-items-center">
+      <app-estado-pantalla
+        class="w-full max-w-3xl"
+        tipo="error"
+        etiqueta="Atención"
+        [titulo]="store.mensajeError() ?? 'No pudimos cargar tu tienda.'"
+        descripcion="Tu información no se modificó. Inténtalo nuevamente para continuar."
+        textoAccion="Reintentar"
+        (accion)="store.cargarContexto(true)"
+      />
+    </div>
   } @else {
     @if (store.mensajeExito()) {
-      <app-estado-pantalla tipo="exito" etiqueta="Operación correcta" [titulo]="store.mensajeExito() ?? ''" />
+      <app-estado-pantalla
+        tipo="exito"
+        etiqueta="Operación correcta"
+        [titulo]="store.mensajeExito() ?? ''"
+      />
     }
 
-    <section class="vendedor-tiendas__layout">
-      <article class="vendedor-card">
-        <header>
-          <span>{{ idTiendaEditando() === null ? 'Nueva tienda' : 'Editar tienda' }}</span>
-          <h3>{{ idTiendaEditando() === null ? 'Registra tu vitrina' : 'Actualiza tu información comercial' }}</h3>
-        </header>
+    <header class="vendedor-tiendas__hero" aria-labelledby="titulo-tiendas-vendedor">
+      <div class="vendedor-tiendas__hero-copy">
+        <span class="vendedor-tiendas__eyebrow">Presencia comercial</span>
+        <h2 id="titulo-tiendas-vendedor">Tu tienda, lista para destacar.</h2>
+        <p>
+          Construye una identidad clara para tus clientes y administra el catálogo desde un espacio
+          pensado para tu negocio.
+        </p>
+      </div>
 
-        @if (store.tiendas().length > 0 && idTiendaEditando() === null) {
-          <app-estado-pantalla
-            tipo="vacio"
-            etiqueta="Plan actual"
-            titulo="Ya tienes una tienda activa en tu plan."
-            descripcion="Puedes editarla o eliminarla antes de crear otra."
-          />
+      <aside class="vendedor-tiendas__identidad" aria-label="Resumen de la tienda en foco">
+        @if (tiendaEnFoco(); as tienda) {
+          <div class="flex min-w-0 items-center gap-3">
+            <span
+              class="vendedor-tiendas__monograma vendedor-tiendas__monograma--compacto"
+              aria-hidden="true"
+            >
+              {{ inicialesTienda(tienda.nombre) }}
+            </span>
+            <div class="min-w-0">
+              <small>Tienda en foco</small>
+              <strong>{{ tienda.nombre }}</strong>
+            </div>
+          </div>
+          <div class="vendedor-tiendas__identidad-estado">
+            <app-insignia-ui
+              [texto]="estadoComercial(tienda.estadoRevision)"
+              [variante]="varianteEstadoComercial(tienda.estadoRevision)"
+            />
+            <span>
+              {{ tienda.rubros.length }}
+              {{ tienda.rubros.length === 1 ? 'rubro configurado' : 'rubros configurados' }}
+            </span>
+          </div>
         } @else {
-          <form appFormularioPanel appFormularioUnaColumna [formGroup]="formularioTienda" (ngSubmit)="guardarTienda()">
-            <label appCampoFormulario>
-              Nombre comercial
-              <input type="text" formControlName="nombre" placeholder="Ej. Detalles Ana" />
-              @if (campoTieneError('nombre')) { <small appErrorCampo>El nombre de la tienda es obligatorio.</small> }
-            </label>
+          <span class="vendedor-tiendas__identidad-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M4.75 9.25h14.5v9.5H4.75v-9.5Zm1-4h12.5l1.5 4H4.25l1.5-4ZM9 13h6"
+              />
+            </svg>
+          </span>
+          <div>
+            <small>Tu próximo paso</small>
+            <strong>Crea tu primera vitrina</strong>
+            <p>Completa los datos básicos para iniciar la revisión comercial.</p>
+          </div>
+        }
+      </aside>
+    </header>
 
-            <section class="vendedor-tiendas__selector-rubros" [class.vendedor-tiendas__selector-rubros--error]="campoTieneError('idsRubros')">
-              <div>
-                <strong>Rubros comerciales</strong>
-                <p>{{ resumenRubrosSeleccionados() }}</p>
+    @if (mostrandoFormulario()) {
+      <section class="vendedor-tiendas__edicion" aria-labelledby="titulo-formulario-tienda">
+        <article class="vendedor-tiendas__panel vendedor-tiendas__formulario">
+          <header class="vendedor-tiendas__panel-header flex items-start justify-between gap-4">
+            <div>
+              <span class="vendedor-tiendas__eyebrow">
+                {{ idTiendaEditando() === null ? 'Nueva vitrina' : 'Edición comercial' }}
+              </span>
+              <h3 id="titulo-formulario-tienda">
+                {{
+                  idTiendaEditando() === null
+                    ? 'Presenta tu negocio en REGALIA'
+                    : 'Actualiza la información de tu tienda'
+                }}
+              </h3>
+              <p>
+                Los datos claros y completos ayudan a que tu tienda sea más fácil de reconocer y
+                encontrar.
+              </p>
+            </div>
+            @if (idTiendaEditando() !== null) {
+              <app-insignia-ui texto="Edición activa" variante="primaria" />
+            }
+          </header>
+
+          <form
+            #formularioTiendaUi
+            class="vendedor-tiendas__campos grid grid-cols-2 gap-4 max-sm:grid-cols-1"
+            [formGroup]="formularioTienda"
+            (ngSubmit)="guardarTienda()"
+          >
+            <app-campo-texto
+              class="md:col-span-2"
+              id="tienda-nombre"
+              etiqueta="Nombre comercial"
+              [control]="formularioTienda.controls.nombre"
+              [maximoCaracteres]="150"
+              autocomplete="organization"
+              placeholder="Ej. Detalles Ana"
+              ayuda="Usa el nombre con el que tus clientes reconocen el negocio."
+              mensajeError="Escribe un nombre comercial de hasta 150 caracteres."
+            />
+
+            <fieldset
+              class="vendedor-tiendas__selector-rubros md:col-span-2"
+              [class.vendedor-tiendas__selector-rubros--error]="campoTieneError('idsRubros')"
+              [attr.aria-describedby]="
+                campoTieneError('idsRubros')
+                  ? 'selector-rubros-resumen selector-rubros-error'
+                  : 'selector-rubros-resumen'
+              "
+            >
+              <legend>Rubros comerciales <span aria-hidden="true">*</span></legend>
+              <div class="min-w-0">
+                <p id="selector-rubros-resumen">{{ resumenRubrosSeleccionados() }}</p>
+                <small>Selecciona al menos un rubro que represente tu catálogo.</small>
               </div>
-              <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="abrirSelectorRubros()">
-                {{ formularioTienda.controls.idsRubros.value.length > 0 ? 'Modificar rubros' : 'Seleccionar rubros' }}
+              <button
+                appBoton="secundario"
+                type="button"
+                aria-haspopup="dialog"
+                aria-controls="selector-rubros-dialogo"
+                [attr.aria-expanded]="mostrandoSelectorRubros()"
+                (click)="abrirSelectorRubros()"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M6.5 7.25h11M6.5 12h11M6.5 16.75h7M4 7.25h.01M4 12h.01M4 16.75h.01"
+                  />
+                </svg>
+                {{
+                  formularioTienda.controls.idsRubros.value.length > 0
+                    ? 'Modificar selección'
+                    : 'Seleccionar rubros'
+                }}
               </button>
-              @if (campoTieneError('idsRubros')) { <small appErrorCampo>Selecciona al menos un rubro comercial.</small> }
-            </section>
+              @if (campoTieneError('idsRubros')) {
+                <small id="selector-rubros-error" class="vendedor-tiendas__error" role="alert">
+                  Selecciona al menos un rubro comercial.
+                </small>
+              }
+            </fieldset>
 
-            <label appCampoFormulario>
-              Dirección de referencia
-              <input type="text" formControlName="direccionReferencia" placeholder="Zona, distrito o referencia" />
-            </label>
+            <app-campo-texto
+              class="md:col-span-2"
+              id="tienda-direccion"
+              etiqueta="Dirección de referencia"
+              [control]="formularioTienda.controls.direccionReferencia"
+              [maximoCaracteres]="255"
+              autocomplete="street-address"
+              placeholder="Zona, distrito o referencia"
+              ayuda="Indica una ubicación útil sin publicar información sensible."
+              mensajeError="La dirección no puede superar los 255 caracteres."
+            />
 
-            <label appCampoFormulario>
-              Descripción
-              <textarea rows="4" formControlName="descripcion" placeholder="Cuenta qué tipo de regalos personalizados preparas"></textarea>
-            </label>
+            <app-campo-textarea
+              class="md:col-span-2"
+              id="tienda-descripcion"
+              etiqueta="Descripción de la tienda"
+              [control]="formularioTienda.controls.descripcion"
+              [filas]="5"
+              [maximoCaracteres]="1000"
+              placeholder="Cuenta qué tipo de regalos personalizados preparas y qué hace especial a tu propuesta."
+              ayuda="Una descripción concreta ayuda a generar confianza antes de la compra."
+              mensajeError="La descripción no puede superar los 1000 caracteres."
+            />
 
-            <div class="vendedor-tiendas__acciones-formulario">
-              <button appBoton appBotonBloque [appBotonCargando]="store.guardandoTienda()" type="submit" [disabled]="store.guardandoTienda()">
-                {{ store.guardandoTienda() ? 'Guardando...' : (idTiendaEditando() === null ? 'Crear tienda' : 'Guardar cambios') }}
+            <div
+              class="vendedor-tiendas__acciones-formulario flex flex-wrap items-center gap-3 md:col-span-2"
+            >
+              <button
+                appBoton
+                [appBotonCargando]="store.guardandoTienda()"
+                type="submit"
+                [disabled]="store.guardandoTienda()"
+              >
+                {{
+                  store.guardandoTienda()
+                    ? 'Guardando...'
+                    : idTiendaEditando() === null
+                      ? 'Crear mi tienda'
+                      : 'Guardar cambios'
+                }}
               </button>
               @if (idTiendaEditando() !== null) {
-                <button appBoton="fantasma" appBotonBloque type="button" (click)="cancelarEdicion()">Cancelar</button>
+                <button
+                  appBoton="fantasma"
+                  type="button"
+                  [disabled]="store.guardandoTienda()"
+                  (click)="cancelarEdicion()"
+                >
+                  Cancelar edición
+                </button>
               }
             </div>
           </form>
-        }
-      </article>
+        </article>
 
-      <article class="vendedor-card">
-        <header>
-          <span>Mi vitrina</span>
-          <h3>{{ store.tiendas().length === 0 ? 'Aún no tienes tienda' : store.tiendas().length === 1 ? '1 tienda registrada' : store.tiendas().length + ' tiendas registradas' }}</h3>
-        </header>
+        <aside class="vendedor-tiendas__guia" aria-labelledby="titulo-guia-tienda">
+          <span class="vendedor-tiendas__eyebrow">Antes de publicar</span>
+          <h3 id="titulo-guia-tienda">Una vitrina que inspira confianza</h3>
+          <p>Revisa estos tres puntos antes de guardar la información comercial.</p>
 
-        @if (store.tiendas().length === 0) {
-          <app-estado-pantalla tipo="vacio" etiqueta="Sin tienda" titulo="Registra tu tienda para preparar tu catálogo." />
-        } @else {
-          <app-lista-panel ariaEtiqueta="Tiendas del vendedor">
+          <ul class="vendedor-tiendas__lista-guia my-4 grid list-none gap-3 p-0" role="list">
+            <li>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-width="1.8" d="m7.5 12 3 3 6-6" />
+                </svg>
+              </span>
+              <div>
+                <strong>Nombre reconocible</strong
+                ><small>Breve, claro y consistente con tu marca.</small>
+              </div>
+            </li>
+            <li>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-width="1.8" d="m7.5 12 3 3 6-6" />
+                </svg>
+              </span>
+              <div>
+                <strong>Rubros precisos</strong
+                ><small>Facilitan el descubrimiento de tus productos.</small>
+              </div>
+            </li>
+            <li>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-width="1.8" d="m7.5 12 3 3 6-6" />
+                </svg>
+              </span>
+              <div>
+                <strong>Descripción útil</strong
+                ><small>Explica qué ofreces sin promesas ambiguas.</small>
+              </div>
+            </li>
+          </ul>
+
+          <div class="vendedor-tiendas__guia-nota flex items-start gap-2.5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 3.75 19 6.5v5.25c0 4.25-2.85 7.25-7 8.5-4.15-1.25-7-4.25-7-8.5V6.5l7-2.75Zm0 5v4.5m0 3h.01"
+              />
+            </svg>
+            <p>REGALIA revisará la información antes de confirmar su estado comercial.</p>
+          </div>
+        </aside>
+      </section>
+    } @else {
+      <section class="vendedor-tiendas__contenido">
+        <section class="vendedor-tiendas__panel" aria-labelledby="titulo-listado-tiendas">
+          <header
+            class="vendedor-tiendas__panel-header vendedor-tiendas__panel-header--listado flex items-start justify-between gap-4 sm:items-center"
+          >
+            <div>
+              <span class="vendedor-tiendas__eyebrow">Identidad de marca</span>
+              <h3 id="titulo-listado-tiendas">
+                {{
+                  store.tiendas().length === 1 ? 'Tu tienda registrada' : 'Tus tiendas registradas'
+                }}
+              </h3>
+              <p>La información que identifica tu negocio dentro de REGALIA.</p>
+            </div>
+            <span class="vendedor-tiendas__contador" aria-label="Cantidad de tiendas registradas">
+              {{ store.tiendas().length }}
+            </span>
+          </header>
+
+          <ul class="vendedor-tiendas__lista m-0 grid list-none gap-3 p-0" role="list">
             @for (tienda of store.tiendas(); track tienda.idTienda) {
-              <app-fila-panel tipo="apilada" [ariaEtiqueta]="tienda.nombre">
-                <strong>{{ tienda.nombre }}</strong>
-                <span>{{ estadoComercial(tienda.estadoRevision) }}</span>
-                <small>{{ describirRubros(tienda) }} · {{ tienda.direccionReferencia }}</small>
-                <div class="vendedor-tiendas__acciones-tienda">
-                  <button appBoton="secundario" appBotonTamano="sm" type="button" (click)="editarTienda(tienda)" [disabled]="store.cargandoTienda() === tienda.idTienda">
-                    {{ store.cargandoTienda() === tienda.idTienda ? 'Cargando...' : 'Editar' }}
-                  </button>
-                  <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="abrirCentroTienda(tienda.idTienda)">Abrir centro</button>
-                  <button appBoton="peligro" appBotonTamano="sm" type="button" (click)="eliminarTienda(tienda)" [disabled]="store.eliminandoTienda() === tienda.idTienda">
-                    {{ store.eliminandoTienda() === tienda.idTienda ? 'Eliminando...' : 'Eliminar' }}
-                  </button>
-                </div>
-              </app-fila-panel>
+              <li>
+                <article
+                  class="vendedor-tiendas__tienda"
+                  [attr.aria-labelledby]="'tienda-' + tienda.idTienda"
+                >
+                  <header
+                    class="vendedor-tiendas__tienda-header flex items-start justify-between gap-4"
+                  >
+                    <div class="flex min-w-0 items-center gap-3">
+                      <span class="vendedor-tiendas__monograma" aria-hidden="true">
+                        {{ inicialesTienda(tienda.nombre) }}
+                      </span>
+                      <div class="min-w-0">
+                        <span class="vendedor-tiendas__tienda-etiqueta">Identidad comercial</span>
+                        <h4 [id]="'tienda-' + tienda.idTienda">{{ tienda.nombre }}</h4>
+                      </div>
+                    </div>
+                    <app-insignia-ui
+                      [texto]="estadoComercial(tienda.estadoRevision)"
+                      [variante]="varianteEstadoComercial(tienda.estadoRevision)"
+                    />
+                  </header>
+
+                  <p class="vendedor-tiendas__descripcion">{{ tienda.descripcion }}</p>
+
+                  <dl
+                    class="vendedor-tiendas__detalles m-0 grid grid-cols-2 gap-3 max-sm:grid-cols-1"
+                  >
+                    <div>
+                      <dt>
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M18.25 10c0 4.75-6.25 10-6.25 10S5.75 14.75 5.75 10a6.25 6.25 0 1 1 12.5 0ZM12 12.25A2.25 2.25 0 1 0 12 7.75a2.25 2.25 0 0 0 0 4.5Z"
+                          />
+                        </svg>
+                        Ubicación
+                      </dt>
+                      <dd>{{ tienda.direccionReferencia }}</dd>
+                    </div>
+                    <div>
+                      <dt>
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M7 4.75h8l3 3v11.5H7V4.75Zm8 0v3h3M10 12h5M10 15h4"
+                          />
+                        </svg>
+                        Formalización
+                      </dt>
+                      <dd>
+                        {{
+                          tienda.formalizada
+                            ? 'Documento fiscal vinculado'
+                            : 'Pendiente de completar'
+                        }}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <div
+                    class="vendedor-tiendas__rubros flex flex-wrap gap-1.5"
+                    [attr.aria-label]="'Rubros de ' + tienda.nombre"
+                  >
+                    @for (rubro of tienda.rubros; track rubro.idRubro) {
+                      <span>{{ rubro.nombre }}</span>
+                    } @empty {
+                      <span>Rubro pendiente</span>
+                    }
+                  </div>
+
+                  <footer
+                    class="vendedor-tiendas__acciones-tienda flex flex-wrap items-center gap-3"
+                  >
+                    <button appBoton type="button" (click)="abrirCentroTienda(tienda.idTienda)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M4.75 9.25h14.5v9.5H4.75v-9.5Zm1-4h12.5l1.5 4H4.25l1.5-4ZM9 13h6"
+                        />
+                      </svg>
+                      Administrar tienda
+                    </button>
+                    <button
+                      appBoton="secundario"
+                      type="button"
+                      (click)="editarTienda(tienda)"
+                      [disabled]="store.cargandoTienda() === tienda.idTienda"
+                    >
+                      {{
+                        store.cargandoTienda() === tienda.idTienda
+                          ? 'Cargando...'
+                          : 'Editar información'
+                      }}
+                    </button>
+                    <button
+                      class="vendedor-tiendas__accion-peligro"
+                      type="button"
+                      (click)="eliminarTienda(tienda)"
+                      [disabled]="store.eliminandoTienda() === tienda.idTienda"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M8 8.25v9m4-9v9m4-9v9M5.5 5.75h13M9 5.75l.75-2h4.5l.75 2m2.25 0-.65 14.5H7.4L6.75 5.75"
+                        />
+                      </svg>
+                      {{
+                        store.eliminandoTienda() === tienda.idTienda
+                          ? 'Eliminando...'
+                          : 'Eliminar tienda'
+                      }}
+                    </button>
+                  </footer>
+                </article>
+              </li>
             }
-          </app-lista-panel>
+          </ul>
+        </section>
+
+        @if (tiendaEnFoco(); as tienda) {
+          <aside class="vendedor-tiendas__siguiente" aria-labelledby="titulo-siguiente-paso">
+            <span class="vendedor-tiendas__siguiente-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M12 3.75 19 6.5v5.25c0 4.25-2.85 7.25-7 8.5-4.15-1.25-7-4.25-7-8.5V6.5l7-2.75Zm-3 8.2 2 2 4-4"
+                />
+              </svg>
+            </span>
+            <span class="vendedor-tiendas__eyebrow">Siguiente paso</span>
+            <h3 id="titulo-siguiente-paso">{{ tituloSiguientePaso(tienda.estadoRevision) }}</h3>
+            <p>{{ descripcionSiguientePaso(tienda.estadoRevision) }}</p>
+
+            <dl class="vendedor-tiendas__resumen-lateral grid gap-3">
+              <div>
+                <dt>Rubros</dt>
+                <dd>{{ tienda.rubros.length }}</dd>
+              </div>
+              <div>
+                <dt>Información fiscal</dt>
+                <dd>{{ tienda.formalizada ? 'Vinculada' : 'Pendiente' }}</dd>
+              </div>
+            </dl>
+          </aside>
         }
-      </article>
-    </section>
+      </section>
+    }
   }
 </section>
 
-@if (mostrandoSelectorRubros()) {
-  <div class="vendedor-tiendas__modal-fondo" (click)="cerrarSelectorRubros()">
-    <section
-      class="vendedor-tiendas__modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="selector-rubros-titulo"
-      (click)="$event.stopPropagation()"
-    >
-      <header class="vendedor-tiendas__modal-encabezado">
-        <div>
-          <span>Rubros comerciales</span>
-          <h3 id="selector-rubros-titulo">Selecciona los rubros de tu tienda</h3>
-          <p>Elige todos los que representen los productos que ofreces.</p>
-        </div>
-        <button class="vendedor-tiendas__modal-cerrar" type="button" aria-label="Cerrar selector de rubros" (click)="cerrarSelectorRubros()">×</button>
-      </header>
+<app-dialogo-ui
+  idDialogo="selector-rubros-dialogo"
+  idTitulo="selector-rubros-titulo"
+  idDescripcion="selector-rubros-descripcion"
+  tamano="lg"
+  [abierto]="mostrandoSelectorRubros()"
+  (solicitudCierre)="cerrarSelectorRubros()"
+>
+  <div class="vendedor-tiendas__dialogo">
+    <header class="vendedor-tiendas__dialogo-header">
+      <div>
+        <span class="vendedor-tiendas__eyebrow">Rubros comerciales</span>
+        <h3 id="selector-rubros-titulo">Elige cómo encontrarán tu tienda</h3>
+        <p id="selector-rubros-descripcion">
+          Selecciona todos los rubros que representen los productos que ofreces.
+        </p>
+      </div>
+      <button
+        class="vendedor-tiendas__dialogo-cerrar"
+        type="button"
+        aria-label="Cerrar selector de rubros"
+        autofocus
+        (click)="cerrarSelectorRubros()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-width="1.8" d="m6.5 6.5 11 11m0-11-11 11" />
+        </svg>
+      </button>
+    </header>
 
-      <div class="vendedor-tiendas__modal-opciones">
+    <fieldset class="vendedor-tiendas__dialogo-cuerpo">
+      <legend class="sr-only">Rubros disponibles</legend>
+      <div class="vendedor-tiendas__dialogo-opciones grid grid-cols-2 gap-2.5 max-sm:grid-cols-1">
         @for (rubro of store.rubros(); track rubro.idRubro) {
-          <label class="vendedor-tiendas__modal-opcion">
+          <label class="vendedor-tiendas__dialogo-opcion">
             <input
               type="checkbox"
               [checked]="rubroTemporalSeleccionado(rubro.idRubro)"
               (change)="alternarRubroTemporal(rubro.idRubro, $event)"
             />
+            <span class="vendedor-tiendas__dialogo-check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-width="2.2"
+                  d="m6.75 12.25 3.25 3.25 7.25-7.25"
+                />
+              </svg>
+            </span>
             <span>{{ rubro.nombre }}</span>
           </label>
         }
       </div>
+    </fieldset>
 
-      <footer class="vendedor-tiendas__modal-acciones">
+    <footer class="vendedor-tiendas__dialogo-footer">
+      <p aria-live="polite">
+        <strong>{{ idsRubrosTemporales().length }}</strong>
+        {{ idsRubrosTemporales().length === 1 ? 'rubro seleccionado' : 'rubros seleccionados' }}
+      </p>
+      <div>
         <button appBoton="fantasma" type="button" (click)="cerrarSelectorRubros()">Cancelar</button>
-        <button appBoton type="button" (click)="aplicarRubrosSeleccionados()">Aplicar selección</button>
-      </footer>
-    </section>
+        <button
+          appBoton
+          type="button"
+          [disabled]="idsRubrosTemporales().length === 0"
+          (click)="aplicarRubrosSeleccionados()"
+        >
+          Aplicar selección
+        </button>
+      </div>
+    </footer>
   </div>
-}
+</app-dialogo-ui>

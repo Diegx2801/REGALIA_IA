@@ -1,4 +1,4 @@
-<label class="rg-form-field" [for]="id()">
+<label class="rg-form-field">
   <span class="rg-form-field__label">{{ etiqueta() }}</span>
   <input
     class="rg-form-field__control"
@@ -6,6 +6,7 @@
     [type]="tipo()"
     [placeholder]="placeholder()"
     [autocomplete]="autocomplete() ?? ''"
+    [attr.maxlength]="maximoCaracteres()"
     [formControl]="control()"
     [attr.aria-invalid]="debeMostrarError()"
     [attr.aria-describedby]="ariaDescribedBy()"

@@ -12,8 +12,8 @@
 }
 
 .insignia-ui--exito {
-  background: #dff0e8;
-  color: #2f7b62;
+  background: var(--rg-color-success-soft);
+  color: var(--rg-color-success);
 }
 
 .insignia-ui--advertencia {
@@ -22,8 +22,8 @@
 }
 
 .insignia-ui--error {
-  background: rgba(201, 95, 81, 0.13);
-  color: var(--rg-color-rose);
+  background: var(--rg-color-danger-soft);
+  color: var(--rg-color-danger);
 }
 
 .insignia-ui:not(.insignia-ui--exito, .insignia-ui--advertencia, .insignia-ui--error)

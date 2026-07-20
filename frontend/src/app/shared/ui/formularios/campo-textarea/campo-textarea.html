@@ -1,8 +1,10 @@
-<label class="rg-form-field rg-form-field--textarea" [for]="id()">
+<label class="rg-form-field rg-form-field--textarea">
   <span class="rg-form-field__top">
     <strong class="rg-form-field__label">{{ etiqueta() }}</strong>
     @if (maximoCaracteres()) {
-      <small [id]="idContador()" aria-live="polite">{{ caracteresUsados() }}/{{ maximoCaracteres() }}</small>
+      <small [id]="idContador()" aria-live="polite"
+        >{{ caracteresUsados() }}/{{ maximoCaracteres() }}</small
+      >
     }
   </span>
   <textarea

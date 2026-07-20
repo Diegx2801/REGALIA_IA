@@ -25,6 +25,11 @@ export interface TiendaVendedor {
   estado: boolean;
 }
 
+export interface ImagenProductoVendedor {
+  urlImagen: string;
+  orden: number;
+}
+
 export interface ProductoVendedor {
   idProducto: number;
   idTienda: number;
@@ -37,6 +42,7 @@ export interface ProductoVendedor {
   stock: number;
   visibleEnTienda: boolean;
   estado: boolean;
+  imagenes: ImagenProductoVendedor[];
   urlImagen: string;
 }
 
@@ -98,5 +104,5 @@ export interface SolicitudProductoVendedor {
   precio: number;
   stock: number;
   visibleEnTienda: boolean;
-  urlImagen: string | null;
+  imagenes: ImagenProductoVendedor[];
 }

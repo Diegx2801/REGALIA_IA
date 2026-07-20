@@ -38,41 +38,88 @@
 
     <header class="vendedor-resumen__hero" aria-labelledby="titulo-resumen-vendedor">
       <div class="vendedor-resumen__hero-copy">
-        <span class="vendedor-resumen__eyebrow">Atelier comercial</span>
+        <span class="vendedor-resumen__eyebrow">Resumen comercial</span>
         <h2 id="titulo-resumen-vendedor">
-          {{ nombreOperador() }}, tu vitrina REGALIA esta en marcha.
+          <span>Hola, {{ nombreOperador() }}.</span>
+          Tu negocio, claro y bajo control.
         </h2>
         <p>
-          Supervisa tiendas, productos y solicitudes reales desde un tablero pensado para vender con
-          orden, reputacion y respuesta rapida.
+          Revisa tu catálogo, el stock disponible y los pedidos que requieren atención desde un solo
+          lugar.
         </p>
 
         <div class="vendedor-resumen__hero-actions" aria-label="Acciones principales del vendedor">
           <a
             appBoton
-            routerLink="/vendedor/productos"
+            [routerLink]="rutaCentroTienda()"
+            aria-label="Gestionar el catálogo de la tienda en foco"
             ngbTooltip="Administra stock, visibilidad y precios"
           >
-            Publicar producto
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 5v14M5 12h14"
+              />
+            </svg>
+            <span class="vendedor-resumen__accion-larga">Gestionar catálogo</span>
+            <span class="vendedor-resumen__accion-corta" aria-hidden="true">Catálogo</span>
           </a>
           <a
             appBoton="secundario"
-            routerLink="/vendedor/tiendas"
-            ngbTooltip="Revisa estado y rubros de tus tiendas"
+            routerLink="/vendedor/pedidos"
+            aria-label="Revisar pedidos recibidos"
+            ngbTooltip="Consulta solicitudes y pagos recibidos"
           >
-            Gestionar tienda
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v12.25l-3-1.75-2.75 1.75-2.75-1.75-3 1.75V7A2.25 2.25 0 0 1 10 4.75ZM10 9h5M10 12.5h4"
+              />
+            </svg>
+            <span class="vendedor-resumen__accion-larga">Revisar pedidos</span>
+            <span class="vendedor-resumen__accion-corta" aria-hidden="true">Pedidos</span>
           </a>
         </div>
       </div>
 
       <aside class="vendedor-resumen__credencial" aria-label="Estado del vendedor">
-        <span>Credencial vendedor</span>
-        <strong>{{ store.perfil()?.verificado ? 'Verificado' : 'En revision' }}</strong>
-        @if (tiendaPrincipal(); as tienda) {
-          <small>{{ tienda.nombre }}</small>
+        <div class="vendedor-resumen__credencial-estado">
+          <span class="vendedor-resumen__credencial-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 3.75 19 6.5v5.25c0 4.25-2.85 7.25-7 8.5-4.15-1.25-7-4.25-7-8.5V6.5l7-2.75Zm-3 8.2 2 2 4-4"
+              />
+            </svg>
+          </span>
+          <div>
+            <span>Perfil vendedor</span>
+            <strong>{{ store.perfil()?.verificado ? 'Verificado' : 'En revisión' }}</strong>
+          </div>
+        </div>
+        @if (tiendaEnFoco(); as tienda) {
+          <div class="vendedor-resumen__credencial-tienda">
+            <small>Tienda en foco</small>
+            <b>{{ tienda.nombre }}</b>
+          </div>
         } @else {
-          <small>Crea tu primera tienda para publicar productos.</small>
+          <div class="vendedor-resumen__credencial-tienda">
+            <small>Siguiente paso</small>
+            <b>Crea tu primera tienda</b>
+          </div>
         }
+        <a routerLink="/vendedor/tiendas">
+          Administrar tiendas
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-width="1.8" d="m9 6 6 6-6 6" />
+          </svg>
+        </a>
       </aside>
     </header>
 
@@ -80,24 +127,30 @@
       <app-tarjeta-metrica
         etiqueta="Tiendas"
         [valor]="store.tiendas().length"
-        [descripcion]="store.tiendasPendientesRevision() + ' pendiente(s) de revision.'"
+        [descripcion]="descripcionTiendas()"
+        icono="tiendas"
       />
       <app-tarjeta-metrica
-        etiqueta="Productos visibles"
+        etiqueta="Productos visibles · tienda en foco"
         [valor]="store.productosVisibles()"
-        [descripcion]="stockDisponible() + ' unidad(es) disponibles.'"
+        [descripcion]="descripcionStock()"
+        icono="productos"
       />
       <app-tarjeta-metrica
-        etiqueta="Pedidos con saldo"
+        etiqueta="Pedidos con saldo · últimos 5"
         [valor]="store.pedidosPendientes()"
-        descripcion="Solicitudes recibidas por completar."
+        [descripcion]="descripcionPedidos()"
+        icono="pedidos"
       />
       <app-tarjeta-metrica
-        etiqueta="Cobrado"
-        [valor]="store.totalPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        etiqueta="Cobrado · últimos 5 pedidos"
+        [valor]="store.totalPagado() | currency: 'PEN' : 'S/' : '1.2-2'"
         [descripcion]="
-          'Por cobrar ' + (store.saldoPendiente() | currency: 'PEN' : 'symbol-narrow' : '1.2-2')
+          store.saldoPendiente() > 0
+            ? 'Por cobrar ' + (store.saldoPendiente() | currency: 'PEN' : 'S/' : '1.2-2')
+            : 'Sin saldos en los últimos 5 pedidos.'
         "
+        icono="ingresos"
       />
     </section>
 
@@ -114,9 +167,9 @@
         @if (store.pedidosRecientes().length === 0) {
           <app-estado-pantalla
             tipo="vacio"
-            etiqueta="Sin pedidos"
-            titulo="Aun no recibes pedidos."
-            descripcion="Cuando los clientes confirmen solicitudes, apareceran aqui sin datos simulados."
+            etiqueta="Bandeja al día"
+            titulo="No tienes pedidos pendientes."
+            descripcion="Las nuevas solicitudes aparecerán aquí para que puedas atenderlas rápidamente."
           />
         } @else {
           <ol class="vendedor-resumen__timeline" aria-label="Pedidos recientes recibidos">
@@ -127,7 +180,8 @@
                   <div>
                     <strong>#{{ pedido.idPedido }} · {{ pedido.nombreTienda }}</strong>
                     <small>
-                      {{ pedido.estadoPedido }} · {{ pedido.cantidadItems }} item(s) ·
+                      {{ etiquetaEstadoPedido(pedido.estadoPedido) }} · {{ pedido.cantidadItems }}
+                      {{ pedido.cantidadItems === 1 ? 'producto' : 'productos' }} ·
                       @if (pedido.fechaCreacion) {
                         recibido {{ pedido.fechaCreacion | date: 'dd/MM/yyyy' }}
                       } @else {
@@ -137,7 +191,7 @@
                     <small>{{ pedido.correoCliente }}</small>
                   </div>
                   <div class="vendedor-resumen__pedido-acciones">
-                    <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+                    <b>{{ pedido.total | currency: 'PEN' : 'S/' : '1.2-2' }}</b>
                     <a
                       appBoton="secundario"
                       appBotonTamano="sm"
@@ -157,19 +211,35 @@
       <aside class="vendedor-resumen__columna">
         <article class="vendedor-resumen__panel vendedor-resumen__cobro">
           <span class="vendedor-resumen__eyebrow">Cobranza</span>
-          <h3>Avance de cobro</h3>
-          <ngb-progressbar
-            type="success"
-            [value]="porcentajeCobrado()"
-            [striped]="store.saldoPendiente() > 0"
-            [animated]="store.saldoPendiente() > 0"
-            height="0.72rem"
-            aria-label="Porcentaje cobrado de pedidos recibidos"
-          />
-          <p>
-            {{ porcentajeCobrado() }}% cobrado ·
-            {{ store.saldoPendiente() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }} por cobrar.
-          </p>
+          <h3>Avance de los últimos 5 pedidos</h3>
+          @if (totalGestionado() > 0) {
+            <ngb-progressbar
+              type="success"
+              [value]="porcentajeCobrado()"
+              [striped]="store.saldoPendiente() > 0"
+              [animated]="store.saldoPendiente() > 0"
+              height="0.65rem"
+              aria-label="Porcentaje cobrado de los últimos 5 pedidos recibidos"
+            />
+            <p>
+              {{ porcentajeCobrado() }}% cobrado ·
+              {{ store.saldoPendiente() | currency: 'PEN' : 'S/' : '1.2-2' }} por cobrar.
+            </p>
+          } @else {
+            <div class="vendedor-resumen__cobro-vacio">
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M5 7.25h12.5A1.5 1.5 0 0 1 19 8.75v8.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 17.25v-10Zm0 2.5h14m-4 3.25h2"
+                  />
+                </svg>
+              </span>
+              <p>Sin movimientos pendientes. Los cobros aparecerán al recibir pedidos.</p>
+            </div>
+          }
           <a appBoton routerLink="/vendedor/pedidos">Revisar saldos</a>
         </article>
 
@@ -182,11 +252,13 @@
           } @else if (store.productosVisibles() === 0) {
             <h3>Activa tu catalogo</h3>
             <p>Tu siguiente paso es publicar productos visibles para clientes.</p>
-            <a appBoton="secundario" routerLink="/vendedor/productos">Agregar producto</a>
+            <a appBoton="secundario" [routerLink]="rutaNuevoProducto()">Agregar producto</a>
           } @else {
-            <h3>Operacion lista</h3>
-            <p>Tu vitrina tiene productos visibles y pedidos listos para seguimiento.</p>
-            <a appBoton="secundario" routerLink="/vendedor/productos">Optimizar catalogo</a>
+            <h3>Catálogo publicado</h3>
+            <p>
+              Tu tienda tiene {{ store.productosVisibles() }} productos visibles para los clientes.
+            </p>
+            <a appBoton="secundario" [routerLink]="rutaCentroTienda()">Revisar productos</a>
           }
         </article>
       </aside>

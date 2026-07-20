@@ -1,74 +1,707 @@
-<section class="editor-producto">
+<section class="editor-producto mx-auto grid w-full max-w-6xl gap-4">
   @if (idTienda(); as tiendaId) {
-    <a class="editor-producto__volver" [routerLink]="['/vendedor/tiendas', tiendaId]">← Volver al centro de la tienda</a>
+    <nav class="min-w-0" aria-label="Ruta de navegación">
+      <ol class="flex min-h-11 flex-wrap items-center gap-1 text-xs font-bold text-regalia-muted">
+        <li>
+          <a
+            class="editor-producto__enlace-contextual inline-flex min-h-11 items-center gap-2 rounded-lg px-1 py-2 text-regalia-primary"
+            [routerLink]="['/vendedor/tiendas', tiendaId]"
+          >
+            <svg
+              class="size-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="m15 18-6-6 6-6"
+              />
+            </svg>
+            {{ tienda()?.nombre ?? 'Centro de tienda' }}
+          </a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{{ esEdicion() ? 'Editar producto' : 'Nuevo producto' }}</li>
+      </ol>
+    </nav>
 
     @if (cargandoProducto()) {
-      <app-estado-pantalla tipo="carga" etiqueta="Producto" titulo="Cargando producto." />
+      <section class="editor-producto__carga grid gap-4" aria-busy="true">
+        <p class="sr-only" role="status">Cargando la información del producto.</p>
+        <div class="h-36 animate-pulse rounded-regalia bg-white/70" aria-hidden="true"></div>
+        <div class="grid gap-4 xl:grid-cols-3" aria-hidden="true">
+          <div class="grid gap-4 xl:col-span-2">
+            <div class="h-72 animate-pulse rounded-regalia bg-white/70"></div>
+            <div class="h-56 animate-pulse rounded-regalia bg-white/70"></div>
+          </div>
+          <div class="h-96 animate-pulse rounded-regalia bg-white/70"></div>
+        </div>
+      </section>
+    } @else if (mensajeErrorCargaProducto()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="Editor de producto"
+        [titulo]="mensajeErrorCargaProducto() ?? 'No pudimos cargar el producto.'"
+        descripcion="El formulario se mantuvo bloqueado para proteger la información existente. Puedes reintentar o volver al inventario."
+        textoAccion="Reintentar"
+        (accion)="reintentarCargaProducto()"
+      />
+      <a class="w-fit" appBoton="fantasma" [routerLink]="['/vendedor/tiendas', tiendaId]">
+        Volver al inventario
+      </a>
     } @else {
-      <header class="editor-producto__encabezado">
-        <span>{{ idProducto() ? 'Editar producto' : 'Nuevo producto' }}</span>
-        <h2>{{ idProducto() ? 'Actualiza la información de tu producto' : 'Agrega un producto a tu inventario' }}</h2>
-        <p>Define los datos comerciales y su disponibilidad. Las imágenes se cargarán desde archivos en el siguiente bloque de medios.</p>
+      <header class="editor-producto__hero" aria-labelledby="titulo-editor-producto">
+        <div class="editor-producto__hero-contenido">
+          <span class="editor-producto__eyebrow">
+            Catálogo · {{ esEdicion() ? 'Edición' : 'Nueva pieza' }}
+          </span>
+          <h2 id="titulo-editor-producto">
+            {{ esEdicion() ? 'Refina tu producto' : 'Crea una publicación que inspire' }}
+          </h2>
+          <p>
+            Organiza la información esencial, la oferta y la presentación visual. La vista previa se
+            actualiza mientras completas el formulario.
+          </p>
+        </div>
+
+        <div class="editor-producto__hero-estado" aria-label="Estado de publicación">
+          <app-insignia-ui
+            [texto]="visibleVistaPrevia() ? 'Visible al publicar' : 'Oculto en catálogo'"
+            [variante]="visibleVistaPrevia() ? 'exito' : 'neutral'"
+          />
+          <span>{{ tienda()?.nombre ?? 'Tu tienda REGALIA' }}</span>
+        </div>
       </header>
 
-      @if (store.mensajeError()) {
-        <app-estado-pantalla tipo="error" etiqueta="Producto" [titulo]="store.mensajeError() ?? ''" />
-      }
-      @if (store.mensajeExito()) {
-        <app-estado-pantalla tipo="exito" etiqueta="Producto" [titulo]="store.mensajeExito() ?? ''" />
-      }
+      <form
+        class="editor-producto__workspace grid min-w-0 gap-4 xl:grid-cols-3"
+        [formGroup]="formularioProducto"
+        (ngSubmit)="guardarProducto()"
+        [attr.aria-busy]="store.guardandoProducto()"
+        novalidate
+      >
+        @if (formularioEnviado() && formularioProducto.invalid) {
+          <section
+            class="editor-producto__resumen-errores xl:col-span-3"
+            role="alert"
+            aria-labelledby="titulo-errores-producto"
+          >
+            <svg
+              class="size-5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 8v4.5m0 3h.01M10.05 4.6 3.8 16a2 2 0 0 0 1.75 3h12.9a2 2 0 0 0 1.75-3L13.95 4.6a2.2 2.2 0 0 0-3.9 0Z"
+              />
+            </svg>
+            <div>
+              <strong id="titulo-errores-producto">
+                Revisa {{ cantidadErrores() }}
+                {{ cantidadErrores() === 1 ? 'campo pendiente' : 'campos pendientes' }}
+              </strong>
+              <p>Marcamos cada dato que necesita atención y enfocamos el primero.</p>
+            </div>
+          </section>
+        }
 
-      <form appFormularioPanel class="editor-producto__formulario" [formGroup]="formularioProducto" (ngSubmit)="guardarProducto()">
-        <label appCampoFormulario>
-          Tipo de producto
-          <select formControlName="idTipoProducto">
-            <option [ngValue]="null">Selecciona un tipo</option>
-            @for (tipoProducto of store.tiposProducto(); track tipoProducto.idTipoProducto) {
-              <option [ngValue]="tipoProducto.idTipoProducto">{{ tipoProducto.nombre }}</option>
+        <div class="grid min-w-0 gap-4 xl:col-span-2">
+          <fieldset class="editor-producto__seccion" [disabled]="store.guardandoProducto()">
+            <legend class="sr-only">Información esencial. Lo primero que verá el cliente.</legend>
+            <div class="editor-producto__cabecera-seccion" aria-hidden="true">
+              <span class="editor-producto__numero-seccion">01</span>
+              <span>
+                <strong>Información esencial</strong>
+                <small>Lo primero que verá el cliente.</small>
+              </span>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+              <label appCampoFormulario for="producto-tipo">
+                <span class="editor-producto__etiqueta-campo">
+                  Tipo de producto <span aria-hidden="true">*</span>
+                </span>
+                <select
+                  id="producto-tipo"
+                  formControlName="idTipoProducto"
+                  required
+                  [attr.aria-invalid]="campoTieneError('idTipoProducto')"
+                  [attr.aria-describedby]="
+                    campoTieneError('idTipoProducto')
+                      ? 'producto-tipo-ayuda producto-tipo-error'
+                      : 'producto-tipo-ayuda'
+                  "
+                  [attr.aria-busy]="store.cargando() && store.tiposProducto().length === 0"
+                >
+                  <option [ngValue]="null">
+                    {{
+                      store.cargando() && store.tiposProducto().length === 0
+                        ? 'Cargando tipos…'
+                        : 'Selecciona un tipo'
+                    }}
+                  </option>
+                  @for (
+                    tipoProducto of tiposProductoFormulario();
+                    track tipoProducto.idTipoProducto
+                  ) {
+                    <option
+                      [ngValue]="tipoProducto.idTipoProducto"
+                      [disabled]="!tipoProducto.estado"
+                    >
+                      {{ tipoProducto.nombre }}
+                    </option>
+                  }
+                </select>
+                <small id="producto-tipo-ayuda" class="editor-producto__ayuda">
+                  Ayuda a organizar tu producto dentro del catálogo.
+                </small>
+                @if (campoTieneError('idTipoProducto')) {
+                  <small id="producto-tipo-error" appErrorCampo>{{
+                    mensajeErrorTipoProducto()
+                  }}</small>
+                }
+              </label>
+
+              <label appCampoFormulario for="producto-nombre">
+                <span class="editor-producto__etiqueta-campo">
+                  Nombre del producto <span aria-hidden="true">*</span>
+                </span>
+                <input
+                  id="producto-nombre"
+                  type="text"
+                  formControlName="nombre"
+                  maxlength="150"
+                  autocomplete="off"
+                  placeholder="Ej. Box aniversario personalizado"
+                  required
+                  [attr.aria-invalid]="campoTieneError('nombre')"
+                  [attr.aria-describedby]="
+                    campoTieneError('nombre')
+                      ? 'producto-nombre-ayuda producto-nombre-error'
+                      : 'producto-nombre-ayuda'
+                  "
+                />
+                <span class="editor-producto__meta-campo" id="producto-nombre-ayuda">
+                  <small>Usa un nombre claro y específico.</small>
+                  <small>{{ formularioProducto.controls.nombre.value.length }}/150</small>
+                </span>
+                @if (campoTieneError('nombre')) {
+                  <small id="producto-nombre-error" appErrorCampo>{{ mensajeErrorNombre() }}</small>
+                }
+              </label>
+
+              @if (!store.cargando() && store.tiposProducto().length === 0) {
+                <section class="editor-producto__sin-opciones md:col-span-2" role="alert">
+                  <div>
+                    <strong>No pudimos preparar los tipos de producto</strong>
+                    <p>
+                      La información escrita se conserva. Reintenta la carga para poder guardar.
+                    </p>
+                  </div>
+                  <button
+                    appBoton="secundario"
+                    appBotonTamano="sm"
+                    type="button"
+                    (click)="store.cargarContexto(true)"
+                  >
+                    Reintentar carga
+                  </button>
+                </section>
+              }
+
+              <label class="md:col-span-2" appCampoFormulario for="producto-descripcion">
+                Descripción y personalización
+                <textarea
+                  id="producto-descripcion"
+                  rows="6"
+                  formControlName="descripcion"
+                  maxlength="1000"
+                  placeholder="Describe materiales, medidas, opciones de color, texto personalizable y tiempos de preparación."
+                  [attr.aria-invalid]="campoTieneError('descripcion')"
+                  [attr.aria-describedby]="
+                    campoTieneError('descripcion')
+                      ? 'producto-descripcion-ayuda producto-descripcion-error'
+                      : 'producto-descripcion-ayuda'
+                  "
+                ></textarea>
+                <span class="editor-producto__meta-campo" id="producto-descripcion-ayuda">
+                  <small>Explica solo opciones que realmente puedas ofrecer.</small>
+                  <small>{{ formularioProducto.controls.descripcion.value.length }}/1000</small>
+                </span>
+                @if (campoTieneError('descripcion')) {
+                  <small id="producto-descripcion-error" appErrorCampo>
+                    La descripción no puede superar los 1000 caracteres.
+                  </small>
+                }
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="editor-producto__seccion" [disabled]="store.guardandoProducto()">
+            <legend class="sr-only">
+              Precio e inventario. Define la oferta disponible para vender.
+            </legend>
+            <div class="editor-producto__cabecera-seccion" aria-hidden="true">
+              <span class="editor-producto__numero-seccion">02</span>
+              <span>
+                <strong>Precio e inventario</strong>
+                <small>Define la oferta disponible para vender.</small>
+              </span>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+              <label appCampoFormulario for="producto-precio">
+                <span class="editor-producto__etiqueta-campo">
+                  Precio de venta <span aria-hidden="true">*</span>
+                </span>
+                <span class="editor-producto__control-prefijo">
+                  <span aria-hidden="true">S/</span>
+                  <input
+                    id="producto-precio"
+                    type="number"
+                    min="0.01"
+                    max="99999999.99"
+                    step="0.01"
+                    inputmode="decimal"
+                    formControlName="precio"
+                    placeholder="0.00"
+                    required
+                    [attr.aria-invalid]="campoTieneError('precio')"
+                    [attr.aria-describedby]="
+                      campoTieneError('precio')
+                        ? 'producto-precio-ayuda producto-precio-error'
+                        : 'producto-precio-ayuda'
+                    "
+                  />
+                </span>
+                <small id="producto-precio-ayuda" class="editor-producto__ayuda">
+                  Monto final mostrado en soles, con hasta dos decimales.
+                </small>
+                @if (campoTieneError('precio')) {
+                  <small id="producto-precio-error" appErrorCampo>{{ mensajeErrorPrecio() }}</small>
+                }
+              </label>
+
+              <label appCampoFormulario for="producto-stock">
+                <span class="editor-producto__etiqueta-campo">
+                  Stock disponible <span aria-hidden="true">*</span>
+                </span>
+                <span class="editor-producto__control-sufijo">
+                  <input
+                    id="producto-stock"
+                    type="number"
+                    min="0"
+                    max="2147483647"
+                    step="1"
+                    inputmode="numeric"
+                    formControlName="stock"
+                    placeholder="0"
+                    required
+                    [attr.aria-invalid]="campoTieneError('stock')"
+                    [attr.aria-describedby]="
+                      campoTieneError('stock')
+                        ? 'producto-stock-ayuda producto-stock-error'
+                        : 'producto-stock-ayuda'
+                    "
+                  />
+                  <span aria-hidden="true">unid.</span>
+                </span>
+                <small id="producto-stock-ayuda" class="editor-producto__ayuda">
+                  Usa cero si temporalmente no tienes unidades disponibles.
+                </small>
+                @if (campoTieneError('stock')) {
+                  <small id="producto-stock-error" appErrorCampo>{{ mensajeErrorStock() }}</small>
+                }
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="editor-producto__seccion" [disabled]="store.guardandoProducto()">
+            <legend class="sr-only">
+              Galería del producto. Enlaces reales, ordenados como aparecerán.
+            </legend>
+            <div class="editor-producto__cabecera-seccion" aria-hidden="true">
+              <span class="editor-producto__numero-seccion">03</span>
+              <span>
+                <strong>Galería del producto</strong>
+                <small>Enlaces reales, ordenados como aparecerán.</small>
+              </span>
+            </div>
+
+            <div class="editor-producto__aviso-medios">
+              <svg
+                class="size-5 shrink-0"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M4 7.5h16v11H4v-11Zm3-3h10v3H7v-3Zm1 10 2.8-2.8 2.3 2.3 1.6-1.6L18 15.7"
+                />
+              </svg>
+              <p>
+                Agrega imágenes mediante enlaces públicos <strong>http o https</strong>; REGALIA
+                conservará el orden de la lista.
+              </p>
+            </div>
+
+            <div class="grid gap-3" formArrayName="imagenes">
+              @for (controlImagen of imagenes.controls; track controlImagen; let indice = $index) {
+                <div class="editor-producto__fila-imagen">
+                  <label appCampoFormulario [for]="'producto-imagen-' + indice">
+                    Imagen {{ indice + 1 }}{{ indice === 0 ? ' · Principal' : '' }}
+                    <input
+                      [id]="'producto-imagen-' + indice"
+                      type="url"
+                      inputmode="url"
+                      autocomplete="off"
+                      maxlength="500"
+                      [formControlName]="indice"
+                      placeholder="https://ejemplo.com/imagen-producto.webp"
+                      [attr.aria-invalid]="imagenTieneError(indice)"
+                      [attr.aria-describedby]="
+                        imagenTieneError(indice)
+                          ? 'producto-imagen-' +
+                            indice +
+                            '-ayuda producto-imagen-' +
+                            indice +
+                            '-error'
+                          : 'producto-imagen-' + indice + '-ayuda'
+                      "
+                      (input)="notificarCambioImagen(indice)"
+                      (focus)="seleccionarImagen(indice)"
+                    />
+                    <small
+                      [id]="'producto-imagen-' + indice + '-ayuda'"
+                      class="editor-producto__ayuda"
+                    >
+                      {{
+                        indice === 0
+                          ? 'Será la portada del producto.'
+                          : 'Complementa la vista principal con otro ángulo o detalle.'
+                      }}
+                    </small>
+                    @if (imagenTieneError(indice)) {
+                      <small [id]="'producto-imagen-' + indice + '-error'" appErrorCampo>
+                        {{ mensajeErrorImagen(indice) }}
+                      </small>
+                    }
+                  </label>
+                  <button
+                    class="editor-producto__quitar-imagen"
+                    appBoton="fantasma"
+                    appBotonTamano="sm"
+                    type="button"
+                    [attr.aria-label]="
+                      (imagenes.length === 1 ? 'Limpiar' : 'Quitar') + ' imagen ' + (indice + 1)
+                    "
+                    (click)="eliminarImagen(indice)"
+                  >
+                    <svg
+                      class="size-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M6 7h12m-8 4v5m4-5v5M9 7l1-2h4l1 2m2 0-.7 12H7.7L7 7"
+                      />
+                    </svg>
+                    {{ imagenes.length === 1 ? 'Limpiar' : 'Quitar' }}
+                  </button>
+                </div>
+              }
+            </div>
+
+            <button
+              class="w-fit"
+              appBoton="secundario"
+              appBotonTamano="sm"
+              type="button"
+              (click)="agregarImagen()"
+            >
+              <svg
+                class="size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="M12 5v14M5 12h14"
+                />
+              </svg>
+              Añadir otra imagen
+            </button>
+          </fieldset>
+
+          <fieldset
+            class="editor-producto__seccion editor-producto__seccion--publicacion"
+            [disabled]="store.guardandoProducto()"
+          >
+            <legend class="sr-only">
+              Publicación. Decide cuándo podrá descubrirlo el cliente.
+            </legend>
+            <div class="editor-producto__cabecera-seccion" aria-hidden="true">
+              <span class="editor-producto__numero-seccion">04</span>
+              <span>
+                <strong>Publicación</strong>
+                <small>Decide cuándo podrá descubrirlo el cliente.</small>
+              </span>
+            </div>
+
+            <label class="editor-producto__opcion-visibilidad" for="producto-visible">
+              <input id="producto-visible" type="checkbox" formControlName="visibleEnTienda" />
+              <span class="editor-producto__interruptor" aria-hidden="true"><span></span></span>
+              <span>
+                <strong>Mostrar en el catálogo</strong>
+                <small>
+                  Será visible cuando la tienda esté aprobada y el producto tenga stock.
+                </small>
+              </span>
+            </label>
+          </fieldset>
+        </div>
+
+        <aside class="editor-producto__lateral min-w-0" aria-labelledby="titulo-vista-previa">
+          <div class="editor-producto__lateral-fijo grid gap-4">
+            <section class="editor-producto__vista-previa">
+              <header>
+                <span>Vista previa</span>
+                <h2 id="titulo-vista-previa">Así se presenta tu producto</h2>
+                <p>Referencia visual basada en los datos actuales.</p>
+              </header>
+
+              <article class="editor-producto__tarjeta-producto">
+                <figure class="editor-producto__imagen-principal">
+                  @if (imagenSeleccionada(); as imagen) {
+                    @if (!imagenNoDisponible(imagen.indice)) {
+                      <img
+                        [src]="imagen.url"
+                        [alt]="'Vista previa de ' + nombreVistaPrevia()"
+                        width="720"
+                        height="540"
+                        (error)="marcarImagenNoDisponible(imagen.indice)"
+                      />
+                    } @else {
+                      <div class="editor-producto__imagen-vacia" role="status">
+                        <img
+                          src="/assets/brand/producto-fallback.svg"
+                          alt=""
+                          width="160"
+                          height="120"
+                        />
+                        <span>No pudimos cargar esta imagen.</span>
+                        <small>Revisa que el enlace sea público y esté disponible.</small>
+                      </div>
+                    }
+                  } @else {
+                    <div class="editor-producto__imagen-vacia">
+                      <img
+                        src="/assets/brand/producto-fallback.svg"
+                        alt=""
+                        width="160"
+                        height="120"
+                      />
+                      <span>Tu imagen principal aparecerá aquí</span>
+                      <small>Puedes guardar el producto sin imagen y añadirla después.</small>
+                    </div>
+                  }
+                </figure>
+
+                @if (imagenesVistaPrevia().length > 1) {
+                  <div
+                    class="editor-producto__miniaturas"
+                    aria-label="Seleccionar imagen para la vista previa"
+                  >
+                    @for (imagen of imagenesVistaPrevia(); track imagen.indice) {
+                      <button
+                        type="button"
+                        [class.editor-producto__miniatura--activa]="
+                          imagenSeleccionada().indice === imagen.indice
+                        "
+                        [attr.aria-label]="'Ver imagen ' + (imagen.indice + 1)"
+                        [attr.aria-pressed]="imagenSeleccionada().indice === imagen.indice"
+                        (click)="seleccionarImagen(imagen.indice)"
+                      >
+                        @if (!imagenNoDisponible(imagen.indice)) {
+                          <img
+                            [src]="imagen.url"
+                            alt=""
+                            width="56"
+                            height="56"
+                            (error)="marcarImagenNoDisponible(imagen.indice)"
+                          />
+                        } @else {
+                          <img
+                            src="/assets/brand/producto-fallback.svg"
+                            alt=""
+                            width="56"
+                            height="56"
+                          />
+                        }
+                      </button>
+                    }
+                  </div>
+                }
+
+                <div class="editor-producto__tarjeta-contenido">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="editor-producto__tipo-previa">{{ tipoVistaPrevia() }}</span>
+                    <app-insignia-ui
+                      [texto]="estadoCatalogoVistaPrevia().texto"
+                      [variante]="estadoCatalogoVistaPrevia().variante"
+                    />
+                  </div>
+                  <h3>{{ nombreVistaPrevia() }}</h3>
+                  <p>{{ descripcionVistaPrevia() }}</p>
+                  <div class="editor-producto__oferta-previa">
+                    <strong>{{ precioVistaPrevia() | currency: 'PEN' : 'S/' : '1.2-2' }}</strong>
+                    <span>
+                      {{
+                        stockVistaPrevia() === 0
+                          ? 'Sin stock disponible'
+                          : stockVistaPrevia() + ' unidades'
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="editor-producto__guia" aria-labelledby="titulo-guia-producto">
+              <span>Antes de guardar</span>
+              <h2 id="titulo-guia-producto">Una publicación clara vende mejor</h2>
+              <ul>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="m5 12 4 4L19 6"
+                    />
+                  </svg>
+                  Precio y stock corresponden a la oferta real.
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="m5 12 4 4L19 6"
+                    />
+                  </svg>
+                  La descripción explica opciones de personalización.
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="m5 12 4 4L19 6"
+                    />
+                  </svg>
+                  Las imágenes usan enlaces públicos y estables.
+                </li>
+              </ul>
+            </section>
+          </div>
+        </aside>
+
+        <footer class="editor-producto__acciones xl:col-span-3">
+          <div
+            id="estado-guardado-producto"
+            class="editor-producto__estado-guardado"
+            aria-live="polite"
+          >
+            @if (store.mensajeError()) {
+              <span class="editor-producto__mensaje editor-producto__mensaje--error" role="alert">
+                <svg
+                  class="size-5 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M12 8v4.5m0 3h.01M10.05 4.6 3.8 16a2 2 0 0 0 1.75 3h12.9a2 2 0 0 0 1.75-3L13.95 4.6a2.2 2.2 0 0 0-3.9 0Z"
+                  />
+                </svg>
+                {{ store.mensajeError() }}
+              </span>
+            } @else if (store.mensajeExito()) {
+              <span class="editor-producto__mensaje editor-producto__mensaje--exito" role="status">
+                <svg
+                  class="size-5 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="m5 12 4 4L19 6"
+                  />
+                </svg>
+                {{ store.mensajeExito() }}
+              </span>
+            } @else {
+              <p>Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.</p>
             }
-          </select>
-          @if (campoTieneError('idTipoProducto')) { <small appErrorCampo>Selecciona un tipo de producto.</small> }
-        </label>
+          </div>
 
-        <label appCampoFormulario>
-          Nombre del producto
-          <input type="text" formControlName="nombre" placeholder="Ej. Box aniversario personalizado" />
-          @if (campoTieneError('nombre')) { <small appErrorCampo>El nombre es obligatorio.</small> }
-        </label>
-
-        <label appCampoFormulario>
-          Precio
-          <input type="number" min="0.01" step="0.01" formControlName="precio" />
-          @if (campoTieneError('precio')) { <small appErrorCampo>El precio debe ser mayor a cero.</small> }
-        </label>
-
-        <label appCampoFormulario>
-          Stock disponible
-          <input type="number" min="0" formControlName="stock" />
-          @if (campoTieneError('stock')) { <small appErrorCampo>El stock no puede ser negativo.</small> }
-        </label>
-
-        <label appCampoFormulario class="editor-producto__descripcion">
-          Descripción
-          <textarea rows="6" formControlName="descripcion" placeholder="Describe materiales, personalización y condiciones."></textarea>
-        </label>
-
-        <section class="editor-producto__imagenes">
-          <strong>Imágenes del producto</strong>
-          <p>La carga directa de archivos se habilitará con el almacenamiento de medios. No solicitamos URL manual para evitar una experiencia frágil.</p>
-          @if (urlImagenActual()) { <small>Este producto conservará su imagen actual hasta que la reemplaces desde el cargador.</small> }
-        </section>
-
-        <label class="editor-producto__visibilidad">
-          <input type="checkbox" formControlName="visibleEnTienda" />
-          Mostrar este producto cuando la tienda sea aprobada
-        </label>
-
-        <footer>
-          <button appBoton [appBotonCargando]="store.guardandoProducto()" type="submit" [disabled]="store.guardandoProducto()">
-            {{ store.guardandoProducto() ? 'Guardando...' : (idProducto() ? 'Guardar cambios' : 'Crear producto') }}
-          </button>
-          <a appBoton="fantasma" [routerLink]="['/vendedor/tiendas', tiendaId]">Cancelar</a>
+          <div class="editor-producto__botones">
+            <button
+              appBoton="fantasma"
+              type="button"
+              [disabled]="store.guardandoProducto()"
+              (click)="cancelar()"
+            >
+              Cancelar
+            </button>
+            <button
+              appBoton
+              appBotonTamano="lg"
+              type="submit"
+              [appBotonCargando]="store.guardandoProducto()"
+              [disabled]="store.guardandoProducto() || store.tiposProducto().length === 0"
+              aria-describedby="estado-guardado-producto"
+            >
+              @if (store.guardandoProducto()) {
+                Guardando…
+              } @else {
+                {{ esEdicion() ? 'Guardar cambios' : 'Crear producto' }}
+              }
+            </button>
+          </div>
         </footer>
       </form>
     }

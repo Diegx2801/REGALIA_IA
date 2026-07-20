@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 export type VarianteInsignia = 'neutral' | 'primaria' | 'exito' | 'advertencia' | 'error';
 
@@ -6,6 +6,7 @@ export type VarianteInsignia = 'neutral' | 'primaria' | 'exito' | 'advertencia' 
   selector: 'app-insignia-ui',
   templateUrl: './insignia-ui.html',
   styleUrl: './insignia-ui.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InsigniaUi {
   readonly texto = input.required<string>();

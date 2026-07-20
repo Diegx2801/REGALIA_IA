@@ -20,10 +20,7 @@ import {
 const IMAGEN_PRODUCTO_FALLBACK = '/assets/brand/producto-fallback.svg';
 
 export function mapearPerfilVendedorDesdeDto(dto: VendedorPerfilDto): VendedorPerfil {
-  const nombre = [dto.nombreUsuario, dto.apellidoUsuario]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
+  const nombre = [dto.nombreUsuario, dto.apellidoUsuario].filter(Boolean).join(' ').trim();
 
   return {
     idVendedor: dto.idVendedor,
@@ -54,9 +51,13 @@ export function mapearTiendaVendedorDesdeDto(dto: TiendaVendedorDto): TiendaVend
 }
 
 export function mapearProductoVendedorDesdeDto(dto: ProductoVendedorDto): ProductoVendedor {
-  const imagen = (dto.imagenes ?? [])
+  const imagenes = (dto.imagenes ?? [])
     .filter((item) => Boolean(item.urlImagen?.trim()))
-    .sort((actual, siguiente) => (actual.orden ?? 0) - (siguiente.orden ?? 0))[0];
+    .map((item, indice) => ({
+      urlImagen: item.urlImagen?.trim() ?? '',
+      orden: item.orden ?? indice + 1,
+    }))
+    .sort((actual, siguiente) => actual.orden - siguiente.orden);
 
   return {
     idProducto: dto.idProducto,
@@ -70,7 +71,8 @@ export function mapearProductoVendedorDesdeDto(dto: ProductoVendedorDto): Produc
     stock: Number(dto.stock ?? 0),
     visibleEnTienda: Boolean(dto.visibleEnTienda),
     estado: Boolean(dto.estado),
-    urlImagen: imagen?.urlImagen?.trim() || IMAGEN_PRODUCTO_FALLBACK,
+    imagenes,
+    urlImagen: imagenes[0]?.urlImagen || IMAGEN_PRODUCTO_FALLBACK,
   };
 }
 
@@ -135,7 +137,12 @@ export function mapearSolicitudTiendaADto(
 export function mapearSolicitudProductoADto(
   solicitud: SolicitudProductoVendedor,
 ): ProductoVendedorRequestDto {
-  const urlImagen = solicitud.urlImagen?.trim();
+  const imagenes = solicitud.imagenes
+    .map((imagen) => ({
+      urlImagen: imagen.urlImagen.trim(),
+      orden: imagen.orden,
+    }))
+    .filter((imagen) => Boolean(imagen.urlImagen));
 
   return {
     idTipoProducto: solicitud.idTipoProducto,
@@ -144,6 +151,6 @@ export function mapearSolicitudProductoADto(
     precio: solicitud.precio,
     stock: solicitud.stock,
     visibleEnTienda: solicitud.visibleEnTienda,
-    imagenes: urlImagen ? [{ urlImagen, orden: 1 }] : null,
+    imagenes: imagenes.length > 0 ? imagenes : null,
   };
 }

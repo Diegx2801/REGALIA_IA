@@ -50,6 +50,10 @@
   color: var(--layout-acento);
 }
 
+.layout-privado__etiqueta--barra {
+  color: var(--rg-color-primary);
+}
+
 .layout-privado__enlace--activo {
   background: color-mix(in srgb, var(--layout-acento) 13%, transparent);
   border-color: color-mix(in srgb, var(--layout-acento) 44%, transparent);

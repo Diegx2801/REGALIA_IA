@@ -1,0 +1,243 @@
+<section class="detalle-pedido" [attr.aria-busy]="cargando()">
+  <header class="detalle-pedido__cabecera">
+    <div class="min-w-0">
+      <span class="detalle-pedido__sobrelinea">Detalle operativo</span>
+      <h2 id="detalle-pedido-titulo">
+        @if (pedido(); as pedidoActual) {
+          Pedido #{{ pedidoActual.idPedido }}
+        } @else {
+          Detalle del pedido
+        }
+      </h2>
+      <p id="detalle-pedido-descripcion">Productos, entrega y trazabilidad de pagos registrados.</p>
+    </div>
+
+    @if (mostrarCerrar()) {
+      <button
+        class="detalle-pedido__cerrar"
+        type="button"
+        aria-label="Cerrar detalle del pedido"
+        (click)="cerrar.emit()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path
+            d="M6 6l12 12M18 6 6 18"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+      </button>
+    }
+  </header>
+
+  @if (cargando()) {
+    <div class="detalle-pedido__estado">
+      <app-estado-pantalla
+        tipo="carga"
+        etiqueta="Pedido"
+        titulo="Consultando la información completa."
+        descripcion="Estamos recuperando productos, entrega y pagos registrados."
+      />
+    </div>
+  } @else if (mensajeError()) {
+    <div class="detalle-pedido__estado">
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="No se pudo abrir"
+        [titulo]="mensajeError() ?? 'No pudimos cargar el detalle del pedido.'"
+        descripcion="El listado se mantiene disponible. Puedes intentar cargar este pedido nuevamente."
+        textoAccion="Reintentar detalle"
+        (accion)="reintentar.emit()"
+      />
+    </div>
+  } @else if (pedido(); as pedidoActual) {
+    <div class="detalle-pedido__contenido">
+      <section class="detalle-pedido__resumen" aria-labelledby="resumen-pedido-titulo">
+        <div class="detalle-pedido__estado-principal">
+          <div>
+            <span class="detalle-pedido__etiqueta" id="resumen-pedido-titulo"
+              >Situación actual</span
+            >
+            <div class="detalle-pedido__insignias">
+              <app-insignia-ui
+                [texto]="estadoPresentado().etiqueta"
+                [variante]="estadoPresentado().variante"
+              />
+              <app-insignia-ui
+                [texto]="pagoPresentado().etiqueta"
+                [variante]="pagoPresentado().variante"
+              />
+            </div>
+          </div>
+
+          <div
+            class="detalle-pedido__prioridad"
+            [class.detalle-pedido__prioridad--urgente]="prioridadPresentada().nivel === 'urgente'"
+            [class.detalle-pedido__prioridad--atencion]="prioridadPresentada().nivel === 'atencion'"
+          >
+            <strong>{{ prioridadPresentada().etiqueta }}</strong>
+            <span>{{ prioridadPresentada().mensaje }}</span>
+          </div>
+        </div>
+
+        <dl class="detalle-pedido__datos">
+          <div>
+            <dt>Cliente</dt>
+            <dd>{{ pedidoActual.correoCliente }}</dd>
+          </div>
+          <div>
+            <dt>Tienda</dt>
+            <dd>{{ pedidoActual.nombreTienda }}</dd>
+          </div>
+          <div>
+            <dt>Entrega</dt>
+            <dd>
+              @if (pedidoActual.fechaEntrega) {
+                <time [attr.datetime]="pedidoActual.fechaEntrega">
+                  {{ formatearFechaEntrega(pedidoActual.fechaEntrega) }}
+                </time>
+              } @else {
+                Por coordinar
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Modalidad</dt>
+            <dd>{{ pedidoActual.tipoEntrega }}</dd>
+          </div>
+          <div>
+            <dt>Registrado</dt>
+            <dd>
+              @if (pedidoActual.fechaCreacion) {
+                <time [attr.datetime]="pedidoActual.fechaCreacion">
+                  {{ pedidoActual.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}
+                </time>
+              } @else {
+                Sin fecha registrada
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detalle-pedido__finanzas" aria-labelledby="finanzas-pedido-titulo">
+        <div class="detalle-pedido__titulo-seccion">
+          <span aria-hidden="true">01</span>
+          <div>
+            <h3 id="finanzas-pedido-titulo">Resumen financiero</h3>
+            <p>Importes registrados por el backend para este pedido.</p>
+          </div>
+        </div>
+
+        <dl class="detalle-pedido__metricas">
+          <div>
+            <dt>Total</dt>
+            <dd>{{ pedidoActual.total | currency: 'PEN' : 'S/' : '1.2-2' }}</dd>
+          </div>
+          <div>
+            <dt>Pagado</dt>
+            <dd>{{ pedidoActual.montoPagado | currency: 'PEN' : 'S/' : '1.2-2' }}</dd>
+          </div>
+          <div [class.detalle-pedido__metrica--alerta]="pedidoActual.saldoPendiente > 0">
+            <dt>Saldo</dt>
+            <dd>{{ pedidoActual.saldoPendiente | currency: 'PEN' : 'S/' : '1.2-2' }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detalle-pedido__seccion" aria-labelledby="productos-pedido-titulo">
+        <div class="detalle-pedido__titulo-seccion">
+          <span aria-hidden="true">02</span>
+          <div>
+            <h3 id="productos-pedido-titulo">Productos solicitados</h3>
+            <p>
+              {{ pedidoActual.cantidadItems }}
+              {{ pedidoActual.cantidadItems === 1 ? 'producto' : 'productos' }} en el pedido.
+            </p>
+          </div>
+        </div>
+
+        <ul class="detalle-pedido__lista" aria-label="Productos incluidos">
+          @for (producto of pedidoActual.productos; track producto.idDetallePedido) {
+            <li>
+              <div class="detalle-pedido__cantidad" aria-label="Cantidad {{ producto.cantidad }}">
+                {{ producto.cantidad }}×
+              </div>
+              <div class="min-w-0">
+                <strong>{{ producto.nombreProducto }}</strong>
+                <small>
+                  {{ producto.precioUnitario | currency: 'PEN' : 'S/' : '1.2-2' }} por unidad
+                </small>
+              </div>
+              <b>{{ producto.subtotal | currency: 'PEN' : 'S/' : '1.2-2' }}</b>
+            </li>
+          } @empty {
+            <li class="detalle-pedido__vacio">No hay productos activos asociados al pedido.</li>
+          }
+        </ul>
+      </section>
+
+      <section class="detalle-pedido__seccion" aria-labelledby="pagos-pedido-titulo">
+        <div class="detalle-pedido__titulo-seccion">
+          <span aria-hidden="true">03</span>
+          <div>
+            <h3 id="pagos-pedido-titulo">Historial de pagos</h3>
+            <p>Movimientos informados por la pasarela de pago.</p>
+          </div>
+        </div>
+
+        <ol class="detalle-pedido__lista detalle-pedido__lista--pagos">
+          @for (pago of pedidoActual.pagos; track pago.idPago) {
+            <li>
+              <div class="detalle-pedido__pago-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path
+                    d="M4 8h16v9.5A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5V8Zm0 3.5h16M7.5 15h3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.7"
+                  />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <div class="detalle-pedido__pago-cabecera">
+                  <strong>{{ pago.tipoPago }}</strong>
+                  <app-insignia-ui
+                    [texto]="presentacionEstadoPago(pago).etiqueta"
+                    [variante]="presentacionEstadoPago(pago).variante"
+                  />
+                </div>
+                <small>{{ pago.metodoPagoPasarela }} · {{ pago.codigoTransaccion }}</small>
+                @if (pago.fechaCreacion) {
+                  <time [attr.datetime]="pago.fechaCreacion">
+                    {{ pago.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}
+                  </time>
+                }
+              </div>
+              <b>{{ pago.monto | currency: 'PEN' : 'S/' : '1.2-2' }}</b>
+            </li>
+          } @empty {
+            <li class="detalle-pedido__vacio">Todavía no hay pagos visibles para este pedido.</li>
+          }
+        </ol>
+      </section>
+
+      <section class="detalle-pedido__observacion" aria-labelledby="observacion-pedido-titulo">
+        <div>
+          <span class="detalle-pedido__etiqueta">Nota del cliente</span>
+          <h3 id="observacion-pedido-titulo">Indicaciones para preparar la entrega</h3>
+        </div>
+        <p>{{ pedidoActual.observacion }}</p>
+      </section>
+    </div>
+  } @else {
+    <div class="detalle-pedido__estado">
+      <app-estado-pantalla
+        tipo="vacio"
+        etiqueta="Sin selección"
+        titulo="Selecciona un pedido para revisar su información."
+      />
+    </div>
+  }
+</section>

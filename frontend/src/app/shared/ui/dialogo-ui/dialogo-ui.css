@@ -1,0 +1,75 @@
+:host {
+  display: contents;
+}
+
+.dialogo-ui {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  max-height: none;
+  max-width: none;
+  overflow: visible;
+  padding: 1rem;
+  width: 100%;
+}
+
+.dialogo-ui::backdrop {
+  backdrop-filter: blur(5px);
+  background: rgba(31, 19, 35, 0.62);
+}
+
+.dialogo-ui__superficie {
+  background: #fffdfb;
+  border: 1px solid rgba(90, 36, 64, 0.14);
+  border-radius: var(--rg-radius-lg);
+  box-shadow: var(--rg-shadow-elevated);
+  margin: auto;
+  max-height: calc(100dvh - 2rem);
+  max-width: 40rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  width: 100%;
+}
+
+.dialogo-ui__superficie--sm {
+  max-width: 30rem;
+}
+
+.dialogo-ui__superficie--lg {
+  max-width: 48rem;
+}
+
+@media (max-width: 639.98px) {
+  .dialogo-ui {
+    align-content: end;
+    margin: 0;
+    padding: 0;
+  }
+
+  .dialogo-ui__superficie,
+  .dialogo-ui__superficie--sm,
+  .dialogo-ui__superficie--lg {
+    border-bottom: 0;
+    border-radius: var(--rg-radius-lg) var(--rg-radius-lg) 0 0;
+    max-height: calc(100dvh - 1rem);
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialogo-ui[open] .dialogo-ui__superficie {
+    animation: dialogo-ui-entrada 180ms ease-out;
+  }
+}
+
+@keyframes dialogo-ui-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

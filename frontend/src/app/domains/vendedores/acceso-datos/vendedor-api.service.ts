@@ -31,14 +31,26 @@ import {
 
 const TIEMPO_ESPERA_VENDEDOR_MS = 10000;
 
+export type EstadoPedidoFiltroVendedor =
+  'RESERVADO' | 'EN_PREPARACION' | 'LISTO' | 'ENTREGADO' | 'ANULADO';
+
+export type EstadoPagoFiltroVendedor = 'PAGADO' | 'CON_SALDO';
+
+export type OrdenPedidosVendedor =
+  | 'fechaCreacion,desc'
+  | 'fechaEntrega,asc'
+  | 'nombreTienda,asc'
+  | 'total,desc'
+  | 'saldoPendiente,desc';
+
 export interface ConsultaPedidosVendedor {
   page?: number;
   size?: number;
   idTienda?: number;
   q?: string;
-  estado?: string;
-  estadoPago?: 'PAGADO' | 'CON_SALDO';
-  sort?: string;
+  estado?: EstadoPedidoFiltroVendedor;
+  estadoPago?: EstadoPagoFiltroVendedor;
+  sort?: OrdenPedidosVendedor;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -46,23 +58,29 @@ export class VendedorApiService {
   private readonly http = inject(HttpClient);
 
   obtenerPerfilActual(): Observable<VendedorPerfil> {
-    return this.http.get<RespuestaApi<VendedorPerfilDto>>(ENDPOINTS_API.vendedores.perfilActual).pipe(
-      timeout(TIEMPO_ESPERA_VENDEDOR_MS),
-      map((respuesta) => {
-        if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar el perfil vendedor.');
-        return mapearPerfilVendedorDesdeDto(respuesta.data);
-      }),
-    );
+    return this.http
+      .get<RespuestaApi<VendedorPerfilDto>>(ENDPOINTS_API.vendedores.perfilActual)
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo cargar el perfil vendedor.');
+          return mapearPerfilVendedorDesdeDto(respuesta.data);
+        }),
+      );
   }
 
   crearPerfilVendedor(): Observable<VendedorPerfil> {
-    return this.http.post<RespuestaApi<VendedorPerfilDto>>(ENDPOINTS_API.vendedores.perfilActual, {}).pipe(
-      timeout(TIEMPO_ESPERA_VENDEDOR_MS),
-      map((respuesta) => {
-        if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo crear el perfil vendedor.');
-        return mapearPerfilVendedorDesdeDto(respuesta.data);
-      }),
-    );
+    return this.http
+      .post<RespuestaApi<VendedorPerfilDto>>(ENDPOINTS_API.vendedores.perfilActual, {})
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo crear el perfil vendedor.');
+          return mapearPerfilVendedorDesdeDto(respuesta.data);
+        }),
+      );
   }
 
   obtenerTiendas(): Observable<TiendaVendedor[]> {
@@ -89,14 +107,19 @@ export class VendedorApiService {
 
   obtenerProductosPorTienda(idTienda: number): Observable<ProductoVendedor[]> {
     return this.http
-      .get<RespuestaApi<ProductoVendedorDto[]>>(ENDPOINTS_API.vendedores.productosPorTienda(idTienda))
+      .get<RespuestaApi<ProductoVendedorDto[]>>(
+        ENDPOINTS_API.vendedores.productosPorTienda(idTienda),
+      )
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => (respuesta.data ?? []).map(mapearProductoVendedorDesdeDto)),
       );
   }
 
-  crearProducto(idTienda: number, solicitud: SolicitudProductoVendedor): Observable<ProductoVendedor> {
+  crearProducto(
+    idTienda: number,
+    solicitud: SolicitudProductoVendedor,
+  ): Observable<ProductoVendedor> {
     return this.http
       .post<RespuestaApi<ProductoVendedorDto>>(
         ENDPOINTS_API.vendedores.productosPorTienda(idTienda),
@@ -105,7 +128,8 @@ export class VendedorApiService {
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => {
-          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo crear el producto.');
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo crear el producto.');
           return mapearProductoVendedorDesdeDto(respuesta.data);
         }),
       );
@@ -124,7 +148,8 @@ export class VendedorApiService {
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => {
-          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo actualizar el producto.');
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo actualizar el producto.');
           return mapearProductoVendedorDesdeDto(respuesta.data);
         }),
       );
@@ -132,7 +157,9 @@ export class VendedorApiService {
 
   desactivarProducto(idTienda: number, idProducto: number): Observable<void> {
     return this.http
-      .delete<RespuestaApi<void>>(`${ENDPOINTS_API.vendedores.productosPorTienda(idTienda)}/${idProducto}`)
+      .delete<RespuestaApi<void>>(
+        `${ENDPOINTS_API.vendedores.productosPorTienda(idTienda)}/${idProducto}`,
+      )
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map(() => undefined),
@@ -151,9 +178,10 @@ export class VendedorApiService {
     if (consulta.estado) params = params.set('estado', consulta.estado);
     if (consulta.estadoPago) params = params.set('estadoPago', consulta.estadoPago);
 
-    const endpoint = consulta.idTienda === undefined
-      ? ENDPOINTS_API.vendedores.pedidosRecibidos
-      : ENDPOINTS_API.vendedores.pedidosPorTienda(consulta.idTienda);
+    const endpoint =
+      consulta.idTienda === undefined
+        ? ENDPOINTS_API.vendedores.pedidosRecibidos
+        : ENDPOINTS_API.vendedores.pedidosPorTienda(consulta.idTienda);
 
     return this.http
       .get<RespuestaApi<RespuestaPaginada<PedidoRecibidoResumenDto>>>(endpoint, { params })
@@ -161,7 +189,8 @@ export class VendedorApiService {
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => {
           const pagina = respuesta.data;
-          if (!pagina) throw new Error(respuesta.message ?? 'No se pudieron cargar los pedidos recibidos.');
+          if (!pagina)
+            throw new Error(respuesta.message ?? 'No se pudieron cargar los pedidos recibidos.');
 
           return {
             ...pagina,
@@ -173,11 +202,14 @@ export class VendedorApiService {
 
   obtenerProductoPorId(idTienda: number, idProducto: number): Observable<ProductoVendedor> {
     return this.http
-      .get<RespuestaApi<ProductoVendedorDto>>(ENDPOINTS_API.vendedores.productoPorId(idTienda, idProducto))
+      .get<RespuestaApi<ProductoVendedorDto>>(
+        ENDPOINTS_API.vendedores.productoPorId(idTienda, idProducto),
+      )
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => {
-          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar el producto.');
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo cargar el producto.');
           return mapearProductoVendedorDesdeDto(respuesta.data);
         }),
       );
@@ -195,7 +227,10 @@ export class VendedorApiService {
       );
   }
 
-  actualizarTienda(idTienda: number, solicitud: SolicitudTiendaVendedor): Observable<TiendaVendedor> {
+  actualizarTienda(
+    idTienda: number,
+    solicitud: SolicitudTiendaVendedor,
+  ): Observable<TiendaVendedor> {
     return this.http
       .put<RespuestaApi<TiendaVendedorDto>>(
         ENDPOINTS_API.vendedores.tiendaPorId(idTienda),
@@ -204,26 +239,32 @@ export class VendedorApiService {
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => {
-          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo actualizar la tienda.');
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo actualizar la tienda.');
           return mapearTiendaVendedorDesdeDto(respuesta.data);
         }),
       );
   }
 
   eliminarTienda(idTienda: number): Observable<void> {
-    return this.http.delete<RespuestaApi<void>>(ENDPOINTS_API.vendedores.tiendaPorId(idTienda)).pipe(
-      timeout(TIEMPO_ESPERA_VENDEDOR_MS),
-      map(() => undefined),
-    );
+    return this.http
+      .delete<RespuestaApi<void>>(ENDPOINTS_API.vendedores.tiendaPorId(idTienda))
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map(() => undefined),
+      );
   }
 
   obtenerDetallePedidoRecibido(idPedido: number): Observable<PedidoRecibidoDetalle> {
     return this.http
-      .get<RespuestaApi<PedidoRecibidoDetalleDto>>(ENDPOINTS_API.vendedores.pedidoRecibidoPorId(idPedido))
+      .get<RespuestaApi<PedidoRecibidoDetalleDto>>(
+        ENDPOINTS_API.vendedores.pedidoRecibidoPorId(idPedido),
+      )
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map((respuesta) => {
-          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo cargar el detalle del pedido.');
+          if (!respuesta.data)
+            throw new Error(respuesta.message ?? 'No se pudo cargar el detalle del pedido.');
           return mapearPedidoRecibidoDetalleDesdeDto(respuesta.data);
         }),
       );

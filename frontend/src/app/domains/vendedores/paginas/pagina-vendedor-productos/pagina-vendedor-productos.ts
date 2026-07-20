@@ -1,120 +1,657 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  HostListener,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import {
+  AbstractControl,
+  FormArray,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
+import { catchError, EMPTY, finalize, of, switchMap, tap } from 'rxjs';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import {
   CampoFormularioDirective,
   ErrorCampoDirective,
-  FormularioPanelDirective,
 } from '../../../../shared/directivas/formulario-panel.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
+import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
+import { ProductoVendedor } from '../../modelos/vendedor.model';
 
-/** Editor de producto con contexto explícito de tienda; no reutiliza un formulario lateral. */
+const PRECIO_MAXIMO = 99_999_999.99;
+const STOCK_MAXIMO = 2_147_483_647;
+
+interface ContextoRutaProducto {
+  idTienda: number;
+  idProducto: number | null;
+}
+
+interface ImagenVistaPrevia {
+  indice: number;
+  url: string;
+}
+
+const textoNoVacio: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
+  typeof control.value === 'string' && control.value.trim().length === 0
+    ? { textoVacio: true }
+    : null;
+
+const numeroEntero: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  if (control.value === null || control.value === '') return null;
+  return Number.isInteger(Number(control.value)) ? null : { numeroEntero: true };
+};
+
+const maximoDosDecimales: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  if (control.value === null || control.value === '') return null;
+  const valor = Number(control.value);
+  return Number.isFinite(valor) && Number(valor.toFixed(2)) === valor
+    ? null
+    : { maximoDosDecimales: true };
+};
+
+const urlImagenValida: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const valor = typeof control.value === 'string' ? control.value.trim() : '';
+  if (!valor) return null;
+  if (valor.startsWith('/') && !valor.startsWith('//')) return null;
+
+  try {
+    const url = new URL(valor);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? null : { urlImagen: true };
+  } catch {
+    return { urlImagen: true };
+  }
+};
+
+/** Editor de catálogo conectado únicamente a los contratos reales del vendedor. */
 @Component({
   selector: 'app-pagina-vendedor-productos',
   imports: [
+    CurrencyPipe,
     RouterLink,
     ReactiveFormsModule,
     BotonDirective,
     CampoFormularioDirective,
     ErrorCampoDirective,
-    FormularioPanelDirective,
     EstadoPantallaComponent,
+    InsigniaUi,
   ],
   templateUrl: './pagina-vendedor-productos.html',
   styleUrl: './pagina-vendedor-productos.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaVendedorProductos implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly vendedorApi = inject(VendedorApiService);
+  private readonly revisionFormulario = signal(0);
+  private readonly indicesImagenNoDisponible = signal<ReadonlySet<number>>(new Set());
+  private secuenciaCargaProducto = 0;
+  private componenteActivo = true;
 
   readonly store = inject(VendedorPanelStore);
   readonly idTienda = signal<number | null>(null);
   readonly idProducto = signal<number | null>(null);
   readonly cargandoProducto = signal(false);
-  readonly urlImagenActual = signal<string | null>(null);
+  readonly mensajeErrorCargaProducto = signal<string | null>(null);
+  readonly formularioEnviado = signal(false);
+  readonly indiceImagenSeleccionada = signal(0);
+  readonly tipoProductoOriginal = signal<{ idTipoProducto: number; nombre: string } | null>(null);
 
   readonly formularioProducto = new FormGroup({
     idTipoProducto: new FormControl<number | null>(null, [Validators.required]),
-    nombre: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(150)] }),
-    descripcion: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(1000)] }),
-    precio: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0.01)] }),
-    stock: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
+    nombre: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, textoNoVacio, Validators.maxLength(150)],
+    }),
+    descripcion: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(1000)],
+    }),
+    precio: new FormControl<number | null>(null, [
+      Validators.required,
+      Validators.min(0.01),
+      Validators.max(PRECIO_MAXIMO),
+      maximoDosDecimales,
+    ]),
+    stock: new FormControl<number | null>(null, [
+      Validators.required,
+      Validators.min(0),
+      Validators.max(STOCK_MAXIMO),
+      numeroEntero,
+    ]),
     visibleEnTienda: new FormControl(true, { nonNullable: true }),
+    imagenes: new FormArray<FormControl<string>>([this.crearControlImagen()]),
   });
 
+  readonly esEdicion = computed(() => this.idProducto() !== null);
+  readonly tienda = computed(() => {
+    const idTienda = this.idTienda();
+    return this.store.tiendas().find((tienda) => tienda.idTienda === idTienda) ?? null;
+  });
+
+  readonly tiposProductoFormulario = computed(() => {
+    const tipos = this.store.tiposProducto();
+    const original = this.tipoProductoOriginal();
+    if (!original || tipos.some((tipo) => tipo.idTipoProducto === original.idTipoProducto)) {
+      return tipos;
+    }
+
+    return [
+      ...tipos,
+      {
+        idTipoProducto: original.idTipoProducto,
+        nombre: `${original.nombre} (no disponible)`,
+        estado: false,
+      },
+    ];
+  });
+
+  readonly nombreVistaPrevia = computed(() => {
+    this.revisionFormulario();
+    return this.formularioProducto.controls.nombre.value.trim() || 'Nombre de tu producto';
+  });
+
+  readonly descripcionVistaPrevia = computed(() => {
+    this.revisionFormulario();
+    return (
+      this.formularioProducto.controls.descripcion.value.trim() ||
+      'Agrega una descripción breve para ayudar al cliente a elegir.'
+    );
+  });
+
+  readonly tipoVistaPrevia = computed(() => {
+    this.revisionFormulario();
+    const idTipoProducto = this.formularioProducto.controls.idTipoProducto.value;
+    return (
+      this.tiposProductoFormulario()
+        .find((tipo) => tipo.idTipoProducto === idTipoProducto)
+        ?.nombre.replace(' (no disponible)', '') ?? 'Tipo de producto'
+    );
+  });
+
+  readonly precioVistaPrevia = computed(() => {
+    this.revisionFormulario();
+    return Math.max(Number(this.formularioProducto.controls.precio.value ?? 0), 0);
+  });
+
+  readonly stockVistaPrevia = computed(() => {
+    this.revisionFormulario();
+    return Math.max(Math.trunc(Number(this.formularioProducto.controls.stock.value ?? 0)), 0);
+  });
+
+  readonly visibleVistaPrevia = computed(() => {
+    this.revisionFormulario();
+    return this.formularioProducto.controls.visibleEnTienda.value;
+  });
+
+  readonly estadoCatalogoVistaPrevia = computed(() => {
+    if (!this.visibleVistaPrevia()) return { texto: 'Oculto', variante: 'neutral' as const };
+    if (this.stockVistaPrevia() === 0) {
+      return { texto: 'Sin stock', variante: 'advertencia' as const };
+    }
+    return { texto: 'Visible', variante: 'exito' as const };
+  });
+
+  readonly imagenesVistaPrevia = computed<ImagenVistaPrevia[]>(() => {
+    this.revisionFormulario();
+    return this.imagenes.controls
+      .map((control, indice) => ({ indice, url: control.value.trim() }))
+      .filter((imagen) => Boolean(imagen.url) && this.imagenes.at(imagen.indice).valid);
+  });
+
+  readonly imagenSeleccionada = computed(() => {
+    const imagenes = this.imagenesVistaPrevia();
+    return (
+      imagenes.find((imagen) => imagen.indice === this.indiceImagenSeleccionada()) ??
+      imagenes[0] ??
+      null
+    );
+  });
+
+  readonly cantidadErrores = computed(() => {
+    this.revisionFormulario();
+    const controlesPrincipales = [
+      this.formularioProducto.controls.idTipoProducto,
+      this.formularioProducto.controls.nombre,
+      this.formularioProducto.controls.descripcion,
+      this.formularioProducto.controls.precio,
+      this.formularioProducto.controls.stock,
+    ];
+    return (
+      controlesPrincipales.filter((control) => control.invalid).length +
+      this.imagenes.controls.filter((control) => control.invalid).length
+    );
+  });
+
+  get imagenes(): FormArray<FormControl<string>> {
+    return this.formularioProducto.controls.imagenes;
+  }
+
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      const idTienda = Number(params.get('idTienda'));
-      const idProducto = this.obtenerIdOpcional(params.get('idProducto'));
-      if (!Number.isInteger(idTienda) || idTienda <= 0) return;
-
-      this.idTienda.set(idTienda);
-      this.idProducto.set(idProducto);
-      this.store.cargarPanel(false, false, idTienda);
-
-      if (idProducto !== null) this.cargarProducto(idTienda, idProducto);
+    this.destroyRef.onDestroy(() => {
+      this.componenteActivo = false;
+      this.secuenciaCargaProducto += 1;
     });
+    this.store.limpiarMensajes();
+    this.formularioProducto.events
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.revisionFormulario.update((revision) => revision + 1));
+
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          const contexto = this.obtenerContextoRuta(params);
+          if (!contexto) {
+            void this.router.navigate(['/vendedor/tiendas'], { replaceUrl: true });
+            return EMPTY;
+          }
+
+          this.prepararContexto(contexto);
+          if (contexto.idProducto === null) return of(null);
+
+          const idSolicitud = ++this.secuenciaCargaProducto;
+          this.cargandoProducto.set(true);
+          return this.vendedorApi.obtenerProductoPorId(contexto.idTienda, contexto.idProducto).pipe(
+            tap((producto) => {
+              if (this.esCargaProductoActual(idSolicitud, contexto)) {
+                this.cargarFormulario(producto);
+              }
+            }),
+            catchError(() => {
+              if (this.esCargaProductoActual(idSolicitud, contexto)) {
+                this.mensajeErrorCargaProducto.set('No pudimos cargar el producto solicitado.');
+              }
+              return EMPTY;
+            }),
+            finalize(() => {
+              if (this.esCargaProductoActual(idSolicitud, contexto)) {
+                this.cargandoProducto.set(false);
+              }
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  advertirCambiosAntesDeCerrar(evento: BeforeUnloadEvent): void {
+    if (!this.hayCambiosPendientes()) return;
+    evento.preventDefault();
+    evento.returnValue = '';
+  }
+
+  confirmarSalida(): boolean {
+    if (!this.hayCambiosPendientes()) return true;
+    return window.confirm(
+      'Tienes cambios sin guardar. Si sales ahora, se perderán. ¿Deseas continuar?',
+    );
   }
 
   guardarProducto(): void {
+    if (this.store.guardandoProducto() || this.store.tiposProducto().length === 0) return;
+
     this.store.limpiarMensajes();
+    this.formularioEnviado.set(true);
+    this.validarTipoProductoDisponible();
+
     if (this.formularioProducto.invalid) {
       this.formularioProducto.markAllAsTouched();
+      this.revisionFormulario.update((revision) => revision + 1);
+      this.enfocarPrimerCampoInvalido();
       return;
     }
 
     const idTienda = this.idTienda();
+    const idProducto = this.idProducto();
     const valor = this.formularioProducto.getRawValue();
-    if (idTienda === null || valor.idTipoProducto === null) return;
+    if (
+      idTienda === null ||
+      valor.idTipoProducto === null ||
+      valor.precio === null ||
+      valor.stock === null
+    ) {
+      return;
+    }
 
-    this.store.guardarProducto(idTienda, {
-      idTipoProducto: valor.idTipoProducto,
-      nombre: valor.nombre.trim(),
-      descripcion: valor.descripcion.trim() || null,
-      precio: Number(valor.precio),
-      stock: Number(valor.stock),
-      visibleEnTienda: valor.visibleEnTienda,
-      // Conserva una imagen heredada hasta habilitar la carga directa de archivos.
-      urlImagen: this.urlImagenActual(),
-    }, this.idProducto() ?? undefined);
+    this.formularioEnviado.set(false);
+    const revisionGuardada = this.revisionFormulario();
+    this.store.guardarProducto(
+      idTienda,
+      {
+        idTipoProducto: valor.idTipoProducto,
+        nombre: valor.nombre.trim(),
+        descripcion: valor.descripcion.trim() || null,
+        precio: Number(valor.precio),
+        stock: Number(valor.stock),
+        visibleEnTienda: valor.visibleEnTienda,
+        imagenes: valor.imagenes
+          .map((urlImagen) => urlImagen.trim())
+          .filter(Boolean)
+          .map((urlImagen, indice) => ({ urlImagen, orden: indice + 1 })),
+      },
+      idProducto ?? undefined,
+      (producto) => {
+        if (
+          !this.componenteActivo ||
+          this.idTienda() !== idTienda ||
+          this.idProducto() !== idProducto ||
+          this.revisionFormulario() !== revisionGuardada
+        ) {
+          return;
+        }
+        this.formularioProducto.markAsPristine();
+        if (idProducto === null) {
+          void this.router.navigate(
+            ['/vendedor/tiendas', idTienda, 'productos', producto.idProducto, 'editar'],
+            { replaceUrl: true },
+          );
+        }
+      },
+    );
   }
 
-  campoTieneError(campo: keyof typeof this.formularioProducto.controls): boolean {
+  agregarImagen(): void {
+    this.imagenes.push(this.crearControlImagen());
+    this.imagenes.markAsDirty();
+    const nuevoIndice = this.imagenes.length - 1;
+    this.indiceImagenSeleccionada.set(nuevoIndice);
+    this.revisionFormulario.update((revision) => revision + 1);
+    queueMicrotask(() =>
+      this.elemento.nativeElement
+        .querySelector<HTMLElement>(`#producto-imagen-${nuevoIndice}`)
+        ?.focus(),
+    );
+  }
+
+  eliminarImagen(indice: number): void {
+    if (this.imagenes.length === 1) {
+      this.imagenes.at(0).reset('');
+      this.imagenes.markAsDirty();
+      this.indiceImagenSeleccionada.set(0);
+      this.indicesImagenNoDisponible.set(new Set());
+      queueMicrotask(() =>
+        this.elemento.nativeElement.querySelector<HTMLElement>('#producto-imagen-0')?.focus(),
+      );
+      return;
+    }
+
+    const indiceSeleccionadoAnterior = this.indiceImagenSeleccionada();
+    this.imagenes.removeAt(indice);
+    this.imagenes.markAsDirty();
+    this.indicesImagenNoDisponible.update(
+      (indices) =>
+        new Set(
+          [...indices]
+            .filter((actual) => actual !== indice)
+            .map((actual) => (actual > indice ? actual - 1 : actual)),
+        ),
+    );
+    const siguienteIndiceSeleccionado =
+      indiceSeleccionadoAnterior === indice
+        ? Math.min(indice, this.imagenes.length - 1)
+        : indiceSeleccionadoAnterior > indice
+          ? indiceSeleccionadoAnterior - 1
+          : indiceSeleccionadoAnterior;
+    this.indiceImagenSeleccionada.set(Math.max(0, siguienteIndiceSeleccionado));
+    this.revisionFormulario.update((revision) => revision + 1);
+    queueMicrotask(() =>
+      this.elemento.nativeElement
+        .querySelector<HTMLElement>(
+          `#producto-imagen-${Math.min(indice, this.imagenes.length - 1)}`,
+        )
+        ?.focus(),
+    );
+  }
+
+  seleccionarImagen(indice: number): void {
+    this.indiceImagenSeleccionada.set(indice);
+  }
+
+  notificarCambioImagen(indice: number): void {
+    this.indiceImagenSeleccionada.set(indice);
+    this.indicesImagenNoDisponible.update((indices) => {
+      const siguientes = new Set(indices);
+      siguientes.delete(indice);
+      return siguientes;
+    });
+  }
+
+  marcarImagenNoDisponible(indice: number): void {
+    this.indicesImagenNoDisponible.update((indices) => new Set(indices).add(indice));
+  }
+
+  imagenNoDisponible(indice: number): boolean {
+    return this.indicesImagenNoDisponible().has(indice);
+  }
+
+  campoTieneError(
+    campo: Exclude<keyof typeof this.formularioProducto.controls, 'imagenes'>,
+  ): boolean {
     const control = this.formularioProducto.controls[campo];
-    return control.invalid && (control.touched || control.dirty);
+    return control.invalid && (control.touched || control.dirty || this.formularioEnviado());
   }
 
-  private cargarProducto(idTienda: number, idProducto: number): void {
+  imagenTieneError(indice: number): boolean {
+    const control = this.imagenes.at(indice);
+    return control.invalid && (control.touched || control.dirty || this.formularioEnviado());
+  }
+
+  mensajeErrorTipoProducto(): string {
+    const control = this.formularioProducto.controls.idTipoProducto;
+    return control.hasError('tipoNoDisponible')
+      ? 'El tipo actual ya no está disponible. Selecciona otro para continuar.'
+      : 'Selecciona un tipo de producto.';
+  }
+
+  mensajeErrorNombre(): string {
+    const control = this.formularioProducto.controls.nombre;
+    if (control.hasError('maxlength')) return 'El nombre no puede superar los 150 caracteres.';
+    return 'Escribe un nombre con contenido para el producto.';
+  }
+
+  mensajeErrorPrecio(): string {
+    const control = this.formularioProducto.controls.precio;
+    if (control.hasError('max')) return 'El precio supera el máximo permitido.';
+    if (control.hasError('maximoDosDecimales')) return 'Usa como máximo dos decimales.';
+    return 'Ingresa un precio mayor o igual a S/ 0.01.';
+  }
+
+  mensajeErrorStock(): string {
+    const control = this.formularioProducto.controls.stock;
+    if (control.hasError('numeroEntero')) return 'El stock debe ser un número entero.';
+    if (control.hasError('max')) return 'El stock supera el máximo permitido.';
+    return 'Ingresa una cantidad igual o mayor a cero.';
+  }
+
+  mensajeErrorImagen(indice: number): string {
+    return this.imagenes.at(indice).hasError('maxlength')
+      ? 'La URL no puede superar los 500 caracteres.'
+      : 'Ingresa una URL http, https o una ruta interna válida.';
+  }
+
+  reintentarCargaProducto(): void {
+    const idTienda = this.idTienda();
+    const idProducto = this.idProducto();
+    if (idTienda === null || idProducto === null) return;
+
+    const contexto = { idTienda, idProducto };
+    const idSolicitud = ++this.secuenciaCargaProducto;
+    this.mensajeErrorCargaProducto.set(null);
     this.cargandoProducto.set(true);
-    this.vendedorApi.obtenerProductoPorId(idTienda, idProducto)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.vendedorApi
+      .obtenerProductoPorId(idTienda, idProducto)
+      .pipe(
+        finalize(() => {
+          if (this.esCargaProductoActual(idSolicitud, contexto)) {
+            this.cargandoProducto.set(false);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (producto) => {
-          this.formularioProducto.reset({
-            idTipoProducto: producto.idTipoProducto,
-            nombre: producto.nombre,
-            descripcion: producto.descripcion === 'Sin descripcion registrada.' ? '' : producto.descripcion,
-            precio: producto.precio,
-            stock: producto.stock,
-            visibleEnTienda: producto.visibleEnTienda,
-          });
-          this.urlImagenActual.set(producto.urlImagen.includes('producto-fallback.svg') ? null : producto.urlImagen);
-          this.cargandoProducto.set(false);
+          if (this.esCargaProductoActual(idSolicitud, contexto)) {
+            this.cargarFormulario(producto);
+          }
         },
         error: () => {
-          this.store.mensajeError.set('No pudimos cargar el producto solicitado.');
-          this.cargandoProducto.set(false);
+          if (this.esCargaProductoActual(idSolicitud, contexto)) {
+            this.mensajeErrorCargaProducto.set('No pudimos cargar el producto solicitado.');
+          }
         },
       });
   }
 
-  private obtenerIdOpcional(valor: string | null): number | null {
-    const id = Number(valor);
-    return Number.isInteger(id) && id > 0 ? id : null;
+  cancelar(): void {
+    if (this.store.guardandoProducto()) return;
+    const idTienda = this.idTienda();
+    if (idTienda !== null) void this.router.navigate(['/vendedor/tiendas', idTienda]);
+  }
+
+  private crearControlImagen(valor = ''): FormControl<string> {
+    return new FormControl(valor, {
+      nonNullable: true,
+      validators: [Validators.maxLength(500), urlImagenValida],
+    });
+  }
+
+  private obtenerContextoRuta(params: ParamMap): ContextoRutaProducto | null {
+    const idTienda = Number(params.get('idTienda'));
+    if (!Number.isInteger(idTienda) || idTienda <= 0) return null;
+
+    const parametroProducto = params.get('idProducto');
+    if (parametroProducto === null) return { idTienda, idProducto: null };
+
+    const idProducto = Number(parametroProducto);
+    return Number.isInteger(idProducto) && idProducto > 0 ? { idTienda, idProducto } : null;
+  }
+
+  private prepararContexto(contexto: ContextoRutaProducto): void {
+    this.secuenciaCargaProducto += 1;
+    this.idTienda.set(contexto.idTienda);
+    this.idProducto.set(contexto.idProducto);
+    this.mensajeErrorCargaProducto.set(null);
+    this.cargandoProducto.set(false);
+    this.tipoProductoOriginal.set(null);
+    this.indicesImagenNoDisponible.set(new Set());
+    this.indiceImagenSeleccionada.set(0);
+    this.reiniciarFormulario();
+    this.store.cargarContexto();
+  }
+
+  private reiniciarFormulario(): void {
+    this.formularioProducto.reset({
+      idTipoProducto: null,
+      nombre: '',
+      descripcion: '',
+      precio: null,
+      stock: null,
+      visibleEnTienda: true,
+    });
+    this.reemplazarImagenes([]);
+    this.formularioEnviado.set(false);
+    this.formularioProducto.markAsPristine();
+    this.formularioProducto.markAsUntouched();
+  }
+
+  private cargarFormulario(producto: ProductoVendedor): void {
+    this.mensajeErrorCargaProducto.set(null);
+    this.tipoProductoOriginal.set({
+      idTipoProducto: producto.idTipoProducto,
+      nombre: producto.tipoProducto,
+    });
+    this.formularioProducto.reset({
+      idTipoProducto: producto.idTipoProducto,
+      nombre: producto.nombre,
+      descripcion:
+        producto.descripcion === 'Sin descripcion registrada.' ? '' : producto.descripcion,
+      precio: producto.precio,
+      stock: producto.stock,
+      visibleEnTienda: producto.visibleEnTienda,
+    });
+    this.reemplazarImagenes(producto.imagenes.map((imagen) => imagen.urlImagen));
+    this.formularioProducto.markAsPristine();
+    this.formularioProducto.markAsUntouched();
+  }
+
+  private reemplazarImagenes(urlsImagenes: string[]): void {
+    this.imagenes.clear({ emitEvent: false });
+    const urls = urlsImagenes.length > 0 ? urlsImagenes : [''];
+    urls.forEach((urlImagen) =>
+      this.imagenes.push(this.crearControlImagen(urlImagen), { emitEvent: false }),
+    );
+    this.imagenes.updateValueAndValidity({ emitEvent: true });
+    this.indiceImagenSeleccionada.set(0);
+    this.indicesImagenNoDisponible.set(new Set());
+  }
+
+  private validarTipoProductoDisponible(): void {
+    const control = this.formularioProducto.controls.idTipoProducto;
+    const idTipoProducto = control.value;
+    const estaDisponible =
+      idTipoProducto !== null &&
+      this.store.tiposProducto().some((tipo) => tipo.idTipoProducto === idTipoProducto);
+
+    if (idTipoProducto !== null && !estaDisponible) {
+      control.setErrors({ ...(control.errors ?? {}), tipoNoDisponible: true });
+      return;
+    }
+
+    if (!control.hasError('tipoNoDisponible')) return;
+    const { tipoNoDisponible: _tipoNoDisponible, ...otrosErrores } = control.errors ?? {};
+    control.setErrors(Object.keys(otrosErrores).length > 0 ? otrosErrores : null);
+  }
+
+  private enfocarPrimerCampoInvalido(): void {
+    const campos: Array<{ control: AbstractControl; id: string }> = [
+      { control: this.formularioProducto.controls.idTipoProducto, id: 'producto-tipo' },
+      { control: this.formularioProducto.controls.nombre, id: 'producto-nombre' },
+      { control: this.formularioProducto.controls.descripcion, id: 'producto-descripcion' },
+      { control: this.formularioProducto.controls.precio, id: 'producto-precio' },
+      { control: this.formularioProducto.controls.stock, id: 'producto-stock' },
+      ...this.imagenes.controls.map((control, indice) => ({
+        control,
+        id: `producto-imagen-${indice}`,
+      })),
+    ];
+    const primerCampo = campos.find(({ control }) => control.invalid);
+    if (!primerCampo) return;
+
+    queueMicrotask(() =>
+      this.elemento.nativeElement.querySelector<HTMLElement>(`#${primerCampo.id}`)?.focus(),
+    );
+  }
+
+  private esCargaProductoActual(idSolicitud: number, contexto: ContextoRutaProducto): boolean {
+    return (
+      this.componenteActivo &&
+      idSolicitud === this.secuenciaCargaProducto &&
+      this.idTienda() === contexto.idTienda &&
+      this.idProducto() === contexto.idProducto
+    );
+  }
+
+  private hayCambiosPendientes(): boolean {
+    return this.formularioProducto.dirty;
   }
 }

@@ -1,254 +1,789 @@
 :host {
   display: block;
+  min-width: 0;
 }
 
 .vendedor-tiendas {
-  display: grid;
-  gap: 1.1rem;
+  min-width: 0;
 }
 
 .vendedor-tiendas__hero,
-.vendedor-card {
+.vendedor-tiendas__panel,
+.vendedor-tiendas__guia,
+.vendedor-tiendas__siguiente {
   border: 1px solid rgba(90, 36, 64, 0.1);
-  border-radius: 1.6rem;
-  box-shadow: 0 22px 54px rgba(35, 25, 39, 0.1);
-  min-width: 0;
-  padding: clamp(1rem, 2vw, 1.5rem);
+  box-shadow: 0 14px 38px rgba(35, 25, 39, 0.08);
 }
 
 .vendedor-tiendas__hero {
+  align-items: stretch;
   background:
-    radial-gradient(circle at 88% 16%, rgba(215, 173, 75, 0.24), transparent 8rem),
-    linear-gradient(135deg, #2b172f 0%, #5a2440 58%, #bc4c47 100%);
+    radial-gradient(circle at 91% 6%, rgba(215, 173, 75, 0.24), transparent 13rem),
+    linear-gradient(125deg, #281923 0%, #51213b 72%, #6a3c52 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 1.35rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr);
+  overflow: hidden;
+  padding: clamp(1.1rem, 2.2vw, 1.45rem);
+  position: relative;
 }
 
-.vendedor-card {
-  background:
-    linear-gradient(180deg, rgba(255, 250, 245, 0.94), rgba(255, 255, 255, 0.96)),
-    #fff;
+.vendedor-tiendas__hero::before {
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0 1px,
+    transparent 1px 1.5rem
+  );
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
 }
 
-.vendedor-tiendas__hero span,
-.vendedor-card span {
+.vendedor-tiendas__hero-copy,
+.vendedor-tiendas__identidad {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.vendedor-tiendas__hero-copy {
+  align-content: center;
+  display: grid;
+}
+
+.vendedor-tiendas__eyebrow,
+.vendedor-tiendas__tienda-etiqueta {
   color: var(--rg-color-primary);
-  font-weight: 950;
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
 }
 
-.vendedor-tiendas__hero h2,
-.vendedor-card h3 {
-  color: var(--rg-color-ink);
-  font-weight: 950;
-  letter-spacing: -0.04em;
-  margin: 0.25rem 0;
+.vendedor-tiendas__hero .vendedor-tiendas__eyebrow {
+  color: var(--rg-color-gold);
 }
 
-.vendedor-tiendas__hero p,
-.vendedor-card p,
-.vendedor-card small {
-  color: var(--rg-color-muted);
-}
-
-.vendedor-tiendas__hero span,
-.vendedor-tiendas__hero h2,
-.vendedor-tiendas__hero p {
+.vendedor-tiendas__hero h2 {
   color: #fff;
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  font-weight: 850;
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+  margin: 0.45rem 0 0.65rem;
+  max-width: 20ch;
 }
 
-.vendedor-tiendas__hero p {
-  max-width: 46rem;
-  opacity: 0.76;
+.vendedor-tiendas__hero-copy > p {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 62ch;
 }
 
-.vendedor-tiendas__layout {
-  align-items: start;
+.vendedor-tiendas__identidad {
+  align-content: center;
+  background: rgba(255, 253, 250, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 1.1rem;
   display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(19rem, 0.36fr) minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 1rem;
 }
 
-.vendedor-tiendas__layout > * {
-  min-width: 0;
+.vendedor-tiendas__identidad small {
+  color: var(--rg-color-muted);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.vendedor-card:first-child {
-  /* Formulario destacado porque es el principal punto de crecimiento del vendedor. */
-  background:
-    radial-gradient(circle at 100% 0%, rgba(215, 173, 75, 0.18), transparent 7rem),
-    linear-gradient(145deg, #fff 0%, #fff6ee 100%);
+.vendedor-tiendas__identidad strong {
+  color: var(--rg-color-ink);
+  display: block;
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.3;
+  margin-top: 0.12rem;
+  overflow-wrap: anywhere;
 }
 
-.vendedor-tiendas__acciones-formulario,
-.vendedor-tiendas__acciones-tienda {
+.vendedor-tiendas__identidad p,
+.vendedor-tiendas__identidad-estado > span {
+  color: var(--rg-color-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0.2rem 0 0;
+}
+
+.vendedor-tiendas__identidad-estado {
+  align-items: center;
+  border-top: 1px solid var(--rg-color-border);
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  padding-top: 0.8rem;
 }
 
-.vendedor-tiendas__acciones-formulario {
-  margin-top: 0.35rem;
+.vendedor-tiendas__identidad-icono,
+.vendedor-tiendas__siguiente-icono {
+  background: var(--rg-color-gold-soft);
+  border-radius: var(--rg-radius-md);
+  color: #805718;
+  display: grid;
+  height: 2.75rem;
+  place-items: center;
+  width: 2.75rem;
+}
+
+.vendedor-tiendas__identidad-icono svg,
+.vendedor-tiendas__siguiente-icono svg {
+  height: 1.3rem;
+  width: 1.3rem;
+}
+
+.vendedor-tiendas__edicion,
+.vendedor-tiendas__contenido {
+  align-items: start;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.36fr);
+  min-width: 0;
+}
+
+.vendedor-tiendas__panel,
+.vendedor-tiendas__guia {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 1.25rem;
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.25rem);
+}
+
+.vendedor-tiendas__panel-header {
+  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.vendedor-tiendas__panel-header > div {
+  min-width: 0;
+}
+
+.vendedor-tiendas__panel-header h3,
+.vendedor-tiendas__guia h3,
+.vendedor-tiendas__siguiente h3 {
+  color: var(--rg-color-ink);
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.vendedor-tiendas__panel-header p,
+.vendedor-tiendas__guia > p,
+.vendedor-tiendas__siguiente > p {
+  color: var(--rg-color-muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  margin: 0.4rem 0 0;
 }
 
 .vendedor-tiendas__selector-rubros {
   align-items: center;
-  background: #fffaf6;
-  border: 1px solid rgba(90, 36, 64, 0.18);
-  border-radius: 0.8rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: space-between;
-  padding: 0.8rem;
+  background: var(--rg-color-bg-elevated);
+  border: 1px solid rgba(90, 36, 64, 0.16);
+  border-radius: var(--rg-radius-md);
+  display: grid;
+  gap: 0.75rem 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 0;
+  min-width: 0;
+  padding: 0.9rem;
 }
 
-.vendedor-tiendas__selector-rubros strong {
+.vendedor-tiendas__selector-rubros legend {
   color: var(--rg-color-ink);
+  float: none;
+  font-size: 0.8rem;
+  font-weight: 850;
+  grid-column: 1 / -1;
+  line-height: inherit;
+  margin: 0;
+  padding: 0;
+  width: auto;
+}
+
+.vendedor-tiendas__selector-rubros legend span {
+  color: var(--rg-color-danger);
 }
 
 .vendedor-tiendas__selector-rubros p {
+  color: var(--rg-color-ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.vendedor-tiendas__selector-rubros small {
   color: var(--rg-color-muted);
-  font-size: 0.875rem;
-  margin: 0.2rem 0 0;
-  max-width: 28rem;
+  display: block;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  margin-top: 0.18rem;
+}
+
+.vendedor-tiendas__selector-rubros .rg-boton svg,
+.vendedor-tiendas__acciones-tienda .rg-boton svg,
+.vendedor-tiendas__accion-peligro svg {
+  height: 1rem;
+  width: 1rem;
 }
 
 .vendedor-tiendas__selector-rubros--error {
-  border-color: var(--rg-color-danger, #b42318);
+  border-color: var(--rg-color-danger);
 }
 
-.vendedor-tiendas__selector-rubros [appErrorCampo] {
-  flex-basis: 100%;
+.vendedor-tiendas__selector-rubros .vendedor-tiendas__error {
+  color: var(--rg-color-danger);
+  font-weight: 800;
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
-.vendedor-tiendas__modal-fondo {
-  align-items: center;
-  background: rgba(31, 19, 35, 0.55);
-  display: flex;
-  inset: 0;
-  justify-content: center;
-  padding: 1rem;
-  position: fixed;
-  z-index: 1050;
+.vendedor-tiendas__acciones-formulario {
+  border-top: 1px solid var(--rg-color-border);
+  margin-top: 0.2rem;
+  padding-top: 1rem;
 }
 
-.vendedor-tiendas__modal {
-  background: #fffdfb;
-  border: 1px solid rgba(90, 36, 64, 0.16);
-  border-radius: 1.25rem;
-  box-shadow: 0 28px 80px rgba(31, 19, 35, 0.34);
-  max-height: min(44rem, calc(100vh - 2rem));
-  max-width: 42rem;
-  overflow: auto;
-  padding: clamp(1rem, 3vw, 1.5rem);
-  width: 100%;
+.vendedor-tiendas__guia {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(215, 173, 75, 0.22), transparent 9rem), #fffaf3;
 }
 
-.vendedor-tiendas__modal-encabezado {
+.vendedor-tiendas__lista-guia li {
   align-items: flex-start;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.vendedor-tiendas__lista-guia li > span {
+  background: var(--rg-color-primary-soft);
+  border-radius: 50%;
+  color: var(--rg-color-primary);
+  display: grid;
+  height: 1.65rem;
+  place-items: center;
+  width: 1.65rem;
+}
+
+.vendedor-tiendas__lista-guia svg {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.vendedor-tiendas__lista-guia strong,
+.vendedor-tiendas__lista-guia small {
+  display: block;
+}
+
+.vendedor-tiendas__lista-guia strong {
+  color: var(--rg-color-ink);
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.vendedor-tiendas__lista-guia small {
+  color: var(--rg-color-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  margin-top: 0.12rem;
+}
+
+.vendedor-tiendas__guia-nota {
+  background: rgba(90, 36, 64, 0.06);
+  border: 1px solid rgba(90, 36, 64, 0.09);
+  border-radius: var(--rg-radius-md);
+  padding: 0.8rem;
+}
+
+.vendedor-tiendas__guia-nota svg {
+  color: var(--rg-color-primary);
+  flex: 0 0 auto;
+  height: 1.15rem;
+  margin-top: 0.1rem;
+  width: 1.15rem;
+}
+
+.vendedor-tiendas__guia-nota p {
+  color: var(--rg-color-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.vendedor-tiendas__contador {
+  background: var(--rg-color-primary-soft);
+  border-radius: 999px;
+  color: var(--rg-color-primary);
+  display: grid;
+  flex: 0 0 auto;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+  height: 2.5rem;
+  place-items: center;
+  width: 2.5rem;
+}
+
+.vendedor-tiendas__tienda {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(215, 173, 75, 0.11), transparent 10rem),
+    var(--rg-color-surface);
+  border: 1px solid var(--rg-color-border);
+  border-radius: var(--rg-radius-lg);
+  min-width: 0;
+  padding: clamp(0.95rem, 2vw, 1.2rem);
+}
+
+.vendedor-tiendas__tienda-header {
+  min-width: 0;
+}
+
+.vendedor-tiendas__monograma {
+  background:
+    radial-gradient(circle at 75% 20%, rgba(255, 255, 255, 0.22), transparent 1.5rem),
+    var(--rg-gradient-brand);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 1rem 1rem 1rem 0.35rem;
+  box-shadow: 0 10px 24px rgba(90, 36, 64, 0.17);
+  color: #fff;
+  display: grid;
+  flex: 0 0 auto;
+  font-size: 1rem;
+  font-weight: 900;
+  height: 3.5rem;
+  letter-spacing: -0.03em;
+  place-items: center;
+  width: 3.5rem;
+}
+
+.vendedor-tiendas__monograma--compacto {
+  border-radius: 0.8rem 0.8rem 0.8rem 0.3rem;
+  box-shadow: none;
+  font-size: 0.78rem;
+  height: 2.65rem;
+  width: 2.65rem;
+}
+
+.vendedor-tiendas__tienda h4 {
+  color: var(--rg-color-ink);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+  margin: 0.18rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.vendedor-tiendas__descripcion {
+  color: var(--rg-color-muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 1rem 0;
+  max-width: 72ch;
+  overflow-wrap: anywhere;
+}
+
+.vendedor-tiendas__detalles > div {
+  background: var(--rg-color-bg-elevated);
+  border: 1px solid rgba(90, 36, 64, 0.08);
+  border-radius: var(--rg-radius-md);
+  min-width: 0;
+  padding: 0.75rem;
+}
+
+.vendedor-tiendas__detalles dt {
+  align-items: center;
+  color: var(--rg-color-muted);
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: 800;
+  gap: 0.35rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vendedor-tiendas__detalles dt svg {
+  flex: 0 0 auto;
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.vendedor-tiendas__detalles dd {
+  color: var(--rg-color-ink);
+  font-size: 0.84rem;
+  font-weight: 750;
+  line-height: 1.4;
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.vendedor-tiendas__rubros {
+  margin: 0.9rem 0 0;
+}
+
+.vendedor-tiendas__rubros span {
+  background: rgba(90, 36, 64, 0.07);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 999px;
+  color: var(--rg-color-primary);
+  font-size: 0.7rem;
+  font-weight: 750;
+  line-height: 1.25;
+  padding: 0.38rem 0.6rem;
+}
+
+.vendedor-tiendas__acciones-tienda {
+  border-top: 1px solid var(--rg-color-border);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.vendedor-tiendas__accion-peligro {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: var(--rg-color-danger);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-left: auto;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  transition: background-color var(--rg-transition-standard);
+}
+
+.vendedor-tiendas__accion-peligro:hover:not(:disabled) {
+  background: var(--rg-color-danger-soft);
+}
+
+.vendedor-tiendas__accion-peligro:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.vendedor-tiendas__siguiente {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(215, 173, 75, 0.22), transparent 9rem),
+    var(--rg-color-primary-dark);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  color: #fff;
+  padding: clamp(1rem, 2vw, 1.2rem);
+}
+
+.vendedor-tiendas__siguiente .vendedor-tiendas__eyebrow {
+  color: #e5c26f;
+  display: block;
+  margin-top: 1rem;
+}
+
+.vendedor-tiendas__siguiente h3 {
+  color: #fff;
+}
+
+.vendedor-tiendas__siguiente > p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.vendedor-tiendas__resumen-lateral {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  margin: 1rem 0 0;
+  padding-top: 0.9rem;
+}
+
+.vendedor-tiendas__resumen-lateral > div {
+  align-items: center;
   display: flex;
   gap: 1rem;
   justify-content: space-between;
 }
 
-.vendedor-tiendas__modal-encabezado span {
-  color: var(--rg-color-primary);
+.vendedor-tiendas__resumen-lateral dt {
+  color: rgba(255, 255, 255, 0.64);
   font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
 }
 
-.vendedor-tiendas__modal h3 {
-  color: var(--rg-color-ink);
-  font-size: clamp(1.4rem, 3vw, 1.85rem);
-  margin: 0.3rem 0;
-}
-
-.vendedor-tiendas__modal p {
-  color: var(--rg-color-muted);
+.vendedor-tiendas__resumen-lateral dd {
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 800;
   margin: 0;
+  text-align: right;
 }
 
-.vendedor-tiendas__modal-cerrar {
+.vendedor-tiendas__dialogo {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(100dvh - 2rem);
+  min-height: 0;
+}
+
+.vendedor-tiendas__dialogo-header {
+  align-items: flex-start;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(215, 173, 75, 0.18), transparent 8rem), #fffdfb;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: clamp(1rem, 3vw, 1.4rem);
+}
+
+.vendedor-tiendas__dialogo-header > div {
+  min-width: 0;
+}
+
+.vendedor-tiendas__dialogo-header h3 {
+  color: var(--rg-color-ink);
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+  margin: 0.25rem 0 0;
+}
+
+.vendedor-tiendas__dialogo-header p {
+  color: var(--rg-color-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  margin: 0.35rem 0 0;
+}
+
+.vendedor-tiendas__dialogo-cerrar {
   align-items: center;
-  background: transparent;
-  border: 0;
+  background: rgba(90, 36, 64, 0.06);
+  border: 1px solid rgba(90, 36, 64, 0.1);
   border-radius: 50%;
   color: var(--rg-color-ink);
   cursor: pointer;
   display: inline-flex;
-  font-size: 2rem;
-  height: 2.25rem;
+  flex: 0 0 auto;
+  height: 2.75rem;
   justify-content: center;
-  line-height: 1;
-  width: 2.25rem;
+  transition: background-color var(--rg-transition-standard);
+  width: 2.75rem;
 }
 
-.vendedor-tiendas__modal-cerrar:hover,
-.vendedor-tiendas__modal-cerrar:focus-visible {
-  background: rgba(90, 36, 64, 0.1);
+.vendedor-tiendas__dialogo-cerrar:hover {
+  background: var(--rg-color-primary-soft);
 }
 
-.vendedor-tiendas__modal-opciones {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 1.5rem 0;
+.vendedor-tiendas__dialogo-cerrar svg {
+  height: 1.15rem;
+  width: 1.15rem;
 }
 
-.vendedor-tiendas__modal-opcion {
+.vendedor-tiendas__dialogo-cuerpo {
+  border: 0;
+  margin: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 1.4rem 1.25rem;
+}
+
+.vendedor-tiendas__dialogo-opcion {
   align-items: center;
-  background: #fffaf6;
-  border: 1px solid rgba(90, 36, 64, 0.16);
-  border-radius: 0.75rem;
+  background: var(--rg-color-bg-elevated);
+  border: 1px solid rgba(90, 36, 64, 0.14);
+  border-radius: var(--rg-radius-md);
   color: var(--rg-color-ink);
   cursor: pointer;
-  display: flex;
+  display: grid;
+  font-size: 0.84rem;
   font-weight: 750;
-  gap: 0.6rem;
-  min-height: 3.15rem;
+  gap: 0.65rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 3.4rem;
   padding: 0.7rem 0.8rem;
+  position: relative;
 }
 
-.vendedor-tiendas__modal-opcion:has(input:checked) {
-  background: rgba(90, 36, 64, 0.1);
+.vendedor-tiendas__dialogo-opcion:focus-within {
+  box-shadow: var(--rg-focus-ring);
+}
+
+.vendedor-tiendas__dialogo-opcion:has(input:checked) {
+  background: var(--rg-color-primary-soft);
   border-color: var(--rg-color-primary);
 }
 
-.vendedor-tiendas__modal-opcion input {
-  accent-color: var(--rg-color-primary);
-  flex: 0 0 auto;
+.vendedor-tiendas__dialogo-opcion input {
+  height: 1px;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.vendedor-tiendas__dialogo-check {
+  background: #fff;
+  border: 1px solid rgba(90, 36, 64, 0.28);
+  border-radius: 0.4rem;
+  color: transparent;
+  display: grid;
+  height: 1.35rem;
+  place-items: center;
+  width: 1.35rem;
+}
+
+.vendedor-tiendas__dialogo-check svg {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.vendedor-tiendas__dialogo-opcion input:checked + .vendedor-tiendas__dialogo-check {
+  background: var(--rg-color-primary);
+  border-color: var(--rg-color-primary);
+  color: #fff;
+}
+
+.vendedor-tiendas__dialogo-footer {
+  align-items: center;
+  background: #fffdfb;
+  border-top: 1px solid var(--rg-color-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem 1.4rem;
+}
+
+.vendedor-tiendas__dialogo-footer p {
+  color: var(--rg-color-muted);
+  font-size: 0.8rem;
   margin: 0;
 }
 
-.vendedor-tiendas__modal-acciones {
-  display: flex;
-  gap: 0.7rem;
-  justify-content: flex-end;
+.vendedor-tiendas__dialogo-footer p strong {
+  color: var(--rg-color-primary);
+  font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 639.98px) {
-  .vendedor-tiendas__acciones-formulario > * {
-    flex: 1 1 100%;
-  }
-
-  .vendedor-tiendas__selector-rubros > button,
-  .vendedor-tiendas__modal-acciones > * {
-    flex: 1 1 100%;
-  }
-
-  .vendedor-tiendas__modal-opciones {
-    grid-template-columns: 1fr;
-  }
-
-  .vendedor-tiendas__modal-acciones {
-    flex-wrap: wrap;
-  }
+.vendedor-tiendas__dialogo-footer > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 @media (max-width: 1199.98px) {
-  .vendedor-tiendas__layout {
+  .vendedor-tiendas__edicion,
+  .vendedor-tiendas__contenido {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 899.98px) {
+  .vendedor-tiendas__hero {
+    grid-template-columns: 1fr;
+  }
+
+  .vendedor-tiendas__identidad {
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .vendedor-tiendas__identidad-estado {
+    border-left: 1px solid var(--rg-color-border);
+    border-top: 0;
+    padding-left: 1rem;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 699.98px) {
+  .vendedor-tiendas__tienda-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .vendedor-tiendas__hero,
+  .vendedor-tiendas__panel,
+  .vendedor-tiendas__guia,
+  .vendedor-tiendas__siguiente {
+    border-radius: 1.1rem;
+  }
+
+  .vendedor-tiendas__hero {
+    padding: 1rem;
+  }
+
+  .vendedor-tiendas__identidad {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .vendedor-tiendas__identidad-estado {
+    border-left: 0;
+    border-top: 1px solid var(--rg-color-border);
+    padding-left: 0;
+    padding-top: 0.75rem;
+  }
+
+  .vendedor-tiendas__selector-rubros {
+    grid-template-columns: 1fr;
+  }
+
+  .vendedor-tiendas__selector-rubros > button,
+  .vendedor-tiendas__acciones-formulario > *,
+  .vendedor-tiendas__acciones-tienda .rg-boton,
+  .vendedor-tiendas__accion-peligro {
+    width: 100%;
+  }
+
+  .vendedor-tiendas__accion-peligro {
+    margin-left: 0;
+  }
+
+  .vendedor-tiendas__dialogo {
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .vendedor-tiendas__dialogo-header,
+  .vendedor-tiendas__dialogo-footer {
+    padding: 1rem;
+  }
+
+  .vendedor-tiendas__dialogo-cuerpo {
+    padding: 0 1rem 1rem;
+  }
+
+  .vendedor-tiendas__dialogo-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .vendedor-tiendas__dialogo-footer > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 399.98px) {
+  .vendedor-tiendas__dialogo-footer > div {
     grid-template-columns: 1fr;
   }
 }
