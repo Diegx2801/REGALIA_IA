@@ -1,7 +1,7 @@
 <section class="catalog-page">
   <app-hero-catalogo
-    [totalProductos]="productos().length"
-    [productosDisponibles]="productosDisponibles()"
+    [totalProductos]="totalProductos()"
+    [totalPaginas]="totalPaginas()"
     [terminoBusqueda]="terminoBusqueda()"
     (actualizarBusqueda)="actualizarBusqueda($event)"
   />
@@ -36,7 +36,10 @@
 
       <main class="catalog-results" aria-label="Resultados del catalogo">
         <app-resultados-catalogo
-          [productos]="productosFiltrados()"
+          [productos]="productos()"
+          [totalResultados]="totalProductos()"
+          [paginaActual]="paginaActual()"
+          [totalPaginas]="totalPaginas()"
           [cargando]="cargandoProductos()"
           [mensajeError]="mensajeErrorProductos()"
           [tipoSeleccionado]="tipoSeleccionado()"
@@ -46,6 +49,8 @@
           (actualizarOrden)="actualizarOrden($event)"
           (limpiarFiltros)="limpiarFiltros()"
           (agregarAlCarrito)="agregarAlCarrito($event)"
+          (paginaAnterior)="paginaAnterior()"
+          (paginaSiguiente)="paginaSiguiente()"
         />
 
         <app-tiendas-catalogo

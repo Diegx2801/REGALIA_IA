@@ -9,11 +9,17 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { finalize } from 'rxjs';
+import { catchError, finalize, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { CarritoCheckoutService } from '../../../../core/carrito/carrito-checkout.service';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
+import { RespuestaPaginada } from '../../../../shared/modelos/respuesta-api.model';
+import { TipoProductoApiService } from '../../../datos-maestros/acceso-datos/tipo-producto-api.service';
+import { TipoProducto } from '../../../datos-maestros/modelos/tipo-producto.model';
 import { TiendaPublicaApiService } from '../../../tiendas/acceso-datos/tienda-publica-api.service';
-import { ProductoApiService } from '../../acceso-datos/producto-api.service';
+import {
+  ConsultaProductosCatalogo,
+  ProductoApiService,
+} from '../../acceso-datos/producto-api.service';
 import { FiltrosCatalogo } from '../../componentes/filtros-catalogo/filtros-catalogo';
 import { HeroCatalogo } from '../../componentes/hero-catalogo/hero-catalogo';
 import { ResultadosCatalogo } from '../../componentes/resultados-catalogo/resultados-catalogo';
@@ -21,6 +27,11 @@ import { TiendasCatalogo } from '../../componentes/tiendas-catalogo/tiendas-cata
 import { OrdenCatalogo } from '../../modelos/catalogo-ui.model';
 import { Producto } from '../../modelos/producto.model';
 import { TiendaPublica } from '../../../tiendas/modelos/tienda-publica.model';
+
+interface ResultadoCargaProductos {
+  readonly pagina: RespuestaPaginada<Producto> | null;
+  readonly error: unknown | null;
+}
 
 @Component({
   selector: 'app-pagina-catalogo',
@@ -32,13 +43,19 @@ import { TiendaPublica } from '../../../tiendas/modelos/tienda-publica.model';
 })
 export class PaginaCatalogo implements OnInit {
   private readonly productoApiService = inject(ProductoApiService);
+  private readonly tipoProductoApiService = inject(TipoProductoApiService);
   private readonly tiendaPublicaApiService = inject(TiendaPublicaApiService);
   private readonly carritoCheckout = inject(CarritoCheckoutService);
   private readonly rutaActiva = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly solicitudesProductos = new Subject<void>();
 
   readonly productos = signal<Producto[]>([]);
+  readonly tiposProducto = signal<TipoProducto[]>([]);
   readonly tiendas = signal<TiendaPublica[]>([]);
+  readonly totalProductos = signal(0);
+  readonly paginaActual = signal(0);
+  readonly totalPaginas = signal(0);
   readonly cargandoProductos = signal(true);
   readonly cargandoTiendas = signal(true);
   readonly mensajeErrorProductos = signal<string | null>(null);
@@ -49,63 +66,20 @@ export class PaginaCatalogo implements OnInit {
   readonly soloDisponibles = signal(true);
   readonly ordenSeleccionado = signal<OrdenCatalogo>('recommended');
 
-  readonly categorias = computed(() => {
-    const tipos = this.productos().map((producto) => producto.tipoProducto).filter(Boolean);
-    return ['Todas', ...Array.from(new Set(tipos))];
-  });
-
-  readonly productosFiltrados = computed(() => {
-    const termino = this.normalizarTexto(this.terminoBusqueda());
-    const tipo = this.tipoSeleccionado();
-    const precioMaximo = this.precioMaximo();
-    const soloDisponibles = this.soloDisponibles();
-
-    const productos = this.productos().filter((producto) => {
-      const textoProducto = this.normalizarTexto(
-        `${producto.nombre} ${producto.descripcion} ${producto.nombreTienda} ${producto.tipoProducto}`,
-      );
-      const coincideBusqueda = !termino || textoProducto.includes(termino);
-      const coincideTipo = tipo === 'Todas' || producto.tipoProducto === tipo;
-      const coincidePrecio = producto.precio <= precioMaximo;
-      const coincideDisponibilidad = !soloDisponibles || producto.disponible;
-
-      return coincideBusqueda && coincideTipo && coincidePrecio && coincideDisponibilidad;
-    });
-
-    return [...productos].sort((actual, siguiente) => {
-      if (this.ordenSeleccionado() === 'priceAsc') return actual.precio - siguiente.precio;
-      if (this.ordenSeleccionado() === 'priceDesc') return siguiente.precio - actual.precio;
-      return Number(siguiente.disponible) - Number(actual.disponible);
-    });
-  });
-
-  readonly productosDisponibles = computed(
-    () => this.productos().filter((producto) => producto.disponible).length,
-  );
+  readonly categorias = computed(() => [
+    'Todas',
+    ...this.tiposProducto().map((tipoProducto) => tipoProducto.nombre),
+  ]);
 
   ngOnInit(): void {
-    this.rutaActiva.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
-      this.terminoBusqueda.set(parametros.get('busqueda') ?? '');
-    });
-
-    this.cargarProductos();
+    this.terminoBusqueda.set(this.rutaActiva.snapshot.queryParamMap.get('busqueda') ?? '');
+    this.configurarCargaProductos();
+    this.cargarTiposProducto();
     this.cargarTiendas();
   }
 
   cargarProductos(): void {
-    this.cargandoProductos.set(true);
-    this.mensajeErrorProductos.set(null);
-
-    this.productoApiService
-      .obtenerProductos()
-      .pipe(finalize(() => this.cargandoProductos.set(false)))
-      .subscribe({
-        next: (productos) => this.productos.set(productos),
-        error: (error: unknown) => {
-          this.productos.set([]);
-          this.mensajeErrorProductos.set(this.obtenerMensajeErrorCatalogo(error));
-        },
-      });
+    this.solicitudesProductos.next();
   }
 
   cargarTiendas(): void {
@@ -125,23 +99,41 @@ export class PaginaCatalogo implements OnInit {
   }
 
   actualizarBusqueda(termino: string): void {
-    this.terminoBusqueda.set(termino);
+    const busqueda = termino.trim();
+    if (busqueda === this.terminoBusqueda()) return;
+
+    this.terminoBusqueda.set(busqueda);
+    this.reiniciarPaginaYCargar();
   }
 
   actualizarTipo(tipo: string): void {
+    if (tipo === this.tipoSeleccionado()) return;
+
     this.tipoSeleccionado.set(tipo);
+    this.reiniciarPaginaYCargar();
   }
 
   actualizarPrecioMaximo(precio: number | string): void {
-    this.precioMaximo.set(Number(precio));
+    const precioNormalizado = Number(precio);
+    if (!Number.isFinite(precioNormalizado) || precioNormalizado <= 0) return;
+    if (precioNormalizado === this.precioMaximo()) return;
+
+    this.precioMaximo.set(precioNormalizado);
+    this.reiniciarPaginaYCargar();
   }
 
   actualizarOrden(orden: OrdenCatalogo): void {
+    if (orden === this.ordenSeleccionado()) return;
+
     this.ordenSeleccionado.set(orden);
+    this.reiniciarPaginaYCargar();
   }
 
   actualizarDisponibilidad(soloDisponibles: boolean): void {
+    if (soloDisponibles === this.soloDisponibles()) return;
+
     this.soloDisponibles.set(soloDisponibles);
+    this.reiniciarPaginaYCargar();
   }
 
   limpiarFiltros(): void {
@@ -150,6 +142,19 @@ export class PaginaCatalogo implements OnInit {
     this.precioMaximo.set(300);
     this.soloDisponibles.set(true);
     this.ordenSeleccionado.set('recommended');
+    this.reiniciarPaginaYCargar();
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaActual() === 0) return;
+    this.paginaActual.update((pagina) => pagina - 1);
+    this.cargarProductos();
+  }
+
+  paginaSiguiente(): void {
+    if (this.paginaActual() + 1 >= this.totalPaginas()) return;
+    this.paginaActual.update((pagina) => pagina + 1);
+    this.cargarProductos();
   }
 
   agregarAlCarrito(producto: Producto): void {
@@ -157,12 +162,83 @@ export class PaginaCatalogo implements OnInit {
     this.carritoCheckout.agregarProducto(producto);
   }
 
-  private normalizarTexto(valor: string): string {
-    return valor
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim()
-      .toLowerCase();
+  private configurarCargaProductos(): void {
+    this.solicitudesProductos
+      .pipe(
+        startWith(undefined),
+        tap(() => {
+          this.cargandoProductos.set(true);
+          this.mensajeErrorProductos.set(null);
+        }),
+        switchMap(() =>
+          this.productoApiService.obtenerProductos(this.crearConsultaProductos()).pipe(
+            map(
+              (pagina): ResultadoCargaProductos => ({
+                pagina,
+                error: null,
+              }),
+            ),
+            catchError((error: unknown) =>
+              of<ResultadoCargaProductos>({
+                pagina: null,
+                error,
+              }),
+            ),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((resultado) => {
+        this.cargandoProductos.set(false);
+
+        if (resultado.error || !resultado.pagina) {
+          this.productos.set([]);
+          this.totalProductos.set(0);
+          this.totalPaginas.set(0);
+          this.mensajeErrorProductos.set(this.obtenerMensajeErrorCatalogo(resultado.error));
+          return;
+        }
+
+        this.actualizarPagina(resultado.pagina);
+      });
+  }
+
+  private cargarTiposProducto(): void {
+    this.tipoProductoApiService
+      .obtenerTiposProducto()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (tiposProducto) => this.tiposProducto.set(tiposProducto),
+        error: () => this.tiposProducto.set([]),
+      });
+  }
+
+  private reiniciarPaginaYCargar(): void {
+    this.paginaActual.set(0);
+    this.cargarProductos();
+  }
+
+  private crearConsultaProductos(): ConsultaProductosCatalogo {
+    const tipoProducto = this.tiposProducto().find(
+      (tipo) => tipo.nombre === this.tipoSeleccionado(),
+    );
+
+    return {
+      page: this.paginaActual(),
+      size: 12,
+      search: this.terminoBusqueda(),
+      idTipoProducto: tipoProducto?.idTipoProducto ?? null,
+      precioMaximo: this.precioMaximo(),
+      soloDisponibles: this.soloDisponibles(),
+      orden: this.ordenSeleccionado(),
+    };
+  }
+
+  private actualizarPagina(pagina: RespuestaPaginada<Producto>): void {
+    this.productos.set(pagina.contenido);
+    this.paginaActual.set(pagina.paginaActual);
+    this.totalProductos.set(pagina.totalElementos);
+    this.totalPaginas.set(pagina.totalPaginas);
   }
 
   private obtenerMensajeErrorCatalogo(error: unknown): string {

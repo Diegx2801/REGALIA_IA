@@ -1,6 +1,12 @@
 <section class="catalog-section">
   <div class="catalog-toolbar">
-    <app-encabezado-seccion etiqueta="Productos listos" [titulo]="productos().length + ' resultados para regalar'" />
+    <app-encabezado-seccion
+      etiqueta="Productos listos"
+      [titulo]="
+        totalResultados() +
+        (totalResultados() === 1 ? ' resultado para regalar' : ' resultados para regalar')
+      "
+    />
     <label class="catalog-sort" for="sortProducts">
       <app-campo-select
         id="sortProducts"
@@ -27,17 +33,14 @@
         <app-skeleton-card variante="producto" />
       }
     </div>
-  } @else {
-    @if (mensajeError()) {
-      <app-estado-pantalla
-        tipo="error"
-        etiqueta="Error de catalogo"
-        titulo="No pudimos cargar productos"
-        [descripcion]="mensajeError()"
-      />
-    }
-
-    @if (productos().length === 0) {
+  } @else if (mensajeError()) {
+    <app-estado-pantalla
+      tipo="error"
+      etiqueta="Error de catalogo"
+      titulo="No pudimos cargar productos"
+      [descripcion]="mensajeError()"
+    />
+  } @else if (productos().length === 0) {
       <app-estado-pantalla
         tipo="vacio"
         etiqueta="Sin resultados"
@@ -46,12 +49,22 @@
         textoAccion="Ver todo"
         (accion)="limpiarFiltros.emit()"
       />
-    } @else {
-      <div class="product-grid">
-        @for (producto of productos(); track identificarProducto($index, producto)) {
-          <app-tarjeta-producto [producto]="producto" (agregar)="agregarAlCarrito.emit($event)" />
-        }
-      </div>
+  } @else {
+    <div class="product-grid">
+      @for (producto of productos(); track identificarProducto($index, producto)) {
+        <app-tarjeta-producto [producto]="producto" (agregar)="agregarAlCarrito.emit($event)" />
+      }
+    </div>
+
+    @if (totalPaginas() > 1) {
+      <app-paginacion-panel
+        class="catalog-pagination"
+        ariaEtiqueta="Paginación del catálogo"
+        [paginaActual]="paginaActual()"
+        [totalPaginas]="totalPaginas()"
+        (anterior)="paginaAnterior.emit()"
+        (siguiente)="paginaSiguiente.emit()"
+      />
     }
   }
 </section>

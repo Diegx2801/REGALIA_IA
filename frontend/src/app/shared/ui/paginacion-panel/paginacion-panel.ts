@@ -8,7 +8,7 @@ import { Component, input, output } from '@angular/core';
 export class PaginacionPanelComponent {
   readonly paginaActual = input.required<number>();
   readonly totalPaginas = input.required<number>();
-  readonly ariaEtiqueta = input('Paginacion del listado');
+  readonly ariaEtiqueta = input('Paginación del listado');
 
   readonly anterior = output<void>();
   readonly siguiente = output<void>();

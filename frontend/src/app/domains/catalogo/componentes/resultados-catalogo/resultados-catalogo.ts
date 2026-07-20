@@ -5,6 +5,7 @@ import { EncabezadoSeccion } from '../../../../shared/ui/encabezado-seccion/enca
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { CampoSelect } from '../../../../shared/ui/formularios/campo-select/campo-select';
 import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
+import { PaginacionPanelComponent } from '../../../../shared/ui/paginacion-panel/paginacion-panel';
 import { SkeletonCard } from '../../../../shared/ui/skeleton-card/skeleton-card';
 import { Producto } from '../../modelos/producto.model';
 import { OrdenCatalogo } from '../../modelos/catalogo-ui.model';
@@ -17,6 +18,7 @@ import { TarjetaProducto } from '../tarjeta-producto/tarjeta-producto';
     EncabezadoSeccion,
     EstadoPantallaComponent,
     InsigniaUi,
+    PaginacionPanelComponent,
     ReactiveFormsModule,
     SkeletonCard,
     TarjetaProducto,
@@ -27,6 +29,9 @@ export class ResultadosCatalogo {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly productos = input.required<readonly Producto[]>();
+  readonly totalResultados = input.required<number>();
+  readonly paginaActual = input.required<number>();
+  readonly totalPaginas = input.required<number>();
   readonly cargando = input.required<boolean>();
   readonly mensajeError = input.required<string | null>();
   readonly tipoSeleccionado = input.required<string>();
@@ -37,6 +42,8 @@ export class ResultadosCatalogo {
   readonly actualizarOrden = output<OrdenCatalogo>();
   readonly limpiarFiltros = output<void>();
   readonly agregarAlCarrito = output<Producto>();
+  readonly paginaAnterior = output<void>();
+  readonly paginaSiguiente = output<void>();
 
   readonly controlOrden = new FormControl<OrdenCatalogo>('recommended', { nonNullable: true });
   readonly opcionesOrden = [

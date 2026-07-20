@@ -1,6 +1,7 @@
 import { Component, computed, DestroyRef, effect, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { CampoSelect } from '../../../../shared/ui/formularios/campo-select/campo-select';
 import { CampoTexto } from '../../../../shared/ui/formularios/campo-texto/campo-texto';
 
@@ -41,7 +42,7 @@ export class FiltrosCatalogo {
     });
 
     this.controlBusqueda.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((valor) => this.actualizarBusqueda.emit(valor));
 
     this.controlCategoria.valueChanges
@@ -49,7 +50,7 @@ export class FiltrosCatalogo {
       .subscribe((valor) => this.actualizarTipo.emit(valor));
 
     this.controlPrecioMaximo.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((valor) => this.actualizarPrecioMaximo.emit(valor));
   }
 }

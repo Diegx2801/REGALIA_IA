@@ -23,7 +23,13 @@
           placeholder="flores, torta, box, taza..."
           [control]="controlBusqueda"
         />
-        <button class="catalog-search__action" type="button">Buscar detalles</button>
+        <button
+          class="catalog-search__action"
+          type="button"
+          (click)="actualizarBusqueda.emit(controlBusqueda.value)"
+        >
+          Buscar
+        </button>
       </label>
     </div>
 
@@ -35,11 +41,11 @@
       <div class="catalog-hero__summary">
         <div>
           <strong>{{ totalProductos() }}</strong>
-          <span>productos</span>
+          <span>{{ totalProductos() === 1 ? 'resultado' : 'resultados' }}</span>
         </div>
         <div>
-          <strong>{{ productosDisponibles() }}</strong>
-          <span>disponibles</span>
+          <strong>{{ totalPaginas() }}</strong>
+          <span>{{ totalPaginas() === 1 ? 'página' : 'páginas' }}</span>
         </div>
       </div>
     </aside>

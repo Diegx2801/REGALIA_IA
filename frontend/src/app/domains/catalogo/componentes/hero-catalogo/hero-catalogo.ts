@@ -2,6 +2,7 @@ import { Component, DestroyRef, effect, inject, input, output } from '@angular/c
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { CampoTexto } from '../../../../shared/ui/formularios/campo-texto/campo-texto';
 
 @Component({
@@ -13,7 +14,7 @@ export class HeroCatalogo {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly totalProductos = input.required<number>();
-  readonly productosDisponibles = input.required<number>();
+  readonly totalPaginas = input.required<number>();
   readonly terminoBusqueda = input.required<string>();
   readonly actualizarBusqueda = output<string>();
 
@@ -26,7 +27,7 @@ export class HeroCatalogo {
     });
 
     this.controlBusqueda.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((valor) => this.actualizarBusqueda.emit(valor));
   }
 }

@@ -1,6 +1,6 @@
 <nav class="paginacion-panel" [attr.aria-label]="ariaEtiqueta()">
   <button type="button" [disabled]="paginaActual() === 0" (click)="irPaginaAnterior()">Anterior</button>
-  <span>Pagina {{ paginaActual() + 1 }} de {{ totalPaginas() || 1 }}</span>
+  <span>Página {{ paginaActual() + 1 }} de {{ totalPaginas() || 1 }}</span>
   <button type="button" [disabled]="paginaActual() + 1 >= totalPaginas()" (click)="irPaginaSiguiente()">
     Siguiente
   </button>

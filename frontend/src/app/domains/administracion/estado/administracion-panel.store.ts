@@ -67,7 +67,10 @@ export class AdministracionPanelStore {
       vendedores: this.adminApi.obtenerVendedores(6),
       tiendas: this.adminApi.obtenerTiendas({ size: 6 }),
       pedidos: this.adminApi.obtenerPedidos({ size: 6 }),
-      productos: this.productoApi.obtenerProductos(),
+      productos: this.productoApi.obtenerProductos({
+        size: 1,
+        soloDisponibles: false,
+      }),
     })
       .pipe(
         finalize(() => this.cargandoResumen.set(false)),
@@ -83,7 +86,7 @@ export class AdministracionPanelStore {
           this.totalVendedores.set(vendedores.totalElementos);
           this.totalTiendas.set(tiendas.totalElementos);
           this.totalPedidos.set(pedidos.totalElementos);
-          this.totalProductosVisibles.set(productos.length);
+          this.totalProductosVisibles.set(productos.totalElementos);
           this.resumenCargado = true;
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),

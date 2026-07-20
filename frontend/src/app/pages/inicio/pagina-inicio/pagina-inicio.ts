@@ -173,15 +173,14 @@ export class PaginaInicio implements AfterViewInit, OnInit {
     this.mensajeErrorProductosDestacados.set(null);
 
     this.productoApiService
-      .obtenerProductos()
+      .obtenerProductos({ size: 4, soloDisponibles: true })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.cargandoProductosDestacados.set(false)),
       )
       .subscribe({
-        next: (productos) => {
-          const destacados = productos.filter((producto) => producto.disponible).slice(0, 4);
-          this.productosDestacados.set(destacados);
+        next: (pagina) => {
+          this.productosDestacados.set(pagina.contenido);
         },
         error: () => {
           this.productosDestacados.set([]);

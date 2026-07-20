@@ -21,35 +21,84 @@ describe('ProductoApiService', () => {
     httpMock.verify();
   });
 
-  it('consulta productos publicos y los transforma a modelo de vista', () => {
+  it('consulta una pagina con filtros y transforma sus productos al modelo de vista', () => {
     let nombres: string[] = [];
+    let totalElementos = 0;
 
-    service.obtenerProductos().subscribe((productos) => {
-      nombres = productos.map((producto) => producto.nombre);
+    service
+      .obtenerProductos({
+        page: 1,
+        size: 12,
+        search: 'box',
+        idTipoProducto: 3,
+        precioMaximo: 150,
+        soloDisponibles: true,
+        orden: 'priceAsc',
+      })
+      .subscribe((pagina) => {
+        nombres = pagina.contenido.map((producto) => producto.nombre);
+        totalElementos = pagina.totalElementos;
+      });
+
+    const request = httpMock.expectOne((solicitud) => {
+      const params = solicitud.params;
+      return (
+        solicitud.url === ENDPOINTS_API.catalogo.productos &&
+        params.get('page') === '1' &&
+        params.get('size') === '12' &&
+        params.get('search') === 'box' &&
+        params.get('idTipoProducto') === '3' &&
+        params.get('precioMaximo') === '150' &&
+        params.get('soloDisponibles') === 'true' &&
+        params.get('sort') === 'precio,asc'
+      );
     });
-
-    const request = httpMock.expectOne(ENDPOINTS_API.catalogo.productos);
     expect(request.request.method).toBe('GET');
     request.flush({
       status: 'success',
-      data: [
-        {
-          idProducto: 1,
-          idTienda: 1,
-          nombreTienda: 'Bienestar Natural',
-          idTipoProducto: 3,
-          tipoProducto: 'PACK O BOX',
-          nombre: 'Box mama edicion especial',
-          descripcion: 'Box premium',
-          precio: 129,
-          stock: 14,
-          imagenes: [{ urlImagen: '/assets/brand/iconos/diadelamadre.png', orden: 1 }],
-        },
-      ],
+      data: {
+        contenido: [
+          {
+            idProducto: 1,
+            idTienda: 1,
+            nombreTienda: 'Bienestar Natural',
+            idTipoProducto: 3,
+            tipoProducto: 'PACK O BOX',
+            nombre: 'Box mama edicion especial',
+            descripcion: 'Box premium',
+            precio: 129,
+            stock: 14,
+            imagenes: [{ urlImagen: '/assets/brand/iconos/diadelamadre.png', orden: 1 }],
+          },
+        ],
+        paginaActual: 1,
+        tamanioPagina: 12,
+        totalElementos: 15,
+        totalPaginas: 2,
+        ultimaPagina: true,
+      },
       message: null,
     });
 
     expect(nombres).toEqual(['Box mama edicion especial']);
+    expect(totalElementos).toBe(15);
+  });
+
+  it('envia el orden recomendado y valores predeterminados cuando no recibe filtros', () => {
+    service.obtenerProductos().subscribe();
+
+    const request = httpMock.expectOne((solicitud) => {
+      const params = solicitud.params;
+      return (
+        solicitud.url === ENDPOINTS_API.catalogo.productos &&
+        params.get('page') === '0' &&
+        params.get('size') === '12' &&
+        params.get('soloDisponibles') === 'true' &&
+        params.get('sort') === 'recomendado,asc'
+      );
+    });
+
+    request.flush({ status: 'success', data: null, message: null });
   });
 
   it('lanza error de dominio cuando el detalle no trae data', () => {
