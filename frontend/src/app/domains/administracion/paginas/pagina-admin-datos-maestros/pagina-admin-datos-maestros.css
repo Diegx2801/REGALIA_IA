@@ -23,13 +23,11 @@
 }
 
 .admin-card {
-  background:
-    linear-gradient(180deg, rgba(255, 250, 245, 0.94), rgba(255, 255, 255, 0.96)),
-    #fff;
+  background: linear-gradient(180deg, rgba(255, 250, 245, 0.94), rgba(255, 255, 255, 0.96)), #fff;
 }
 
 .admin-datos__hero span,
-.admin-card span {
+.admin-card > header span {
   color: var(--rg-color-primary);
   font-weight: 950;
   letter-spacing: 0.12em;
@@ -44,13 +42,6 @@
   margin: 0.25rem 0;
 }
 
-.admin-datos__hero p,
-.admin-card p,
-.admin-card small,
-.admin-datos__aviso {
-  color: var(--rg-color-muted);
-}
-
 .admin-datos__hero span,
 .admin-datos__hero h2,
 .admin-datos__hero p {
@@ -58,6 +49,7 @@
 }
 
 .admin-datos__hero p {
+  margin-bottom: 0;
   max-width: 48rem;
   opacity: 0.76;
 }
@@ -70,20 +62,28 @@
 
 .admin-datos__toolbar {
   align-items: end;
-  display: grid;
+  display: flex;
   gap: 1rem;
-  grid-template-columns: 1fr;
+  justify-content: space-between;
   margin-bottom: 1rem;
 }
 
-.admin-datos__toolbar label {
+.admin-datos__controles {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-datos__controles label {
   color: var(--rg-color-ink);
   display: grid;
   font-weight: 900;
   gap: 0.35rem;
+  min-width: min(16rem, 100%);
 }
 
-.admin-datos__toolbar select {
+.admin-datos__controles select {
   background: #fffaf5;
   border: 1px solid var(--rg-color-border);
   border-radius: 0.85rem;
@@ -92,24 +92,51 @@
   width: 100%;
 }
 
-.admin-datos__toolbar > * {
-  min-width: 0;
-}
-
 .admin-datos__aviso {
-  /* Aviso operativo: evita prometer CRUD si el endpoint aun no define contrato. */
-  background:
-    radial-gradient(circle at right, rgba(215, 173, 75, 0.16), transparent 6rem),
-    #fffaf5;
+  background: radial-gradient(circle at right, rgba(215, 173, 75, 0.16), transparent 6rem), #fffaf5;
   border: 1px solid var(--rg-color-border);
   border-radius: 0.9rem;
+  color: var(--rg-color-muted);
   margin-bottom: 1rem;
   padding: 0.85rem;
 }
 
+.admin-datos__identidad {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.admin-datos__identidad small,
+.admin-card app-fila-panel p {
+  color: var(--rg-color-muted);
+  margin: 0;
+}
+
+.admin-datos__acciones {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 @media (max-width: 899.98px) {
-  .admin-datos__metricas,
-  .admin-datos__toolbar {
+  .admin-datos__metricas {
     grid-template-columns: 1fr;
+  }
+
+  .admin-datos__toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-datos__controles,
+  .admin-datos__acciones {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-datos__acciones {
+    justify-content: flex-start;
   }
 }

@@ -2,59 +2,151 @@
   <header class="admin-datos__hero">
     <span>Datos maestros</span>
     <h2>Catálogos base de REGALIA</h2>
-    <p>Lectura consolidada desde endpoints administrativos reales. La edición se agregará con formularios por catálogo.</p>
+    <p>
+      Crea, edita y controla los registros que alimentan la operación comercial de la plataforma.
+    </p>
   </header>
 
-  @if (store.cargandoDatosMaestros()) {
+  @if (cargando()) {
     <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando datos maestros." />
-  } @else if (store.mensajeError()) {
+  } @else if (mensajeError() && datosMaestros().length === 0) {
     <app-estado-pantalla
       tipo="error"
       etiqueta="Error"
-      [titulo]="store.mensajeError() ?? 'No pudimos cargar datos maestros.'"
+      [titulo]="mensajeError() ?? 'No pudimos cargar datos maestros.'"
       textoAccion="Reintentar"
-      (accion)="store.cargarDatosMaestros()"
+      (accion)="cargarDatosMaestros()"
     />
   } @else {
-    <section class="admin-datos__metricas">
-      <app-tarjeta-metrica etiqueta="Registros" [valor]="store.datosMaestros().length" descripcion="Total consolidado desde backend." />
-      <app-tarjeta-metrica etiqueta="Activos" [valor]="store.datosMaestrosActivos()" descripcion="Registros habilitados actualmente." />
-      <app-tarjeta-metrica etiqueta="Categorías" [valor]="store.categoriasDatosMaestros().length" descripcion="Catálogos administrativos detectados." />
+    <section class="admin-datos__metricas" aria-label="Resumen de datos maestros">
+      <app-tarjeta-metrica
+        etiqueta="Registros"
+        [valor]="datosMaestros().length"
+        descripcion="Total consolidado desde backend."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Activos"
+        [valor]="totalActivos()"
+        descripcion="Registros habilitados actualmente."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Categorías"
+        [valor]="configuraciones.length"
+        descripcion="Catálogos administrativos disponibles."
+      />
     </section>
+
+    @if (mensajeExito()) {
+      <app-estado-pantalla
+        tipo="exito"
+        etiqueta="Operación correcta"
+        [titulo]="mensajeExito() ?? ''"
+      />
+    }
+
+    @if (mensajeError()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="No se completó la operación"
+        [titulo]="mensajeError() ?? ''"
+      />
+    }
+
+    @if (formularioActivo(); as formulario) {
+      <app-formulario-dato-maestro
+        [tipo]="formulario.tipo"
+        [dato]="formulario.dato"
+        [categoriasDocumento]="categoriasDocumento()"
+        [procesando]="guardando()"
+        (guardar)="guardarDatoMaestro($event)"
+        (cancelar)="cerrarFormulario()"
+      />
+    }
 
     <article class="admin-card">
       <header class="admin-datos__toolbar">
         <div>
-          <span>Catálogos</span>
+          <span>{{ configuracionSeleccionada().etiqueta }}</span>
           <h3>{{ datosFiltrados().length }} registros</h3>
         </div>
-        <label>
-          Categoría
-          <select (change)="filtrarCategoria($event)">
-            <option value="">Todas</option>
-            @for (categoria of store.categoriasDatosMaestros(); track categoria) {
-              <option [value]="categoria">{{ categoria }}</option>
-            }
-          </select>
-        </label>
+        <div class="admin-datos__controles">
+          <label>
+            Categoría
+            <select [value]="tipoSeleccionado()" (change)="seleccionarTipo($event)">
+              @for (configuracion of configuraciones; track configuracion.tipo) {
+                <option [value]="configuracion.tipo">{{ configuracion.etiqueta }}</option>
+              }
+            </select>
+          </label>
+          @if (configuracionSeleccionada().permiteCrear) {
+            <button
+              appBoton
+              type="button"
+              [disabled]="!puedeCrearSeleccionado()"
+              (click)="abrirCreacion()"
+            >
+              Nuevo registro
+            </button>
+          }
+        </div>
       </header>
 
-      <p class="admin-datos__aviso" ngbTooltip="No se muestran mocks: solo lectura real. CRUD fino se implementa por contrato de cada endpoint.">
-        Gestión de alta/edición/desactivación pendiente de UI específica por tipo de dato maestro.
-      </p>
+      @if (tipoSeleccionado() === 'TIPO_PAGO') {
+        <p class="admin-datos__aviso">
+          Los códigos de pago gobiernan reglas internas. El backend permite editar su nombre y
+          descripción, pero no crearlos, desactivarlos ni reactivarlos.
+        </p>
+      } @else if (tipoSeleccionado() === 'TIPO_DOCUMENTO' && categoriasDocumento().length === 0) {
+        <p class="admin-datos__aviso" role="alert">
+          No hay categorías de documento disponibles. Se necesita al menos una categoría existente
+          para crear tipos de documento.
+        </p>
+      }
 
       @if (datosFiltrados().length === 0) {
-        <app-estado-pantalla tipo="vacio" etiqueta="Sin datos" titulo="No hay registros para esta categoría." />
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Sin datos"
+          titulo="No hay registros en esta categoría."
+        />
       } @else {
         <app-lista-panel ariaEtiqueta="Datos maestros administrativos">
-          @for (dato of datosFiltrados(); track dato.categoria + '-' + dato.id) {
+          @for (dato of datosFiltrados(); track crearClave(dato)) {
             <app-fila-panel tipo="triple" [ariaEtiqueta]="dato.nombre">
-              <div>
+              <div class="admin-datos__identidad">
                 <strong>{{ dato.nombre }}</strong>
-                <small>{{ dato.categoria }}</small>
+                <small>{{ etiquetaSecundaria(dato) }}</small>
               </div>
               <p>{{ dato.descripcion }}</p>
-              <span>{{ dato.estado ? 'Activo' : 'Inactivo' }}</span>
+              <div class="admin-datos__acciones">
+                <app-insignia-ui
+                  [texto]="dato.estado ? 'Activo' : 'Inactivo'"
+                  [variante]="dato.estado ? 'exito' : 'neutral'"
+                />
+                @if (dato.estado) {
+                  <button
+                    appBoton="secundario"
+                    appBotonTamano="sm"
+                    type="button"
+                    [disabled]="procesandoEstado() === crearClave(dato)"
+                    (click)="abrirEdicion(dato)"
+                  >
+                    Editar
+                  </button>
+                }
+                @if (configuracionSeleccionada().permiteCambiarEstado) {
+                  <button
+                    [appBoton]="dato.estado ? 'peligro' : 'fantasma'"
+                    appBotonTamano="sm"
+                    type="button"
+                    [disabled]="procesandoEstado() === crearClave(dato)"
+                    [appBotonCargando]="procesandoEstado() === crearClave(dato)"
+                    (click)="cambiarEstado(dato)"
+                  >
+                    {{ dato.estado ? 'Desactivar' : 'Reactivar' }}
+                  </button>
+                }
+              </div>
             </app-fila-panel>
           }
         </app-lista-panel>

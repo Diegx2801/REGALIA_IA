@@ -1,0 +1,87 @@
+<section class="formulario-dato" aria-labelledby="titulo-formulario-dato">
+  <header class="formulario-dato__encabezado">
+    <div>
+      <span>{{ dato() ? 'Edición' : 'Nuevo registro' }}</span>
+      <h3 id="titulo-formulario-dato">
+        {{ dato() ? 'Editar' : 'Crear' }} {{ configuracion.singular }}
+      </h3>
+    </div>
+    @if (tipo() === 'TIPO_PAGO' && dato()?.codigo; as codigo) {
+      <div class="formulario-dato__codigo">
+        <small>Código interno</small>
+        <strong>{{ codigo }}</strong>
+      </div>
+    }
+  </header>
+
+  <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+    <app-grupo-formulario [columnas]="tipo() === 'TIPO_DOCUMENTO' ? 2 : 1">
+      <app-campo-texto
+        id="dato-maestro-nombre"
+        etiqueta="Nombre"
+        [control]="formulario.controls.nombre"
+        placeholder="Escribe un nombre descriptivo"
+        mensajeError="Ingresa un nombre válido dentro del límite permitido."
+      />
+
+      @if (tipo() === 'RUBRO' || tipo() === 'TIPO_PAGO') {
+        <app-campo-textarea
+          id="dato-maestro-descripcion"
+          etiqueta="Descripción"
+          [control]="formulario.controls.descripcion"
+          [maximoCaracteres]="tipo() === 'RUBRO' ? 255 : 500"
+          placeholder="Describe cómo se utilizará este registro"
+          mensajeError="La descripción supera el límite permitido."
+        />
+      }
+
+      @if (tipo() === 'TIPO_DOCUMENTO') {
+        <app-campo-texto
+          id="dato-maestro-abreviatura"
+          etiqueta="Abreviatura"
+          [control]="formulario.controls.abreviatura"
+          placeholder="Ej. DNI"
+          ayuda="Máximo 10 caracteres."
+          mensajeError="Ingresa una abreviatura de hasta 10 caracteres."
+        />
+        <app-campo-select
+          id="dato-maestro-categoria-documento"
+          etiqueta="Categoría del documento"
+          [control]="formulario.controls.idCategoriaDocumento"
+          [opciones]="opcionesCategoriasDocumento"
+        />
+        <app-campo-texto
+          id="dato-maestro-longitud-minima"
+          etiqueta="Longitud mínima"
+          tipo="number"
+          [control]="formulario.controls.longitudMinima"
+          placeholder="1"
+          mensajeError="Ingresa un número entero mayor que cero."
+        />
+        <app-campo-texto
+          id="dato-maestro-longitud-maxima"
+          etiqueta="Longitud máxima"
+          tipo="number"
+          [control]="formulario.controls.longitudMaxima"
+          placeholder="20"
+          mensajeError="Ingresa un número entero mayor que cero."
+        />
+      }
+    </app-grupo-formulario>
+
+    @if (formulario.hasError('rangoDocumentoInvalido')) {
+      <p class="formulario-dato__error" role="alert">
+        La longitud mínima no puede superar la longitud máxima.
+      </p>
+    }
+
+    <footer class="formulario-dato__acciones">
+      <button appBoton type="submit" [disabled]="procesando()" [appBotonCargando]="procesando()">
+        {{ procesando() ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+      <button appBoton="fantasma" type="button" [disabled]="procesando()" (click)="cancelar.emit()">
+        Cancelar
+      </button>
+    </footer>
+  </form>
+</section>

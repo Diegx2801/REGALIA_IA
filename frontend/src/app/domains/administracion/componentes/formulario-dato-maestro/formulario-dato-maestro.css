@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+
+.formulario-dato {
+  background:
+    radial-gradient(circle at top right, rgba(215, 173, 75, 0.16), transparent 9rem), #fff;
+  border: 1px solid rgba(90, 36, 64, 0.14);
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.formulario-dato__encabezado {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.formulario-dato__encabezado span,
+.formulario-dato__codigo small {
+  color: var(--rg-color-primary);
+  font-size: 0.75rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.formulario-dato__encabezado h3 {
+  color: var(--rg-color-ink);
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  margin: 0.25rem 0 0;
+}
+
+.formulario-dato__codigo {
+  background: #fff8ef;
+  border: 1px solid var(--rg-color-border);
+  border-radius: 0.9rem;
+  display: grid;
+  padding: 0.65rem 0.85rem;
+  text-align: right;
+}
+
+.formulario-dato form {
+  display: grid;
+  gap: 1rem;
+}
+
+.formulario-dato__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.formulario-dato__error {
+  background: rgba(150, 38, 64, 0.08);
+  border: 1px solid rgba(150, 38, 64, 0.18);
+  border-radius: 0.75rem;
+  color: var(--rg-color-danger, #962640);
+  font-weight: 800;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+}
+
+@media (max-width: 575.98px) {
+  .formulario-dato__encabezado {
+    flex-direction: column;
+  }
+
+  .formulario-dato__codigo {
+    text-align: left;
+  }
+
+  .formulario-dato__acciones > * {
+    width: 100%;
+  }
+}
