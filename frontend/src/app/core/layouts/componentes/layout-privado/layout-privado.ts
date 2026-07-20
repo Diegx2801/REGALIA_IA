@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
@@ -24,6 +25,8 @@ export type IconoLayoutPrivado =
   | 'vendedores'
   | 'datos'
   | 'catalogo'
+  | 'carrito'
+  | 'inicio'
   | 'acceso';
 
 export interface EnlaceLayoutPrivado {
@@ -35,11 +38,44 @@ export interface EnlaceLayoutPrivado {
   patronesActivos?: RegExp[];
 }
 
+export interface AccionRapidaLayoutPrivado {
+  etiqueta: string;
+  ruta: string;
+  descripcion: string;
+  icono: Extract<IconoLayoutPrivado, 'catalogo' | 'carrito' | 'inicio'>;
+  ariaLabel?: string;
+  insignia?: number | string | null;
+  destacada?: boolean;
+  ocultaEnMovil?: boolean;
+  etiquetaDesdeSm?: boolean;
+}
+
+const ACCIONES_RAPIDAS_PREDETERMINADAS: readonly AccionRapidaLayoutPrivado[] = [
+  {
+    etiqueta: 'Catálogo',
+    ruta: '/catalogo',
+    descripcion: 'Explorar productos',
+    icono: 'catalogo',
+    ocultaEnMovil: true,
+    etiquetaDesdeSm: true,
+  },
+  {
+    etiqueta: 'Inicio',
+    ruta: '/',
+    descripcion: 'Volver a REGALIA',
+    icono: 'inicio',
+    ariaLabel: 'Ir al inicio de REGALIA',
+    destacada: true,
+    etiquetaDesdeSm: true,
+  },
+];
+
 @Component({
   selector: 'app-layout-privado',
   imports: [RouterLink, NgbTooltip],
   templateUrl: './layout-privado.html',
   styleUrl: './layout-privado.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:keydown.escape)': 'cerrarMenuMovil()',
     '(document:keydown.tab)': 'mantenerFocoMenu($event)',
@@ -58,7 +94,11 @@ export class LayoutPrivadoComponent {
   readonly etiqueta = input.required<string>();
   readonly descripcion = input.required<string>();
   readonly variante = input<VarianteLayoutPrivado>('cliente');
-  readonly enlaces = input<EnlaceLayoutPrivado[]>([]);
+  readonly enlaces = input<readonly EnlaceLayoutPrivado[]>([]);
+  readonly accionesRapidas = input<readonly AccionRapidaLayoutPrivado[]>(
+    ACCIONES_RAPIDAS_PREDETERMINADAS,
+  );
+  readonly mostrarAccionesEnMenuMovil = input(false);
   readonly menuMovilAbierto = signal(false);
 
   readonly sesion = inject(SesionAutenticacionService);

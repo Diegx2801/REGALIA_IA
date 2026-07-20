@@ -1,18 +1,19 @@
 <section class="festive-calendar rg-page__container--retail" aria-labelledby="titulo-calendario">
-  <article class="festive-calendar__campaign">
+  @if (campanaActiva(); as campanaSeleccionada) {
+  <article class="festive-calendar__campaign" aria-live="polite">
     <span class="eyebrow">Calendario comercial</span>
     <strong class="festive-calendar__status">Campana activa</strong>
-    <h2 id="titulo-calendario">{{ campanas()[0].titulo }}</h2>
-    <b>{{ campanas()[0].fecha }}</b>
-    <p>{{ campanas()[0].descripcion }}</p>
-    <a class="landing-button landing-button--light" routerLink="/catalogo" [queryParams]="{ busqueda: campanas()[0].titulo }">
+    <h2 id="titulo-calendario">{{ campanaSeleccionada.titulo }}</h2>
+    <b>{{ campanaSeleccionada.fecha }}</b>
+    <p>{{ campanaSeleccionada.descripcion }}</p>
+    <a class="landing-button landing-button--light" routerLink="/catalogo" [queryParams]="{ busqueda: campanaSeleccionada.titulo }">
       Preparar campana
     </a>
 
     <div class="festive-calendar__suggestions">
       <span>Productos sugeridos</span>
       <div>
-        @for (sugerencia of campanas()[0].sugerencias; track sugerencia) {
+        @for (sugerencia of campanaSeleccionada.sugerencias; track sugerencia) {
           <strong>{{ sugerencia }}</strong>
         }
       </div>
@@ -20,13 +21,19 @@
 
     <div class="festive-calendar__events">
       @for (campana of campanas(); track campana.fecha) {
-        <button type="button" [class.is-active]="$index === 0">
+        <button
+          type="button"
+          [class.is-active]="indiceCampanaActiva() === $index"
+          [attr.aria-pressed]="indiceCampanaActiva() === $index"
+          (click)="seleccionarCampana($index)"
+        >
           <span>{{ campana.fecha }}</span>
           <strong>{{ campana.titulo }}</strong>
         </button>
       }
     </div>
   </article>
+  }
 
   <article class="festive-calendar__month" aria-label="Calendario de temporadas">
     <header>
@@ -36,7 +43,13 @@
 
     <div class="festive-calendar__months" role="tablist" aria-label="Meses">
       @for (mes of meses(); track mes) {
-        <button type="button" [class.is-active]="mesActivo() === mes" (click)="seleccionarMes.emit(mes)">
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="mesActivo() === mes"
+          [class.is-active]="mesActivo() === mes"
+          (click)="seleccionarMes.emit(mes)"
+        >
           {{ mes }}
         </button>
       }
@@ -50,7 +63,9 @@
 
     <div class="festive-calendar__days">
       @for (dia of diasFebrero(); track dia) {
-        <button type="button" [class.is-event]="dia === 14">{{ dia }}</button>
+        <span [class.is-event]="dia === 14" [attr.aria-label]="dia === 14 ? '14, fecha destacada' : null">
+          {{ dia }}
+        </span>
       }
     </div>
   </article>

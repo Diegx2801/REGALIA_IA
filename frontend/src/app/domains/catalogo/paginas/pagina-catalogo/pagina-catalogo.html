@@ -7,12 +7,13 @@
   />
 
   <div class="rg-page__container--retail catalog-page__container">
-    <nav class="category-strip" aria-label="Categorias destacadas">
+    <nav class="category-strip" aria-label="Categorías de productos">
       @for (categoria of categorias(); track categoria) {
         <button
           type="button"
           class="category-strip__chip"
           [class.category-strip__chip--active]="tipoSeleccionado() === categoria"
+          [attr.aria-pressed]="tipoSeleccionado() === categoria"
           (click)="actualizarTipo(categoria)"
         >
           {{ categoria }}
@@ -20,21 +21,57 @@
       }
     </nav>
 
-    <div class="catalog-layout">
-      <app-filtros-catalogo
-        [categorias]="categorias()"
-        [terminoBusqueda]="terminoBusqueda()"
-        [tipoSeleccionado]="tipoSeleccionado()"
-        [precioMaximo]="precioMaximo()"
-        [soloDisponibles]="soloDisponibles()"
-        (actualizarBusqueda)="actualizarBusqueda($event)"
-        (actualizarTipo)="actualizarTipo($event)"
-        (actualizarPrecioMaximo)="actualizarPrecioMaximo($event)"
-        (actualizarDisponibilidad)="actualizarDisponibilidad($event)"
-        (limpiarFiltros)="limpiarFiltros()"
-      />
+    <button
+      type="button"
+      class="catalog-mobile-filter"
+      [attr.aria-expanded]="filtrosMovilesAbiertos()"
+      aria-controls="panel-filtros-catalogo"
+      (click)="alternarFiltrosMoviles()"
+    >
+      <span class="catalog-mobile-filter__icon" aria-hidden="true"></span>
+      Filtros
+      @if (cantidadFiltrosActivos() > 0) {
+        <strong>{{ cantidadFiltrosActivos() }}</strong>
+      }
+    </button>
 
-      <main class="catalog-results" aria-label="Resultados del catalogo">
+    <div class="catalog-layout">
+      <div
+        id="panel-filtros-catalogo"
+        class="catalog-filters-shell"
+        [class.catalog-filters-shell--open]="filtrosMovilesAbiertos()"
+        [attr.role]="filtrosMovilesAbiertos() ? 'dialog' : null"
+        [attr.aria-modal]="filtrosMovilesAbiertos() ? 'true' : null"
+        aria-label="Filtros del catálogo"
+      >
+        <div class="catalog-filters-shell__mobile-head">
+          <strong>Filtrar productos</strong>
+          <button type="button" (click)="filtrosMovilesAbiertos.set(false)">Cerrar</button>
+        </div>
+        <app-filtros-catalogo
+          [categorias]="categorias()"
+          [terminoBusqueda]="terminoBusqueda()"
+          [tipoSeleccionado]="tipoSeleccionado()"
+          [precioMaximo]="precioMaximo()"
+          [soloDisponibles]="soloDisponibles()"
+          (actualizarBusqueda)="actualizarBusqueda($event)"
+          (actualizarTipo)="actualizarTipo($event)"
+          (actualizarPrecioMaximo)="actualizarPrecioMaximo($event)"
+          (actualizarDisponibilidad)="actualizarDisponibilidad($event)"
+          (limpiarFiltros)="limpiarFiltros()"
+        />
+      </div>
+
+      @if (filtrosMovilesAbiertos()) {
+        <button
+          type="button"
+          class="catalog-filter-backdrop"
+          aria-label="Cerrar filtros"
+          (click)="filtrosMovilesAbiertos.set(false)"
+        ></button>
+      }
+
+      <section class="catalog-results" aria-label="Resultados del catálogo">
         <app-resultados-catalogo
           [productos]="productos()"
           [totalResultados]="totalProductos()"
@@ -42,12 +79,14 @@
           [totalPaginas]="totalPaginas()"
           [cargando]="cargandoProductos()"
           [mensajeError]="mensajeErrorProductos()"
+          [mensajeCarrito]="mensajeCarrito()"
           [tipoSeleccionado]="tipoSeleccionado()"
           [precioMaximo]="precioMaximo()"
           [soloDisponibles]="soloDisponibles()"
           [ordenSeleccionado]="ordenSeleccionado()"
           (actualizarOrden)="actualizarOrden($event)"
           (limpiarFiltros)="limpiarFiltros()"
+          (reintentar)="cargarProductos()"
           (agregarAlCarrito)="agregarAlCarrito($event)"
           (paginaAnterior)="paginaAnterior()"
           (paginaSiguiente)="paginaSiguiente()"
@@ -58,7 +97,7 @@
           [cargando]="cargandoTiendas()"
           [mensajeError]="mensajeErrorTiendas()"
         />
-      </main>
+      </section>
     </div>
   </div>
 </section>

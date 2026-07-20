@@ -1,7 +1,23 @@
-import { CurrencyPipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
+import { CurrencyPipe, DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin, of } from 'rxjs';
 import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
@@ -18,7 +34,6 @@ import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import {
   CampoFormularioDirective,
   ErrorCampoDirective,
-  FormularioPanelDirective,
 } from '../../../../shared/directivas/formulario-panel.directive';
 
 @Component({
@@ -30,15 +45,16 @@ import {
     BotonDirective,
     CampoFormularioDirective,
     ErrorCampoDirective,
-    FormularioPanelDirective,
   ],
   templateUrl: './pagina-solicitud-checkout.html',
   styleUrl: './pagina-solicitud-checkout.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaSolicitudCheckout implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly documento = inject(DOCUMENT);
   private readonly sesionAutenticacion = inject(SesionAutenticacionService);
   private readonly productoApiService = inject(ProductoApiService);
   private readonly tipoEntregaApiService = inject(TipoEntregaApiService);
@@ -69,7 +85,7 @@ export class PaginaSolicitudCheckout implements OnInit {
     }),
     fechaEntrega: new FormControl(this.fechaMinimaEntrega, {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [Validators.required, fechaNoAnteriorA(this.fechaMinimaEntrega)],
     }),
     observacion: new FormControl('', {
       nonNullable: true,
@@ -94,6 +110,11 @@ export class PaginaSolicitudCheckout implements OnInit {
   readonly cantidadItemsSolicitud = computed(() =>
     this.itemsSolicitud().reduce((total, item) => total + item.cantidad, 0),
   );
+  readonly rutaRetorno = computed(() => {
+    if (this.usaCarrito()) return '/checkout/carrito';
+    const idProducto = this.producto()?.idProducto;
+    return idProducto ? `/checkout/solicitud/${idProducto}` : '/catalogo';
+  });
 
   ngOnInit(): void {
     this.sincronizarFormularioConSignals();
@@ -104,13 +125,15 @@ export class PaginaSolicitudCheckout implements OnInit {
     this.mensajeError.set(null);
     this.resultadoCheckout.set(null);
 
-    if (this.formulario.invalid) {
-      this.formulario.markAllAsTouched();
+    if (this.requiereLogin()) {
+      this.mensajeError.set('Inicia sesión como cliente para preparar el pago de tu solicitud.');
       return;
     }
 
-    if (this.requiereLogin()) {
-      this.mensajeError.set('Inicia sesion como cliente para preparar el pago de tu solicitud.');
+    if (this.formulario.invalid) {
+      this.formulario.markAllAsTouched();
+      this.mensajeError.set('Revisa los campos señalados antes de continuar al pago.');
+      this.enfocarPrimerCampoInvalido();
       return;
     }
 
@@ -143,11 +166,22 @@ export class PaginaSolicitudCheckout implements OnInit {
           cantidad: item.cantidad,
         })),
       })
-      .pipe(finalize(() => this.enviandoSolicitud.set(false)))
+      .pipe(
+        finalize(() => this.enviandoSolicitud.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: (resultado) => this.resultadoCheckout.set(resultado),
+        next: (resultado) => {
+          this.resultadoCheckout.set(resultado);
+          queueMicrotask(() => this.documento.getElementById('checkout-confirmacion')?.focus());
+        },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
       });
+  }
+
+  editarSolicitud(): void {
+    this.resultadoCheckout.set(null);
+    queueMicrotask(() => this.documento.getElementById('checkout-entrega')?.focus());
   }
 
   campoTieneError(campo: keyof typeof this.formulario.controls): boolean {
@@ -299,7 +333,22 @@ export class PaginaSolicitudCheckout implements OnInit {
     return fecha.toISOString().slice(0, 10);
   }
 
+  private enfocarPrimerCampoInvalido(): void {
+    queueMicrotask(() =>
+      this.documento
+        .querySelector<HTMLElement>('.solicitud-checkout__formulario [aria-invalid="true"]')
+        ?.focus(),
+    );
+  }
+
   private obtenerMensajeErrorCheckout(error: unknown): string {
     return obtenerMensajeErrorUsuario(error, 'No pudimos preparar la solicitud de checkout.');
   }
+}
+
+function fechaNoAnteriorA(fechaMinima: string): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    const fecha = control.value;
+    return fecha && fecha >= fechaMinima ? null : { fechaMinima: true };
+  };
 }

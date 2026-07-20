@@ -1,84 +1,284 @@
 <section class="detalle-pedido">
-  <a appBoton="fantasma" appBotonTamano="sm" routerLink="/cliente/pedidos">← Volver a mis pedidos</a>
+  <nav class="detalle-pedido__miga" aria-label="Ruta de navegación">
+    <a routerLink="/cliente/pedidos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path d="m14.5 6-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+      </svg>
+      Mis pedidos
+    </a>
+    <span aria-hidden="true">/</span>
+    <strong>Detalle</strong>
+  </nav>
 
   @if (store.cargandoDetalle()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Pedido" titulo="Cargando el detalle de tu pedido." />
+    <div class="detalle-pedido__cargando" role="status" aria-live="polite">
+      <span class="sr-only">Cargando el detalle de tu pedido.</span>
+      <div aria-hidden="true"></div>
+      <div aria-hidden="true"></div>
+      <div aria-hidden="true"></div>
+    </div>
   } @else if (store.mensajeErrorDetalle()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Pedido"
+      etiqueta="No pudimos abrir el pedido"
       [titulo]="store.mensajeErrorDetalle() ?? 'No pudimos cargar el detalle del pedido.'"
+      descripcion="Comprueba tu conexión y vuelve a intentarlo. Solo puedes consultar pedidos asociados a tu cuenta."
       textoAccion="Reintentar"
       (accion)="recargarDetalle()"
     />
   } @else if (store.pedidoDetalle(); as pedido) {
     <header class="detalle-pedido__hero">
       <div>
-        <span>Pedido #{{ pedido.idPedido }}</span>
-        <h2>{{ etiquetaEstado(pedido.estadoPedido) }}</h2>
-        <p>{{ pedido.nombreTienda }} · Creado el {{ pedido.fechaCreacion | date: 'dd/MM/yyyy' }}</p>
-      </div>
-      <strong class="detalle-pedido__total">{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-    </header>
-
-    <section class="detalle-pedido__grid">
-      <article class="detalle-pedido__card">
-        <span>Entrega</span>
-        <h3>{{ pedido.tipoEntrega }}</h3>
+        <span class="detalle-pedido__sobrelinea">Pedido #{{ pedido.idPedido }}</span>
+        <h2>{{ pedido.nombreTienda }}</h2>
         <p>
-          @if (pedido.fechaEntrega) {
-            Fecha prevista: {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}.
+          @if (pedido.fechaCreacion) {
+            Confirmado el {{ pedido.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}
           } @else {
-            La fecha de entrega se coordinará contigo.
+            Pedido confirmado en REGALIA
           }
         </p>
-        <p>{{ pedido.observacion }}</p>
-      </article>
+      </div>
+      <div class="detalle-pedido__hero-resumen">
+        <span class="detalle-pedido__estado" [attr.data-estado]="pedido.estadoPedido">
+          {{ etiquetaEstado(pedido.estadoPedido) }}
+        </span>
+        <strong>{{ pedido.total | currency: 'PEN' : 'S/' : '1.2-2' }}</strong>
+        <small>Importe total del pedido</small>
+      </div>
+    </header>
 
-      <article class="detalle-pedido__card">
-        <span>Resumen de pago</span>
-        <dl class="detalle-pedido__montos">
-          <div><dt>Total</dt><dd>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
-          <div><dt>Pagado</dt><dd>{{ pedido.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
-          <div><dt>Saldo pendiente</dt><dd>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
-        </dl>
-        @if (pedido.saldoPendiente > 0) {
-          <button
-            appBoton
-            appBotonBloque
-            type="button"
-            [appBotonCargando]="preparandoPago()"
-            [disabled]="preparandoPago()"
-            (click)="pagarSaldoPendiente(pedido.idPedido)"
-          >
-            {{ preparandoPago() ? 'Redirigiendo...' : 'Pagar saldo pendiente' }}
-          </button>
-        }
-        @if (mensajePago()) {
-          <p
-            class="detalle-pedido__mensaje-pago"
-            [class.detalle-pedido__mensaje-pago--exito]="estadoMensajePago() === 'exito'"
-            [class.detalle-pedido__mensaje-pago--error]="estadoMensajePago() === 'error'"
-            role="status"
-          >
-            {{ mensajePago() }}
-          </p>
-        }
-      </article>
-    </section>
+    @if (alertaPedido(); as alerta) {
+      <section
+        class="detalle-pedido__alerta"
+        [attr.data-variante]="alerta.variante"
+        role="status"
+        aria-live="polite"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          @if (alerta.variante === 'exito') {
+            <path d="m7 12 3.2 3.2L17.5 8" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+            <circle cx="12" cy="12" r="9" stroke-width="1.8" />
+          } @else {
+            <path d="M12 8v4.5m0 3h.01M4.5 19h15L12 4 4.5 19Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+          }
+        </svg>
+        <div>
+          <strong>{{ alerta.titulo }}</strong>
+          <p>{{ alerta.descripcion }}</p>
+        </div>
+      </section>
+    }
 
-    <article class="detalle-pedido__card detalle-pedido__productos">
-      <span>Productos</span>
-      <h3>Incluye {{ pedido.productos.length }} {{ pedido.productos.length === 1 ? 'producto' : 'productos' }}</h3>
-      <app-lista-panel ariaEtiqueta="Productos de este pedido">
-        @for (producto of pedido.productos; track producto.idDetallePedido) {
-          <app-fila-panel tipo="triple" [ariaEtiqueta]="producto.nombreProducto">
-            <strong>{{ producto.nombreProducto }}</strong>
-            <small>{{ producto.cantidad }} × {{ producto.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
-            <b>{{ producto.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
-          </app-fila-panel>
+    <article class="detalle-pedido__card detalle-pedido__seguimiento">
+      <header class="detalle-pedido__cabecera-seccion">
+        <div>
+          <span class="detalle-pedido__sobrelinea">Seguimiento</span>
+          <h3>Estado de tu pedido</h3>
+        </div>
+        @if (pedido.fechaActualizacion) {
+          <small>Actualizado el {{ pedido.fechaActualizacion | date: 'dd/MM/yyyy, HH:mm' }}</small>
         }
-      </app-lista-panel>
+      </header>
+
+      @if (pedido.estadoPedido === 'ANULADO') {
+        <div class="detalle-pedido__seguimiento-anulado">
+          <span aria-hidden="true"></span>
+          <div>
+            <strong>Pedido anulado</strong>
+            <p>El backend no registra fechas por cada etapa, por lo que no mostramos avances que no puedan verificarse.</p>
+          </div>
+        </div>
+      } @else {
+        <ol [attr.aria-label]="'Seguimiento del pedido ' + pedido.idPedido">
+          @for (paso of pasosSeguimiento; track paso.estado; let indice = $index) {
+            <li
+              [attr.data-paso]="estadoPaso(pedido.estadoPedido, indice)"
+              [attr.aria-current]="
+                estadoPaso(pedido.estadoPedido, indice) === 'actual' ? 'step' : null
+              "
+            >
+              <span class="detalle-pedido__punto" aria-hidden="true">
+                @if (estadoPaso(pedido.estadoPedido, indice) === 'completado') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="m7 12 3.2 3.2L17.5 8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                  </svg>
+                } @else {
+                  {{ indice + 1 }}
+                }
+              </span>
+              <span>
+                <strong>{{ paso.etiqueta }}</strong>
+                <small>{{ paso.descripcion }}</small>
+              </span>
+            </li>
+          }
+        </ol>
+      }
     </article>
+
+    <div class="detalle-pedido__contenido">
+      <div class="detalle-pedido__principal">
+        <article class="detalle-pedido__card detalle-pedido__productos">
+          <header class="detalle-pedido__cabecera-seccion">
+            <div>
+              <span class="detalle-pedido__sobrelinea">Productos</span>
+              <h3>
+                {{ cantidadProductos() }}
+                {{ cantidadProductos() === 1 ? 'unidad' : 'unidades' }} en este pedido
+              </h3>
+            </div>
+            <small>
+              {{ pedido.productos.length }}
+              {{ pedido.productos.length === 1 ? 'producto distinto' : 'productos distintos' }}
+            </small>
+          </header>
+
+          @if (pedido.productos.length === 0) {
+            <div class="detalle-pedido__productos-vacio" role="status">
+              No hay productos disponibles en el detalle recibido.
+            </div>
+          } @else {
+            <ul aria-label="Productos incluidos en el pedido">
+              @for (producto of pedido.productos; track producto.idDetallePedido) {
+                <li>
+                  <div class="detalle-pedido__producto-identidad">
+                    <span aria-hidden="true">{{ producto.cantidad }}×</span>
+                    <div>
+                      <h4>{{ producto.nombreProducto }}</h4>
+                      <small>
+                        {{ producto.precioUnitario | currency: 'PEN' : 'S/' : '1.2-2' }}
+                        por unidad
+                      </small>
+                    </div>
+                  </div>
+                  <div class="detalle-pedido__producto-total">
+                    <span>Subtotal</span>
+                    <strong>{{ producto.subtotal | currency: 'PEN' : 'S/' : '1.2-2' }}</strong>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </article>
+
+        <article class="detalle-pedido__card detalle-pedido__entrega">
+          <header class="detalle-pedido__cabecera-seccion">
+            <div>
+              <span class="detalle-pedido__sobrelinea">Entrega</span>
+              <h3>Cómo recibirás tu regalo</h3>
+            </div>
+          </header>
+
+          <dl>
+            <div>
+              <dt>Modalidad</dt>
+              <dd>{{ pedido.tipoEntrega }}</dd>
+            </div>
+            <div>
+              <dt>Fecha solicitada</dt>
+              <dd>
+                @if (pedido.fechaEntrega) {
+                  <time [attr.datetime]="pedido.fechaEntrega">
+                    {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}
+                  </time>
+                } @else {
+                  Por coordinar
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>Tienda responsable</dt>
+              <dd>{{ pedido.nombreTienda }}</dd>
+            </div>
+          </dl>
+
+          <div class="detalle-pedido__observacion">
+            <span>Personalización y observaciones</span>
+            <p>{{ pedido.observacion }}</p>
+          </div>
+        </article>
+      </div>
+
+      <aside class="detalle-pedido__lateral" aria-label="Pago y acciones del pedido">
+        <article class="detalle-pedido__card detalle-pedido__economico">
+          <span class="detalle-pedido__sobrelinea">Resumen económico</span>
+          <h3>Pago del pedido</h3>
+
+          <dl>
+            <div>
+              <dt>Subtotal de productos</dt>
+              <dd>{{ pedido.subtotal | currency: 'PEN' : 'S/' : '1.2-2' }}</dd>
+            </div>
+            <div class="detalle-pedido__economico-total">
+              <dt>Total</dt>
+              <dd>{{ pedido.total | currency: 'PEN' : 'S/' : '1.2-2' }}</dd>
+            </div>
+            <div>
+              <dt>Monto pagado</dt>
+              <dd>{{ pedido.montoPagado | currency: 'PEN' : 'S/' : '1.2-2' }}</dd>
+            </div>
+            <div class="detalle-pedido__economico-saldo">
+              <dt>Saldo pendiente</dt>
+              <dd>{{ pedido.saldoPendiente | currency: 'PEN' : 'S/' : '1.2-2' }}</dd>
+            </div>
+          </dl>
+
+          <div class="detalle-pedido__progreso-pago">
+            <span>
+              <strong>{{ porcentajePagado() }}% pagado</strong>
+              <small>{{ pedido.saldoPendiente > 0 ? 'Aún queda un saldo pendiente' : 'Pago completo' }}</small>
+            </span>
+            <span
+              class="detalle-pedido__barra"
+              role="progressbar"
+              aria-label="Porcentaje pagado del pedido"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-valuenow]="porcentajePagado()"
+            >
+              <span [style.width.%]="porcentajePagado()"></span>
+            </span>
+          </div>
+
+          @if (puedePagarSaldo()) {
+            <button
+              appBoton
+              appBotonBloque
+              type="button"
+              [appBotonCargando]="preparandoPago()"
+              [disabled]="preparandoPago()"
+              (click)="pagarSaldoPendiente(pedido.idPedido)"
+            >
+              {{ preparandoPago() ? 'Preparando pago seguro…' : 'Pagar saldo pendiente' }}
+            </button>
+            <small class="detalle-pedido__ayuda-pago">
+              Te redirigiremos a la pasarela configurada por REGALIA.
+            </small>
+          }
+
+          @if (mensajePago()) {
+            <div
+              class="detalle-pedido__mensaje-pago"
+              [attr.data-estado]="estadoMensajePago()"
+              [attr.role]="estadoMensajePago() === 'error' ? 'alert' : 'status'"
+              aria-live="polite"
+            >
+              {{ mensajePago() }}
+            </div>
+          }
+        </article>
+
+        <article class="detalle-pedido__card detalle-pedido__acciones">
+          <span class="detalle-pedido__sobrelinea">Acciones disponibles</span>
+          <h3>¿Qué quieres hacer?</h3>
+          <a appBoton="secundario" appBotonBloque routerLink="/cliente/pedidos">
+            Volver a mis pedidos
+          </a>
+          <a appBoton="fantasma" appBotonBloque routerLink="/catalogo">Seguir comprando</a>
+          <p>Las acciones mostradas dependen del estado real y de los permisos de tu cuenta.</p>
+        </article>
+      </aside>
+    </div>
   }
 </section>

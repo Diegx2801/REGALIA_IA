@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { EncabezadoSeccion } from '../../../../shared/ui/encabezado-seccion/encabezado-seccion';
@@ -24,6 +24,7 @@ import { TarjetaProducto } from '../tarjeta-producto/tarjeta-producto';
     TarjetaProducto,
   ],
   templateUrl: './resultados-catalogo.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResultadosCatalogo {
   private readonly destroyRef = inject(DestroyRef);
@@ -34,6 +35,7 @@ export class ResultadosCatalogo {
   readonly totalPaginas = input.required<number>();
   readonly cargando = input.required<boolean>();
   readonly mensajeError = input.required<string | null>();
+  readonly mensajeCarrito = input.required<string | null>();
   readonly tipoSeleccionado = input.required<string>();
   readonly precioMaximo = input.required<number>();
   readonly soloDisponibles = input.required<boolean>();
@@ -42,6 +44,7 @@ export class ResultadosCatalogo {
   readonly actualizarOrden = output<OrdenCatalogo>();
   readonly limpiarFiltros = output<void>();
   readonly agregarAlCarrito = output<Producto>();
+  readonly reintentar = output<void>();
   readonly paginaAnterior = output<void>();
   readonly paginaSiguiente = output<void>();
 

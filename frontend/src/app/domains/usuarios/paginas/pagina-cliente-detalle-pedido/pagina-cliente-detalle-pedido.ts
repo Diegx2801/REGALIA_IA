@@ -1,58 +1,142 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
-import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
-import { ListaPanelComponent } from '../../../../shared/ui/lista-panel/lista-panel';
 import { CheckoutApiService } from '../../../checkout/acceso-datos/checkout-api.service';
 import { PedidosClienteStore } from '../../estado/pedidos-cliente.store';
 import { obtenerEtiquetaEstadoPedidoCliente } from '../../modelos/pedido-cliente.model';
 
 type EstadoMensajePago = 'exito' | 'advertencia' | 'error';
+type EstadoPasoSeguimiento = 'completado' | 'actual' | 'pendiente';
+type VarianteAlertaPedido = 'informativa' | 'exito' | 'advertencia' | 'error';
 
 @Component({
   selector: 'app-pagina-cliente-detalle-pedido',
-  imports: [
-    CurrencyPipe,
-    DatePipe,
-    RouterLink,
-    BotonDirective,
-    EstadoPantallaComponent,
-    FilaPanelComponent,
-    ListaPanelComponent,
-  ],
+  imports: [CurrencyPipe, DatePipe, RouterLink, BotonDirective, EstadoPantallaComponent],
   templateUrl: './pagina-cliente-detalle-pedido.html',
   styleUrl: './pagina-cliente-detalle-pedido.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaClienteDetallePedido implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly checkoutApi = inject(CheckoutApiService);
 
   readonly store = inject(PedidosClienteStore);
-  private readonly checkoutApi = inject(CheckoutApiService);
   readonly preparandoPago = signal(false);
-  readonly mensajePago = signal<string | null>(null);
-  readonly estadoMensajePago = signal<EstadoMensajePago | null>(null);
+  private readonly mensajePagoAccion = signal<string | null>(null);
+  private readonly estadoMensajePagoAccion = signal<EstadoMensajePago | null>(null);
   private readonly estadoRetornoPago = signal<string | null>(null);
 
-  constructor() {
-    effect(() => {
-      const pedido = this.store.pedidoDetalle();
-      const estadoPago = this.estadoRetornoPago();
+  readonly pasosSeguimiento = [
+    { estado: 'RESERVADO', etiqueta: 'Reservado', descripcion: 'Compra confirmada' },
+    {
+      estado: 'EN_PREPARACION',
+      etiqueta: 'Preparación',
+      descripcion: 'La tienda prepara tu regalo',
+    },
+    { estado: 'LISTO', etiqueta: 'Listo', descripcion: 'Disponible para la entrega' },
+    { estado: 'ENTREGADO', etiqueta: 'Entregado', descripcion: 'Entrega completada' },
+  ] as const;
 
-      if (!pedido || !estadoPago) return;
+  readonly puedePagarSaldo = computed(() => {
+    const pedido = this.store.pedidoDetalle();
+    return Boolean(pedido && pedido.saldoPendiente > 0 && pedido.estadoPedido !== 'ANULADO');
+  });
 
-      this.mensajePago.set(this.obtenerMensajeRetornoPago(estadoPago, pedido.saldoPendiente));
-      this.estadoMensajePago.set(this.obtenerEstadoMensajeRetornoPago(estadoPago, pedido.saldoPendiente));
-      this.estadoRetornoPago.set(null);
-      void this.limpiarParametrosRetornoPago();
-    });
-  }
+  readonly porcentajePagado = computed(() => {
+    const pedido = this.store.pedidoDetalle();
+    if (!pedido || pedido.total <= 0) return 100;
+    return Math.min(100, Math.max(0, Math.round((pedido.montoPagado / pedido.total) * 100)));
+  });
+
+  readonly cantidadProductos = computed(
+    () =>
+      this.store
+        .pedidoDetalle()
+        ?.productos.reduce((total, producto) => total + producto.cantidad, 0) ?? 0,
+  );
+
+  readonly mensajePago = computed(() => {
+    const mensajeAccion = this.mensajePagoAccion();
+    if (mensajeAccion) return mensajeAccion;
+
+    const pedido = this.store.pedidoDetalle();
+    const estadoPago = this.estadoRetornoPago();
+    return pedido && estadoPago
+      ? this.obtenerMensajeRetornoPago(estadoPago, pedido.saldoPendiente)
+      : null;
+  });
+
+  readonly estadoMensajePago = computed<EstadoMensajePago | null>(() => {
+    const estadoAccion = this.estadoMensajePagoAccion();
+    if (estadoAccion) return estadoAccion;
+
+    const pedido = this.store.pedidoDetalle();
+    const estadoPago = this.estadoRetornoPago();
+    return pedido && estadoPago
+      ? this.obtenerEstadoMensajeRetornoPago(estadoPago, pedido.saldoPendiente)
+      : null;
+  });
+
+  readonly alertaPedido = computed<{
+    variante: VarianteAlertaPedido;
+    titulo: string;
+    descripcion: string;
+  } | null>(() => {
+    const pedido = this.store.pedidoDetalle();
+    if (!pedido) return null;
+
+    if (pedido.estadoPedido === 'ANULADO') {
+      return {
+        variante: 'error',
+        titulo: 'Este pedido fue anulado',
+        descripcion:
+          'El pago de saldo ya no está disponible. Conserva este detalle como referencia.',
+      };
+    }
+    if (pedido.estadoPedido === 'ENTREGADO') {
+      return {
+        variante: 'exito',
+        titulo: 'Entrega completada',
+        descripcion: 'El pedido figura como entregado y permanece disponible en tu historial.',
+      };
+    }
+    if (pedido.estadoPedido === 'LISTO') {
+      return {
+        variante: 'advertencia',
+        titulo: 'Tu regalo está listo',
+        descripcion: `La entrega continuará mediante: ${pedido.tipoEntrega}.`,
+      };
+    }
+    if (pedido.estadoPedido === 'EN_PREPARACION') {
+      return {
+        variante: 'informativa',
+        titulo: 'La tienda está preparando tu regalo',
+        descripcion:
+          'Revisa aquí el avance y la fecha solicitada mientras se completa la preparación.',
+      };
+    }
+
+    return {
+      variante: 'informativa',
+      titulo: 'Reserva confirmada',
+      descripcion: 'La tienda recibió tu pedido y el siguiente paso será iniciar la preparación.',
+    };
+  });
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
@@ -70,11 +154,13 @@ export class PaginaClienteDetallePedido implements OnInit {
       if (parametros.get('checkout') !== 'confirmacion') return;
 
       this.estadoRetornoPago.set(parametros.get('payment') ?? 'success');
+      void this.limpiarParametrosRetornoPago();
     });
   }
 
   recargarDetalle(): void {
-    const idPedido = this.store.pedidoDetalle()?.idPedido ?? Number(this.route.snapshot.paramMap.get('idPedido'));
+    const idPedido =
+      this.store.pedidoDetalle()?.idPedido ?? Number(this.route.snapshot.paramMap.get('idPedido'));
     if (Number.isInteger(idPedido) && idPedido > 0) this.store.cargarDetalle(idPedido);
   }
 
@@ -82,10 +168,25 @@ export class PaginaClienteDetallePedido implements OnInit {
     return obtenerEtiquetaEstadoPedidoCliente(estado);
   }
 
+  estadoPaso(estadoPedido: string, indicePaso: number): EstadoPasoSeguimiento {
+    if (estadoPedido === 'ANULADO') return 'pendiente';
+    const indiceActual = this.pasosSeguimiento.findIndex((paso) => paso.estado === estadoPedido);
+    if (indiceActual < 0 || indicePaso > indiceActual) return 'pendiente';
+    return indicePaso === indiceActual ? 'actual' : 'completado';
+  }
+
   pagarSaldoPendiente(idPedido: number): void {
+    const pedido = this.store.pedidoDetalle();
+    if (!pedido || pedido.idPedido !== idPedido || !this.puedePagarSaldo()) {
+      this.mensajePagoAccion.set('Este pedido no tiene un saldo disponible para pagar.');
+      this.estadoMensajePagoAccion.set('error');
+      return;
+    }
+
     this.preparandoPago.set(true);
-    this.mensajePago.set(null);
-    this.estadoMensajePago.set(null);
+    this.estadoRetornoPago.set(null);
+    this.mensajePagoAccion.set(null);
+    this.estadoMensajePagoAccion.set(null);
 
     this.checkoutApi
       .crearSesionPagoRestante(idPedido)
@@ -96,18 +197,23 @@ export class PaginaClienteDetallePedido implements OnInit {
       .subscribe({
         next: (resultado) => {
           if (!resultado.urlRedireccion) {
-            this.mensajePago.set('No pudimos abrir el proveedor de pago. Inténtalo nuevamente.');
-            this.estadoMensajePago.set('error');
+            this.mensajePagoAccion.set(
+              'No pudimos abrir el proveedor de pago. Inténtalo nuevamente.',
+            );
+            this.estadoMensajePagoAccion.set('error');
             return;
           }
 
           window.location.assign(resultado.urlRedireccion);
         },
         error: (error: unknown) => {
-          this.mensajePago.set(
-            obtenerMensajeErrorUsuario(error, 'No pudimos preparar tu pago. Inténtalo nuevamente.'),
+          this.mensajePagoAccion.set(
+            obtenerMensajeErrorUsuario(
+              error,
+              'No pudimos preparar tu pago. Inténtalo nuevamente.',
+            ),
           );
-          this.estadoMensajePago.set('error');
+          this.estadoMensajePagoAccion.set('error');
         },
       });
   }

@@ -1,9 +1,11 @@
 <app-layout-privado
-  titulo="Mi cuenta"
+  titulo="Tu espacio REGALIA"
   etiqueta="Cliente"
-  descripcion="Consulta tus pedidos y administra la seguridad de tu cuenta."
+  descripcion="Sigue tus pedidos, gestiona tu cuenta y vuelve a descubrir regalos cuando quieras."
   variante="cliente"
   [enlaces]="enlaces"
+  [accionesRapidas]="accionesRapidas()"
+  [mostrarAccionesEnMenuMovil]="true"
 >
   <router-outlet />
 </app-layout-privado>

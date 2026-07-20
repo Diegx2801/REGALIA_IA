@@ -35,6 +35,7 @@ describe('CarritoCheckoutService', () => {
 
     carrito.agregarProducto(crearProducto({ stock: 5 }), 2);
     carrito.actualizarCantidad(1, 0);
+    carrito.actualizarCantidad(1, Number.NaN);
     carrito.actualizarObservacion(1, '  Mensaje personalizado  ');
 
     expect(carrito.items()[0].cantidad).toBe(1);

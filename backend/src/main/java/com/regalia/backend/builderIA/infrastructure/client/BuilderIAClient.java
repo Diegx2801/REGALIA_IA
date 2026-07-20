@@ -3,6 +3,8 @@ package com.regalia.backend.builderIA.infrastructure.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +24,11 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class BuilderIAClient {
+
+    private static final String MENSAJE_SERVICIO_NO_DISPONIBLE =
+            "La asistencia inteligente no está disponible en este momento. Intenta nuevamente en unos minutos.";
 
     private final BuilderIAProperties properties;
     private final ObjectMapper objectMapper;
@@ -70,17 +76,16 @@ public class BuilderIAClient {
         return extraerTexto(response);
 
     } catch (HttpClientErrorException exception) {
-        System.out.println("STATUS: " + exception.getStatusCode());
-        System.out.println("BODY: " + exception.getResponseBodyAsString());
+        log.warn("El proveedor IA rechazo la solicitud con estado {}", exception.getStatusCode());
+        throw new ServicioExternoNoDisponibleException(MENSAJE_SERVICIO_NO_DISPONIBLE);
 
-        throw new ReglaNegocioException(exception.getResponseBodyAsString());
+    } catch (RestClientException exception) {
+        log.warn("No se pudo conectar con el proveedor IA configurado", exception);
+        throw new ServicioExternoNoDisponibleException(MENSAJE_SERVICIO_NO_DISPONIBLE);
 
     } catch (Exception exception) {
-        exception.printStackTrace();
-
-        throw new ReglaNegocioException(
-                "No se pudo consultar el servicio IA local: " + exception.getMessage()
-        );
+        log.error("No se pudo procesar la respuesta del proveedor IA", exception);
+        throw new ServicioExternoNoDisponibleException(MENSAJE_SERVICIO_NO_DISPONIBLE);
     }
 }
 

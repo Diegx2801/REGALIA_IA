@@ -51,9 +51,13 @@ export class CarritoCheckoutService {
   }
 
   actualizarCantidad(idProducto: number, cantidad: number): void {
+    const cantidadNormalizada = Number.isFinite(cantidad) ? Math.trunc(cantidad) : 1;
     const itemsActualizados = this.itemsCarrito().map((item) =>
       item.idProducto === idProducto
-        ? { ...item, cantidad: Math.max(1, Math.min(cantidad, item.stockDisponible)) }
+        ? {
+            ...item,
+            cantidad: Math.max(1, Math.min(cantidadNormalizada, item.stockDisponible)),
+          }
         : item,
     );
 

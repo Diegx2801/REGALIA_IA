@@ -1,29 +1,21 @@
-import { Component, computed, input, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CampoTexto } from '../../../../shared/ui/formularios/campo-texto/campo-texto';
-import { CategoriaInicio } from '../../modelos/inicio.model';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { TipoProducto } from '../../../../domains/datos-maestros/modelos/tipo-producto.model';
+import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 
 @Component({
   selector: 'app-hero-inicio',
-  imports: [CampoTexto, ReactiveFormsModule],
+  imports: [EstadoPantallaComponent, ReactiveFormsModule, RouterLink],
   templateUrl: './hero-inicio.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeroInicio {
-  readonly formularioBusqueda = input.required<FormGroup>();
-  readonly categorias = input.required<readonly CategoriaInicio[]>();
-  readonly buscarDetalles = output<void>();
-  readonly buscarCategoria = output<CategoriaInicio>();
-
-  readonly controlOcasion = computed(
-    () => this.formularioBusqueda().get('ocasion') as FormControl<string>,
-  );
-  readonly controlPresupuesto = computed(
-    () => this.formularioBusqueda().get('presupuesto') as FormControl<string>,
-  );
-  readonly controlFecha = computed(
-    () => this.formularioBusqueda().get('fecha') as FormControl<string>,
-  );
-  readonly controlDistrito = computed(
-    () => this.formularioBusqueda().get('distrito') as FormControl<string>,
-  );
+  readonly controlBusqueda = input.required<FormControl<string>>();
+  readonly categorias = input.required<readonly TipoProducto[]>();
+  readonly cargandoCategorias = input.required<boolean>();
+  readonly mensajeErrorCategorias = input.required<string | null>();
+  readonly buscarRegalos = output<void>();
+  readonly buscarCategoria = output<TipoProducto>();
+  readonly reintentarCategorias = output<void>();
 }

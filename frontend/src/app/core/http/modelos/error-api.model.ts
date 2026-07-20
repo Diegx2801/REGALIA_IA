@@ -164,7 +164,10 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
 
 function extraerMensajeBackend(error: unknown): string {
   if (!error) return '';
-  if (typeof error === 'string') return error;
+
+  // El contrato de REGALIA siempre entrega errores JSON. Una respuesta de texto suele provenir
+  // del proxy, del servidor web o de una pagina HTML intermedia y no debe exponerse en la UI.
+  if (typeof error === 'string') return '';
 
   if (typeof error === 'object') {
     // Soporta contratos frecuentes del backend sin acoplar el frontend a una sola forma de error.

@@ -2,82 +2,127 @@
   <div class="builder-card builder-results">
     <div class="builder-card__header">
       <div>
-        <span class="builder-card__eyebrow">Fase 3 de 4</span>
-        <h2 id="recommendations-title" class="builder-card__title">Recomendaciones para ti</h2>
+        <span class="builder-card__eyebrow">Paso 2 de 3</span>
+        <h2 id="recommendations-title" class="builder-card__title">Opciones pensadas para tu ocasión</h2>
         <p class="builder-card__text">
-          Productos devueltos por el backend IA. Selecciona uno para enviarlo al carrito.
+          Compara productos disponibles y elige el que mejor encaje con tu idea.
         </p>
       </div>
+      <span class="builder-card__pill builder-card__pill--success">Resultado generado con IA</span>
     </div>
+
+    <section class="builder-ai-summary" aria-labelledby="ai-summary-title">
+      <div class="builder-ai-summary__mark" aria-hidden="true">IA</div>
+      <div>
+        <span>Interpretación del asistente</span>
+        <h3 id="ai-summary-title">Por qué elegimos estas opciones</h3>
+        <p>{{ respuestaIa() }}</p>
+        <details>
+          <summary>Ver tu solicitud original</summary>
+          <blockquote>{{ descripcionActual() }}</blockquote>
+        </details>
+      </div>
+    </section>
 
     @if (productos().length === 0) {
       <app-estado-pantalla
         tipo="vacio"
-        etiqueta="Sin productos"
-        titulo="El backend IA no devolvio productos recomendados."
-        descripcion="Puedes buscar manualmente en el catalogo usando la misma descripcion."
-        textoAccion="Buscar en catalogo"
-        (accion)="buscarEnCatalogo.emit()"
+        etiqueta="Sin coincidencias disponibles"
+        titulo="No encontramos un producto que encaje con esta solicitud"
+        descripcion="Prueba agregando un presupuesto, cambiando el estilo o explorando el catálogo completo."
+        textoAccion="Ajustar mi solicitud"
+        (accion)="ajustarSolicitud.emit()"
       />
+      <button type="button" class="builder-secondary-action builder-empty-catalog" (click)="buscarEnCatalogo.emit()">
+        Explorar el catálogo
+      </button>
     } @else {
-      <div class="builder-recommendations">
-        @for (producto of productos(); track identificarProducto($index, producto)) {
+      <div class="builder-recommendations" aria-label="Productos recomendados">
+        @for (producto of productos(); track identificarProducto($index, producto); let posicion = $index) {
           <article
             class="builder-recommendation-card"
             [class.builder-recommendation-card--selected]="productoSeleccionado()?.idProducto === producto.idProducto"
           >
             <div class="builder-recommendation-card__image">
-              <img [src]="producto.imagenes[0].urlImagen" [alt]="producto.nombre" loading="lazy" decoding="async" />
+              <img
+                [src]="producto.imagenes[0]?.urlImagen ?? '/assets/brand/producto-fallback.svg'"
+                [alt]="producto.nombre"
+                loading="lazy"
+                decoding="async"
+                width="220"
+                height="180"
+                (error)="usarImagenAlternativa($event)"
+              />
+              <span>#{{ posicion + 1 }}</span>
             </div>
-            <div>
-              <h3>{{ producto.nombre }}</h3>
+            <div class="builder-recommendation-card__content">
+              <div class="builder-recommendation-card__heading">
+                <div>
+                  <span class="builder-recommendation-card__store">{{ producto.nombreTienda }}</span>
+                  <h3>{{ producto.nombre }}</h3>
+                </div>
+                <app-insignia-ui
+                  [texto]="producto.disponible ? 'Disponible' : 'Agotado'"
+                  [variante]="producto.disponible ? 'exito' : 'neutral'"
+                />
+              </div>
               <p>{{ producto.descripcion }}</p>
               <div class="builder-recommendation-card__tags">
                 <app-insignia-ui [texto]="producto.tipoProducto" variante="primaria" />
-                <app-insignia-ui [texto]="producto.nombreTienda" />
+                <app-insignia-ui [texto]="'Stock ' + producto.stock" />
               </div>
             </div>
-            <div class="builder-recommendation-card__meta">
-              <small>{{ producto.disponible ? 'Disponible' : 'Agotado' }}</small>
-              <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            <div class="builder-recommendation-card__purchase">
+              <div class="builder-recommendation-card__meta">
+                <small>Precio</small>
+                <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+              </div>
+              <a class="builder-recommendation-card__detail" [routerLink]="['/catalogo', producto.idProducto]">
+                Ver detalle
+              </a>
+              <button
+                type="button"
+                class="builder-recommendation-card__select"
+                [disabled]="!producto.disponible"
+                [attr.aria-pressed]="productoSeleccionado()?.idProducto === producto.idProducto"
+                [attr.aria-label]="'Seleccionar ' + producto.nombre"
+                (click)="seleccionarProducto.emit(producto)"
+              >
+                {{ productoSeleccionado()?.idProducto === producto.idProducto ? 'Seleccionado' : 'Elegir' }}
+              </button>
             </div>
-            <button
-              type="button"
-              class="builder-recommendation-card__select"
-              [disabled]="!producto.disponible"
-              [attr.aria-pressed]="productoSeleccionado()?.idProducto === producto.idProducto"
-              [attr.aria-label]="'Seleccionar ' + producto.nombre"
-              (click)="seleccionarProducto.emit(producto)"
-            >
-              Seleccionar
-            </button>
           </article>
         }
       </div>
     }
 
     <div class="builder-phase-actions">
-      <button type="button" class="builder-secondary-action" (click)="volver.emit()">Volver</button>
+      <button type="button" class="builder-secondary-action" (click)="ajustarSolicitud.emit()">
+        Ajustar solicitud
+      </button>
       <button
         type="button"
         class="builder-primary-action"
         [disabled]="productos().length === 0 || !productoSeleccionado()"
         (click)="continuar.emit()"
       >
-        Preparar reserva <span aria-hidden="true">-&gt;</span>
+        Continuar con mi elección
       </button>
     </div>
   </div>
 
-  <aside class="builder-card builder-seller-summary">
-    <app-tarjeta-informativa
-      etiqueta="Integracion"
-      titulo="Criterio de integracion"
-      descripcion="Esta pantalla solo muestra productos que llegan desde el backend. La reserva real continua por carrito y checkout para reutilizar el flujo existente."
-    />
+  <aside class="builder-card builder-seller-summary" aria-label="Resumen de selección">
+    <span class="builder-card__eyebrow">Tu elección</span>
+    <h2 class="builder-seller-summary__title">Resumen antes de continuar</h2>
+    <p class="builder-seller-summary__text">
+      El producto seleccionado se agregará al carrito. Allí podrás revisar cantidades y datos de entrega.
+    </p>
     <div class="builder-mini-reservation">
-      <div><span>Productos IA</span><strong>{{ productos().length }}</strong></div>
-      <div><span>Seleccion</span><strong>{{ productoSeleccionado()?.nombre ?? 'Pendiente' }}</strong></div>
+      <div><span>Opciones encontradas</span><strong>{{ productos().length }}</strong></div>
+      <div><span>Selección</span><strong>{{ productoSeleccionado()?.nombre ?? 'Aún no elegiste' }}</strong></div>
+      @if (productoSeleccionado(); as seleccionado) {
+        <div><span>Precio</span><strong>{{ seleccionado.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+      }
     </div>
   </aside>
 </section>

@@ -188,6 +188,72 @@
       }
     </nav>
 
+    @if (mostrarAccionesEnMenuMovil() && accionesRapidas().length) {
+      <nav
+        class="mt-6 grid gap-2 border-t border-white/10 pt-5 lg:hidden"
+        aria-label="Accesos de compra"
+      >
+        <span class="px-2 text-[0.62rem] font-black tracking-[0.16em] text-white/45 uppercase">
+          Seguir comprando
+        </span>
+        <div class="grid grid-cols-2 gap-2">
+          @for (accion of accionesRapidas(); track accion.ruta) {
+            <a
+              class="layout-privado__acceso-movil relative flex min-h-20 min-w-0 flex-col justify-between rounded-2xl border border-white/10 bg-white/[0.055] p-3 text-white/75 no-underline transition duration-200 hover:border-white/20 hover:bg-white/10 hover:text-white"
+              [routerLink]="accion.ruta"
+              [attr.aria-label]="accion.ariaLabel ?? accion.etiqueta"
+              (click)="cerrarMenuMovil(false)"
+            >
+              <span class="flex items-start justify-between gap-2">
+                <span
+                  class="grid size-9 place-items-center rounded-xl bg-white/10"
+                  aria-hidden="true"
+                >
+                  <svg class="size-[1.05rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    @switch (accion.icono) {
+                      @case ('carrito') {
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M4.5 5.5h1.4l1.25 8.25h9.95l1.4-5.75H7.05M9.25 18.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm7.5 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                        />
+                      }
+                      @case ('catalogo') {
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M5 5.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5ZM5 13.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5Z"
+                        />
+                      }
+                      @default {
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M5 11.25 12 5l7 6.25v7.5h-5v-5h-4v5H5v-7.5Z"
+                        />
+                      }
+                    }
+                  </svg>
+                </span>
+                @if (accion.insignia) {
+                  <span
+                    class="layout-privado__insignia-accion grid min-h-6 min-w-6 place-items-center rounded-full px-1.5 text-[0.65rem] font-black"
+                    aria-hidden="true"
+                  >
+                    {{ accion.insignia }}
+                  </span>
+                }
+              </span>
+              <strong class="mt-2 truncate text-xs font-bold">{{ accion.etiqueta }}</strong>
+            </a>
+          }
+        </div>
+      </nav>
+    }
+
     <footer class="mt-auto pt-8">
       <div class="rounded-2xl border border-white/10 bg-white/[0.055] p-3 shadow-inner">
         <div class="flex min-w-0 items-center gap-3">
@@ -277,47 +343,64 @@
         </div>
 
         <nav class="flex items-center gap-1.5" aria-label="Acciones rápidas privadas">
-          <a
-            class="hidden min-h-11 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-regalia-muted no-underline transition hover:bg-white hover:text-regalia-primary sm:inline-flex"
-            routerLink="/catalogo"
-          >
-            <svg
-              class="size-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true"
+          @for (accion of accionesRapidas(); track accion.ruta) {
+            <a
+              class="layout-privado__accion-rapida relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-bold no-underline transition duration-200"
+              [class.layout-privado__accion-rapida--destacada]="accion.destacada"
+              [class.layout-privado__accion-rapida--oculta-movil]="accion.ocultaEnMovil"
+              [routerLink]="accion.ruta"
+              [attr.aria-label]="accion.ariaLabel ?? accion.etiqueta"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.8"
-                d="M5 5.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5ZM5 13.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5Z"
-              />
-            </svg>
-            Catálogo
-          </a>
-          <a
-            class="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-regalia-border bg-white px-3 py-2 text-sm font-bold text-regalia-primary no-underline shadow-sm transition hover:border-regalia-primary/25 hover:bg-regalia-primary-soft"
-            routerLink="/"
-            aria-label="Ir al inicio de REGALIA"
-          >
-            <svg
-              class="size-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.8"
-                d="M5 11.25 12 5l7 6.25v7.5h-5v-5h-4v5H5v-7.5Z"
-              />
-            </svg>
-            <span class="hidden sm:inline">Inicio</span>
-          </a>
+              <svg
+                class="size-4 shrink-0"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                @switch (accion.icono) {
+                  @case ('carrito') {
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M4.5 5.5h1.4l1.25 8.25h9.95l1.4-5.75H7.05M9.25 18.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm7.5 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                    />
+                  }
+                  @case ('catalogo') {
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M5 5.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5ZM5 13.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5Z"
+                    />
+                  }
+                  @default {
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M5 11.25 12 5l7 6.25v7.5h-5v-5h-4v5H5v-7.5Z"
+                    />
+                  }
+                }
+              </svg>
+              <span
+                class="layout-privado__etiqueta-accion"
+                [class.layout-privado__etiqueta-accion--sm]="accion.etiquetaDesdeSm"
+              >
+                {{ accion.etiqueta }}
+              </span>
+              @if (accion.insignia) {
+                <span
+                  class="layout-privado__insignia-accion absolute -top-1 -right-1 grid min-h-5 min-w-5 place-items-center rounded-full px-1 text-[0.6rem] font-black shadow-sm md:static md:min-h-6 md:min-w-6 md:text-[0.65rem] md:shadow-none"
+                  aria-hidden="true"
+                >
+                  {{ accion.insignia }}
+                </span>
+              }
+            </a>
+          }
         </nav>
       </div>
     </header>

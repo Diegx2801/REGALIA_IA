@@ -1,9 +1,26 @@
-<main class="landing-page">
+<div class="landing-page">
   <app-hero-inicio
-    [formularioBusqueda]="formularioBusqueda"
-    [categorias]="categorias"
-    (buscarDetalles)="buscarDetalles()"
+    [controlBusqueda]="controlBusqueda"
+    [categorias]="categorias()"
+    [cargandoCategorias]="cargandoCategorias()"
+    [mensajeErrorCategorias]="mensajeErrorCategorias()"
+    (buscarRegalos)="buscarRegalos()"
     (buscarCategoria)="buscarCategoria($event)"
+    (reintentarCategorias)="cargarCategorias()"
+  />
+
+  <app-destacados-inicio
+    [tiendas]="tiendasDestacadas()"
+    [productos]="productosDestacados()"
+    [cargandoTiendas]="cargandoTiendasDestacadas()"
+    [cargandoProductos]="cargandoProductosDestacados()"
+    [mensajeErrorTiendas]="mensajeErrorTiendasDestacadas()"
+    [mensajeErrorProductos]="mensajeErrorProductosDestacados()"
+    [mensajeCarrito]="mensajeCarrito()"
+    (explorarTienda)="explorarTienda($event)"
+    (agregarProducto)="agregarAlCarrito($event)"
+    (reintentarTiendas)="cargarTiendasDestacadas()"
+    (reintentarProductos)="cargarProductosDestacados()"
   />
 
   <app-calendario-comercial
@@ -15,13 +32,6 @@
     (seleccionarMes)="mesActivo.set($event)"
   />
 
-  <app-destacados-inicio
-    [productos]="productosDestacados()"
-    [cargando]="cargandoProductosDestacados()"
-    [mensajeError]="mensajeErrorProductosDestacados()"
-  />
-
   <app-modelo-negocio-inicio [pasos]="pasosModeloNegocio" />
-
   <app-cta-vendedor-inicio />
-</main>
+</div>

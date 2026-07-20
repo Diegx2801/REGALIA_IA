@@ -1,62 +1,76 @@
 <section class="builder-phase builder-phase--need" aria-labelledby="need-title">
-  <form class="builder-card builder-card--form" [formGroup]="formulario()">
+  <form class="builder-card builder-card--form" [formGroup]="formulario()" (ngSubmit)="continuar.emit()">
     <div class="builder-card__header">
       <div>
-        <span class="builder-card__eyebrow">Fase 1 de 4</span>
-        <h2 id="need-title" class="builder-card__title">
-          Asistente de busqueda inteligente
-        </h2>
+        <span class="builder-card__eyebrow">Paso 1 de 3</span>
+        <h2 id="need-title" class="builder-card__title">Cuéntanos a quién quieres sorprender</h2>
         <p class="builder-card__text">
-          Describe la ocasion, presupuesto, estilo y cualquier detalle importante. Esta
-          informacion se envia al endpoint IA del backend.
+          Incluye la ocasión, para quién es, el estilo que imaginas y tu presupuesto aproximado.
+          No necesitas escribirlo de forma perfecta.
         </p>
       </div>
-      <span class="builder-card__pill">API REST</span>
+      <span class="builder-card__pill">Asistencia con IA</span>
     </div>
 
     <app-campo-textarea
       id="need"
-      etiqueta="&iquest;Que regalo tienes en mente?"
+      etiqueta="Describe el regalo que buscas"
       [control]="controlNecesidad()"
-      [filas]="6"
+      [filas]="7"
       [maximoCaracteres]="800"
-      placeholder="Ejemplo: Quiero un regalo elegante para graduacion, con una torta personalizada y flores."
-      mensajeError="Describe tu necesidad para continuar."
+      ayuda="Cuantos más detalles compartas, más útiles serán las recomendaciones."
+      placeholder="Ej.: Busco un regalo elegante para la graduación de mi hermana. Le gustan las flores y tengo hasta S/ 150."
+      mensajeError="Escribe una descripción antes de consultar al asistente."
     />
 
-    <button
-      type="button"
-      class="builder-primary-action"
-      [disabled]="cargando()"
-      (click)="continuar.emit()"
-    >
+    <div class="builder-suggestions">
+      <span class="builder-suggestions__label">¿Necesitas inspiración? Usa un ejemplo:</span>
+      <div class="builder-suggestions__list">
+        @for (ejemplo of ejemplos; track ejemplo) {
+          <button type="button" class="builder-chip" (click)="aplicarEjemplo(ejemplo)">
+            {{ ejemplo }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <button type="submit" class="builder-primary-action" [disabled]="cargando()">
       @if (cargando()) {
-        Consultando IA...
+        Analizando tu idea…
       } @else {
-        Consultar recomendaciones <span aria-hidden="true">-&gt;</span>
+        Obtener recomendaciones
       }
     </button>
+
+    @if (cargando()) {
+      <div class="builder-loading" role="status" aria-live="polite">
+        <span class="builder-loading__spinner" aria-hidden="true"></span>
+        <div>
+          <strong>Estamos buscando opciones reales para ti</strong>
+          <p>El asistente analiza tu descripción y la compara con productos disponibles.</p>
+        </div>
+      </div>
+    }
   </form>
 
-  <aside class="builder-card builder-preview" aria-label="Vista previa de tu solicitud">
+  <aside class="builder-card builder-preview" aria-label="Resumen de la solicitud">
     <div class="builder-card__header builder-card__header--compact">
       <div>
-        <span class="builder-card__eyebrow">Vista previa</span>
-        <h2 class="builder-card__title">Tu solicitud hasta ahora</h2>
+        <span class="builder-card__eyebrow">Tu solicitud</span>
+        <h2 class="builder-card__title">Esto es lo que entenderá el asistente</h2>
       </div>
     </div>
-    <dl class="builder-summary-list">
-      <div>
-        <dt>Descripcion</dt>
-        <dd>{{ descripcionActual() }}</dd>
-      </div>
-    </dl>
-    <div class="builder-preview__image">
-      <img src="/assets/brand/ilustraciones/hero-regalia-home.png" alt="Regalo REGALIA" loading="lazy" decoding="async" />
+    <blockquote class="builder-request-preview">{{ descripcionActual() }}</blockquote>
+    <div class="builder-guidance">
+      <strong>Para obtener mejores resultados</strong>
+      <ul>
+        <li>Menciona la ocasión y a la persona.</li>
+        <li>Indica gustos, colores o estilo.</li>
+        <li>Agrega un presupuesto aproximado.</li>
+      </ul>
     </div>
     <p class="builder-preview__safe">
-      El frontend no inventa recomendaciones; si el backend no devuelve productos, se
-      mostrara un estado vacio.
+      La IA solo recomienda productos reales y disponibles enviados por el backend de REGALIA.
     </p>
   </aside>
 </section>

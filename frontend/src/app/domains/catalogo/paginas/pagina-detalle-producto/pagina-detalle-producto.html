@@ -1,34 +1,46 @@
-<main class="detalle-producto">
-  <a appBoton="fantasma" appBotonTamano="sm" class="detalle-producto__volver" routerLink="/catalogo">Volver al catalogo</a>
+<section class="detalle-producto">
+  <nav class="detalle-producto__breadcrumb" aria-label="Migas de pan">
+    <a routerLink="/">Inicio</a>
+    <span aria-hidden="true">/</span>
+    <a routerLink="/catalogo">Catálogo</a>
+    @if (producto(); as productoActual) {
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{{ productoActual.nombre }}</span>
+    }
+  </nav>
 
   @if (cargandoProducto()) {
     <section class="detalle-producto__skeleton" aria-label="Cargando detalle del producto">
       <span></span>
-      <div>
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
+      <div><span></span><span></span><span></span></div>
     </section>
   } @else if (mensajeError()) {
-    <section class="detalle-producto__estado">
+    <section class="detalle-producto__estado" role="alert">
       <span>Detalle no disponible</span>
-      <h1>{{ mensajeError() }}</h1>
-      <p>Verifica que el backend este activo en el puerto 8080 o vuelve al catalogo.</p>
-      <a appBoton routerLink="/catalogo">Explorar catalogo</a>
+      <h1>No pudimos mostrar este regalo</h1>
+      <p>{{ mensajeError() }}</p>
+      <a appBoton routerLink="/catalogo">Volver al catálogo</a>
     </section>
   } @else if (producto(); as productoActual) {
     <section class="detalle-producto__principal">
       <div class="detalle-producto__galeria">
         <div class="detalle-producto__imagen-principal">
-          <img [src]="imagenActiva()" [alt]="productoActual.nombre" decoding="async" fetchpriority="high" />
-          <span [class.detalle-producto__estado-stock--agotado]="!productoActual.disponible">
+          <img
+            [src]="imagenActiva()"
+            [alt]="productoActual.nombre"
+            decoding="async"
+            fetchpriority="high"
+            width="900"
+            height="900"
+            (error)="usarImagenAlternativa($event)"
+          />
+          <span [class.detalle-producto__estado-stock--agotado]="!disponible()">
             {{ stockTexto() }}
           </span>
         </div>
 
         @if (productoActual.imagenes.length > 1) {
-          <div class="detalle-producto__miniaturas" aria-label="Imagenes del producto">
+          <div class="detalle-producto__miniaturas" aria-label="Galería de imágenes">
             @for (imagen of productoActual.imagenes; track imagen.urlImagen; let indice = $index) {
               <button
                 type="button"
@@ -37,7 +49,15 @@
                 [attr.aria-pressed]="indiceImagenActiva() === indice"
                 (click)="seleccionarImagen(indice)"
               >
-                <img [src]="imagen.urlImagen" [alt]="productoActual.nombre + ' imagen ' + (indice + 1)" loading="lazy" decoding="async" />
+                <img
+                  [src]="imagen.urlImagen"
+                  [alt]="productoActual.nombre + ', vista ' + (indice + 1)"
+                  loading="lazy"
+                  decoding="async"
+                  width="120"
+                  height="120"
+                  (error)="usarImagenAlternativa($event)"
+                />
               </button>
             }
           </div>
@@ -45,81 +65,101 @@
       </div>
 
       <article class="detalle-producto__informacion">
-        <span class="detalle-producto__categoria">{{ productoActual.tipoProducto }}</span>
-        <h1>{{ productoActual.nombre }}</h1>
+        <div class="detalle-producto__cabecera">
+          <span class="detalle-producto__categoria">{{ productoActual.tipoProducto }}</span>
+          <h1>{{ productoActual.nombre }}</h1>
+          <p class="detalle-producto__tienda">Preparado por {{ productoActual.nombreTienda }}</p>
+        </div>
+
         <p class="detalle-producto__descripcion">{{ productoActual.descripcion }}</p>
 
         <div class="detalle-producto__precio">
-          <span>Precio desde</span>
+          <span>Precio por unidad</span>
           <strong>{{ productoActual.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
         </div>
 
-        @if (productoActual.disponible) {
-          <div class="detalle-producto__cantidad" aria-label="Seleccion de cantidad">
-            <span>Cantidad</span>
+        @if (disponible()) {
+          <section class="detalle-producto__personalizacion" aria-labelledby="titulo-personalizacion">
             <div>
-              <button
-                appBoton="secundario"
-                appBotonTamano="sm"
-                type="button"
-                [disabled]="cantidadSeleccionada() <= 1"
-                [attr.aria-label]="'Disminuir cantidad de ' + productoActual.nombre"
-                (click)="disminuirCantidad(productoActual)"
-              >
-                -
-              </button>
-              <strong aria-live="polite">{{ cantidadSeleccionada() }}</strong>
-              <button
-                appBoton="secundario"
-                appBotonTamano="sm"
-                type="button"
-                [disabled]="cantidadSeleccionada() >= productoActual.stock"
-                [attr.aria-label]="'Aumentar cantidad de ' + productoActual.nombre"
-                (click)="aumentarCantidad(productoActual)"
-              >
-                +
-              </button>
+              <span>Hazlo único</span>
+              <h2 id="titulo-personalizacion">Personaliza tu regalo</h2>
+              <p>Agrega un mensaje, la ocasión o una indicación especial para la tienda.</p>
             </div>
-            <small>Total estimado {{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+            <label for="notaPersonalizacion">Indicaciones (opcional)</label>
+            <textarea
+              id="notaPersonalizacion"
+              rows="4"
+              maxlength="1000"
+              placeholder="Ej.: Es por su cumpleaños. Incluir una tarjeta que diga…"
+              [formControl]="notaPersonalizacion"
+              [attr.aria-describedby]="notaPersonalizacion.invalid ? 'errorNota contadorNota' : 'ayudaNota contadorNota'"
+            ></textarea>
+            <div class="detalle-producto__ayuda">
+              <small id="ayudaNota">La tienda recibirá esta nota junto con tu pedido.</small>
+              <small id="contadorNota">{{ notaPersonalizacion.value.length }}/1000</small>
+            </div>
+            @if (notaPersonalizacion.invalid && notaPersonalizacion.touched) {
+              <small id="errorNota" class="detalle-producto__error" role="alert">
+                La indicación no puede superar 1000 caracteres.
+              </small>
+            }
+          </section>
+
+          <div class="detalle-producto__compra">
+            <div class="detalle-producto__cantidad" aria-label="Selección de cantidad">
+              <span>Cantidad</span>
+              <div>
+                <button
+                  appBoton="secundario"
+                  appBotonTamano="sm"
+                  type="button"
+                  [disabled]="cantidadSeleccionada() <= 1"
+                  [attr.aria-label]="'Disminuir cantidad de ' + productoActual.nombre"
+                  (click)="disminuirCantidad(productoActual)"
+                >−</button>
+                <strong aria-live="polite">{{ cantidadSeleccionada() }}</strong>
+                <button
+                  appBoton="secundario"
+                  appBotonTamano="sm"
+                  type="button"
+                  [disabled]="cantidadSeleccionada() >= productoActual.stock"
+                  [attr.aria-label]="'Aumentar cantidad de ' + productoActual.nombre"
+                  (click)="aumentarCantidad(productoActual)"
+                >+</button>
+              </div>
+            </div>
+            <div class="detalle-producto__total">
+              <span>Total estimado</span>
+              <strong>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </div>
           </div>
         }
 
         <dl class="detalle-producto__datos">
-          <div>
-            <dt>Tienda</dt>
-            <dd>{{ productoActual.nombreTienda }}</dd>
-          </div>
-          <div>
-            <dt>Disponibilidad</dt>
-            <dd>{{ stockTexto() }}</dd>
-          </div>
-          <div>
-            <dt>Personalizacion</dt>
-            <dd>Mensaje, ocasion y preferencias del cliente.</dd>
-          </div>
+          <div><dt>Disponibilidad</dt><dd>{{ stockTexto() }}</dd></div>
+          <div><dt>Compra segura</dt><dd>Stock y precio se confirman al finalizar.</dd></div>
         </dl>
 
         <div class="detalle-producto__acciones">
-          @if (productoActual.disponible) {
-            <a
-              appBoton
-              class="detalle-producto__accion-principal"
-              [routerLink]="['/checkout/solicitud', productoActual.idProducto]"
-            >
-              Solicitar personalizacion
-            </a>
-          } @else {
-            <button appBoton type="button" class="detalle-producto__accion-principal" disabled>
-              Solicitar personalizacion
-            </button>
-          }
-          <button appBoton="secundario" type="button" [disabled]="!productoActual.disponible" (click)="agregarAlCarrito(productoActual)">
-            Agregar al carrito
+          <button
+            appBoton
+            type="button"
+            class="detalle-producto__accion-principal"
+            [disabled]="!disponible()"
+            (click)="agregarAlCarrito(productoActual)"
+          >
+            {{ disponible() ? 'Agregar al carrito' : 'Producto agotado' }}
           </button>
+          <a appBoton="secundario" routerLink="/carrito">Revisar carrito</a>
           <a appBoton="fantasma" routerLink="/catalogo">Seguir explorando</a>
         </div>
+
+        @if (mensajeCarrito()) {
+          <p class="detalle-producto__confirmacion" role="status" aria-live="polite">
+            {{ mensajeCarrito() }} Ya puedes revisar tu carrito o seguir explorando.
+          </p>
+        }
       </article>
     </section>
-
   }
-</main>
+</section>

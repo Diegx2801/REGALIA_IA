@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -9,6 +9,7 @@ import { CampoTexto } from '../../../../shared/ui/formularios/campo-texto/campo-
   selector: 'app-hero-catalogo',
   imports: [CampoTexto, ReactiveFormsModule, RouterLink],
   templateUrl: './hero-catalogo.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeroCatalogo {
   private readonly destroyRef = inject(DestroyRef);
