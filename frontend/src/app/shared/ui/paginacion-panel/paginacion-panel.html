@@ -1,7 +1,27 @@
-<nav class="paginacion-panel" [attr.aria-label]="ariaEtiqueta()">
-  <button type="button" [disabled]="paginaActual() === 0" (click)="irPaginaAnterior()">Anterior</button>
-  <span>Página {{ paginaActual() + 1 }} de {{ totalPaginas() || 1 }}</span>
-  <button type="button" [disabled]="paginaActual() + 1 >= totalPaginas()" (click)="irPaginaSiguiente()">
+<nav
+  class="flex flex-col items-stretch justify-end gap-3 rounded-regalia border border-regalia-primary/10 bg-white p-3 shadow-sm sm:flex-row sm:items-center"
+  [attr.aria-label]="ariaEtiqueta()"
+>
+  <button
+    class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-regalia-border bg-white px-4 text-sm font-bold text-regalia-primary transition hover:border-regalia-primary/25 hover:bg-regalia-primary-soft disabled:cursor-not-allowed disabled:bg-regalia-surface-soft disabled:text-regalia-muted/60"
+    type="button"
+    [disabled]="paginaActual() === 0"
+    (click)="irPaginaAnterior()"
+  >
+    <span aria-hidden="true">←</span>
+    Anterior
+  </button>
+  <span class="px-2 text-center text-sm font-semibold text-regalia-muted">
+    Página <strong class="text-regalia-ink">{{ paginaActual() + 1 }}</strong> de
+    <strong class="text-regalia-ink">{{ totalPaginas() || 1 }}</strong>
+  </span>
+  <button
+    class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-regalia-primary px-4 text-sm font-bold text-white shadow-sm transition hover:bg-regalia-primary-dark disabled:cursor-not-allowed disabled:bg-regalia-surface-soft disabled:text-regalia-muted/60"
+    type="button"
+    [disabled]="paginaActual() + 1 >= totalPaginas()"
+    (click)="irPaginaSiguiente()"
+  >
     Siguiente
+    <span aria-hidden="true">→</span>
   </button>
 </nav>

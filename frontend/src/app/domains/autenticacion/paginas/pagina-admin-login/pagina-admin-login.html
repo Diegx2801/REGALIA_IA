@@ -1,77 +1,199 @@
 <section class="admin-login">
-  <a class="admin-login__brand" routerLink="/">
-    <span class="admin-login__mark">R</span>
-    <span>
-      <strong>REGALIA</strong>
-      <small>Administracion</small>
+  <header class="admin-login__topbar">
+    <a class="admin-login__brand" routerLink="/" aria-label="Volver al inicio de REGALIA">
+      <img
+        src="/assets/brand/logos/logo-principal-horizontal.png"
+        alt="REGALIA"
+        width="480"
+        height="120"
+      />
+      <span>Administración</span>
+    </a>
+
+    <span class="admin-login__environment">
+      <span aria-hidden="true"></span>
+      Entorno administrativo
     </span>
-  </a>
 
-  <main class="admin-login__shell">
-    <section class="admin-login__intro">
-      <p class="admin-login__eyebrow">Backoffice seguro</p>
-      <h1>Acceso administrativo</h1>
-      <p>
-        Ingresa solo con la cuenta asignada por REGALIA. Este espacio queda
-        separado del login publico de clientes y vendedores.
-      </p>
-    </section>
+    <a class="admin-login__back" routerLink="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      Volver al sitio público
+    </a>
+  </header>
 
-    <form
-      class="admin-login__form"
-      [formGroup]="formularioLogin"
-      (ngSubmit)="enviarLogin()"
-      novalidate
-    >
+  <main class="admin-login__shell" id="contenido-principal">
+    <section class="admin-login__context" aria-labelledby="admin-context-title">
       <div>
-        <p class="admin-login__eyebrow">Sesion protegida</p>
-        <h2>Centro de control</h2>
+        <p class="admin-login__eyebrow">REGALIA Operations</p>
+        <h1 id="admin-context-title">Control con claridad. Decisiones con confianza.</h1>
+        <p class="admin-login__intro-copy">
+          Supervisa la operación, atiende alertas y mantén la calidad del marketplace desde un
+          entorno separado del acceso público.
+        </p>
       </div>
 
-      <label class="admin-login__field">
-        <span>Correo administrativo</span>
-        <input
-          type="email"
-          formControlName="correo"
-          autocomplete="username"
-          placeholder="admin@regalia.com"
-        />
-      </label>
+      <div class="admin-login__assurances" aria-label="Características del acceso administrativo">
+        <article>
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Zm-3 9 2 2 4-4"></path>
+            </svg>
+          </span>
+          <div>
+            <strong>Autorización por rol</strong>
+            <small>El panel solo se habilita para cuentas administrativas vigentes.</small>
+          </div>
+        </article>
+        <article>
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 8v5l3 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9Z"></path>
+            </svg>
+          </span>
+          <div>
+            <strong>Sesión controlada</strong>
+            <small>El tiempo de acceso se valida antes de cada operación protegida.</small>
+          </div>
+        </article>
+        <article>
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"></path></svg>
+          </span>
+          <div>
+            <strong>Visión operativa</strong>
+            <small>Usuarios, tiendas, pedidos y alertas en un mismo entorno.</small>
+          </div>
+        </article>
+      </div>
 
-      <label class="admin-login__field">
-        <span>Contrasena</span>
-        <div class="admin-login__password">
-          <input
-            [type]="mostrarContrasena() ? 'text' : 'password'"
-            formControlName="contrasena"
-            autocomplete="current-password"
-            placeholder="Tu contrasena"
-          />
-          <button type="button" (click)="alternarContrasena()">
-            {{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}
-          </button>
+      <div class="admin-login__status">
+        <span aria-hidden="true"></span>
+        <p>
+          <strong>Canal administrativo</strong>
+          Autenticación independiente del acceso de clientes y vendedores.
+        </p>
+      </div>
+    </section>
+
+    <section class="admin-login__access" aria-labelledby="admin-login-title">
+      <form
+        class="admin-login__form"
+        [formGroup]="formularioLogin"
+        [attr.aria-busy]="estaEnviando()"
+        (ngSubmit)="enviarLogin()"
+        novalidate
+      >
+        <header class="admin-login__form-header">
+          <span class="admin-login__lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5z"></path></svg>
+          </span>
+          <div>
+            <p class="admin-login__eyebrow">Acceso restringido</p>
+            <h2 id="admin-login-title">Inicia sesión</h2>
+          </div>
+        </header>
+
+        <p class="admin-login__form-copy">
+          Usa las credenciales administrativas asignadas por REGALIA.
+        </p>
+
+        <div class="admin-login__field">
+          <label for="admin-login-email">Correo administrativo</label>
+          <div
+            class="admin-login__control"
+            [class.admin-login__control--invalid]="campoTieneError('correo')"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16v12H4zM4 8l8 5 8-5"></path>
+            </svg>
+            <input
+              id="admin-login-email"
+              type="email"
+              formControlName="correo"
+              autocomplete="username"
+              inputmode="email"
+              placeholder="admin@regalia.com"
+              [attr.aria-invalid]="campoTieneError('correo')"
+              [attr.aria-describedby]="campoTieneError('correo') ? 'admin-email-error' : null"
+            />
+          </div>
+          @if (campoTieneError('correo')) {
+            <small id="admin-email-error" class="admin-login__field-error">
+              Ingresa un correo administrativo válido.
+            </small>
+          }
         </div>
-      </label>
 
-      <label class="admin-login__remember">
-        <input type="checkbox" formControlName="recordarSesion" />
-        <span>Recordar esta sesion administrativa</span>
-      </label>
-
-      @if (mensajeError()) {
-        <div class="admin-login__message" role="alert">
-          {{ mensajeError() }}
+        <div class="admin-login__field">
+          <label for="admin-login-password">Contraseña</label>
+          <div
+            class="admin-login__control"
+            [class.admin-login__control--invalid]="campoTieneError('contrasena')"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5z"></path>
+            </svg>
+            <input
+              id="admin-login-password"
+              [type]="mostrarContrasena() ? 'text' : 'password'"
+              formControlName="contrasena"
+              autocomplete="current-password"
+              placeholder="Tu contraseña"
+              [attr.aria-invalid]="campoTieneError('contrasena')"
+              [attr.aria-describedby]="
+                campoTieneError('contrasena') ? 'admin-password-error' : null
+              "
+            />
+            <button
+              type="button"
+              [attr.aria-label]="mostrarContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="mostrarContrasena()"
+              (click)="alternarContrasena()"
+            >
+              {{ mostrarContrasena() ? 'Ocultar' : 'Ver' }}
+            </button>
+          </div>
+          @if (campoTieneError('contrasena')) {
+            <small id="admin-password-error" class="admin-login__field-error">
+              La contraseña es obligatoria.
+            </small>
+          }
         </div>
-      }
 
-      <button class="admin-login__submit" type="submit" [disabled]="estaEnviando()">
-        {{ estaEnviando() ? 'Validando...' : 'Ingresar al panel' }}
-      </button>
+        <label class="admin-login__remember" for="admin-login-remember">
+          <input id="admin-login-remember" type="checkbox" formControlName="recordarSesion" />
+          <span>Recordar esta sesión administrativa</span>
+        </label>
 
-      <p class="admin-login__note">
-        Las cuentas administrativas se crean y asignan internamente. No hay
-        registro publico para administradores.
-      </p>
-    </form>
+        @if (mensajeError()) {
+          <div class="admin-login__message" role="alert">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 8v5m0 3h.01M12 3 2 21h20L12 3Z"></path>
+            </svg>
+            <span>{{ mensajeError() }}</span>
+          </div>
+        }
+
+        <button class="admin-login__submit" type="submit" [disabled]="estaEnviando()">
+          @if (estaEnviando()) {
+            <span class="admin-login__spinner" aria-hidden="true"></span>
+            Validando acceso...
+          } @else {
+            Ingresar al centro de control
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          }
+        </button>
+
+        <div class="admin-login__support-note">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm0 13v.01M12 8v5"></path>
+          </svg>
+          <p>
+            Las cuentas administrativas se crean internamente. Si no puedes ingresar, contacta al
+            responsable del sistema.
+          </p>
+        </div>
+      </form>
+    </section>
   </main>
 </section>

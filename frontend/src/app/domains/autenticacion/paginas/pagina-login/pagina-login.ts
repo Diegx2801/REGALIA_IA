@@ -3,9 +3,15 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { RolUsuario, SesionAutenticacion } from '../../../../core/autenticacion/sesion-autenticacion.model';
+import {
+  RolUsuario,
+  SesionAutenticacion,
+} from '../../../../core/autenticacion/sesion-autenticacion.model';
 import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
-import { normalizarErrorApi, obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
+import {
+  normalizarErrorApi,
+  obtenerMensajeErrorUsuario,
+} from '../../../../core/http/modelos/error-api.model';
 import { UsuarioApiService } from '../../../usuarios/acceso-datos/usuario-api.service';
 import { SolicitudCrearUsuario } from '../../../usuarios/modelos/usuario.model';
 import { AutenticacionApiService } from '../../acceso-datos/autenticacion-api.service';
@@ -97,7 +103,9 @@ export class PaginaLogin implements OnInit {
         }
 
         if (parametros.get('contrasenaActualizada') === 'true') {
-          this.mensajeRegistro.set('Contrasena actualizada. Inicia sesion nuevamente con tu nueva contrasena.');
+          this.mensajeRegistro.set(
+            'Contraseña actualizada. Inicia sesión nuevamente con tu nueva contraseña.',
+          );
         }
       });
   }
@@ -146,13 +154,15 @@ export class PaginaLogin implements OnInit {
       .pipe(finalize(() => this.estaEnviando.set(false)))
       .subscribe({
         next: () => {
-          const correoRegistrado = this.formularioRegistro.controls.correo.value.trim().toLowerCase();
+          const correoRegistrado = this.formularioRegistro.controls.correo.value
+            .trim()
+            .toLowerCase();
           this.formularioLogin.controls.correo.setValue(correoRegistrado);
           this.formularioLogin.controls.contrasena.setValue('');
           this.formularioRegistro.reset();
           this.modo.set('login');
           this.mensajeRegistro.set(
-            `Cuenta creada. Revisa ${correoRegistrado} y confirma tu correo. Podras navegar, pero necesitaremos verificarlo antes de confirmar pedidos o gestionar una tienda.`,
+            `Cuenta creada. Revisa ${correoRegistrado} y confirma tu correo. Podrás navegar, pero necesitaremos verificarlo antes de confirmar pedidos o gestionar una tienda.`,
           );
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorRegistro(error)),
@@ -168,9 +178,11 @@ export class PaginaLogin implements OnInit {
 
     this.autenticacionApi
       .iniciarSesionGoogle(idToken)
-      .pipe(finalize(() => {
-        this.estaProcesandoGoogle.set(false);
-      }))
+      .pipe(
+        finalize(() => {
+          this.estaProcesandoGoogle.set(false);
+        }),
+      )
       .subscribe({
         next: (resultado) => this.procesarLoginExitoso(resultado),
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorGoogle(error)),
@@ -200,9 +212,7 @@ export class PaginaLogin implements OnInit {
     return campo.invalid && (campo.touched || campo.dirty);
   }
 
-  campoRegistroTieneError(
-    nombreCampo: keyof typeof this.formularioRegistro.controls,
-  ): boolean {
+  campoRegistroTieneError(nombreCampo: keyof typeof this.formularioRegistro.controls): boolean {
     const campo = this.formularioRegistro.controls[nombreCampo];
     return campo.invalid && (campo.touched || campo.dirty);
   }
@@ -283,10 +293,10 @@ export class PaginaLogin implements OnInit {
     const errorNormalizado = normalizarErrorApi(error);
 
     if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
-      return 'Correo o contrasena incorrectos.';
+      return 'Correo o contraseña incorrectos.';
     }
 
-    return errorNormalizado.message || 'No se pudo iniciar sesion.';
+    return errorNormalizado.message || 'No se pudo iniciar sesión.';
   }
 
   private obtenerMensajeErrorRegistro(error: unknown): string {
@@ -295,10 +305,10 @@ export class PaginaLogin implements OnInit {
 
   private obtenerMensajeErrorGoogle(error: unknown): string {
     const errorNormalizado = normalizarErrorApi(error);
-    const accion = this.modo() === 'registro' ? 'crear tu cuenta' : 'iniciar sesion';
+    const accion = this.modo() === 'registro' ? 'crear tu cuenta' : 'iniciar sesión';
 
     if (errorNormalizado.tipo === 'red' || errorNormalizado.tipo === 'timeout') {
-      return 'No pudimos conectar con Google o REGALIA. Intentalo nuevamente en unos segundos.';
+      return 'No pudimos conectar con Google o REGALIA. Inténtalo nuevamente en unos segundos.';
     }
 
     if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
@@ -310,15 +320,15 @@ export class PaginaLogin implements OnInit {
     }
 
     if (errorNormalizado.estado === 409 || errorNormalizado.tipo === 'conflicto') {
-      return 'Este correo ya esta registrado. Inicia sesion con tu contrasena y vincula Google desde tu perfil.';
+      return 'Este correo ya está registrado. Inicia sesión con tu contraseña y vincula Google desde tu perfil.';
     }
 
     if (errorNormalizado.tipo === 'validacion') {
-      return 'Google no devolvio una identidad valida. Elige otra cuenta o intenta nuevamente.';
+      return 'Google no devolvió una identidad válida. Elige otra cuenta o intenta nuevamente.';
     }
 
     if (errorNormalizado.tipo === 'servidor') {
-      return 'REGALIA no pudo completar el acceso con Google. Intentalo nuevamente en unos minutos.';
+      return 'REGALIA no pudo completar el acceso con Google. Inténtalo nuevamente en unos minutos.';
     }
 
     return errorNormalizado.message || `No se pudo ${accion} con Google.`;

@@ -17,16 +17,19 @@ export class LayoutVendedor {
       etiqueta: 'Resumen',
       ruta: '/vendedor/resumen',
       descripcion: 'Pedidos recibidos y estado comercial',
+      icono: 'resumen',
     },
     {
       etiqueta: 'Tiendas',
       ruta: '/vendedor/tiendas',
       descripcion: 'Gestionar presencia comercial',
+      icono: 'tiendas',
     },
     {
       etiqueta: 'Pedidos',
       ruta: '/vendedor/pedidos',
       descripcion: 'Solicitudes y pagos recibidos',
+      icono: 'pedidos',
     },
   ];
 }

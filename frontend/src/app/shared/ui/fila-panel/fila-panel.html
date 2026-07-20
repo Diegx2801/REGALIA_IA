@@ -1,6 +1,6 @@
 <!-- Fila presentacional: no conoce pedidos, productos ni usuarios para mantener bajo acoplamiento. -->
 <article
-  class="fila-panel"
+  class="fila-panel grid min-w-0 items-center gap-4 rounded-regalia border border-regalia-primary/10 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-px hover:border-regalia-primary/20 hover:shadow-regalia"
   [class.fila-panel--triple]="tipo() === 'triple'"
   [class.fila-panel--tres-columnas]="tipo() === 'tres-columnas'"
   [class.fila-panel--producto]="tipo() === 'producto'"

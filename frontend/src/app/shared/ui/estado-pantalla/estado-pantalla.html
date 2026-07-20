@@ -1,18 +1,86 @@
 <section
-  class="estado-pantalla"
+  class="estado-pantalla relative isolate overflow-hidden rounded-regalia border border-regalia-border bg-white p-4 shadow-regalia sm:p-5"
   [class.estado-pantalla--carga]="tipo() === 'carga'"
   [class.estado-pantalla--error]="tipo() === 'error'"
   [class.estado-pantalla--exito]="tipo() === 'exito'"
   [class.estado-pantalla--vacio]="tipo() === 'vacio'"
+  [attr.role]="tipo() === 'error' ? 'alert' : 'status'"
+  [attr.aria-live]="tipo() === 'error' ? 'assertive' : 'polite'"
 >
-  <span>{{ etiqueta() }}</span>
-  <h3>{{ titulo() }}</h3>
-  @if (descripcion()) {
-    <p>{{ descripcion() }}</p>
-  }
-  @if (textoAccion() && rutaAccion()) {
-    <a appBoton [routerLink]="rutaAccion()">{{ textoAccion() }}</a>
-  } @else if (textoAccion()) {
-    <button appBoton type="button" (click)="ejecutarAccion()">{{ textoAccion() }}</button>
-  }
+  <div class="relative flex flex-col gap-4 sm:flex-row sm:items-center">
+    <div
+      class="estado-pantalla__icono grid size-12 shrink-0 place-items-center rounded-xl sm:size-14"
+      aria-hidden="true"
+    >
+      @switch (tipo()) {
+        @case ('carga') {
+          <svg class="size-6 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" opacity=".22" />
+            <path
+              d="M21 12a9 9 0 0 0-9-9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        }
+        @case ('error') {
+          <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+              d="M12 8v4.5m0 3h.01M10.05 4.6 3.8 16a2 2 0 0 0 1.75 3h12.9a2 2 0 0 0 1.75-3L13.95 4.6a2.2 2.2 0 0 0-3.9 0Z"
+            />
+          </svg>
+        }
+        @case ('exito') {
+          <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+              d="M20 6.5 9.5 17 4 11.5"
+            />
+          </svg>
+        }
+        @default {
+          <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+              d="M5 8.5h14v10H5v-10Zm2-3h10v3H7v-3Zm2.5 7h5"
+            />
+          </svg>
+        }
+      }
+    </div>
+
+    <div class="min-w-0 flex-1">
+      <span class="estado-pantalla__etiqueta text-[0.68rem] font-black tracking-[0.16em] uppercase">
+        {{ etiqueta() }}
+      </span>
+      <h3
+        class="mt-1 text-lg leading-tight font-black tracking-[-0.03em] text-regalia-ink sm:text-xl"
+      >
+        {{ titulo() }}
+      </h3>
+      @if (descripcion()) {
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-regalia-muted">
+          {{ descripcion() }}
+        </p>
+      }
+    </div>
+
+    @if (textoAccion() && rutaAccion()) {
+      <a class="shrink-0 sm:self-center" appBoton [routerLink]="rutaAccion()">
+        {{ textoAccion() }}
+      </a>
+    } @else if (textoAccion()) {
+      <button class="shrink-0 sm:self-center" appBoton type="button" (click)="ejecutarAccion()">
+        {{ textoAccion() }}
+      </button>
+    }
+  </div>
 </section>

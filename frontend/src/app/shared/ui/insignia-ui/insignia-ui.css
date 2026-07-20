@@ -3,17 +3,8 @@
 }
 
 .insignia-ui {
-  align-items: center;
   background: rgba(90, 36, 64, 0.08);
-  border-radius: 999px;
   color: var(--rg-color-primary);
-  display: inline-flex;
-  font-size: 0.72rem;
-  font-weight: 950;
-  justify-content: center;
-  line-height: 1;
-  padding: 0.42rem 0.68rem;
-  white-space: nowrap;
 }
 
 .insignia-ui--primaria {
@@ -33,4 +24,9 @@
 .insignia-ui--error {
   background: rgba(201, 95, 81, 0.13);
   color: var(--rg-color-rose);
+}
+
+.insignia-ui:not(.insignia-ui--exito, .insignia-ui--advertencia, .insignia-ui--error)
+  .insignia-ui__punto {
+  opacity: 0.65;
 }

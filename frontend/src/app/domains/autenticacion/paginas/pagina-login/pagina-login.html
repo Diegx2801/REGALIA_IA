@@ -1,70 +1,112 @@
 <section class="auth-page">
-  <a class="auth-brand" routerLink="/" aria-label="Volver al inicio de REGALIA">
-    <span class="auth-brand__logo" aria-hidden="true"></span>
-  </a>
+  <header class="auth-topbar">
+    <a class="auth-brand" routerLink="/" aria-label="Volver al inicio de REGALIA">
+      <img
+        src="/assets/brand/logos/logo-principal-horizontal.png"
+        alt="REGALIA"
+        width="480"
+        height="120"
+      />
+    </a>
+
+    <span class="auth-topbar__context">Acceso para clientes y vendedores</span>
+
+    <a class="auth-topbar__back" routerLink="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      Volver al inicio
+    </a>
+  </header>
 
   <div class="auth-shell">
-    <section class="auth-story" aria-label="Experiencia REGALIA">
-      <div class="auth-story__veil"></div>
-      <div class="auth-story__content">
-        <span class="auth-story__eyebrow">Regalos con intencion</span>
-        <h1>
-          @if (modo() === 'registro') {
-            Tu proxima historia empieza aqui
-          } @else {
-            Vuelve a regalar momentos memorables
-          }
-        </h1>
-        <p>
-          @if (modo() === 'registro') {
-            Crea una cuenta personal para descubrir, solicitar y reservar regalos unicos con total confianza.
-          } @else {
-            Accede a tus solicitudes, reservas, favoritos y conversaciones con vendedores locales.
-          }
-        </p>
-
-        <div class="auth-story__trust" aria-label="Beneficios de REGALIA">
-          <article>
-            <span class="auth-story__icon" aria-hidden="true">&#10022;</span>
-            <div>
-              <strong>Vendedores verificados</strong>
-              <small>Perfiles, portafolios y reputacion antes de reservar.</small>
-            </div>
-          </article>
-          <article>
-            <span class="auth-story__icon" aria-hidden="true">&#9671;</span>
-            <div>
-              <strong>Reservas transparentes</strong>
-              <small>Conoce el precio, la fecha y el estado de tu pedido.</small>
-            </div>
-          </article>
+    <aside class="auth-story" aria-label="Beneficios de tu cuenta REGALIA">
+      <div class="auth-story__media" aria-hidden="true">
+        <span class="auth-story__media-badge">Comunidad REGALIA</span>
+        <div class="auth-story__media-card">
+          <span class="auth-story__media-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"></path>
+            </svg>
+          </span>
+          <div>
+            <small>Experiencia conectada</small>
+            <strong>Tu cuenta reconoce el espacio que te corresponde</strong>
+          </div>
         </div>
       </div>
 
-      <div class="auth-story__floating-card" aria-hidden="true">
-        <span class="auth-story__floating-badge">Seleccion REGALIA</span>
-        <strong>Detalles unicos, creados cerca de ti</strong>
-        <small>Trujillo - vendedores locales</small>
-      </div>
-    </section>
+      <div class="auth-story__content">
+        <span class="auth-story__eyebrow">
+          {{ modo() === 'registro' ? 'Empieza tu experiencia' : 'Qué bueno tenerte de vuelta' }}
+        </span>
+        <h1>
+          @if (modo() === 'registro') {
+            Regala, crea y conecta desde un solo lugar
+          } @else {
+            Tu mundo REGALIA te espera
+          }
+        </h1>
+        <p>
+          Una misma cuenta te permite descubrir regalos como cliente y gestionar tu negocio cuando
+          tienes un perfil vendedor activo.
+        </p>
 
-    <main class="auth-panel">
+        <div class="auth-story__personas" aria-label="Experiencias disponibles">
+          <article>
+            <span class="auth-story__persona-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 8h12l-1 12H7L6 8Zm3 0a3 3 0 0 1 6 0"></path>
+              </svg>
+            </span>
+            <div>
+              <strong>Como cliente</strong>
+              <small>Explora, compra y sigue cada detalle de tus pedidos.</small>
+            </div>
+          </article>
+          <article>
+            <span class="auth-story__persona-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 10h16v10H4zM3 10l2-6h14l2 6M8 20v-5h4v5"></path>
+              </svg>
+            </span>
+            <div>
+              <strong>Como vendedor</strong>
+              <small>Administra productos, pedidos, stock e ingresos.</small>
+            </div>
+          </article>
+        </div>
+
+        <ul class="auth-story__proof">
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+            Vendedores y tiendas verificadas
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+            Información y pagos protegidos
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="auth-panel" id="contenido-principal">
       <div class="auth-panel__inner">
-        <div class="auth-tabs" role="tablist" aria-label="Acceso a REGALIA">
+        <div class="auth-tabs" aria-label="Selecciona una opción de acceso">
           <button
+            id="acceso-iniciar-sesion"
             type="button"
-            role="tab"
             [class.auth-tabs__button--active]="modo() === 'login'"
-            [attr.aria-selected]="modo() === 'login'"
+            [attr.aria-pressed]="modo() === 'login'"
             (click)="cambiarModo('login')"
           >
-            Iniciar sesion
+            Iniciar sesión
           </button>
           <button
+            id="acceso-crear-cuenta"
             type="button"
-            role="tab"
             [class.auth-tabs__button--active]="modo() === 'registro'"
-            [attr.aria-selected]="modo() === 'registro'"
+            [attr.aria-pressed]="modo() === 'registro'"
             (click)="cambiarModo('registro')"
           >
             Crear cuenta
@@ -76,39 +118,57 @@
             class="auth-form"
             [formGroup]="formularioLogin"
             [attr.aria-busy]="estaBloqueado()"
+            aria-labelledby="titulo-iniciar-sesion"
             (ngSubmit)="enviarLogin()"
+            novalidate
           >
             <header class="auth-form__header">
-              <span>Bienvenido de nuevo</span>
-              <h2>Ingresa a tu cuenta</h2>
-              <p>Tu espacio se abrira automaticamente segun los permisos de tu cuenta.</p>
+              <span>Acceso unificado</span>
+              <h2 id="titulo-iniciar-sesion">Bienvenido de nuevo</h2>
+              <p>
+                Ingresa con el correo de tu cuenta. Te llevaremos automáticamente al panel de
+                cliente o vendedor que corresponda.
+              </p>
             </header>
 
             <div class="auth-field">
-              <label for="login-email">Correo electronico</label>
-              <div class="auth-field__control">
+              <label for="login-email">Correo electrónico</label>
+              <div
+                class="auth-field__control"
+                [class.auth-field__control--invalid]="campoLoginTieneError('correo')"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 5h16v14H4zM4 7l8 6 8-6"></path>
+                  <path d="M4 6h16v12H4zM4 8l8 5 8-5"></path>
                 </svg>
                 <input
                   id="login-email"
                   type="email"
                   autocomplete="email"
+                  inputmode="email"
                   placeholder="nombre@correo.com"
                   formControlName="correo"
+                  [attr.aria-invalid]="campoLoginTieneError('correo')"
+                  [attr.aria-describedby]="
+                    campoLoginTieneError('correo') ? 'login-email-error' : null
+                  "
                 />
               </div>
               @if (campoLoginTieneError('correo')) {
-                <small class="auth-field__error">Ingresa un correo valido.</small>
+                <small id="login-email-error" class="auth-field__error"
+                  >Ingresa un correo válido.</small
+                >
               }
             </div>
 
             <div class="auth-field">
               <div class="auth-field__label-row">
-                <label for="login-password">Contrasena</label>
-                <a routerLink="/restablecer-contrasena">Olvidaste tu contrasena?</a>
+                <label for="login-password">Contraseña</label>
+                <a routerLink="/restablecer-contrasena">¿Olvidaste tu contraseña?</a>
               </div>
-              <div class="auth-field__control">
+              <div
+                class="auth-field__control"
+                [class.auth-field__control--invalid]="campoLoginTieneError('contrasena')"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5z"></path>
                 </svg>
@@ -116,13 +176,19 @@
                   id="login-password"
                   [type]="mostrarContrasena() ? 'text' : 'password'"
                   autocomplete="current-password"
-                  placeholder="Tu contrasena"
+                  placeholder="Tu contraseña"
                   formControlName="contrasena"
+                  [attr.aria-invalid]="campoLoginTieneError('contrasena')"
+                  [attr.aria-describedby]="
+                    campoLoginTieneError('contrasena') ? 'login-password-error' : null
+                  "
                 />
                 <button
                   class="auth-field__toggle"
                   type="button"
-                  [attr.aria-label]="mostrarContrasena() ? 'Ocultar contrasena' : 'Mostrar contrasena'"
+                  [attr.aria-label]="
+                    mostrarContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                  "
                   [attr.aria-pressed]="mostrarContrasena()"
                   (click)="alternarVisibilidadContrasena()"
                 >
@@ -130,34 +196,39 @@
                 </button>
               </div>
               @if (campoLoginTieneError('contrasena')) {
-                <small class="auth-field__error">La contrasena es obligatoria.</small>
+                <small id="login-password-error" class="auth-field__error"
+                  >La contraseña es obligatoria.</small
+                >
               }
             </div>
 
-            <label class="auth-check">
+            <label class="auth-check" for="login-remember-session">
               <input id="login-remember-session" type="checkbox" formControlName="recordarSesion" />
-              <span>Recordar mi sesion en este dispositivo</span>
+              <span>Recordar mi sesión en este dispositivo</span>
             </label>
 
             @if (mensajeError()) {
-              <p class="auth-message" role="alert">{{ mensajeError() }}</p>
+              <p class="auth-message auth-message--error" role="alert">{{ mensajeError() }}</p>
             }
 
             @if (mensajeRegistro()) {
-              <p class="auth-message auth-message--success" role="status">{{ mensajeRegistro() }}</p>
+              <p class="auth-message auth-message--success" role="status">
+                {{ mensajeRegistro() }}
+              </p>
             }
 
             <button class="auth-submit" type="submit" [disabled]="estaBloqueado()">
               @if (estaEnviando()) {
                 <span class="auth-submit__spinner" aria-hidden="true"></span>
-                Validando...
+                Validando acceso...
               } @else {
-                Ingresar a REGALIA
+                Continuar a mi cuenta
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
               }
             </button>
 
-            <div class="auth-divider" aria-hidden="true">
-              <span>o continua con</span>
+            <div class="auth-divider">
+              <span>o continúa con</span>
             </div>
 
             <app-boton-google-login
@@ -172,9 +243,21 @@
               <p class="auth-google-status" role="status">Validando acceso seguro con Google...</p>
             }
 
+            <div class="auth-access-note">
+              <span class="auth-access-note__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Zm-3 9 2 2 4-4"></path>
+                </svg>
+              </span>
+              <p>
+                <strong>¿Tienes una cuenta de vendedor?</strong>
+                Usa este mismo acceso; tus permisos se reconocen automáticamente.
+              </p>
+            </div>
+
             <p class="auth-form__switch">
-              Aun no tienes cuenta?
-              <button type="button" (click)="cambiarModo('registro')">Creala gratis</button>
+              ¿Aún no tienes cuenta?
+              <button type="button" (click)="cambiarModo('registro')">Créala gratis</button>
             </p>
           </form>
         } @else {
@@ -182,19 +265,34 @@
             class="auth-form"
             [formGroup]="formularioRegistro"
             [attr.aria-busy]="estaBloqueado()"
+            aria-labelledby="titulo-crear-cuenta"
             (ngSubmit)="enviarRegistro()"
+            novalidate
           >
             <header class="auth-form__header">
-              <span>Cuenta personal</span>
-              <h2>Crea tu cuenta</h2>
-              <p>Todos empiezan como clientes. Los perfiles de vendedor pasan por una solicitud independiente.</p>
+              <span>Cuenta REGALIA</span>
+              <h2 id="titulo-crear-cuenta">Crea tu cuenta</h2>
+              <p>
+                Empieza como cliente. Si deseas vender, podrás solicitar tu perfil comercial con la
+                misma cuenta.
+              </p>
             </header>
 
             <div class="auth-form__grid">
               <div class="auth-field">
                 <label for="register-first-name">Nombres</label>
-                <div class="auth-field__control">
-                  <input id="register-first-name" type="text" autocomplete="given-name" placeholder="Tus nombres" formControlName="nombres" />
+                <div
+                  class="auth-field__control"
+                  [class.auth-field__control--invalid]="campoRegistroTieneError('nombres')"
+                >
+                  <input
+                    id="register-first-name"
+                    type="text"
+                    autocomplete="given-name"
+                    placeholder="Tus nombres"
+                    formControlName="nombres"
+                    [attr.aria-invalid]="campoRegistroTieneError('nombres')"
+                  />
                 </div>
                 @if (campoRegistroTieneError('nombres')) {
                   <small class="auth-field__error">Ingresa tus nombres.</small>
@@ -203,8 +301,18 @@
 
               <div class="auth-field">
                 <label for="register-last-name">Apellidos</label>
-                <div class="auth-field__control">
-                  <input id="register-last-name" type="text" autocomplete="family-name" placeholder="Tus apellidos" formControlName="apellidos" />
+                <div
+                  class="auth-field__control"
+                  [class.auth-field__control--invalid]="campoRegistroTieneError('apellidos')"
+                >
+                  <input
+                    id="register-last-name"
+                    type="text"
+                    autocomplete="family-name"
+                    placeholder="Tus apellidos"
+                    formControlName="apellidos"
+                    [attr.aria-invalid]="campoRegistroTieneError('apellidos')"
+                  />
                 </div>
                 @if (campoRegistroTieneError('apellidos')) {
                   <small class="auth-field__error">Ingresa tus apellidos.</small>
@@ -213,41 +321,65 @@
             </div>
 
             <div class="auth-field">
-              <label for="register-email">Correo electronico</label>
-              <div class="auth-field__control">
+              <label for="register-email">Correo electrónico</label>
+              <div
+                class="auth-field__control"
+                [class.auth-field__control--invalid]="campoRegistroTieneError('correo')"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 5h16v14H4zM4 7l8 6 8-6"></path>
+                  <path d="M4 6h16v12H4zM4 8l8 5 8-5"></path>
                 </svg>
-                <input id="register-email" type="email" autocomplete="email" placeholder="nombre@correo.com" formControlName="correo" />
+                <input
+                  id="register-email"
+                  type="email"
+                  autocomplete="email"
+                  inputmode="email"
+                  placeholder="nombre@correo.com"
+                  formControlName="correo"
+                  [attr.aria-invalid]="campoRegistroTieneError('correo')"
+                />
               </div>
               @if (campoRegistroTieneError('correo')) {
-                <small class="auth-field__error">Ingresa un correo valido.</small>
+                <small class="auth-field__error">Ingresa un correo válido.</small>
               }
             </div>
 
             <div class="auth-field">
-              <label for="register-phone">Telefono <span>(opcional)</span></label>
+              <label for="register-phone">Teléfono <span>(opcional)</span></label>
               <div class="auth-field__control auth-field__control--phone">
                 <span class="auth-field__prefix">+51</span>
-                <input id="register-phone" type="tel" autocomplete="tel" placeholder="999 999 999" formControlName="telefono" />
+                <input
+                  id="register-phone"
+                  type="tel"
+                  autocomplete="tel"
+                  inputmode="tel"
+                  placeholder="999 999 999"
+                  formControlName="telefono"
+                />
               </div>
             </div>
 
             <div class="auth-form__grid">
               <div class="auth-field">
-                <label for="register-password">Contrasena</label>
-                <div class="auth-field__control">
+                <label for="register-password">Contraseña</label>
+                <div
+                  class="auth-field__control"
+                  [class.auth-field__control--invalid]="campoRegistroTieneError('contrasena')"
+                >
                   <input
                     id="register-password"
                     [type]="mostrarContrasenaRegistro() ? 'text' : 'password'"
                     autocomplete="new-password"
-                    placeholder="Minimo 8 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                     formControlName="contrasena"
+                    [attr.aria-invalid]="campoRegistroTieneError('contrasena')"
                   />
                   <button
                     class="auth-field__toggle"
                     type="button"
-                    [attr.aria-label]="mostrarContrasenaRegistro() ? 'Ocultar contrasena' : 'Mostrar contrasena'"
+                    [attr.aria-label]="
+                      mostrarContrasenaRegistro() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                    "
                     [attr.aria-pressed]="mostrarContrasenaRegistro()"
                     (click)="alternarVisibilidadContrasenaRegistro()"
                   >
@@ -257,19 +389,35 @@
               </div>
 
               <div class="auth-field">
-                <label for="register-confirm-password">Confirmar</label>
-                <div class="auth-field__control">
+                <label for="register-confirm-password">Confirmar contraseña</label>
+                <div
+                  class="auth-field__control"
+                  [class.auth-field__control--invalid]="
+                    campoRegistroTieneError('confirmarContrasena') ||
+                    (!contrasenasRegistroCoinciden() &&
+                      formularioRegistro.controls.confirmarContrasena.touched)
+                  "
+                >
                   <input
                     id="register-confirm-password"
                     [type]="mostrarConfirmacionRegistro() ? 'text' : 'password'"
                     autocomplete="new-password"
-                    placeholder="Repite la contrasena"
+                    placeholder="Repite la contraseña"
                     formControlName="confirmarContrasena"
+                    [attr.aria-invalid]="
+                      campoRegistroTieneError('confirmarContrasena') ||
+                      (!contrasenasRegistroCoinciden() &&
+                        formularioRegistro.controls.confirmarContrasena.touched)
+                    "
                   />
                   <button
                     class="auth-field__toggle"
                     type="button"
-                    [attr.aria-label]="mostrarConfirmacionRegistro() ? 'Ocultar confirmacion de contrasena' : 'Mostrar confirmacion de contrasena'"
+                    [attr.aria-label]="
+                      mostrarConfirmacionRegistro()
+                        ? 'Ocultar confirmación de contraseña'
+                        : 'Mostrar confirmación de contraseña'
+                    "
                     [attr.aria-pressed]="mostrarConfirmacionRegistro()"
                     (click)="alternarVisibilidadConfirmacionRegistro()"
                   >
@@ -280,22 +428,37 @@
             </div>
 
             @if (
-              (campoRegistroTieneError('contrasena') || campoRegistroTieneError('confirmarContrasena')) ||
-              (!contrasenasRegistroCoinciden() && formularioRegistro.controls.confirmarContrasena.touched)
+              campoRegistroTieneError('contrasena') ||
+              campoRegistroTieneError('confirmarContrasena') ||
+              (!contrasenasRegistroCoinciden() &&
+                formularioRegistro.controls.confirmarContrasena.touched)
             ) {
-              <small class="auth-field__error">La contrasena debe tener minimo 8 caracteres y coincidir.</small>
+              <small class="auth-field__error">
+                La contraseña debe tener mínimo 8 caracteres y ambas deben coincidir.
+              </small>
             }
 
-            <label class="auth-check auth-check--terms">
-              <input id="register-accept-terms" type="checkbox" formControlName="aceptaTerminos" />
-              <span>Acepto los terminos de uso y la politica de privacidad de REGALIA.</span>
+            <label class="auth-check auth-check--terms" for="register-accept-terms">
+              <input
+                id="register-accept-terms"
+                type="checkbox"
+                formControlName="aceptaTerminos"
+                [attr.aria-invalid]="campoRegistroTieneError('aceptaTerminos')"
+              />
+              <span>Acepto los términos de uso y la política de privacidad de REGALIA.</span>
             </label>
             @if (campoRegistroTieneError('aceptaTerminos')) {
-              <small class="auth-field__error">Debes aceptar los terminos para continuar.</small>
+              <small class="auth-field__error">Debes aceptar los términos para continuar.</small>
+            }
+
+            @if (mensajeError()) {
+              <p class="auth-message auth-message--error" role="alert">{{ mensajeError() }}</p>
             }
 
             @if (mensajeRegistro()) {
-              <p class="auth-message auth-message--success" role="status">{{ mensajeRegistro() }}</p>
+              <p class="auth-message auth-message--success" role="status">
+                {{ mensajeRegistro() }}
+              </p>
             }
 
             <button class="auth-submit" type="submit" [disabled]="estaBloqueado()">
@@ -304,10 +467,11 @@
                 Creando cuenta...
               } @else {
                 Crear mi cuenta
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
               }
             </button>
 
-            <div class="auth-divider" aria-hidden="true">
+            <div class="auth-divider">
               <span>o crea tu cuenta con</span>
             </div>
 
@@ -324,20 +488,23 @@
             }
 
             <a class="auth-seller-link" routerLink="/vender">
-              <span aria-hidden="true">&#10022;</span>
-              Quiero vender mis productos o servicios
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 10h16v10H4zM3 10l2-6h14l2 6M8 20v-5h4v5"></path>
+              </svg>
+              Quiero vender en REGALIA
+              <span aria-hidden="true">→</span>
             </a>
 
             <p class="auth-form__switch">
-              Ya tienes una cuenta?
-              <button type="button" (click)="cambiarModo('login')">Inicia sesion</button>
+              ¿Ya tienes una cuenta?
+              <button type="button" (click)="cambiarModo('login')">Inicia sesión</button>
             </p>
           </form>
         }
       </div>
 
       <p class="auth-panel__legal">
-        Al continuar, aceptas que REGALIA gestione tus datos de acuerdo con su politica de privacidad.
+        Al continuar, aceptas que REGALIA gestione tus datos según su política de privacidad.
       </p>
     </main>
   </div>

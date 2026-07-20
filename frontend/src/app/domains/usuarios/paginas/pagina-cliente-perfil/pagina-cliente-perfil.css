@@ -51,12 +51,14 @@
 }
 
 .cliente-perfil__grid {
+  align-items: start;
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(18rem, 0.34fr) minmax(0, 1fr);
+  grid-template-columns: minmax(17rem, 0.34fr) minmax(0, 1fr);
 }
 
 .cliente-perfil__card {
+  align-self: start;
   align-content: start;
   background:
     radial-gradient(circle at top right, rgba(215, 173, 75, 0.18), transparent 7rem),
@@ -217,15 +219,30 @@
 }
 
 .cliente-perfil__formulario {
-  background:
-    linear-gradient(180deg, rgba(255, 250, 245, 0.92), rgba(255, 255, 255, 0.96)),
-    #fff;
+  align-content: start;
+  align-self: start;
+  background: linear-gradient(180deg, rgba(255, 250, 245, 0.92), rgba(255, 255, 255, 0.96)), #fff;
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1;
 }
 
 .cliente-perfil__formulario--contrasena {
   grid-column: 1;
+  grid-row: 2;
+}
+
+.cliente-perfil__card--cuenta {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.cliente-perfil__card--venta {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.cliente-perfil__card--acceso {
+  grid-column: 2;
   grid-row: 2;
 }
 
@@ -246,6 +263,13 @@
   }
 
   .cliente-perfil__formulario {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .cliente-perfil__card--cuenta,
+  .cliente-perfil__card--venta,
+  .cliente-perfil__card--acceso {
     grid-column: auto;
     grid-row: auto;
   }

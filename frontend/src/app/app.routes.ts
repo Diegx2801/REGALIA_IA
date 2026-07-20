@@ -4,8 +4,22 @@ import { rolGuard } from './core/guards/rol.guard';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    title: 'Acceso de clientes y vendedores | REGALIA',
+    loadChildren: () =>
+      import('./domains/autenticacion/autenticacion.routes').then((m) => m.AUTENTICACION_ROUTES),
+  },
+  {
+    path: 'admin/login',
+    title: 'Acceso administrativo | REGALIA',
+    loadComponent: () =>
+      import('./domains/autenticacion/paginas/pagina-admin-login/pagina-admin-login').then(
+        (m) => m.PaginaAdminLogin,
+      ),
+  },
+  {
     path: '',
-    // Layout publico: landing, catalogo y login comparten navegacion comercial.
+    // Layout publico: landing y catalogo comparten navegacion comercial.
     loadComponent: () =>
       import('./core/layouts/layout-publico/layout-publico').then((m) => m.LayoutPublico),
     children: [
@@ -14,33 +28,19 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),
       },
-  {
-    path: 'login',
-    loadChildren: () =>
-      import('./domains/autenticacion/autenticacion.routes').then(
-        (m) => m.AUTENTICACION_ROUTES,
-      ),
-  },
-  {
-    path: 'admin/login',
-    loadComponent: () =>
-      import('./domains/autenticacion/paginas/pagina-admin-login/pagina-admin-login').then(
-        (m) => m.PaginaAdminLogin,
-      ),
-  },
       {
         path: 'verificar-correo',
         loadComponent: () =>
-          import(
-            './domains/autenticacion/paginas/pagina-verificar-correo/pagina-verificar-correo'
-          ).then((m) => m.PaginaVerificarCorreo),
+          import('./domains/autenticacion/paginas/pagina-verificar-correo/pagina-verificar-correo').then(
+            (m) => m.PaginaVerificarCorreo,
+          ),
       },
       {
         path: 'restablecer-contrasena',
         loadComponent: () =>
-          import(
-            './domains/autenticacion/paginas/pagina-recuperar-contrasena/pagina-recuperar-contrasena'
-          ).then((m) => m.PaginaRecuperarContrasena),
+          import('./domains/autenticacion/paginas/pagina-recuperar-contrasena/pagina-recuperar-contrasena').then(
+            (m) => m.PaginaRecuperarContrasena,
+          ),
       },
       {
         path: 'catalogo',
@@ -94,8 +94,7 @@ export const routes: Routes = [
     data: { roles: ['CLIENTE'] },
     loadComponent: () =>
       import('./core/layouts/layout-cliente/layout-cliente').then((m) => m.LayoutCliente),
-    loadChildren: () =>
-      import('./domains/usuarios/usuarios.routes').then((m) => m.USUARIOS_ROUTES),
+    loadChildren: () => import('./domains/usuarios/usuarios.routes').then((m) => m.USUARIOS_ROUTES),
   },
   {
     path: 'vendedor',
@@ -117,9 +116,7 @@ export const routes: Routes = [
         (m) => m.LayoutAdministracion,
       ),
     loadChildren: () =>
-      import('./domains/administracion/administracion.routes').then(
-        (m) => m.ADMINISTRACION_ROUTES,
-      ),
+      import('./domains/administracion/administracion.routes').then((m) => m.ADMINISTRACION_ROUTES),
   },
   {
     path: '**',

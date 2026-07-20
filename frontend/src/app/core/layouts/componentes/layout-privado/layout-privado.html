@@ -1,41 +1,77 @@
 <section
-  class="layout-privado"
+  class="layout-privado relative min-h-dvh overflow-x-clip bg-regalia-canvas text-regalia-ink lg:grid lg:grid-cols-[18rem_minmax(0,1fr)]"
   [class.layout-privado--cliente]="variante() === 'cliente'"
   [class.layout-privado--vendedor]="variante() === 'vendedor'"
   [class.layout-privado--administracion]="variante() === 'administracion'"
+  [attr.data-variante]="variante()"
 >
-  <aside class="layout-privado__sidebar" aria-label="Navegacion privada">
-    <a class="layout-privado__marca" routerLink="/" aria-label="Ir al inicio de REGALIA">
-      <span>R</span>
-      REGALIA
-    </a>
+  @if (menuMovilAbierto()) {
+    <button
+      class="fixed inset-0 z-40 bg-regalia-ink/55 backdrop-blur-sm lg:hidden"
+      type="button"
+      aria-label="Cerrar menú de navegación"
+      (click)="cerrarMenuMovil()"
+    ></button>
+  }
 
-    <div class="layout-privado__cabecera">
-      <span>{{ etiqueta() }}</span>
-      <h1>{{ titulo() }}</h1>
-      <p>{{ descripcion() }}</p>
+  <aside
+    id="menu-layout-privado"
+    class="layout-privado__sidebar fixed inset-y-0 left-0 z-50 flex h-dvh w-[18rem] flex-col overflow-y-auto border-r border-white/10 bg-regalia-ink px-4 py-5 text-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:shadow-none"
+    [class.layout-privado__sidebar--abierto]="menuMovilAbierto()"
+    aria-label="Navegación privada"
+  >
+    <div class="flex items-center justify-between gap-3 px-2">
+      <a
+        class="group inline-flex min-w-0 items-center gap-3 no-underline"
+        routerLink="/"
+        aria-label="Ir al inicio de REGALIA"
+      >
+        <span
+          class="layout-privado__monograma grid size-10 shrink-0 place-items-center rounded-xl text-sm font-black shadow-lg transition-transform group-hover:-rotate-3 group-hover:scale-105"
+          aria-hidden="true"
+        >
+          R
+        </span>
+        <span class="truncate text-sm font-black tracking-[0.24em] text-white">REGALIA</span>
+      </a>
+
+      <button
+        class="grid size-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 lg:hidden"
+        type="button"
+        aria-label="Cerrar menú"
+        (click)="cerrarMenuMovil()"
+      >
+        <svg
+          class="size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+            d="M6 6l12 12M18 6 6 18"
+          />
+        </svg>
+      </button>
     </div>
 
-    <button
-      class="layout-privado__alternar-menu"
-      appBoton="fantasma"
-      appBotonTamano="sm"
-      type="button"
-      aria-controls="menu-layout-privado"
-      [attr.aria-expanded]="menuMovilAbierto()"
-      (click)="alternarMenuMovil()"
-    >
-      {{ menuMovilAbierto() ? 'Ocultar menu' : 'Mostrar menu' }}
-    </button>
+    <div class="mt-9 px-2">
+      <span class="layout-privado__etiqueta text-[0.68rem] font-black tracking-[0.2em] uppercase">
+        {{ etiqueta() }}
+      </span>
+      <h1 class="mt-2 text-[1.65rem] leading-tight font-black tracking-[-0.04em] text-white">
+        {{ titulo() }}
+      </h1>
+      <p class="mt-2 text-sm leading-6 text-white/55">{{ descripcion() }}</p>
+    </div>
 
-    <nav
-      id="menu-layout-privado"
-      class="layout-privado__menu"
-      [class.layout-privado__menu--abierto]="menuMovilAbierto()"
-    >
+    <nav class="mt-7 grid gap-1.5" aria-label="Secciones del panel">
       @for (enlace of enlaces(); track enlace.ruta) {
         <a
-          class="layout-privado__enlace"
+          class="layout-privado__enlace group flex min-w-0 items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 text-white/70 no-underline transition duration-200 hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
           [routerLink]="enlace.ruta"
           [queryParams]="enlace.queryParams"
           routerLinkActive="layout-privado__enlace--activo"
@@ -43,44 +79,248 @@
           [routerLinkActiveOptions]="{ exact: true }"
           (click)="cerrarMenuMovil()"
         >
-          <strong>{{ enlace.etiqueta }}</strong>
-          <small>{{ enlace.descripcion }}</small>
+          <span
+            class="layout-privado__icono grid size-10 shrink-0 place-items-center rounded-xl bg-white/[0.06] text-white/55 transition group-hover:bg-white/10 group-hover:text-white"
+            aria-hidden="true"
+          >
+            <svg class="size-[1.15rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              @switch (enlace.icono) {
+                @case ('pedidos') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v12.25l-3-1.75-2.75 1.75-2.75-1.75-3 1.75V7A2.25 2.25 0 0 1 10 4.75ZM10 9h5M10 12.5h4"
+                  />
+                }
+                @case ('perfil') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M12 12.25a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 7c.75-3.4 3.15-5.1 7-5.1s6.25 1.7 7 5.1"
+                  />
+                }
+                @case ('tiendas') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="m4.5 9 1.2-4h12.6l1.2 4M5.5 10.5v8.75h13v-8.75M9 19.25v-5.5h6v5.5M4.5 9a2.25 2.25 0 0 0 4.5 0 2.25 2.25 0 0 0 4.5 0A2.25 2.25 0 0 0 18 9"
+                  />
+                }
+                @case ('usuarios') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M9.5 11a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Zm-5 8c.55-3.65 2.22-5.5 5-5.5s4.45 1.85 5 5.5m1-7.5a2.75 2.75 0 1 0 0-5.5m1.75 7.75c1.4.7 2.15 2.45 2.25 5.25"
+                  />
+                }
+                @case ('vendedores') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M4.75 9.25 6 5h12l1.25 4.25M6 11v8h12v-8M9.25 19v-5h5.5v5M4.75 9.25a2.25 2.25 0 0 0 4.5 0 2.25 2.25 0 0 0 4.5 0 2.25 2.25 0 0 0 4.5 0"
+                  />
+                }
+                @case ('datos') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M5 7.25h14M5 12h14M5 16.75h14M8 5v4.5m5-4.5v4.5m3 0v5M10 14.5V19"
+                  />
+                }
+                @case ('catalogo') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M5 5.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5ZM5 13.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5Z"
+                  />
+                }
+                @case ('acceso') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M10 5H6.75A1.75 1.75 0 0 0 5 6.75v10.5C5 18.22 5.78 19 6.75 19H10m4-10 3 3-3 3m-7-3h10"
+                  />
+                }
+                @default {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M5 11.25 12 5l7 6.25v7.5h-5v-5h-4v5H5v-7.5Z"
+                  />
+                }
+              }
+            </svg>
+          </span>
+          <span class="min-w-0 flex-1">
+            <strong class="block truncate text-sm font-bold">{{ enlace.etiqueta }}</strong>
+            <small class="mt-0.5 block truncate text-[0.72rem] text-white/40">
+              {{ enlace.descripcion }}
+            </small>
+          </span>
+          <svg
+            class="size-4 shrink-0 -translate-x-1 text-white/25 opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+              d="m9 6 6 6-6 6"
+            />
+          </svg>
         </a>
       }
     </nav>
 
-    <footer class="layout-privado__usuario">
-      <div class="layout-privado__avatar" aria-hidden="true">{{ inicialesUsuario() }}</div>
-      <div>
-        <strong>{{ nombreVisible() }}</strong>
-        <small>{{ sesion.usuarioActual()?.correo ?? 'Sesion activa' }}</small>
+    <footer class="mt-auto pt-8">
+      <div class="rounded-2xl border border-white/10 bg-white/[0.055] p-3 shadow-inner">
+        <div class="flex min-w-0 items-center gap-3">
+          <div
+            class="layout-privado__avatar grid size-10 shrink-0 place-items-center rounded-xl text-xs font-black"
+            aria-hidden="true"
+          >
+            {{ inicialesUsuario() }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <strong class="block truncate text-sm font-bold text-white">{{
+              nombreVisible()
+            }}</strong>
+            <small class="block truncate text-[0.7rem] text-white/45">
+              {{ sesion.usuarioActual()?.correo ?? 'Sesión activa' }}
+            </small>
+          </div>
+        </div>
+
+        <div class="mt-3 flex items-center justify-between gap-2 border-t border-white/10 pt-3">
+          <span
+            class="layout-privado__rol rounded-full px-2 py-1 text-[0.62rem] font-black tracking-[0.12em] uppercase"
+          >
+            {{ rolVisible() }}
+          </span>
+          <button
+            class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-white/55 transition hover:bg-white/10 hover:text-white"
+            type="button"
+            (click)="cerrarSesion()"
+            ngbTooltip="Cerrar sesión y volver al inicio"
+          >
+            <svg
+              class="size-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M10 5H6.75A1.75 1.75 0 0 0 5 6.75v10.5C5 18.22 5.78 19 6.75 19H10m4-10 3 3-3 3m-7-3h10"
+              />
+            </svg>
+            Salir
+          </button>
+        </div>
       </div>
-      <span class="layout-privado__rol">{{ rolVisible() }}</span>
-      <button
-        appBoton="fantasma"
-        appBotonTamano="sm"
-        type="button"
-        (click)="cerrarSesion()"
-        ngbTooltip="Cerrar sesion y volver al inicio"
-      >
-        Cerrar sesion
-      </button>
     </footer>
   </aside>
 
-  <div class="layout-privado__area">
-    <header class="layout-privado__topbar">
-      <div>
-        <span>{{ etiqueta() }}</span>
-        <strong>{{ nombreVisible() }}</strong>
+  <div class="min-w-0">
+    <header
+      class="sticky top-0 z-30 border-b border-regalia-primary/8 bg-regalia-canvas/85 backdrop-blur-xl"
+    >
+      <div class="mx-auto flex min-h-16 max-w-[1440px] items-center gap-3 px-4 sm:px-6 lg:px-8">
+        <button
+          class="grid size-10 shrink-0 place-items-center rounded-xl border border-regalia-border bg-white text-regalia-primary shadow-sm transition hover:border-regalia-primary/25 hover:bg-regalia-primary-soft lg:hidden"
+          type="button"
+          aria-controls="menu-layout-privado"
+          [attr.aria-expanded]="menuMovilAbierto()"
+          aria-label="Abrir menú de navegación"
+          (click)="alternarMenuMovil()"
+        >
+          <svg
+            class="size-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-width="1.8" d="M4.5 7h15M4.5 12h15M4.5 17h15" />
+          </svg>
+        </button>
+
+        <div class="min-w-0 flex-1">
+          <span
+            class="layout-privado__etiqueta block text-[0.65rem] font-black tracking-[0.16em] uppercase"
+          >
+            {{ etiqueta() }}
+          </span>
+          <strong class="block truncate text-sm font-bold text-regalia-ink sm:text-base">
+            {{ nombreVisible() }}
+          </strong>
+        </div>
+
+        <nav class="flex items-center gap-1.5" aria-label="Acciones rápidas privadas">
+          <a
+            class="hidden items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-regalia-muted no-underline transition hover:bg-white hover:text-regalia-primary sm:inline-flex"
+            routerLink="/catalogo"
+          >
+            <svg
+              class="size-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M5 5.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5ZM5 13.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5Z"
+              />
+            </svg>
+            Catálogo
+          </a>
+          <a
+            class="inline-flex items-center gap-2 rounded-xl border border-regalia-border bg-white px-3 py-2 text-sm font-bold text-regalia-primary no-underline shadow-sm transition hover:border-regalia-primary/25 hover:bg-regalia-primary-soft"
+            routerLink="/"
+          >
+            <svg
+              class="size-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M5 11.25 12 5l7 6.25v7.5h-5v-5h-4v5H5v-7.5Z"
+              />
+            </svg>
+            <span class="hidden sm:inline">Inicio</span>
+          </a>
+        </nav>
       </div>
-      <nav aria-label="Acciones rapidas privadas">
-        <a routerLink="/catalogo">Catalogo</a>
-        <a routerLink="/">Inicio</a>
-      </nav>
     </header>
 
-    <main id="contenido-principal" class="layout-privado__contenido" tabindex="-1">
+    <main
+      id="contenido-principal"
+      class="mx-auto min-h-[calc(100dvh-4rem)] w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8"
+      tabindex="-1"
+    >
       <ng-content />
     </main>
   </div>

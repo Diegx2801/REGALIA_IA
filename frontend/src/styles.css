@@ -1,4 +1,29 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'tailwindcss' important;
+
+@theme inline {
+  --color-regalia-primary: var(--rg-color-primary);
+  --color-regalia-primary-dark: var(--rg-color-primary-dark);
+  --color-regalia-primary-soft: var(--rg-color-primary-soft);
+  --color-regalia-gold: var(--rg-color-gold);
+  --color-regalia-gold-soft: var(--rg-color-gold-soft);
+  --color-regalia-rose: var(--rg-color-rose);
+  --color-regalia-ink: var(--rg-color-ink);
+  --color-regalia-muted: var(--rg-color-muted);
+  --color-regalia-border: var(--rg-color-border);
+  --color-regalia-canvas: var(--rg-color-bg);
+  --color-regalia-surface: var(--rg-color-surface);
+  --color-regalia-surface-soft: var(--rg-color-surface-2);
+  --color-regalia-success: var(--rg-color-success);
+  --color-regalia-success-soft: var(--rg-color-success-soft);
+  --color-regalia-danger: var(--rg-color-danger);
+  --color-regalia-danger-soft: var(--rg-color-danger-soft);
+  --font-sans: var(--rg-font-base);
+  --radius-regalia: var(--rg-radius-lg);
+  --radius-regalia-lg: var(--rg-radius-xl);
+  --shadow-regalia: var(--rg-shadow-soft);
+  --shadow-regalia-elevated: var(--rg-shadow-elevated);
+}
 
 :root {
   --rg-color-primary: #5a2440;
@@ -13,13 +38,28 @@
   --rg-color-bg-elevated: #fffaf5;
   --rg-color-surface: #ffffff;
   --rg-color-surface-2: #f7eee7;
+  --rg-color-primary-soft: #f3e8ed;
+  --rg-color-gold-soft: #fbf3dc;
+  --rg-color-success: #2f735f;
+  --rg-color-success-soft: #edf7f3;
+  --rg-color-danger: #9f3f47;
+  --rg-color-danger-soft: #fff1f1;
   --rg-radius-xs: 4px;
   --rg-radius-sm: 8px;
   --rg-radius-md: 12px;
+  --rg-radius-lg: 20px;
+  --rg-radius-xl: 28px;
   --rg-shadow-soft: 0 18px 44px rgba(35, 25, 39, 0.1);
+  --rg-shadow-elevated: 0 28px 80px rgba(35, 25, 39, 0.14);
+  --rg-focus-ring: 0 0 0 4px rgba(215, 173, 75, 0.22);
+  --rg-transition-standard: 180ms ease;
   --rg-font-base:
     'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --rg-gradient-brand: linear-gradient(135deg, var(--rg-color-primary) 0%, var(--rg-color-rose) 100%);
+  --rg-gradient-brand: linear-gradient(
+    135deg,
+    var(--rg-color-primary) 0%,
+    var(--rg-color-rose) 100%
+  );
 
   --bs-body-font-family: var(--rg-font-base);
   --bs-body-bg: var(--rg-color-bg);
@@ -40,8 +80,7 @@ html {
 body {
   background:
     radial-gradient(circle at 8% 10%, rgba(214, 168, 62, 0.13), transparent 18rem),
-    radial-gradient(circle at 88% 4%, rgba(90, 36, 64, 0.08), transparent 20rem),
-    var(--rg-color-bg);
+    radial-gradient(circle at 88% 4%, rgba(90, 36, 64, 0.08), transparent 20rem), var(--rg-color-bg);
   color: var(--rg-color-ink);
   font-family: var(--rg-font-base);
   margin: 0;
@@ -220,7 +259,7 @@ textarea {
   border: 1px solid rgba(90, 36, 64, 0.1);
   border-radius: 1.5rem;
   box-shadow: var(--rg-shadow-soft);
-  padding: clamp(1.35rem, 4vw, 2.25rem);
+  padding: clamp(1.15rem, 2.4vw, 1.7rem);
 }
 
 .rg-panel__hero span,
@@ -233,16 +272,16 @@ textarea {
 }
 
 .rg-panel__hero h2 {
-  font-size: clamp(2rem, 5vw, 3.6rem);
-  letter-spacing: -0.06em;
-  line-height: 0.95;
-  margin: 0.5rem 0 0.9rem;
-  max-width: 13ch;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0.4rem 0 0.7rem;
+  max-width: 18ch;
 }
 
 .rg-panel__hero p {
   color: var(--rg-color-muted);
-  font-size: 1.03rem;
+  font-size: 0.96rem;
   margin: 0;
   max-width: 58ch;
 }
@@ -260,7 +299,7 @@ textarea {
   box-shadow: 0 14px 34px rgba(35, 25, 39, 0.08);
   display: grid;
   gap: 0.65rem;
-  min-height: 13rem;
+  min-height: 10rem;
   padding: 1.15rem;
 }
 

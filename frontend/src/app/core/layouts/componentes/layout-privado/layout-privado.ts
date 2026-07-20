@@ -1,23 +1,36 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
-import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { SesionAutenticacionService } from '../../../autenticacion/sesion-autenticacion.service';
 
 export type VarianteLayoutPrivado = 'cliente' | 'vendedor' | 'administracion';
+export type IconoLayoutPrivado =
+  | 'resumen'
+  | 'pedidos'
+  | 'perfil'
+  | 'tiendas'
+  | 'usuarios'
+  | 'vendedores'
+  | 'datos'
+  | 'catalogo'
+  | 'acceso';
 
 export interface EnlaceLayoutPrivado {
   etiqueta: string;
   ruta: string;
   descripcion: string;
+  icono?: IconoLayoutPrivado;
   queryParams?: Record<string, string>;
 }
 
 @Component({
   selector: 'app-layout-privado',
-  imports: [RouterLink, RouterLinkActive, NgbTooltip, BotonDirective],
+  imports: [RouterLink, RouterLinkActive, NgbTooltip],
   templateUrl: './layout-privado.html',
   styleUrl: './layout-privado.css',
+  host: {
+    '(document:keydown.escape)': 'cerrarMenuMovil()',
+  },
 })
 export class LayoutPrivadoComponent {
   readonly titulo = input.required<string>();

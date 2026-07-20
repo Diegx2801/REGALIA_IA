@@ -8,6 +8,7 @@ export const ADMINISTRACION_ROUTES: Routes = [
   },
   {
     path: 'resumen',
+    title: 'Resumen administrativo | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-admin-resumen/pagina-admin-resumen').then(
         (m) => m.PaginaAdminResumen,
@@ -15,6 +16,7 @@ export const ADMINISTRACION_ROUTES: Routes = [
   },
   {
     path: 'usuarios',
+    title: 'Gestión de usuarios | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-admin-usuarios/pagina-admin-usuarios').then(
         (m) => m.PaginaAdminUsuarios,
@@ -31,6 +33,7 @@ export const ADMINISTRACION_ROUTES: Routes = [
   },
   {
     path: 'vendedores',
+    title: 'Gestión de vendedores | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-admin-vendedores/pagina-admin-vendedores').then(
         (m) => m.PaginaAdminVendedores,
@@ -47,6 +50,7 @@ export const ADMINISTRACION_ROUTES: Routes = [
   },
   {
     path: 'tiendas',
+    title: 'Gestión de tiendas | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-admin-tiendas/pagina-admin-tiendas').then(
         (m) => m.PaginaAdminTiendas,
@@ -63,6 +67,7 @@ export const ADMINISTRACION_ROUTES: Routes = [
   },
   {
     path: 'pedidos',
+    title: 'Gestión de pedidos | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-admin-pedidos/pagina-admin-pedidos').then(
         (m) => m.PaginaAdminPedidos,
@@ -70,6 +75,7 @@ export const ADMINISTRACION_ROUTES: Routes = [
   },
   {
     path: 'datos-maestros',
+    title: 'Datos maestros | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-admin-datos-maestros/pagina-admin-datos-maestros').then(
         (m) => m.PaginaAdminDatosMaestros,

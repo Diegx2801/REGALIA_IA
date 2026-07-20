@@ -43,12 +43,17 @@ export class PaginaAdminLogin {
     this.mostrarContrasena.update((valor) => !valor);
   }
 
+  campoTieneError(nombreCampo: 'correo' | 'contrasena'): boolean {
+    const campo = this.formularioLogin.controls[nombreCampo];
+    return campo.invalid && (campo.touched || campo.dirty);
+  }
+
   enviarLogin(): void {
     this.mensajeError.set('');
 
     if (this.formularioLogin.invalid) {
       this.formularioLogin.markAllAsTouched();
-      this.mensajeError.set('Ingresa tu correo administrativo y contrasena.');
+      this.mensajeError.set('Ingresa tu correo administrativo y contraseña.');
       return;
     }
 
@@ -61,7 +66,7 @@ export class PaginaAdminLogin {
         next: (resultado) => this.procesarLoginExitoso(resultado),
         error: () =>
           this.mensajeError.set(
-            'No pudimos iniciar sesion administrativa. Revisa tus credenciales.',
+            'No pudimos iniciar sesión administrativa. Revisa tus credenciales.',
           ),
       });
   }
@@ -104,6 +109,6 @@ export class PaginaAdminLogin {
   }
 
   private obtenerRolPrincipal(roles: RolUsuario[]): RolUsuario {
-    return roles.includes('ADMIN') ? 'ADMIN' : roles[0] ?? 'CLIENTE';
+    return roles.includes('ADMIN') ? 'ADMIN' : (roles[0] ?? 'CLIENTE');
   }
 }

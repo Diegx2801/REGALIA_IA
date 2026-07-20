@@ -21,7 +21,7 @@
     }
 
     <section class="cliente-perfil__grid">
-      <article class="cliente-perfil__card">
+      <article class="cliente-perfil__card cliente-perfil__card--cuenta">
         <span>Cuenta</span>
         <h3>{{ store.perfil()?.nombreCompleto }}</h3>
         <p>{{ store.perfil()?.correo }}</p>
@@ -59,14 +59,18 @@
         }
       </article>
 
-      <article class="cliente-perfil__card cliente-perfil__card--identidad">
+      <article
+        class="cliente-perfil__card cliente-perfil__card--identidad cliente-perfil__card--venta"
+      >
         <span>Vender en REGALIA</span>
         <h3>Abre tu vitrina</h3>
         <p>Usa esta misma cuenta para crear una tienda y gestionar tus productos.</p>
         <a appBoton="secundario" routerLink="/vender">Conocer el proceso</a>
       </article>
 
-      <article class="cliente-perfil__card cliente-perfil__card--identidad">
+      <article
+        class="cliente-perfil__card cliente-perfil__card--identidad cliente-perfil__card--acceso"
+      >
         <span>Acceso</span>
         <h3>Metodos de ingreso</h3>
         <p>Añade una forma práctica de iniciar sesión en tu cuenta.</p>
@@ -128,7 +132,12 @@
 
         <label appCampoFormulario>
           Telefono
-          <input type="tel" formControlName="telefono" autocomplete="tel" placeholder="Ej. 999888777" />
+          <input
+            type="tel"
+            formControlName="telefono"
+            autocomplete="tel"
+            placeholder="Ej. 999888777"
+          />
           @if (campoTieneError('telefono')) {
             <small appErrorCampo>El telefono no debe superar 20 caracteres.</small>
           }
@@ -160,7 +169,11 @@
 
         <label appCampoFormulario>
           Contrasena actual
-          <input type="password" autocomplete="current-password" formControlName="contrasenaActual" />
+          <input
+            type="password"
+            autocomplete="current-password"
+            formControlName="contrasenaActual"
+          />
           @if (campoContrasenaTieneError('contrasenaActual')) {
             <small appErrorCampo>Ingresa tu contrasena actual.</small>
           }
@@ -176,7 +189,11 @@
 
         <label appCampoFormulario>
           Confirmar nueva contrasena
-          <input type="password" autocomplete="new-password" formControlName="confirmarContrasena" />
+          <input
+            type="password"
+            autocomplete="new-password"
+            formControlName="confirmarContrasena"
+          />
           @if (
             campoContrasenaTieneError('confirmarContrasena') ||
             (formularioContrasena.controls.confirmarContrasena.touched && !contrasenasCoinciden())

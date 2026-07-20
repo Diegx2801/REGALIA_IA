@@ -8,6 +8,7 @@ export const USUARIOS_ROUTES: Routes = [
   },
   {
     path: 'perfil',
+    title: 'Mi perfil | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-cliente-perfil/pagina-cliente-perfil').then(
         (m) => m.PaginaClientePerfil,
@@ -15,6 +16,7 @@ export const USUARIOS_ROUTES: Routes = [
   },
   {
     path: 'pedidos',
+    title: 'Mis pedidos | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-cliente-pedidos/pagina-cliente-pedidos').then(
         (m) => m.PaginaClientePedidos,
@@ -22,6 +24,7 @@ export const USUARIOS_ROUTES: Routes = [
   },
   {
     path: 'pedidos/:idPedido',
+    title: 'Detalle del pedido | REGALIA',
     loadComponent: () =>
       import('./paginas/pagina-cliente-detalle-pedido/pagina-cliente-detalle-pedido').then(
         (m) => m.PaginaClienteDetallePedido,

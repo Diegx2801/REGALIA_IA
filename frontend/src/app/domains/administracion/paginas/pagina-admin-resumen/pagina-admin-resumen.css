@@ -18,12 +18,12 @@
   background:
     radial-gradient(circle at 86% 15%, rgba(215, 173, 75, 0.26), transparent 8rem),
     linear-gradient(135deg, #17101b 0%, #2a1827 42%, #5a2440 100%);
-  border-radius: 2rem;
+  border-radius: 1.5rem;
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.34fr);
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.28fr);
   overflow: hidden;
-  padding: clamp(1.2rem, 3vw, 2rem);
+  padding: clamp(1.15rem, 2.2vw, 1.6rem);
   position: relative;
 }
 
@@ -33,7 +33,11 @@
     radial-gradient(circle at 42% 74%, rgba(215, 173, 75, 0.16), transparent 0.18rem),
     linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
     linear-gradient(0deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: auto, auto, 3rem 3rem, 3rem 3rem;
+  background-size:
+    auto,
+    auto,
+    3rem 3rem,
+    3rem 3rem;
   content: '';
   inset: 0;
   pointer-events: none;
@@ -57,18 +61,18 @@
 
 .admin-resumen__hero h2 {
   color: #fff;
-  font-size: clamp(2.35rem, 5.4vw, 4.9rem);
+  font-size: clamp(2rem, 3.4vw, 3.35rem);
   font-weight: 950;
   letter-spacing: -0.075em;
-  line-height: 0.88;
-  margin: 0.55rem 0 0.9rem;
-  max-width: 11ch;
+  line-height: 0.96;
+  margin: 0.45rem 0 0.75rem;
+  max-width: 14ch;
 }
 
 .admin-resumen__hero p {
   color: rgba(255, 255, 255, 0.76);
-  font-size: 1.05rem;
-  line-height: 1.7;
+  font-size: 0.96rem;
+  line-height: 1.55;
   margin: 0;
   max-width: 60ch;
 }
@@ -77,7 +81,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-  margin-top: 1.4rem;
+  margin-top: 1rem;
 }
 
 .admin-resumen__radar {
@@ -86,21 +90,21 @@
     radial-gradient(circle at 100% 0%, rgba(215, 173, 75, 0.35), transparent 7rem),
     rgba(255, 255, 255, 0.09);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 1.5rem;
+  border-radius: 1.2rem;
   color: #fff;
   display: grid;
-  min-height: 16rem;
-  padding: 1.2rem;
+  min-height: 12rem;
+  padding: 1rem;
 }
 
 .admin-resumen__radar::after {
   border: 1px solid rgba(215, 173, 75, 0.44);
   border-radius: 50%;
   content: '';
-  height: 7rem;
+  height: 5rem;
   inset: auto 1rem 1rem auto;
   position: absolute;
-  width: 7rem;
+  width: 5rem;
 }
 
 .admin-resumen__radar span {
@@ -113,7 +117,7 @@
 
 .admin-resumen__radar strong {
   align-self: end;
-  font-size: clamp(3rem, 8vw, 5.4rem);
+  font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 950;
   letter-spacing: -0.08em;
   line-height: 0.9;
@@ -126,7 +130,7 @@
 
 .admin-resumen__metricas {
   display: grid;
-  gap: 1rem;
+  gap: 0.8rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -146,7 +150,7 @@
 }
 
 .admin-resumen__panel--principal {
-  min-height: 30rem;
+  min-height: 22rem;
 }
 
 .admin-resumen__panel-header {
@@ -159,7 +163,7 @@
 
 .admin-resumen__panel h3 {
   color: var(--rg-color-ink);
-  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
   font-weight: 950;
   letter-spacing: -0.055em;
   margin: 0.24rem 0 0;

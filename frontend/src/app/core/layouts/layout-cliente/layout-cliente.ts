@@ -17,11 +17,13 @@ export class LayoutCliente {
       etiqueta: 'Mis pedidos',
       ruta: '/cliente/pedidos',
       descripcion: 'Historial y seguimiento',
+      icono: 'pedidos',
     },
     {
       etiqueta: 'Mi perfil',
       ruta: '/cliente/perfil',
       descripcion: 'Datos y seguridad',
+      icono: 'perfil',
     },
   ];
 }

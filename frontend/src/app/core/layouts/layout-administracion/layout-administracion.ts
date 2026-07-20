@@ -17,41 +17,49 @@ export class LayoutAdministracion {
       etiqueta: 'Resumen',
       ruta: '/admin/resumen',
       descripcion: 'Control general de plataforma',
+      icono: 'resumen',
     },
     {
       etiqueta: 'Usuarios',
       ruta: '/admin/usuarios',
       descripcion: 'Cuentas y estado de acceso',
+      icono: 'usuarios',
     },
     {
       etiqueta: 'Vendedores',
       ruta: '/admin/vendedores',
       descripcion: 'Actividad comercial y verificacion',
+      icono: 'vendedores',
     },
     {
       etiqueta: 'Tiendas',
       ruta: '/admin/tiendas',
       descripcion: 'Revision y moderacion comercial',
+      icono: 'tiendas',
     },
     {
       etiqueta: 'Pedidos',
       ruta: '/admin/pedidos',
       descripcion: 'Seguimiento operativo global',
+      icono: 'pedidos',
     },
     {
       etiqueta: 'Datos maestros',
       ruta: '/admin/datos-maestros',
       descripcion: 'Catalogos base de la plataforma',
+      icono: 'datos',
     },
     {
       etiqueta: 'Catalogo',
       ruta: '/catalogo',
       descripcion: 'Auditar experiencia publica',
+      icono: 'catalogo',
     },
     {
       etiqueta: 'Login admin',
       ruta: '/admin/login',
       descripcion: 'Cambiar sesion administrativa',
+      icono: 'acceso',
     },
   ];
 }

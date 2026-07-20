@@ -1,7 +1,13 @@
-<header class="encabezado-seccion">
-  <span>{{ etiqueta() }}</span>
-  <h2>{{ titulo() }}</h2>
+<header class="grid gap-1">
+  <span class="text-[0.68rem] font-black tracking-[0.15em] text-regalia-rose uppercase">
+    {{ etiqueta() }}
+  </span>
+  <h2 class="text-2xl leading-tight font-black tracking-[-0.04em] text-regalia-ink sm:text-3xl">
+    {{ titulo() }}
+  </h2>
   @if (descripcion()) {
-    <p>{{ descripcion() }}</p>
+    <p class="mt-1 max-w-3xl text-sm leading-6 text-regalia-muted sm:text-base">
+      {{ descripcion() }}
+    </p>
   }
 </header>
