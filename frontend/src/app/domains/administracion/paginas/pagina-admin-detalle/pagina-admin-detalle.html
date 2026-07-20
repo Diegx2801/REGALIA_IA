@@ -17,6 +17,153 @@
       textoAccion="Reintentar"
       (accion)="cargarDetalle()"
     />
+  } @else if (usuario(); as usuario) {
+    <header class="detalle-admin__hero">
+      <div>
+        <span>Usuario #{{ usuario.idUsuario }}</span>
+        <h2>{{ usuario.nombreCompleto }}</h2>
+        <p>{{ usuario.correo }}</p>
+      </div>
+      <div class="detalle-admin__insignias" aria-label="Estado de la cuenta">
+        <app-insignia-ui
+          [texto]="usuario.correoVerificado ? 'Correo verificado' : 'Verificación pendiente'"
+          [variante]="usuario.correoVerificado ? 'exito' : 'advertencia'"
+        />
+        <app-insignia-ui
+          [texto]="usuario.estado ? 'Cuenta activa' : 'Cuenta inactiva'"
+          [variante]="varianteEstadoGeneral(usuario.estado)"
+        />
+      </div>
+    </header>
+
+    <article
+      class="detalle-admin__estado-comercial"
+      [class.detalle-admin__estado-comercial--alerta]="!usuario.estado || !usuario.correoVerificado"
+      aria-labelledby="titulo-estado-usuario"
+    >
+      <div class="detalle-admin__estado-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          @if (usuario.estado && usuario.correoVerificado) {
+            <path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" />
+            <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+            <path d="m16.7 9.5 1.5 1.5 3-3" />
+          } @else {
+            <path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" />
+            <path d="M4.5 21a7.5 7.5 0 0 1 15 0M18 14v3m0 3h.01" />
+          }
+        </svg>
+      </div>
+      <div>
+        <span>Lectura de acceso</span>
+        <h3 id="titulo-estado-usuario">
+          @if (!usuario.estado) {
+            Acceso administrativo suspendido
+          } @else if (!usuario.correoVerificado) {
+            Cuenta activa con verificación pendiente
+          } @else {
+            Cuenta activa y verificada
+          }
+        </h3>
+        <p>
+          @if (!usuario.estado) {
+            La cuenta no puede ingresar a REGALIA hasta que un administrador la reactive.
+          } @else if (!usuario.correoVerificado) {
+            El usuario conserva el acceso permitido por el backend, pero aún debe verificar su
+            correo.
+          } @else {
+            No hay alertas de acceso con la información disponible para esta cuenta.
+          }
+        </p>
+      </div>
+      <div class="detalle-admin__acciones-contextuales" aria-label="Acciones de la cuenta">
+        <a appBoton="secundario" appBotonTamano="sm" [href]="'mailto:' + usuario.correo">
+          Contactar
+        </a>
+        <button
+          [appBoton]="usuario.estado ? 'peligro' : 'secundario'"
+          appBotonTamano="sm"
+          type="button"
+          [appBotonCargando]="procesandoUsuario()"
+          [disabled]="procesandoUsuario()"
+          [attr.aria-label]="
+            (usuario.estado ? 'Desactivar' : 'Reactivar') + ' cuenta de ' + usuario.nombreCompleto
+          "
+          (click)="cambiarEstadoUsuario()"
+        >
+          @if (procesandoUsuario()) {
+            Procesando…
+          } @else {
+            {{ usuario.estado ? 'Desactivar cuenta' : 'Reactivar cuenta' }}
+          }
+        </button>
+      </div>
+    </article>
+
+    <div class="detalle-admin__mensajes" aria-live="polite">
+      @if (mensajeEstadoUsuario()) {
+        <app-estado-pantalla
+          tipo="exito"
+          etiqueta="Estado actualizado"
+          [titulo]="mensajeEstadoUsuario() ?? ''"
+        />
+      }
+      @if (mensajeErrorEstadoUsuario()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Acción no completada"
+          [titulo]="mensajeErrorEstadoUsuario() ?? ''"
+          descripcion="La cuenta conserva su estado anterior. Puedes volver a intentarlo."
+        />
+      }
+    </div>
+
+    <section class="detalle-admin__grid" aria-label="Información del usuario">
+      <app-tarjeta-informativa
+        etiqueta="Contacto"
+        [titulo]="usuario.correo"
+        [descripcion]="usuario.telefono || 'Sin teléfono registrado'"
+      >
+        <a appBoton="secundario" appBotonTamano="sm" [href]="'mailto:' + usuario.correo">
+          Enviar correo
+        </a>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Seguridad y acceso"
+        [titulo]="
+          usuario.correoVerificado ? 'Identidad digital verificada' : 'Validación pendiente'
+        "
+        [descripcion]="
+          usuario.correoVerificado
+            ? 'El correo principal fue confirmado por el usuario.'
+            : 'El backend todavía no registra la confirmación del correo principal.'
+        "
+      >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>Estado de acceso</dt>
+            <dd>{{ usuario.estado ? 'Habilitado' : 'Suspendido' }}</dd>
+          </div>
+        </dl>
+      </app-tarjeta-informativa>
+
+      <app-tarjeta-informativa
+        etiqueta="Trazabilidad"
+        titulo="Historial de la cuenta"
+        descripcion="Fechas registradas por el sistema para seguimiento administrativo."
+      >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>Registro</dt>
+            <dd>{{ usuario.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt>Última actualización</dt>
+            <dd>{{ usuario.fechaActualizacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+        </dl>
+      </app-tarjeta-informativa>
+    </section>
   } @else if (vendedor(); as vendedor) {
     <header class="detalle-admin__hero">
       <div>
@@ -36,6 +183,56 @@
       </div>
     </header>
 
+    <article
+      class="detalle-admin__estado-comercial"
+      [class.detalle-admin__estado-comercial--alerta]="!vendedor.verificado || !vendedor.estado"
+      aria-labelledby="titulo-estado-comercial"
+    >
+      <div class="detalle-admin__estado-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          @if (vendedor.verificado && vendedor.estado) {
+            <path d="M12 3 4.5 6v5.2c0 4.5 3 8.3 7.5 9.8 4.5-1.5 7.5-5.3 7.5-9.8V6L12 3Z" />
+            <path d="m8.7 12 2.1 2.1 4.5-4.5" />
+          } @else {
+            <path d="M12 8v4.5m0 3h.01" />
+            <path
+              d="M10.1 4.7 3.8 16a2 2 0 0 0 1.75 3h12.9a2 2 0 0 0 1.75-3L13.9 4.7a2.2 2.2 0 0 0-3.8 0Z"
+            />
+          }
+        </svg>
+      </div>
+      <div>
+        <span>Lectura operativa</span>
+        <h3 id="titulo-estado-comercial">
+          @if (!vendedor.estado) {
+            Perfil comercial inactivo
+          } @else if (!vendedor.verificado) {
+            Identidad comercial pendiente
+          } @else {
+            Perfil habilitado y verificado
+          }
+        </h3>
+        <p>
+          @if (!vendedor.estado) {
+            El perfil no está operativo. La API administrativa actual permite consultar su estado,
+            pero no modificarlo desde este módulo.
+          } @else if (!vendedor.verificado) {
+            La verificación se obtiene de la documentación de identidad registrada por el vendedor.
+          } @else {
+            La cuenta mantiene un perfil activo y una identidad comercial validada.
+          }
+        </p>
+      </div>
+      <div class="detalle-admin__acciones-contextuales" aria-label="Acciones del vendedor">
+        <a appBoton="secundario" appBotonTamano="sm" [href]="'mailto:' + vendedor.correo">
+          Contactar
+        </a>
+        <a appBoton="secundario" appBotonTamano="sm" routerLink="/admin/tiendas">
+          Revisar tiendas
+        </a>
+      </div>
+    </article>
+
     <section class="detalle-admin__grid" aria-label="Información del vendedor">
       <app-tarjeta-informativa
         etiqueta="Cuenta"
@@ -52,6 +249,13 @@
             <dd>{{ vendedor.fechaActualizacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
           </div>
         </dl>
+        <a
+          appBoton="secundario"
+          appBotonTamano="sm"
+          [routerLink]="['/admin/usuarios', vendedor.idUsuario]"
+        >
+          Ver cuenta
+        </a>
       </app-tarjeta-informativa>
 
       <app-tarjeta-informativa
@@ -76,7 +280,7 @@
         [descripcion]="
           vendedor.verificado
             ? 'El vendedor cumple las condiciones documentarias vigentes.'
-            : 'Revisa sus documentos antes de aprobar operaciones comerciales.'
+            : 'El estado depende de documentos de identidad verificados en la cuenta.'
         "
       />
     </section>
@@ -98,6 +302,88 @@
         />
       </div>
     </header>
+
+    <article
+      class="detalle-admin__estado-comercial"
+      [class.detalle-admin__estado-comercial--alerta]="tienda.estadoRevision !== 'APROBADA'"
+      aria-labelledby="titulo-moderacion-tienda"
+    >
+      <div class="detalle-admin__estado-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M4 10.5v8.25A1.25 1.25 0 0 0 5.25 20h13.5A1.25 1.25 0 0 0 20 18.75V10.5" />
+          <path d="M3 9.5 5.4 4h13.2L21 9.5" />
+          <path d="m8.8 15.2 2 2 4.5-4.5" />
+        </svg>
+      </div>
+      <div>
+        <span>Decisión comercial</span>
+        <h3 id="titulo-moderacion-tienda">
+          Estado actual: {{ tienda.estadoRevision.toLowerCase() }}
+        </h3>
+        <p>
+          Revisa la información fiscal, responsable y rubros antes de cambiar el estado. Cada acción
+          requiere confirmación explícita.
+        </p>
+      </div>
+      <div
+        class="detalle-admin__acciones-contextuales"
+        aria-label="Acciones de moderación de tienda"
+      >
+        @if (tienda.estadoRevision !== 'APROBADA') {
+          <button
+            appBoton
+            appBotonTamano="sm"
+            type="button"
+            [appBotonCargando]="procesandoTienda() === 'aprobar'"
+            [disabled]="procesandoTienda() !== null"
+            (click)="moderarTienda('aprobar')"
+          >
+            Aprobar
+          </button>
+        }
+        @if (tienda.estadoRevision !== 'OBSERVADA') {
+          <button
+            appBoton="secundario"
+            appBotonTamano="sm"
+            type="button"
+            [appBotonCargando]="procesandoTienda() === 'observar'"
+            [disabled]="procesandoTienda() !== null"
+            (click)="moderarTienda('observar')"
+          >
+            Observar
+          </button>
+        }
+        @if (tienda.estadoRevision !== 'RECHAZADA') {
+          <button
+            appBoton="peligro"
+            appBotonTamano="sm"
+            type="button"
+            [appBotonCargando]="procesandoTienda() === 'rechazar'"
+            [disabled]="procesandoTienda() !== null"
+            (click)="moderarTienda('rechazar')"
+          >
+            Rechazar
+          </button>
+        }
+      </div>
+    </article>
+
+    <div class="detalle-admin__mensajes" aria-live="polite">
+      @if (mensajeModeracionTienda()) {
+        <app-estado-pantalla
+          tipo="exito"
+          etiqueta="Estado actualizado"
+          [titulo]="mensajeModeracionTienda() ?? ''"
+        />
+      }
+      @if (mensajeErrorModeracionTienda()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Moderación no completada"
+          [titulo]="mensajeErrorModeracionTienda() ?? ''"
+        />
+      }
+    </div>
 
     <section class="detalle-admin__grid" aria-label="Información de la tienda">
       <app-tarjeta-informativa
@@ -121,6 +407,13 @@
           [routerLink]="['/admin/vendedores', tienda.idVendedor]"
         >
           Ver vendedor
+        </a>
+        <a
+          appBoton="fantasma"
+          appBotonTamano="sm"
+          [routerLink]="['/admin/usuarios', tienda.idUsuario]"
+        >
+          Ver cuenta
         </a>
       </app-tarjeta-informativa>
 
@@ -163,6 +456,70 @@
         }
       </div>
     </article>
+
+    <article class="detalle-admin__card" aria-labelledby="titulo-catalogo-tienda">
+      <span>Catálogo relacionado</span>
+      <h3 id="titulo-catalogo-tienda">Productos visibles de la tienda</h3>
+      @if (!tienda.estado || tienda.estadoRevision !== 'APROBADA') {
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Catálogo no público"
+          titulo="La tienda todavía no tiene un catálogo público consultable"
+          descripcion="El backend publica sus productos cuando la tienda está activa y aprobada."
+        />
+      } @else if (cargandoCatalogoTienda()) {
+        <app-estado-pantalla
+          tipo="carga"
+          etiqueta="Catálogo público"
+          titulo="Consultando productos visibles"
+        />
+      } @else if (mensajeErrorCatalogoTienda()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Catálogo no disponible"
+          [titulo]="mensajeErrorCatalogoTienda() ?? ''"
+          textoAccion="Reintentar"
+          (accion)="cargarDetalle()"
+        />
+      } @else if (productosTienda().length > 0) {
+        <div class="detalle-admin__catalogo">
+          @for (producto of productosTienda(); track producto.idProducto) {
+            <article class="detalle-admin__producto">
+              <div>
+                <small>Producto #{{ producto.idProducto }} · {{ producto.tipoProducto }}</small>
+                <h4>{{ producto.nombre }}</h4>
+                <p>{{ producto.descripcion }}</p>
+              </div>
+              <dl>
+                <div>
+                  <dt>Precio</dt>
+                  <dd>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+                </div>
+                <div>
+                  <dt>Stock</dt>
+                  <dd>{{ producto.stock }}</dd>
+                </div>
+              </dl>
+              <a
+                appBoton="fantasma"
+                appBotonTamano="sm"
+                [routerLink]="['/catalogo', producto.idProducto]"
+                [attr.aria-label]="'Ver ' + producto.nombre + ' en el catálogo público'"
+              >
+                Ver en catálogo
+              </a>
+            </article>
+          }
+        </div>
+      } @else {
+        <app-estado-pantalla
+          tipo="vacio"
+          etiqueta="Catálogo vacío"
+          titulo="Esta tienda no tiene productos públicos"
+          descripcion="No se muestran productos inactivos ni ocultos según el contrato del backend."
+        />
+      }
+    </article>
   } @else if (pedido(); as pedido) {
     <header class="detalle-admin__hero">
       <div>
@@ -184,6 +541,59 @@
         </div>
       </div>
     </header>
+
+    <article
+      class="detalle-admin__estado-comercial detalle-admin__seguimiento-pedido"
+      [class.detalle-admin__estado-comercial--alerta]="prioridadPedido(pedido) === 'alta'"
+      aria-labelledby="titulo-seguimiento-pedido"
+    >
+      <div class="detalle-admin__estado-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M5 4h14v16H5z" />
+          <path d="M8 8h8M8 12h5M8 16h3" />
+        </svg>
+      </div>
+      <div>
+        <span>Lectura operativa</span>
+        <h3 id="titulo-seguimiento-pedido">{{ etiquetaPrioridadPedido(pedido) }}</h3>
+        <p>
+          @if (estaEntregaPedidoVencida(pedido)) {
+            La fecha de entrega registrada ya venció y el pedido continúa abierto.
+          } @else if (pedido.saldoPendiente > 0 && pedido.estadoPedido !== 'ANULADO') {
+            El pedido mantiene un saldo pendiente de
+            {{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}.
+          } @else if (pedido.estadoPedido === 'ANULADO') {
+            El pedido está anulado. La información permanece disponible para trazabilidad.
+          } @else {
+            No hay alertas financieras o de vencimiento con los datos disponibles.
+          }
+        </p>
+      </div>
+      <span class="detalle-admin__prioridad" [attr.data-prioridad]="prioridadPedido(pedido)">
+        {{ etiquetaPrioridadPedido(pedido) }}
+      </span>
+    </article>
+
+    <article class="detalle-admin__card" aria-labelledby="titulo-progreso-pedido">
+      <span>Seguimiento de estado</span>
+      <h3 id="titulo-progreso-pedido">Progreso del pedido</h3>
+      @if (pedido.estadoPedido === 'ANULADO') {
+        <p class="detalle-admin__aviso-anulado" role="status">
+          Este pedido fue anulado; la línea operativa quedó detenida.
+        </p>
+      }
+      <ol class="detalle-admin__timeline" aria-label="Etapas del pedido">
+        @for (etapa of etapasPedido; track etapa.codigo) {
+          <li [attr.data-estado]="estadoEtapaPedido(pedido.estadoPedido, etapa.codigo)">
+            <span aria-hidden="true"></span>
+            <div>
+              <small>Etapa {{ $index + 1 }}</small>
+              <strong>{{ etapa.etiqueta }}</strong>
+            </div>
+          </li>
+        }
+      </ol>
+    </article>
 
     <section class="detalle-admin__grid" aria-label="Información del pedido">
       <app-tarjeta-informativa
@@ -224,6 +634,16 @@
         [titulo]="'Usuario #' + pedido.idUsuario"
         [descripcion]="'Tienda #' + pedido.idTienda"
       >
+        <dl class="detalle-admin__datos">
+          <div>
+            <dt>Pedido</dt>
+            <dd>#{{ pedido.idPedido }}</dd>
+          </div>
+          <div>
+            <dt>Actualización</dt>
+            <dd>{{ pedido.fechaActualizacion | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+        </dl>
         <a
           appBoton="secundario"
           appBotonTamano="sm"
@@ -258,6 +678,20 @@
           />
         }
       </app-lista-panel>
+      <footer class="detalle-admin__totales-pedido" aria-label="Resumen económico del pedido">
+        <div>
+          <span>Subtotal</span
+          ><strong>{{ pedido.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>Pagado</span
+          ><strong>{{ pedido.montoPagado | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        </div>
+        <div class="detalle-admin__total-final">
+          <span>Total</span
+          ><strong>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        </div>
+      </footer>
     </article>
   }
 </section>

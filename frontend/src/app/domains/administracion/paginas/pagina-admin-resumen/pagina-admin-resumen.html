@@ -1,6 +1,10 @@
 <section class="admin-resumen">
   @if (store.cargandoResumen()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Sincronizando la sala de control." />
+    <app-estado-pantalla
+      tipo="carga"
+      etiqueta="Cargando"
+      titulo="Sincronizando la sala de control."
+    />
   } @else if (store.mensajeError()) {
     <app-estado-pantalla
       tipo="error"
@@ -11,67 +15,135 @@
     />
   } @else {
     @if (store.mensajeExito()) {
-      <app-estado-pantalla tipo="exito" etiqueta="Operacion correcta" [titulo]="store.mensajeExito() ?? ''" />
+      <app-estado-pantalla
+        tipo="exito"
+        etiqueta="Operación correcta"
+        [titulo]="store.mensajeExito() ?? ''"
+      />
     }
 
     <header class="admin-resumen__hero" aria-labelledby="titulo-admin-resumen">
       <div class="admin-resumen__hero-copy">
+        <div class="admin-resumen__sincronizacion">
+          <span class="admin-resumen__pulso" aria-hidden="true"></span>
+          <span>Datos reales sincronizados</span>
+          @if (store.ultimaActualizacion(); as ultimaActualizacion) {
+            <time [attr.datetime]="ultimaActualizacion.toISOString()">
+              {{ ultimaActualizacion | date: 'HH:mm:ss' }}
+            </time>
+          }
+        </div>
+
         <span class="admin-resumen__eyebrow">Sala de control</span>
         <h2 id="titulo-admin-resumen">Gobierno operativo de REGALIA.</h2>
         <p>
-          Supervisa crecimiento, moderacion comercial y pedidos con riesgo financiero desde una vista
-          conectada al backend real.
+          Supervisa crecimiento, moderación comercial y pedidos con riesgo financiero desde una
+          vista conectada al backend real.
         </p>
 
         <div class="admin-resumen__hero-actions" aria-label="Acciones administrativas principales">
-          <a appBoton routerLink="/admin/tiendas" ngbTooltip="Abrir cola completa de revision comercial">
+          <a
+            appBoton
+            routerLink="/admin/tiendas"
+            ngbTooltip="Abrir cola completa de revisión comercial"
+          >
             Moderar tiendas
           </a>
-          <a appBoton="secundario" routerLink="/admin/datos-maestros" ngbTooltip="Auditar catalogos base de REGALIA">
-            Datos maestros
-          </a>
+          <button
+            appBoton="secundario"
+            type="button"
+            [disabled]="store.cargandoResumen()"
+            (click)="store.cargarResumen(true)"
+            ngbTooltip="Volver a consultar los indicadores"
+          >
+            Actualizar resumen
+          </button>
         </div>
       </div>
 
-      <aside class="admin-resumen__radar" aria-label="Indicadores criticos administrativos">
-        <span>Radar operativo</span>
-        <strong>{{ store.tiendasPendientes() + store.pedidosConSaldo() }}</strong>
-        <small>puntos que requieren seguimiento administrativo.</small>
+      <aside class="admin-resumen__radar" aria-label="Alertas operativas actuales">
+        <span>Alertas operativas</span>
+        <strong>{{ totalAlertas() }}</strong>
+        <small>
+          @if (totalAlertas() === 0) {
+            No hay incidencias pendientes en los indicadores disponibles.
+          } @else {
+            elementos requieren seguimiento administrativo.
+          }
+        </small>
       </aside>
     </header>
 
     <section class="admin-resumen__metricas" aria-label="Indicadores generales de plataforma">
-      <app-tarjeta-metrica etiqueta="Usuarios" [valor]="store.totalUsuarios()" descripcion="Cuentas gestionables." />
-      <app-tarjeta-metrica etiqueta="Vendedores" [valor]="store.totalVendedores()" descripcion="Perfiles comerciales registrados." />
-      <app-tarjeta-metrica etiqueta="Tiendas" [valor]="store.totalTiendas()" [descripcion]="store.tiendasPendientes() + ' pendiente(s) de revision.'" />
-      <app-tarjeta-metrica etiqueta="Pedidos" [valor]="store.totalPedidos()" [descripcion]="store.pedidosConSaldo() + ' con saldo pendiente.'" />
-      <app-tarjeta-metrica etiqueta="Catalogo visible" [valor]="store.totalProductosVisibles()" descripcion="Productos expuestos publicamente." />
-      <app-tarjeta-metrica etiqueta="Pagado" [valor]="store.montoPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'" descripcion="Monto pagado en pedidos cargados." />
+      <app-tarjeta-metrica
+        etiqueta="Usuarios activos"
+        [valor]="store.totalUsuarios()"
+        descripcion="Cuentas activas gestionables."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Vendedores"
+        [valor]="store.totalVendedores()"
+        descripcion="Perfiles comerciales registrados."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Tiendas"
+        [valor]="store.totalTiendas()"
+        [descripcion]="store.tiendasPendientes() + ' pendiente(s) de revisión.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Pedidos"
+        [valor]="store.totalPedidos()"
+        [descripcion]="store.pedidosConSaldo() + ' con saldo pendiente.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Catálogo público"
+        [valor]="store.totalProductosVisibles()"
+        descripcion="Productos expuestos públicamente."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Pagado reciente"
+        [valor]="store.montoPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        descripcion="Suma de los últimos pedidos cargados."
+      />
     </section>
 
-    <section class="admin-resumen__escenario">
+    <section class="admin-resumen__escenario" aria-label="Supervisión operativa">
       <article class="admin-resumen__panel admin-resumen__panel--principal">
         <header class="admin-resumen__panel-header">
           <div>
-            <span class="admin-resumen__eyebrow">Moderacion comercial</span>
-            <h3>Tiendas en cola</h3>
+            <span class="admin-resumen__eyebrow">Moderación comercial</span>
+            <h3>Tiendas pendientes</h3>
           </div>
           <a appBoton="fantasma" appBotonTamano="sm" routerLink="/admin/tiendas">Ver todas</a>
         </header>
 
-        @if (tiendasPrioritarias().length === 0) {
-          <app-estado-pantalla tipo="vacio" etiqueta="Sin tiendas" titulo="No hay tiendas para revisar." />
+        @if (store.tiendasPendientesResumen().length === 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Cola al día"
+            titulo="No hay tiendas pendientes de revisión."
+          />
         } @else {
-          <div class="admin-resumen__cola" aria-label="Tiendas priorizadas para moderacion">
-            @for (tienda of tiendasPrioritarias(); track tienda.idTienda) {
+          <div class="admin-resumen__cola" aria-label="Tiendas pendientes de moderación">
+            @for (tienda of store.tiendasPendientesResumen(); track tienda.idTienda) {
               <article class="admin-resumen__tienda">
                 <div>
                   <span class="admin-resumen__estado">{{ tienda.estadoRevision }}</span>
                   <h4>{{ tienda.nombre }}</h4>
-                  <p>{{ tienda.vendedor }} · {{ tienda.rubros.length ? tienda.rubros.join(', ') : 'Sin rubros registrados' }}</p>
+                  <p>
+                    {{ tienda.vendedor }} ·
+                    {{ tienda.rubros.length ? tienda.rubros.join(', ') : 'Sin rubros registrados' }}
+                  </p>
                 </div>
 
                 <div class="admin-resumen__acciones">
+                  <a
+                    appBoton="fantasma"
+                    appBotonTamano="sm"
+                    [routerLink]="['/admin/tiendas', tienda.idTienda]"
+                  >
+                    Ver detalle
+                  </a>
                   <button
                     appBoton
                     appBotonTamano="sm"
@@ -88,7 +160,7 @@
                     type="button"
                     [disabled]="store.procesandoTienda() === tienda.idTienda"
                     (click)="observar(tienda)"
-                    ngbTooltip="Solicitar correccion al vendedor"
+                    ngbTooltip="Solicitar corrección al vendedor"
                   >
                     Observar
                   </button>
@@ -109,54 +181,75 @@
         }
       </article>
 
-      <aside class="admin-resumen__columna">
+      <aside class="admin-resumen__columna" aria-label="Alertas y pedidos prioritarios">
         <article class="admin-resumen__panel admin-resumen__riesgo">
-          <span class="admin-resumen__eyebrow">Riesgo operativo</span>
-          <h3>Revision pendiente</h3>
+          <span class="admin-resumen__eyebrow">Prioridades</span>
+          <h3>Alertas operativas</h3>
 
-          <div class="admin-resumen__indicador">
-            <div>
-              <strong>{{ porcentajeTiendasPendientes() }}%</strong>
-              <small>tiendas pendientes</small>
-            </div>
+          <a class="admin-resumen__alerta" routerLink="/admin/tiendas">
+            <span class="admin-resumen__alerta-cabecera">
+              <span>
+                <strong>Tiendas pendientes</strong>
+                <small>Requieren revisión comercial</small>
+              </span>
+              <b>{{ store.tiendasPendientes() }}</b>
+            </span>
             <ngb-progressbar
               type="warning"
               [value]="porcentajeTiendasPendientes()"
-              height="0.72rem"
-              aria-label="Porcentaje de tiendas pendientes"
+              height="0.55rem"
+              [attr.aria-label]="
+                porcentajeTiendasPendientes() + '% de tiendas pendientes de revisión'
+              "
             />
-          </div>
+          </a>
 
-          <div class="admin-resumen__indicador">
-            <div>
-              <strong>{{ porcentajePedidosConSaldo() }}%</strong>
-              <small>pedidos con saldo</small>
-            </div>
+          <a class="admin-resumen__alerta" routerLink="/admin/pedidos">
+            <span class="admin-resumen__alerta-cabecera">
+              <span>
+                <strong>Pedidos con saldo</strong>
+                <small>Necesitan seguimiento de pago</small>
+              </span>
+              <b>{{ store.pedidosConSaldo() }}</b>
+            </span>
             <ngb-progressbar
               type="danger"
               [value]="porcentajePedidosConSaldo()"
-              height="0.72rem"
-              aria-label="Porcentaje de pedidos con saldo pendiente"
+              height="0.55rem"
+              [attr.aria-label]="porcentajePedidosConSaldo() + '% de pedidos con saldo pendiente'"
             />
-          </div>
+          </a>
         </article>
 
         <article class="admin-resumen__panel admin-resumen__pedidos">
           <header class="admin-resumen__panel-header">
             <div>
               <span class="admin-resumen__eyebrow">Pedidos</span>
-              <h3>Movimientos criticos</h3>
+              <h3>Movimientos críticos</h3>
             </div>
             <a appBoton="fantasma" appBotonTamano="sm" routerLink="/admin/pedidos">Ver</a>
           </header>
 
           @if (pedidosPrioritarios().length === 0) {
-            <app-estado-pantalla tipo="vacio" etiqueta="Sin pedidos" titulo="No hay pedidos registrados." />
+            <app-estado-pantalla
+              tipo="vacio"
+              etiqueta="Sin saldos"
+              titulo="No hay pedidos recientes con saldo pendiente."
+            />
           } @else {
-            <div class="admin-resumen__movimientos" aria-label="Pedidos priorizados por saldo pendiente">
+            <div
+              class="admin-resumen__movimientos"
+              aria-label="Pedidos priorizados por saldo pendiente"
+            >
               @for (pedido of pedidosPrioritarios(); track pedido.idPedido) {
-                <article class="admin-resumen__pedido">
-                  <div>
+                <a
+                  class="admin-resumen__pedido"
+                  [routerLink]="['/admin/pedidos', pedido.idPedido]"
+                  [attr.aria-label]="
+                    'Abrir pedido ' + pedido.idPedido + ' de ' + pedido.nombreTienda
+                  "
+                >
+                  <span>
                     <strong>#{{ pedido.idPedido }} · {{ pedido.nombreTienda }}</strong>
                     <small>
                       {{ pedido.estadoPedido }} ·
@@ -166,13 +259,77 @@
                         entrega no definida
                       }
                     </small>
-                  </div>
+                  </span>
                   <b>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
-                </article>
+                </a>
               }
             </div>
           }
         </article>
+      </aside>
+    </section>
+
+    <section class="admin-resumen__inferior" aria-label="Actividad y accesos administrativos">
+      <article class="admin-resumen__panel admin-resumen__actividad">
+        <header class="admin-resumen__panel-header">
+          <div>
+            <span class="admin-resumen__eyebrow">Trazabilidad disponible</span>
+            <h3>Actividad reciente</h3>
+          </div>
+          <small>Últimos registros recibidos</small>
+        </header>
+
+        @if (actividadReciente().length === 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin actividad"
+            titulo="Todavía no hay registros recientes con fecha disponible."
+          />
+        } @else {
+          <div class="admin-resumen__actividad-lista">
+            @for (actividad of actividadReciente(); track actividad.id) {
+              <a class="admin-resumen__actividad-item" [routerLink]="actividad.ruta">
+                <span class="admin-resumen__actividad-marca" aria-hidden="true">
+                  {{ actividad.tipo.charAt(0) }}
+                </span>
+                <span class="admin-resumen__actividad-copy">
+                  <span>{{ actividad.tipo }}</span>
+                  <strong>{{ actividad.titulo }}</strong>
+                  <small>{{ actividad.descripcion }}</small>
+                </span>
+                <time [attr.datetime]="actividad.fecha">
+                  {{ actividad.fecha | date: 'dd/MM/yyyy, HH:mm' }}
+                </time>
+              </a>
+            }
+          </div>
+        }
+      </article>
+
+      <aside class="admin-resumen__panel admin-resumen__accesos">
+        <span class="admin-resumen__eyebrow">Navegación directa</span>
+        <h3>Accesos rápidos</h3>
+        <nav aria-label="Accesos rápidos del resumen administrativo">
+          @for (acceso of accesosRapidos; track acceso.ruta) {
+            <a [routerLink]="acceso.ruta">
+              <span>{{ acceso.etiqueta }}</span>
+              <svg
+                class="size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                  d="m9 6 6 6-6 6"
+                />
+              </svg>
+            </a>
+          }
+        </nav>
       </aside>
     </section>
   }

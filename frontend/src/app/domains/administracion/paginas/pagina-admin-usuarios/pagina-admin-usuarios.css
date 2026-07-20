@@ -2,13 +2,13 @@
   display: block;
 }
 
-.admin-seccion {
+.admin-usuarios {
   display: grid;
   gap: 1rem;
+  min-width: 0;
 }
 
-.admin-seccion .rg-panel__hero {
-  /* Cabecera tipo command center para diferenciar administracion de cliente/vendedor. */
+.admin-usuarios .rg-panel__hero {
   background:
     radial-gradient(circle at 88% 16%, rgba(215, 173, 75, 0.2), transparent 8rem),
     linear-gradient(135deg, #17101b 0%, #3c1730 58%, #5a2440 100%);
@@ -19,76 +19,329 @@
   padding: clamp(1rem, 2vw, 1.5rem);
 }
 
-.admin-seccion span {
+.admin-usuarios .rg-panel__hero :is(span, h2, p) {
+  color: #fff;
+}
+
+.admin-usuarios .rg-panel__hero p {
+  max-width: 48rem;
+  opacity: 0.78;
+}
+
+.admin-usuarios__campo-busqueda {
+  grid-column: span 2;
+}
+
+.admin-usuarios__acciones-filtros {
+  align-items: stretch;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rg-filtros-panel .admin-usuarios__acciones-filtros > button {
+  min-height: 2.85rem;
+}
+
+.rg-filtros-panel .admin-usuarios__acciones-filtros > .admin-usuarios__limpiar {
+  background: #fff;
+  border: 1px solid var(--rg-color-border);
+  box-shadow: none;
   color: var(--rg-color-primary);
+}
+
+.rg-filtros-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
+
+.admin-usuarios__mensajes {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-usuarios__resultados {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(90, 36, 64, 0.1);
+  border-radius: 1.4rem;
+  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.admin-usuarios__cabecera-resultados {
+  align-items: end;
+  border-bottom: 1px solid var(--rg-color-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem clamp(1rem, 2vw, 1.35rem);
+}
+
+.admin-usuarios__cabecera-resultados span {
+  color: var(--rg-color-primary);
+  font-size: 0.7rem;
   font-weight: 950;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.admin-seccion .rg-panel__hero span,
-.admin-seccion .rg-panel__hero h2,
-.admin-seccion .rg-panel__hero p {
-  color: #fff;
+.admin-usuarios__cabecera-resultados h3 {
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  margin: 0.25rem 0 0;
 }
 
-.admin-seccion .rg-panel__hero p {
-  max-width: 44rem;
-  opacity: 0.76;
-}
-
-.admin-seccion p,
-.admin-seccion small {
+.admin-usuarios__cabecera-resultados p {
   color: var(--rg-color-muted);
-}
-
-.admin-seccion__lista {
-  background:
-    linear-gradient(180deg, rgba(255, 250, 245, 0.94), rgba(255, 255, 255, 0.96)),
-    #fff;
-  border: 1px solid rgba(90, 36, 64, 0.1);
-  border-radius: 1.4rem;
-  box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
-  min-width: 0;
-  padding: clamp(0.85rem, 1.8vw, 1.1rem);
-}
-
-.admin-seccion__gestion-usuario {
-  align-items: flex-end;
-  display: grid;
-  gap: 0.55rem;
-  justify-items: end;
-}
-
-.admin-seccion__datos-usuario {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.admin-seccion__datos-usuario :is(p, small) {
+  font-size: 0.88rem;
+  font-weight: 800;
   margin: 0;
+  white-space: nowrap;
 }
 
-.admin-seccion__estado {
+.admin-usuarios__actualizando {
+  background: var(--rg-color-gold-soft);
+  color: #6f4a12;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin: 0;
+  padding: 0.65rem 1rem;
+  text-align: center;
+}
+
+.admin-usuarios__tabla-contenedor {
+  overflow-x: auto;
+}
+
+.admin-usuarios__tabla {
+  border-collapse: collapse;
+  min-width: 58rem;
+  width: 100%;
+}
+
+.admin-usuarios__tabla caption {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.admin-usuarios__tabla th {
+  background: var(--rg-color-surface-2);
+  color: var(--rg-color-primary-dark);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.admin-usuarios__tabla td {
+  border-top: 1px solid color-mix(in srgb, var(--rg-color-border) 72%, white);
+  color: var(--rg-color-ink);
+  font-size: 0.88rem;
+  padding: 0.9rem 1rem;
+  vertical-align: middle;
+}
+
+.admin-usuarios__tabla tbody tr {
+  transition: background-color var(--rg-transition-standard);
+}
+
+.admin-usuarios__tabla tbody tr:hover {
+  background: color-mix(in srgb, var(--rg-color-primary-soft) 38%, white);
+}
+
+.admin-usuarios__tabla td :is(strong, small, a) {
+  display: block;
+}
+
+.admin-usuarios__tabla td strong {
+  max-width: 15rem;
+}
+
+.admin-usuarios__tabla td small {
+  color: var(--rg-color-muted);
+  margin-top: 0.2rem;
+}
+
+.admin-usuarios__tabla td a,
+.admin-usuarios__tarjeta dd a {
+  color: var(--rg-color-primary);
+  font-weight: 750;
+  overflow-wrap: anywhere;
+  text-decoration-color: color-mix(in srgb, var(--rg-color-primary) 35%, transparent);
+  text-underline-offset: 0.18rem;
+}
+
+.admin-usuarios__columna-accion {
+  text-align: right !important;
+}
+
+.admin-usuarios__acciones-registro {
+  align-items: center;
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.admin-usuarios__acciones-registro--movil {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-usuarios__estado,
+.admin-usuarios__insignia {
+  align-items: center;
   border-radius: 999px;
-  font-size: 0.78rem;
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 900;
+  gap: 0.4rem;
   line-height: 1;
-  padding: 0.45rem 0.68rem;
+  padding: 0.48rem 0.68rem;
+  white-space: nowrap;
 }
 
-.admin-seccion__estado--activo {
-  background: rgba(24, 120, 82, 0.12);
-  color: #187852;
+.admin-usuarios__estado > span {
+  background: currentColor;
+  border-radius: 50%;
+  height: 0.42rem;
+  width: 0.42rem;
 }
 
-.admin-seccion__estado--inactivo {
-  background: rgba(157, 74, 62, 0.12);
-  color: #8c4036;
+.admin-usuarios__estado--activo {
+  background: var(--rg-color-success-soft);
+  color: var(--rg-color-success);
+}
+
+.admin-usuarios__estado--inactivo {
+  background: var(--rg-color-danger-soft);
+  color: var(--rg-color-danger);
+}
+
+.admin-usuarios__insignia {
+  background: var(--rg-color-gold-soft);
+  color: #795316;
+}
+
+.admin-usuarios__insignia--verificada {
+  background: var(--rg-color-primary-soft);
+  color: var(--rg-color-primary);
+}
+
+.admin-usuarios__tarjetas {
+  display: none;
+}
+
+.admin-usuarios__resultados > app-estado-pantalla {
+  margin: 1rem;
+}
+
+@media (max-width: 1099.98px) {
+  .admin-usuarios__campo-busqueda {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 899.98px) {
-  .admin-seccion__gestion-usuario {
+  .admin-usuarios__tabla-contenedor {
+    display: none;
+  }
+
+  .admin-usuarios__tarjetas {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.85rem;
+  }
+
+  .admin-usuarios__tarjeta {
+    background: linear-gradient(145deg, #fff, var(--rg-color-bg-elevated));
+    border: 1px solid var(--rg-color-border);
+    border-radius: 1.1rem;
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  .admin-usuarios__tarjeta header {
     align-items: start;
-    justify-items: start;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+
+  .admin-usuarios__tarjeta header small {
+    color: var(--rg-color-muted);
+    font-weight: 750;
+  }
+
+  .admin-usuarios__tarjeta h4 {
+    font-size: 1.05rem;
+    margin: 0.15rem 0 0;
+  }
+
+  .admin-usuarios__tarjeta dl {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .admin-usuarios__tarjeta dl > div {
+    min-width: 0;
+  }
+
+  .admin-usuarios__tarjeta dt {
+    color: var(--rg-color-muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .admin-usuarios__tarjeta dd {
+    font-size: 0.88rem;
+    font-weight: 750;
+    margin: 0.22rem 0 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .admin-usuarios__acciones-filtros,
+  .admin-usuarios__cabecera-resultados {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-usuarios__acciones-filtros > button {
+    width: 100%;
+  }
+
+  .admin-usuarios__cabecera-resultados p {
+    white-space: normal;
+  }
+
+  .admin-usuarios__tarjeta header {
+    display: grid;
+  }
+
+  .admin-usuarios__tarjeta dl {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-usuarios__acciones-registro--movil {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-usuarios__tabla tbody tr {
+    transition: none;
   }
 }

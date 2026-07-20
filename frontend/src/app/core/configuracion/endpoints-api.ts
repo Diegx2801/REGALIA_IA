@@ -66,6 +66,7 @@ export const ENDPOINTS_API = {
   },
   administracion: {
     usuarios: `${RUTA_BASE_API}/admin/usuarios`,
+    usuarioPorId: (idUsuario: number) => `${RUTA_BASE_API}/admin/usuarios/${idUsuario}`,
     desactivarUsuario: (idUsuario: number) =>
       `${RUTA_BASE_API}/admin/usuarios/${idUsuario}/desactivar`,
     reactivarUsuario: (idUsuario: number) =>

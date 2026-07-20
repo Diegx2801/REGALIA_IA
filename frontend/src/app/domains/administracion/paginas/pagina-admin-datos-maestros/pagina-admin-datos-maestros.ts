@@ -1,13 +1,21 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { finalize, switchMap } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
-import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
+import { DialogoUi } from '../../../../shared/ui/dialogo-ui/dialogo-ui';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
-import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
 import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
-import { ListaPanelComponent } from '../../../../shared/ui/lista-panel/lista-panel';
 import { TarjetaMetricaComponent } from '../../../../shared/ui/tarjeta-metrica/tarjeta-metrica';
 import { DatosMaestrosAdminApiService } from '../../acceso-datos/datos-maestros-admin-api.service';
 import { FormularioDatoMaestro } from '../../componentes/formulario-dato-maestro/formulario-dato-maestro';
@@ -20,24 +28,33 @@ import {
   TipoDatoMaestroAdmin,
 } from '../../modelos/dato-maestro-admin.model';
 
+type EstadoFiltroDatoMaestro = 'TODOS' | 'ACTIVOS' | 'INACTIVOS';
+
 interface EstadoFormularioDatoMaestro {
   readonly tipo: TipoDatoMaestroAdmin;
   readonly dato: DatoMaestroAdmin | null;
+}
+
+interface FiltrosDatosMaestros {
+  readonly busqueda: string;
+  readonly estado: EstadoFiltroDatoMaestro;
 }
 
 @Component({
   selector: 'app-pagina-admin-datos-maestros',
   imports: [
     BotonDirective,
+    DatePipe,
+    DialogoUi,
     EstadoPantallaComponent,
-    FilaPanelComponent,
     FormularioDatoMaestro,
     InsigniaUi,
-    ListaPanelComponent,
+    ReactiveFormsModule,
     TarjetaMetricaComponent,
   ],
   templateUrl: './pagina-admin-datos-maestros.html',
   styleUrl: './pagina-admin-datos-maestros.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaAdminDatosMaestros implements OnInit {
   private readonly datosMaestrosApi = inject(DatosMaestrosAdminApiService);
@@ -47,19 +64,50 @@ export class PaginaAdminDatosMaestros implements OnInit {
   readonly datosMaestros = signal<DatoMaestroAdmin[]>([]);
   readonly tipoSeleccionado = signal<TipoDatoMaestroAdmin>('RUBRO');
   readonly formularioActivo = signal<EstadoFormularioDatoMaestro | null>(null);
+  readonly datoPendienteEstado = signal<DatoMaestroAdmin | null>(null);
+  readonly filtrosAplicados = signal<FiltrosDatosMaestros>({ busqueda: '', estado: 'TODOS' });
   readonly cargando = signal(true);
+  readonly cargaCompletada = signal(false);
   readonly guardando = signal(false);
   readonly procesandoEstado = signal<string | null>(null);
   readonly mensajeError = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
 
+  readonly formularioFiltros = new FormGroup({
+    busqueda: new FormControl('', { nonNullable: true }),
+    estado: new FormControl<EstadoFiltroDatoMaestro>('TODOS', { nonNullable: true }),
+  });
+
   readonly configuracionSeleccionada = computed(() =>
     obtenerConfiguracionDatoMaestro(this.tipoSeleccionado()),
   );
-  readonly datosFiltrados = computed(() =>
+  readonly datosDeCategoria = computed(() =>
     this.datosMaestros().filter((dato) => dato.tipo === this.tipoSeleccionado()),
   );
+  readonly datosFiltrados = computed(() => {
+    const filtros = this.filtrosAplicados();
+    const busqueda = this.normalizarTexto(filtros.busqueda);
+
+    return this.datosDeCategoria()
+      .filter((dato) => {
+        const coincideEstado =
+          filtros.estado === 'TODOS' ||
+          (filtros.estado === 'ACTIVOS' ? dato.estado : !dato.estado);
+        const contenido = this.normalizarTexto(
+          [dato.nombre, dato.descripcion, dato.codigo, dato.abreviatura, dato.id].join(' '),
+        );
+        return coincideEstado && (!busqueda || contenido.includes(busqueda));
+      })
+      .sort((a, b) => Number(b.estado) - Number(a.estado) || a.nombre.localeCompare(b.nombre, 'es'));
+  });
   readonly totalActivos = computed(() => this.datosMaestros().filter((dato) => dato.estado).length);
+  readonly totalInactivos = computed(() => this.datosMaestros().length - this.totalActivos());
+  readonly activosSeleccionados = computed(() =>
+    this.datosDeCategoria().filter((dato) => dato.estado).length,
+  );
+  readonly inactivosSeleccionados = computed(
+    () => this.datosDeCategoria().length - this.activosSeleccionados(),
+  );
   readonly categoriasDocumento = computed<readonly CategoriaDocumentoAdmin[]>(() => {
     const categorias = new Map<number, string>();
 
@@ -70,7 +118,7 @@ export class PaginaAdminDatosMaestros implements OnInit {
     });
 
     return Array.from(categorias, ([id, nombre]) => ({ id, nombre })).sort((a, b) =>
-      a.nombre.localeCompare(b.nombre),
+      a.nombre.localeCompare(b.nombre, 'es'),
     );
   });
   readonly puedeCrearSeleccionado = computed(() => {
@@ -80,12 +128,16 @@ export class PaginaAdminDatosMaestros implements OnInit {
       (configuracion.tipo !== 'TIPO_DOCUMENTO' || this.categoriasDocumento().length > 0)
     );
   });
+  readonly hayFiltrosActivos = computed(() => {
+    const filtros = this.filtrosAplicados();
+    return Boolean(filtros.busqueda.trim()) || filtros.estado !== 'TODOS';
+  });
 
   ngOnInit(): void {
     this.cargarDatosMaestros();
   }
 
-  cargarDatosMaestros(): void {
+  cargarDatosMaestros(esActualizacion = false): void {
     this.cargando.set(true);
     this.mensajeError.set(null);
 
@@ -96,15 +148,30 @@ export class PaginaAdminDatosMaestros implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (datos) => this.datosMaestros.set(datos),
+        next: (datos) => {
+          this.datosMaestros.set(datos);
+          this.cargaCompletada.set(true);
+          if (esActualizacion) this.mensajeExito.set('Catálogos actualizados correctamente.');
+        },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
       });
   }
 
-  seleccionarTipo(evento: Event): void {
-    this.tipoSeleccionado.set((evento.target as HTMLSelectElement).value as TipoDatoMaestroAdmin);
+  seleccionarTipo(tipo: TipoDatoMaestroAdmin): void {
+    this.tipoSeleccionado.set(tipo);
     this.formularioActivo.set(null);
+    this.limpiarFiltros();
     this.limpiarMensajes();
+  }
+
+  aplicarFiltros(): void {
+    const valores = this.formularioFiltros.getRawValue();
+    this.filtrosAplicados.set({ busqueda: valores.busqueda.trim(), estado: valores.estado });
+  }
+
+  limpiarFiltros(): void {
+    this.formularioFiltros.reset({ busqueda: '', estado: 'TODOS' });
+    this.filtrosAplicados.set({ busqueda: '', estado: 'TODOS' });
   }
 
   abrirCreacion(): void {
@@ -151,14 +218,20 @@ export class PaginaAdminDatosMaestros implements OnInit {
       });
   }
 
-  cambiarEstado(dato: DatoMaestroAdmin): void {
+  solicitarCambioEstado(dato: DatoMaestroAdmin): void {
     const configuracion = obtenerConfiguracionDatoMaestro(dato.tipo);
-    if (!configuracion.permiteCambiarEstado) return;
+    if (!configuracion.permiteCambiarEstado || this.procesandoEstado()) return;
+    this.datoPendienteEstado.set(dato);
+  }
 
-    const accion = dato.estado ? 'desactivar' : 'reactivar';
-    if (!confirmarAccionCritica(`Vas a ${accion} el ${configuracion.singular} "${dato.nombre}".`)) {
-      return;
-    }
+  cancelarCambioEstado(): void {
+    if (this.procesandoEstado()) return;
+    this.datoPendienteEstado.set(null);
+  }
+
+  confirmarCambioEstado(): void {
+    const dato = this.datoPendienteEstado();
+    if (!dato) return;
 
     this.procesandoEstado.set(this.crearClave(dato));
     this.mensajeError.set(null);
@@ -174,14 +247,26 @@ export class PaginaAdminDatosMaestros implements OnInit {
       .subscribe({
         next: (datos) => {
           this.datosMaestros.set(datos);
+          this.datoPendienteEstado.set(null);
           this.mensajeExito.set(
             dato.estado
               ? 'Dato maestro desactivado correctamente.'
               : 'Dato maestro reactivado correctamente.',
           );
         },
-        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => {
+          this.datoPendienteEstado.set(null);
+          this.mensajeError.set(this.obtenerMensajeError(error));
+        },
       });
+  }
+
+  contarPorTipo(tipo: TipoDatoMaestroAdmin): number {
+    return this.datosMaestros().filter((dato) => dato.tipo === tipo).length;
+  }
+
+  contarActivosPorTipo(tipo: TipoDatoMaestroAdmin): number {
+    return this.datosMaestros().filter((dato) => dato.tipo === tipo && dato.estado).length;
   }
 
   crearClave(dato: DatoMaestroAdmin): string {
@@ -194,9 +279,32 @@ export class PaginaAdminDatosMaestros implements OnInit {
     return `Registro #${dato.id}`;
   }
 
+  detalleOperativo(dato: DatoMaestroAdmin): string {
+    if (dato.tipo === 'TIPO_DOCUMENTO') {
+      const rango =
+        dato.longitudMinima !== null && dato.longitudMaxima !== null
+          ? `${dato.longitudMinima}–${dato.longitudMaxima} caracteres`
+          : 'Longitud no configurada';
+      return `${dato.categoriaDocumento ?? 'Sin categoría'} · ${rango}`;
+    }
+    return dato.descripcion;
+  }
+
+  fechaReferencia(dato: DatoMaestroAdmin): string | null {
+    return dato.fechaActualizacion ?? dato.fechaCreacion;
+  }
+
   private limpiarMensajes(): void {
     this.mensajeError.set(null);
     this.mensajeExito.set(null);
+  }
+
+  private normalizarTexto(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('es')
+      .trim();
   }
 
   private obtenerMensajeError(error: unknown): string {

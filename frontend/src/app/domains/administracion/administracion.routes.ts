@@ -15,6 +15,15 @@ export const ADMINISTRACION_ROUTES: Routes = [
       ),
   },
   {
+    path: 'usuarios/:idUsuario',
+    title: 'Detalle de usuario | REGALIA',
+    data: { tipoDetalle: 'usuario' },
+    loadComponent: () =>
+      import('./paginas/pagina-admin-detalle/pagina-admin-detalle').then(
+        (m) => m.PaginaAdminDetalle,
+      ),
+  },
+  {
     path: 'usuarios',
     title: 'Gestión de usuarios | REGALIA',
     loadComponent: () =>

@@ -1,15 +1,30 @@
 import {
   PedidoAdministracionDto,
+  ProductoCatalogoTiendaAdministracionDto,
   TiendaAdministracionDto,
   UsuarioAdministracionDto,
   VendedorAdministracionDto,
 } from '../modelos/panel-administracion.dto';
 import {
   PedidoAdministracion,
+  ProductoCatalogoTiendaAdministracion,
   TiendaAdministracion,
   UsuarioAdministracion,
   VendedorAdministracion,
 } from '../modelos/panel-administracion.model';
+
+export function mapearProductoCatalogoTiendaAdministracionDesdeDto(
+  dto: ProductoCatalogoTiendaAdministracionDto,
+): ProductoCatalogoTiendaAdministracion {
+  return {
+    idProducto: dto.idProducto,
+    nombre: dto.nombre?.trim() || 'Producto REGALIA',
+    tipoProducto: dto.tipoProducto?.trim() || 'Tipo pendiente',
+    descripcion: dto.descripcion?.trim() || 'Sin descripción registrada.',
+    precio: Number(dto.precio ?? 0),
+    stock: Number(dto.stock ?? 0),
+  };
+}
 
 export function mapearUsuarioAdministracionDesdeDto(
   dto: UsuarioAdministracionDto,
@@ -22,8 +37,10 @@ export function mapearUsuarioAdministracionDesdeDto(
     nombreCompleto: `${nombres} ${apellidos}`.trim(),
     correo: dto.correo?.trim() || 'correo no disponible',
     telefono: dto.telefono?.trim() || 'Telefono pendiente',
+    correoVerificado: Boolean(dto.correoVerificado),
     estado: Boolean(dto.estado),
     fechaCreacion: dto.fechaCreacion,
+    fechaActualizacion: dto.fechaActualizacion,
   };
 }
 

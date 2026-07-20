@@ -20,7 +20,7 @@
     id="menu-layout-privado"
     class="layout-privado__sidebar fixed inset-y-0 left-0 z-50 flex h-dvh w-[18rem] flex-col overflow-y-auto border-r border-white/10 bg-regalia-ink px-4 py-5 text-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:shadow-none"
     [class.layout-privado__sidebar--abierto]="menuMovilAbierto()"
-    aria-label="Navegación privada"
+    [attr.aria-label]="ariaEtiquetaMenu()"
     [attr.role]="menuMovilAbierto() ? 'dialog' : null"
     [attr.aria-modal]="menuMovilAbierto() ? 'true' : null"
   >
@@ -73,8 +73,13 @@
       <p class="mt-2 text-sm leading-6 text-white/65">{{ descripcion() }}</p>
     </div>
 
-    <nav class="mt-7 grid gap-1.5" aria-label="Secciones del panel">
+    <nav class="mt-7 grid gap-1.5" [attr.aria-label]="ariaEtiquetaSecciones()">
       @for (enlace of enlaces(); track enlace.ruta) {
+        @if (enlace.encabezadoGrupo) {
+          <span class="layout-privado__grupo">
+            {{ enlace.encabezadoGrupo }}
+          </span>
+        }
         <a
           class="layout-privado__enlace group flex min-w-0 items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 text-white/70 no-underline transition duration-200 hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
           [routerLink]="enlace.ruta"
@@ -89,6 +94,14 @@
           >
             <svg class="size-[1.15rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               @switch (enlace.icono) {
+                @case ('resumen') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M5 5.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5ZM5 13.25h5.5v5.5H5v-5.5Zm8.5 0H19v5.5h-5.5v-5.5Z"
+                  />
+                }
                 @case ('pedidos') {
                   <path
                     stroke-linecap="round"
@@ -338,11 +351,11 @@
             {{ etiqueta() }}
           </span>
           <strong class="block truncate text-sm font-bold text-regalia-ink sm:text-base">
-            {{ nombreVisible() }}
+            {{ tituloSeccionActual() }}
           </strong>
         </div>
 
-        <nav class="flex items-center gap-1.5" aria-label="Acciones rápidas privadas">
+        <nav class="flex items-center gap-1.5" [attr.aria-label]="ariaEtiquetaAcciones()">
           @for (accion of accionesRapidas(); track accion.ruta) {
             <a
               class="layout-privado__accion-rapida relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-bold no-underline transition duration-200"

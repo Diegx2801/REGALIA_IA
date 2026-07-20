@@ -6,7 +6,10 @@ import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.shared.response.PaginaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 /**
  * Controlador REST para operaciones administrativas sobre pedidos.
@@ -24,16 +27,26 @@ public class AdminPedidoController {
     @GetMapping
     public ResponseEntity<ApiResponse<PaginaResponse<PedidoResponse>>> listarPedidosAdmin(
             @RequestParam(required = false) String estadoPago,
+            @RequestParam(required = false) String estadoPedido,
+            @RequestParam(required = false) Long idTienda,
             @RequestParam(required = false) String searchField,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(defaultValue = "fechaCreacion,desc") String sort
     ) {
         PaginaResponse<PedidoResponse> pedidos = pedidoService.listarPedidosAdmin(
                 estadoPago,
+                estadoPedido,
+                idTienda,
                 searchField,
                 search,
+                fechaDesde,
+                fechaHasta,
                 page,
                 size,
                 sort

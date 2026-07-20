@@ -1,37 +1,57 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { FiltrosPanelComponent } from '../../../../shared/ui/filtros-panel/filtros-panel';
-import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
 import { GrupoMetricasPanelComponent } from '../../../../shared/ui/grupo-metricas-panel/grupo-metricas-panel';
-import { ListaPanelComponent } from '../../../../shared/ui/lista-panel/lista-panel';
 import { PaginacionPanelComponent } from '../../../../shared/ui/paginacion-panel/paginacion-panel';
 import { TarjetaMetricaComponent } from '../../../../shared/ui/tarjeta-metrica/tarjeta-metrica';
-import { PanelAdministracionApiService } from '../../acceso-datos/panel-administracion-api.service';
+import {
+  ConsultaTiendasAdmin,
+  PanelAdministracionApiService,
+} from '../../acceso-datos/panel-administracion-api.service';
 import { TiendaAdministracion } from '../../modelos/panel-administracion.model';
+
+type CampoBusquedaTienda = NonNullable<ConsultaTiendasAdmin['searchField']>;
+type EstadoRevisionTienda = NonNullable<ConsultaTiendasAdmin['estadoRevision']>;
+type OrdenTiendas = NonNullable<ConsultaTiendasAdmin['sort']>;
+type AccionModeracionTienda = 'aprobar' | 'observar' | 'rechazar';
+
+interface TiendaEnProceso {
+  idTienda: number;
+  accion: AccionModeracionTienda;
+}
 
 @Component({
   selector: 'app-pagina-admin-tiendas',
   imports: [
+    DatePipe,
     ReactiveFormsModule,
     RouterLink,
     BotonDirective,
     EstadoPantallaComponent,
     FiltrosPanelComponent,
-    FilaPanelComponent,
     GrupoMetricasPanelComponent,
-    ListaPanelComponent,
     PaginacionPanelComponent,
     TarjetaMetricaComponent,
   ],
   templateUrl: './pagina-admin-tiendas.html',
   styleUrl: './pagina-admin-tiendas.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaAdminTiendas implements OnInit {
   private readonly adminApi = inject(PanelAdministracionApiService);
@@ -42,29 +62,46 @@ export class PaginaAdminTiendas implements OnInit {
   readonly paginaActual = signal(0);
   readonly totalPaginas = signal(0);
   readonly cargando = signal(true);
-  readonly procesandoTienda = signal<number | null>(null);
-  readonly mensajeError = signal<string | null>(null);
+  readonly cargaCompletada = signal(false);
+  readonly tiendaEnProceso = signal<TiendaEnProceso | null>(null);
+  readonly mensajeErrorCarga = signal<string | null>(null);
+  readonly mensajeErrorAccion = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
+
+  readonly pendientesPagina = computed(
+    () => this.tiendas().filter((tienda) => tienda.estadoRevision === 'PENDIENTE').length,
+  );
+  readonly formalizadasPagina = computed(
+    () => this.tiendas().filter((tienda) => tienda.formalizada).length,
+  );
+  readonly aprobadasPagina = computed(
+    () => this.tiendas().filter((tienda) => tienda.estadoRevision === 'APROBADA').length,
+  );
+
   readonly formularioFiltros = new FormGroup({
-    estadoRevision: new FormControl('', { nonNullable: true }),
+    estadoRevision: new FormControl<EstadoRevisionTienda | 'TODOS'>('TODOS', {
+      nonNullable: true,
+    }),
+    campoBusqueda: new FormControl<CampoBusquedaTienda>('nombre', { nonNullable: true }),
     busqueda: new FormControl('', { nonNullable: true }),
+    orden: new FormControl<OrdenTiendas>('fechaCreacion,desc', { nonNullable: true }),
+    tamanioPagina: new FormControl<10 | 20 | 50>(10, { nonNullable: true }),
   });
 
   ngOnInit(): void {
     this.cargarTiendas();
   }
 
-  cargarTiendas(): void {
+  cargarTiendas(conservarMensajes = false): void {
     this.cargando.set(true);
-    this.mensajeError.set(null);
+    this.mensajeErrorCarga.set(null);
+    if (!conservarMensajes) {
+      this.mensajeErrorAccion.set(null);
+      this.mensajeExito.set(null);
+    }
 
     this.adminApi
-      .obtenerTiendas({
-        page: this.paginaActual(),
-        size: 12,
-        estadoRevision: this.formularioFiltros.controls.estadoRevision.value || undefined,
-        search: this.formularioFiltros.controls.busqueda.value,
-      })
+      .obtenerTiendas(this.crearConsulta())
       .pipe(
         finalize(() => this.cargando.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -74,8 +111,12 @@ export class PaginaAdminTiendas implements OnInit {
           this.tiendas.set(pagina.contenido);
           this.totalTiendas.set(pagina.totalElementos);
           this.totalPaginas.set(pagina.totalPaginas);
+          this.cargaCompletada.set(true);
         },
-        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) =>
+          this.mensajeErrorCarga.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos cargar las tiendas.'),
+          ),
       });
   }
 
@@ -84,14 +125,25 @@ export class PaginaAdminTiendas implements OnInit {
     this.cargarTiendas();
   }
 
+  limpiarFiltros(): void {
+    this.formularioFiltros.reset({
+      estadoRevision: 'TODOS',
+      campoBusqueda: 'nombre',
+      busqueda: '',
+      orden: 'fechaCreacion,desc',
+      tamanioPagina: 10,
+    });
+    this.aplicarFiltros();
+  }
+
   paginaAnterior(): void {
-    if (this.paginaActual() === 0) return;
+    if (this.paginaActual() === 0 || this.cargando()) return;
     this.paginaActual.update((pagina) => pagina - 1);
     this.cargarTiendas();
   }
 
   paginaSiguiente(): void {
-    if (this.paginaActual() + 1 >= this.totalPaginas()) return;
+    if (this.paginaActual() + 1 >= this.totalPaginas() || this.cargando()) return;
     this.paginaActual.update((pagina) => pagina + 1);
     this.cargarTiendas();
   }
@@ -108,14 +160,31 @@ export class PaginaAdminTiendas implements OnInit {
     this.cambiarEstadoTienda(tienda, 'rechazar');
   }
 
-  private cambiarEstadoTienda(
-    tienda: TiendaAdministracion,
-    accion: 'aprobar' | 'observar' | 'rechazar',
-  ): void {
+  estaProcesando(tienda: TiendaAdministracion, accion?: AccionModeracionTienda): boolean {
+    const proceso = this.tiendaEnProceso();
+    return proceso?.idTienda === tienda.idTienda && (!accion || proceso.accion === accion);
+  }
+
+  hayFiltrosActivos(): boolean {
+    const filtros = this.formularioFiltros.getRawValue();
+    return filtros.estadoRevision !== 'TODOS' || filtros.busqueda.trim().length > 0;
+  }
+
+  etiquetaEstado(estadoRevision: string): string {
+    const etiquetas: Record<string, string> = {
+      PENDIENTE: 'Pendiente',
+      APROBADA: 'Aprobada',
+      OBSERVADA: 'Observada',
+      RECHAZADA: 'Rechazada',
+    };
+    return etiquetas[estadoRevision] ?? estadoRevision;
+  }
+
+  private cambiarEstadoTienda(tienda: TiendaAdministracion, accion: AccionModeracionTienda): void {
     if (!this.confirmarModeracionTienda(tienda, accion)) return;
 
-    this.procesandoTienda.set(tienda.idTienda);
-    this.mensajeError.set(null);
+    this.tiendaEnProceso.set({ idTienda: tienda.idTienda, accion });
+    this.mensajeErrorAccion.set(null);
     this.mensajeExito.set(null);
 
     const operacion =
@@ -125,45 +194,53 @@ export class PaginaAdminTiendas implements OnInit {
           ? this.adminApi.observarTienda(tienda.idTienda)
           : this.adminApi.rechazarTienda(tienda.idTienda);
 
-    // Reconsulta la pagina luego de moderar para evitar estados visuales inconsistentes.
     operacion
       .pipe(
-        switchMap(() =>
-          this.adminApi.obtenerTiendas({
-            page: this.paginaActual(),
-            size: 12,
-            estadoRevision: this.formularioFiltros.controls.estadoRevision.value || undefined,
-            search: this.formularioFiltros.controls.busqueda.value,
-          }),
-        ),
-        finalize(() => this.procesandoTienda.set(null)),
+        finalize(() => this.tiendaEnProceso.set(null)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (pagina) => {
-          this.tiendas.set(pagina.contenido);
-          this.totalTiendas.set(pagina.totalElementos);
-          this.totalPaginas.set(pagina.totalPaginas);
-          this.mensajeExito.set('Estado de tienda actualizado correctamente.');
+        next: (tiendaActualizada) => {
+          this.tiendas.update((tiendas) =>
+            tiendas.map((item) =>
+              item.idTienda === tiendaActualizada.idTienda ? tiendaActualizada : item,
+            ),
+          );
+          this.mensajeExito.set(
+            `${tiendaActualizada.nombre} ahora está ${this.etiquetaEstado(tiendaActualizada.estadoRevision).toLowerCase()}.`,
+          );
+          this.cargarTiendas(true);
         },
-        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) =>
+          this.mensajeErrorAccion.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos actualizar el estado de la tienda.'),
+          ),
       });
   }
 
   private confirmarModeracionTienda(
     tienda: TiendaAdministracion,
-    accion: 'aprobar' | 'observar' | 'rechazar',
+    accion: AccionModeracionTienda,
   ): boolean {
-    const acciones = {
-      aprobar: 'aprobar',
-      observar: 'marcar como observada',
-      rechazar: 'rechazar',
+    const consecuencias: Record<AccionModeracionTienda, string> = {
+      aprobar: 'Su estado comercial pasará a APROBADA.',
+      observar: 'Quedará marcada como OBSERVADA para revisión.',
+      rechazar: 'Su estado comercial pasará a RECHAZADA.',
     };
-
-    return confirmarAccionCritica(`Vas a ${acciones[accion]} la tienda "${tienda.nombre}".`);
+    return confirmarAccionCritica(
+      `Vas a ${accion} la tienda "${tienda.nombre}". ${consecuencias[accion]}`,
+    );
   }
 
-  private obtenerMensajeError(error: unknown): string {
-    return obtenerMensajeErrorUsuario(error, 'No pudimos cargar tiendas.');
+  private crearConsulta(): ConsultaTiendasAdmin {
+    const filtros = this.formularioFiltros.getRawValue();
+    return {
+      page: this.paginaActual(),
+      size: filtros.tamanioPagina,
+      estadoRevision: filtros.estadoRevision === 'TODOS' ? undefined : filtros.estadoRevision,
+      searchField: filtros.campoBusqueda,
+      search: filtros.busqueda,
+      sort: filtros.orden,
+    };
   }
 }

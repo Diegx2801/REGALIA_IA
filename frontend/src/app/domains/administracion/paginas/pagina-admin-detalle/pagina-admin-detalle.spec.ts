@@ -8,22 +8,52 @@ import { PaginaAdminDetalle } from './pagina-admin-detalle';
 describe('PaginaAdminDetalle', () => {
   let harness: RouterTestingHarness;
   let adminApi: {
+    obtenerUsuarioPorId: ReturnType<typeof vi.fn>;
     obtenerVendedorPorId: ReturnType<typeof vi.fn>;
     obtenerTiendaPorId: ReturnType<typeof vi.fn>;
     obtenerPedidoPorId: ReturnType<typeof vi.fn>;
+    obtenerCatalogoPublicoTienda: ReturnType<typeof vi.fn>;
+    aprobarTienda: ReturnType<typeof vi.fn>;
+    observarTienda: ReturnType<typeof vi.fn>;
+    rechazarTienda: ReturnType<typeof vi.fn>;
+    desactivarUsuario: ReturnType<typeof vi.fn>;
+    reactivarUsuario: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     adminApi = {
+      obtenerUsuarioPorId: vi.fn(() => of(crearUsuario())),
       obtenerVendedorPorId: vi.fn(() => of(crearVendedor())),
       obtenerTiendaPorId: vi.fn(() => of(crearTienda())),
       obtenerPedidoPorId: vi.fn(() => of(crearPedido())),
+      obtenerCatalogoPublicoTienda: vi.fn(() =>
+        of([
+          {
+            idProducto: 12,
+            nombre: 'Caja personalizada',
+            tipoProducto: 'Regalo personalizado',
+            descripcion: 'Caja para una ocasión especial',
+            precio: 60,
+            stock: 8,
+          },
+        ]),
+      ),
+      aprobarTienda: vi.fn(() => of(crearTienda())),
+      observarTienda: vi.fn(() => of({ ...crearTienda(), estadoRevision: 'OBSERVADA' })),
+      rechazarTienda: vi.fn(() => of({ ...crearTienda(), estadoRevision: 'RECHAZADA' })),
+      desactivarUsuario: vi.fn(() => of({ ...crearUsuario(), estado: false })),
+      reactivarUsuario: vi.fn(() => of(crearUsuario())),
     };
 
     TestBed.configureTestingModule({
       providers: [
         { provide: PanelAdministracionApiService, useValue: adminApi },
         provideRouter([
+          {
+            path: 'usuarios/:idUsuario',
+            component: PaginaAdminDetalle,
+            data: { tipoDetalle: 'usuario' },
+          },
           {
             path: 'vendedores/:idVendedor',
             component: PaginaAdminDetalle,
@@ -46,12 +76,32 @@ describe('PaginaAdminDetalle', () => {
     harness = await RouterTestingHarness.create();
   });
 
+  it('carga la cuenta indicada y permite desactivarla con confirmación', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const pagina = await harness.navigateByUrl('/usuarios/15', PaginaAdminDetalle);
+    await harness.fixture.whenStable();
+
+    expect(adminApi.obtenerUsuarioPorId).toHaveBeenCalledWith(15);
+    expect(harness.routeNativeElement?.textContent).toContain('Cuenta activa y verificada');
+
+    pagina.cambiarEstadoUsuario();
+    await harness.fixture.whenStable();
+
+    expect(adminApi.desactivarUsuario).toHaveBeenCalledWith(15);
+    expect(pagina.usuario()?.estado).toBe(false);
+    expect(pagina.mensajeEstadoUsuario()).toContain('desactivada');
+  });
+
   it('carga el vendedor indicado por la ruta', async () => {
     const pagina = await harness.navigateByUrl('/vendedores/7', PaginaAdminDetalle);
     await harness.fixture.whenStable();
 
     expect(adminApi.obtenerVendedorPorId).toHaveBeenCalledWith(7);
     expect(pagina.vendedor()?.nombreCompleto).toBe('María Cliente');
+    expect(harness.routeNativeElement?.textContent).toContain('Perfil habilitado y verificado');
+    expect(
+      harness.routeNativeElement?.querySelector('a[href="mailto:maria@regalia.pe"]'),
+    ).not.toBeNull();
   });
 
   it('carga la tienda indicada por la ruta', async () => {
@@ -59,7 +109,22 @@ describe('PaginaAdminDetalle', () => {
     await harness.fixture.whenStable();
 
     expect(adminApi.obtenerTiendaPorId).toHaveBeenCalledWith(9);
+    expect(adminApi.obtenerCatalogoPublicoTienda).toHaveBeenCalledWith(9);
     expect(pagina.tienda()?.numeroDocumentoFiscal).toBe('20123456789');
+    expect(harness.routeNativeElement?.textContent).toContain('Caja personalizada');
+  });
+
+  it('confirma la observación y actualiza el detalle de la tienda', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const pagina = await harness.navigateByUrl('/tiendas/9', PaginaAdminDetalle);
+    await harness.fixture.whenStable();
+
+    pagina.moderarTienda('observar');
+    await harness.fixture.whenStable();
+
+    expect(adminApi.observarTienda).toHaveBeenCalledWith(9);
+    expect(pagina.tienda()?.estadoRevision).toBe('OBSERVADA');
+    expect(pagina.mensajeModeracionTienda()).toContain('ahora está observada');
   });
 
   it('presenta los productos del pedido indicado por la ruta', async () => {
@@ -69,8 +134,25 @@ describe('PaginaAdminDetalle', () => {
     expect(adminApi.obtenerPedidoPorId).toHaveBeenCalledWith(21);
     expect(pagina.pedido()?.productos).toHaveLength(1);
     expect(harness.routeNativeElement?.textContent).toContain('Caja personalizada');
+    expect(harness.routeNativeElement?.textContent).toContain('Progreso del pedido');
+    expect(
+      harness.routeNativeElement?.querySelectorAll('.detalle-admin__timeline li'),
+    ).toHaveLength(4);
   });
 });
+
+function crearUsuario() {
+  return {
+    idUsuario: 15,
+    nombreCompleto: 'María Cliente',
+    correo: 'maria@regalia.pe',
+    telefono: '999888777',
+    correoVerificado: true,
+    estado: true,
+    fechaCreacion: '2026-07-01T10:00:00',
+    fechaActualizacion: '2026-07-20T11:00:00',
+  };
+}
 
 function crearVendedor() {
   return {

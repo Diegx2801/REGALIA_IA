@@ -1,20 +1,37 @@
-<section class="admin-seccion">
-  <header class="rg-panel__hero">
-    <span>Tiendas</span>
-    <h2>Revision comercial</h2>
-    <p>Moderacion de tiendas registradas por vendedores de REGALIA.</p>
+<section class="admin-tiendas" aria-labelledby="titulo-tiendas">
+  <header class="admin-tiendas__hero">
+    <div>
+      <span>Operación comercial</span>
+      <h2 id="titulo-tiendas">Gestión de tiendas</h2>
+      <p>
+        Revisa altas comerciales, documentación y estado de publicación desde una vista conectada al
+        backend real de REGALIA.
+      </p>
+    </div>
+    <div class="admin-tiendas__hero-sello" aria-label="Centro de moderación de tiendas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path d="M4 10.5v8.25A1.25 1.25 0 0 0 5.25 20h13.5A1.25 1.25 0 0 0 20 18.75V10.5" />
+        <path
+          d="M3 9.5 5.4 4h13.2L21 9.5c0 1.4-1.1 2.5-2.5 2.5A2.5 2.5 0 0 1 16 9.5c0 1.4-1.1 2.5-2.5 2.5A2.5 2.5 0 0 1 11 9.5 2.5 2.5 0 0 1 8.5 12 2.5 2.5 0 0 1 6 9.5C6 10.9 4.9 12 3.5 12"
+        />
+      </svg>
+      <div>
+        <strong>Moderación trazable</strong>
+        <small>Acciones confirmadas y estados visibles</small>
+      </div>
+    </div>
   </header>
 
   <form
     app-filtros-panel
-    class="admin-seccion__filtros--tiendas"
     [formGroup]="formularioFiltros"
+    aria-label="Filtros de tiendas"
     (ngSubmit)="aplicarFiltros()"
   >
     <label>
-      Estado de revision
+      Estado de revisión
       <select formControlName="estadoRevision">
-        <option value="">Todos</option>
+        <option value="TODOS">Todos</option>
         <option value="PENDIENTE">Pendientes</option>
         <option value="APROBADA">Aprobadas</option>
         <option value="OBSERVADA">Observadas</option>
@@ -22,96 +39,346 @@
       </select>
     </label>
     <label>
-      Buscar tienda
-      <input type="search" formControlName="busqueda" placeholder="Nombre comercial" />
+      Buscar por
+      <select formControlName="campoBusqueda">
+        <option value="nombre">Nombre comercial</option>
+        <option value="vendedor">Vendedor</option>
+        <option value="correo_vendedor">Correo del vendedor</option>
+        <option value="id_tienda">ID de tienda</option>
+      </select>
     </label>
-    <button type="submit">Aplicar filtros</button>
+    <label class="admin-tiendas__campo-busqueda">
+      Término de búsqueda
+      <input
+        type="search"
+        formControlName="busqueda"
+        autocomplete="off"
+        placeholder="Localiza una tienda"
+      />
+    </label>
+    <label>
+      Ordenar por
+      <select formControlName="orden">
+        <option value="fechaCreacion,desc">Más recientes</option>
+        <option value="fechaCreacion,asc">Más antiguas</option>
+        <option value="nombre,asc">Nombre A–Z</option>
+        <option value="nombre,desc">Nombre Z–A</option>
+        <option value="estadoRevision,asc">Estado A–Z</option>
+        <option value="nombreVendedor,asc">Vendedor A–Z</option>
+      </select>
+    </label>
+    <label>
+      Por página
+      <select formControlName="tamanioPagina">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </label>
+    <div class="admin-tiendas__acciones-filtros">
+      <button type="submit" [disabled]="cargando()">
+        {{ cargando() ? 'Consultando…' : 'Aplicar filtros' }}
+      </button>
+      <button
+        class="admin-tiendas__limpiar"
+        type="button"
+        [disabled]="cargando()"
+        (click)="limpiarFiltros()"
+      >
+        Limpiar
+      </button>
+    </div>
   </form>
 
-  @if (cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tiendas." />
-  } @else if (mensajeError()) {
+  @if (cargando() && !cargaCompletada()) {
+    <app-estado-pantalla
+      tipo="carga"
+      etiqueta="Directorio comercial"
+      titulo="Consultando tiendas"
+      descripcion="Estamos sincronizando estados, documentación y responsables comerciales."
+    />
+  } @else if (mensajeErrorCarga() && !cargaCompletada()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Error"
-      [titulo]="mensajeError() ?? 'No pudimos cargar tiendas.'"
+      etiqueta="Directorio no disponible"
+      [titulo]="mensajeErrorCarga() ?? 'No pudimos cargar las tiendas.'"
+      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
       textoAccion="Reintentar"
       (accion)="cargarTiendas()"
     />
   } @else {
-    @if (mensajeExito()) {
-      <app-estado-pantalla
-        tipo="exito"
-        etiqueta="Operacion correcta"
-        [titulo]="mensajeExito() ?? ''"
-      />
-    }
+    <div class="admin-tiendas__mensajes" aria-live="polite">
+      @if (mensajeExito()) {
+        <app-estado-pantalla
+          tipo="exito"
+          etiqueta="Estado actualizado"
+          [titulo]="mensajeExito() ?? ''"
+        />
+      }
+      @if (mensajeErrorAccion()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Moderación no completada"
+          [titulo]="mensajeErrorAccion() ?? ''"
+        />
+      }
+      @if (mensajeErrorCarga()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Consulta no actualizada"
+          [titulo]="mensajeErrorCarga() ?? ''"
+          textoAccion="Reintentar"
+          (accion)="cargarTiendas(true)"
+        />
+      }
+    </div>
 
-    <app-grupo-metricas-panel ariaEtiqueta="Resumen de tiendas">
+    <app-grupo-metricas-panel ariaEtiqueta="Resumen de tiendas filtradas">
       <app-tarjeta-metrica
-        etiqueta="Total tiendas"
+        etiqueta="Tiendas encontradas"
         [valor]="totalTiendas()"
-        [descripcion]="'Mostrando ' + tiendas().length + ' tienda(s) recientes.'"
+        descripcion="Total que coincide con la consulta actual."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Pendientes en página"
+        [valor]="pendientesPagina()"
+        [descripcion]="tiendas().length + ' tienda(s) visibles.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Aprobadas en página"
+        [valor]="aprobadasPagina()"
+        descripcion="Con revisión comercial aprobada."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Formalizadas"
+        [valor]="formalizadasPagina()"
+        descripcion="Con documento fiscal asociado."
       />
     </app-grupo-metricas-panel>
 
-    <app-lista-panel class="admin-seccion__lista" ariaEtiqueta="Tiendas registradas">
-      @for (tienda of tiendas(); track tienda.idTienda) {
-        <app-fila-panel [ariaEtiqueta]="tienda.nombre">
-          <div>
-            <strong>{{ tienda.nombre }}</strong>
-            <small>{{ tienda.vendedor }} - {{ tienda.estadoRevision }}</small>
-            <p>{{ tienda.rubros.length ? tienda.rubros.join(', ') : 'Sin rubros registrados' }}</p>
-          </div>
-          <div class="admin-seccion__acciones">
-            <a
-              appBoton="fantasma"
-              appBotonTamano="sm"
-              [routerLink]="['/admin/tiendas', tienda.idTienda]"
-              [attr.aria-label]="'Ver detalle de ' + tienda.nombre"
-            >
-              Ver detalle
-            </a>
-            <button
-              appBoton
-              appBotonTamano="sm"
-              type="button"
-              [disabled]="procesandoTienda() === tienda.idTienda"
-              (click)="aprobarTienda(tienda)"
-            >
-              Aprobar
-            </button>
-            <button
-              appBoton="secundario"
-              appBotonTamano="sm"
-              type="button"
-              [disabled]="procesandoTienda() === tienda.idTienda"
-              (click)="observarTienda(tienda)"
-            >
-              Observar
-            </button>
-            <button
-              appBoton="peligro"
-              appBotonTamano="sm"
-              type="button"
-              [disabled]="procesandoTienda() === tienda.idTienda"
-              (click)="rechazarTienda(tienda)"
-            >
-              Rechazar
-            </button>
-          </div>
-        </app-fila-panel>
-      } @empty {
+    <section
+      class="admin-tiendas__directorio"
+      [attr.aria-busy]="cargando()"
+      aria-labelledby="titulo-directorio-tiendas"
+    >
+      <header class="admin-tiendas__cabecera-directorio">
+        <div>
+          <span>Directorio operativo</span>
+          <h3 id="titulo-directorio-tiendas">Comercios registrados</h3>
+        </div>
+        <p>{{ totalTiendas() }} resultado(s)</p>
+      </header>
+
+      @if (cargando()) {
+        <p class="admin-tiendas__actualizando" role="status">Actualizando el directorio…</p>
+      }
+
+      @if (tiendas().length > 0) {
+        <div class="admin-tiendas__tabla-contenedor">
+          <table class="admin-tiendas__tabla">
+            <caption>
+              Tiendas según los filtros administrativos aplicados
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Tienda</th>
+                <th scope="col">Responsable</th>
+                <th scope="col">Formalización</th>
+                <th scope="col">Revisión</th>
+                <th scope="col">Registro</th>
+                <th scope="col" class="admin-tiendas__columna-accion">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tienda of tiendas(); track tienda.idTienda) {
+                <tr>
+                  <td>
+                    <strong>{{ tienda.nombre }}</strong>
+                    <small>Tienda #{{ tienda.idTienda }}</small>
+                    <span class="admin-tiendas__rubros-resumen">
+                      {{
+                        tienda.rubros.length ? tienda.rubros.join(', ') : 'Sin rubros registrados'
+                      }}
+                    </span>
+                  </td>
+                  <td>
+                    <strong>{{ tienda.vendedor }}</strong>
+                    <a [href]="'mailto:' + tienda.correoVendedor">{{ tienda.correoVendedor }}</a>
+                    <small>Vendedor #{{ tienda.idVendedor }}</small>
+                  </td>
+                  <td>
+                    <span
+                      class="admin-tiendas__formalizacion"
+                      [class.admin-tiendas__formalizacion--completa]="tienda.formalizada"
+                    >
+                      {{ tienda.formalizada ? 'Formalizada' : 'Sin formalizar' }}
+                    </span>
+                    <small>{{
+                      tienda.numeroDocumentoFiscal ?? 'Documento fiscal pendiente'
+                    }}</small>
+                  </td>
+                  <td>
+                    <span class="admin-tiendas__estado" [attr.data-estado]="tienda.estadoRevision">
+                      <span aria-hidden="true"></span>
+                      {{ etiquetaEstado(tienda.estadoRevision) }}
+                    </span>
+                  </td>
+                  <td>
+                    <time [attr.datetime]="tienda.fechaCreacion">
+                      {{ tienda.fechaCreacion | date: 'dd MMM yyyy' }}
+                    </time>
+                  </td>
+                  <td class="admin-tiendas__columna-accion">
+                    <div
+                      class="admin-tiendas__acciones"
+                      [attr.aria-label]="'Acciones para ' + tienda.nombre"
+                    >
+                      <a
+                        appBoton="fantasma"
+                        appBotonTamano="sm"
+                        [routerLink]="['/admin/tiendas', tienda.idTienda]"
+                        [attr.aria-label]="'Revisar detalle de ' + tienda.nombre"
+                      >
+                        Revisar
+                      </a>
+                      @if (tienda.estadoRevision !== 'APROBADA') {
+                        <button
+                          appBoton
+                          appBotonTamano="sm"
+                          type="button"
+                          [appBotonCargando]="estaProcesando(tienda, 'aprobar')"
+                          [disabled]="tiendaEnProceso() !== null"
+                          (click)="aprobarTienda(tienda)"
+                        >
+                          Aprobar
+                        </button>
+                      }
+                      @if (tienda.estadoRevision !== 'OBSERVADA') {
+                        <button
+                          appBoton="secundario"
+                          appBotonTamano="sm"
+                          type="button"
+                          [appBotonCargando]="estaProcesando(tienda, 'observar')"
+                          [disabled]="tiendaEnProceso() !== null"
+                          (click)="observarTienda(tienda)"
+                        >
+                          Observar
+                        </button>
+                      }
+                      @if (tienda.estadoRevision !== 'RECHAZADA') {
+                        <button
+                          appBoton="peligro"
+                          appBotonTamano="sm"
+                          type="button"
+                          [appBotonCargando]="estaProcesando(tienda, 'rechazar')"
+                          [disabled]="tiendaEnProceso() !== null"
+                          (click)="rechazarTienda(tienda)"
+                        >
+                          Rechazar
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="admin-tiendas__tarjetas" aria-label="Tiendas en vista móvil">
+          @for (tienda of tiendas(); track tienda.idTienda) {
+            <article class="admin-tiendas__tarjeta">
+              <header>
+                <div class="admin-tiendas__monograma" aria-hidden="true">
+                  {{ tienda.nombre.charAt(0) }}
+                </div>
+                <div>
+                  <small>Tienda #{{ tienda.idTienda }}</small>
+                  <h4>{{ tienda.nombre }}</h4>
+                  <p>{{ tienda.vendedor }}</p>
+                </div>
+                <span class="admin-tiendas__estado" [attr.data-estado]="tienda.estadoRevision">
+                  <span aria-hidden="true"></span>
+                  {{ etiquetaEstado(tienda.estadoRevision) }}
+                </span>
+              </header>
+              <div class="admin-tiendas__tarjeta-resumen">
+                <div>
+                  <span>Formalización</span>
+                  <strong>{{ tienda.formalizada ? 'Completa' : 'Pendiente' }}</strong>
+                </div>
+                <div>
+                  <span>Rubros</span>
+                  <strong>{{ tienda.rubros.length }}</strong>
+                </div>
+                <div>
+                  <span>Registro</span>
+                  <strong>{{ tienda.fechaCreacion | date: 'dd/MM/yyyy' }}</strong>
+                </div>
+              </div>
+              <div class="admin-tiendas__acciones admin-tiendas__acciones--movil">
+                <a
+                  appBoton="fantasma"
+                  appBotonTamano="sm"
+                  [routerLink]="['/admin/tiendas', tienda.idTienda]"
+                  [attr.aria-label]="'Revisar detalle de ' + tienda.nombre"
+                >
+                  Ver detalle
+                </a>
+                @if (tienda.estadoRevision !== 'APROBADA') {
+                  <button
+                    appBoton
+                    appBotonTamano="sm"
+                    type="button"
+                    [appBotonCargando]="estaProcesando(tienda, 'aprobar')"
+                    [disabled]="tiendaEnProceso() !== null"
+                    (click)="aprobarTienda(tienda)"
+                  >
+                    Aprobar
+                  </button>
+                }
+                @if (tienda.estadoRevision !== 'OBSERVADA') {
+                  <button
+                    appBoton="secundario"
+                    appBotonTamano="sm"
+                    type="button"
+                    [appBotonCargando]="estaProcesando(tienda, 'observar')"
+                    [disabled]="tiendaEnProceso() !== null"
+                    (click)="observarTienda(tienda)"
+                  >
+                    Observar
+                  </button>
+                }
+                @if (tienda.estadoRevision !== 'RECHAZADA') {
+                  <button
+                    appBoton="peligro"
+                    appBotonTamano="sm"
+                    type="button"
+                    [appBotonCargando]="estaProcesando(tienda, 'rechazar')"
+                    [disabled]="tiendaEnProceso() !== null"
+                    (click)="rechazarTienda(tienda)"
+                  >
+                    Rechazar
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
         <app-estado-pantalla
           tipo="vacio"
-          etiqueta="Sin resultados"
-          titulo="No hay tiendas registradas."
+          etiqueta="Sin coincidencias"
+          titulo="No encontramos tiendas con estos filtros"
+          descripcion="Ajusta el estado, el campo o el término de búsqueda."
+          [textoAccion]="hayFiltrosActivos() ? 'Limpiar filtros' : null"
+          (accion)="limpiarFiltros()"
         />
       }
-    </app-lista-panel>
+    </section>
 
     <app-paginacion-panel
-      ariaEtiqueta="Paginacion de tiendas"
+      ariaEtiqueta="Paginación de tiendas"
       [paginaActual]="paginaActual()"
       [totalPaginas]="totalPaginas()"
       (anterior)="paginaAnterior()"

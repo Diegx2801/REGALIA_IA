@@ -46,6 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -422,13 +424,19 @@ public class PedidoService {
     @Transactional(readOnly = true)
     public PaginaResponse<PedidoResponse> listarPedidosAdmin(
             String estadoPago,
+            String estadoPedido,
+            Long idTienda,
             String searchField,
             String search,
+            LocalDate fechaDesde,
+            LocalDate fechaHasta,
             Integer page,
             Integer size,
             String sort
     ) {
         PedidoPagoFiltro filtroPago = PedidoPagoFiltro.desde(estadoPago);
+        PedidoAdminEstadoFiltro filtroEstadoPedido = PedidoAdminEstadoFiltro.desde(estadoPedido);
+        validarIdTiendaFiltro(idTienda);
         PedidoSearchField campoBusqueda = PedidoSearchField.desde(searchField);
         String busqueda = normalizarBusqueda(search);
         Long busquedaId = obtenerBusquedaIdSiAplica(campoBusqueda, busqueda);
@@ -436,6 +444,11 @@ public class PedidoService {
         Sort.Direction sortDirection = PedidoAdminSortField.direccionDesde(sort);
         int pagina = normalizarPagina(page);
         int tamanioPagina = normalizarTamanioPagina(size);
+        validarRangoFechas(fechaDesde, fechaHasta);
+        LocalDateTime fechaCreacionDesde = fechaDesde != null ? fechaDesde.atStartOfDay() : null;
+        LocalDateTime fechaCreacionHastaExclusiva = fechaHasta != null
+                ? fechaHasta.plusDays(1).atStartOfDay()
+                : null;
 
         PageRequest pageable = PageRequest.of(
                 pagina,
@@ -445,9 +458,13 @@ public class PedidoService {
 
         Page<PedidoEntity> pedidos = pedidoRepository.findPedidosAdministracion(
                 filtroPago,
+                filtroEstadoPedido,
+                idTienda,
                 campoBusqueda,
                 busqueda,
                 busquedaId,
+                fechaCreacionDesde,
+                fechaCreacionHastaExclusiva,
                 sortField,
                 sortDirection,
                 pageable
@@ -526,6 +543,18 @@ public class PedidoService {
             return Long.valueOf(busqueda);
         } catch (NumberFormatException exception) {
             throw new ReglaNegocioException("El ID de pedido, usuario o tienda debe ser numerico");
+        }
+    }
+
+    private void validarRangoFechas(LocalDate fechaDesde, LocalDate fechaHasta) {
+        if (fechaDesde != null && fechaHasta != null && fechaDesde.isAfter(fechaHasta)) {
+            throw new ReglaNegocioException("La fecha desde no puede ser posterior a la fecha hasta");
+        }
+    }
+
+    private void validarIdTiendaFiltro(Long idTienda) {
+        if (idTienda != null && idTienda <= 0) {
+            throw new ReglaNegocioException("El ID de tienda debe ser mayor a cero");
         }
     }
 

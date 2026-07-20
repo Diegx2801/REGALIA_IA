@@ -25,6 +25,7 @@ export class AdministracionPanelStore {
   readonly usuarios = signal<UsuarioAdministracion[]>([]);
   readonly vendedores = signal<VendedorAdministracion[]>([]);
   readonly tiendas = signal<TiendaAdministracion[]>([]);
+  readonly tiendasPendientesResumen = signal<TiendaAdministracion[]>([]);
   readonly pedidos = signal<PedidoAdministracion[]>([]);
   readonly datosMaestros = signal<DatoMaestroAdmin[]>([]);
   readonly totalUsuarios = signal(0);
@@ -32,6 +33,9 @@ export class AdministracionPanelStore {
   readonly totalTiendas = signal(0);
   readonly totalPedidos = signal(0);
   readonly totalProductosVisibles = signal(0);
+  readonly tiendasPendientes = signal(0);
+  readonly pedidosConSaldo = signal(0);
+  readonly ultimaActualizacion = signal<Date | null>(null);
   readonly cargandoResumen = signal(false);
   readonly cargandoVendedores = signal(false);
   readonly cargandoDatosMaestros = signal(false);
@@ -39,12 +43,6 @@ export class AdministracionPanelStore {
   readonly mensajeError = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
 
-  readonly tiendasPendientes = computed(
-    () => this.tiendas().filter((tienda) => tienda.estadoRevision === 'PENDIENTE').length,
-  );
-  readonly pedidosConSaldo = computed(
-    () => this.pedidos().filter((pedido) => pedido.saldoPendiente > 0).length,
-  );
   readonly montoPagado = computed(() =>
     this.pedidos().reduce((total, pedido) => total + pedido.montoPagado, 0),
   );
@@ -64,9 +62,14 @@ export class AdministracionPanelStore {
 
     forkJoin({
       usuarios: this.adminApi.obtenerUsuarios({ size: 6 }),
-      vendedores: this.adminApi.obtenerVendedores(6),
+      vendedores: this.adminApi.obtenerVendedores({ size: 6 }),
       tiendas: this.adminApi.obtenerTiendas({ size: 6 }),
+      tiendasPendientes: this.adminApi.obtenerTiendas({
+        size: 4,
+        estadoRevision: 'PENDIENTE',
+      }),
       pedidos: this.adminApi.obtenerPedidos({ size: 6 }),
+      pedidosConSaldo: this.adminApi.obtenerPedidos({ size: 1, estadoPago: 'CON_SALDO' }),
       productos: this.productoApi.obtenerProductos({
         size: 1,
         soloDisponibles: false,
@@ -77,16 +80,28 @@ export class AdministracionPanelStore {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ({ usuarios, vendedores, tiendas, pedidos, productos }) => {
+        next: ({
+          usuarios,
+          vendedores,
+          tiendas,
+          tiendasPendientes,
+          pedidos,
+          pedidosConSaldo,
+          productos,
+        }) => {
           this.usuarios.set(usuarios.contenido);
           this.vendedores.set(vendedores.contenido);
           this.tiendas.set(tiendas.contenido);
+          this.tiendasPendientesResumen.set(tiendasPendientes.contenido);
           this.pedidos.set(pedidos.contenido);
           this.totalUsuarios.set(usuarios.totalElementos);
           this.totalVendedores.set(vendedores.totalElementos);
           this.totalTiendas.set(tiendas.totalElementos);
           this.totalPedidos.set(pedidos.totalElementos);
           this.totalProductosVisibles.set(productos.totalElementos);
+          this.tiendasPendientes.set(tiendasPendientes.totalElementos);
+          this.pedidosConSaldo.set(pedidosConSaldo.totalElementos);
+          this.ultimaActualizacion.set(new Date());
           this.resumenCargado = true;
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
@@ -98,7 +113,7 @@ export class AdministracionPanelStore {
     this.mensajeError.set(null);
 
     this.adminApi
-      .obtenerVendedores(24)
+      .obtenerVendedores({ size: 24 })
       .pipe(
         finalize(() => this.cargandoVendedores.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -128,7 +143,10 @@ export class AdministracionPanelStore {
       });
   }
 
-  cambiarEstadoTienda(tienda: TiendaAdministracion, accion: 'aprobar' | 'observar' | 'rechazar'): void {
+  cambiarEstadoTienda(
+    tienda: TiendaAdministracion,
+    accion: 'aprobar' | 'observar' | 'rechazar',
+  ): void {
     const acciones = {
       aprobar: 'aprobar',
       observar: 'marcar como observada',
@@ -151,14 +169,25 @@ export class AdministracionPanelStore {
     // La moderacion se persiste y luego se recarga el resumen para mantener metricas coherentes.
     operacion
       .pipe(
-        switchMap(() => this.adminApi.obtenerTiendas({ size: 6 })),
+        switchMap(() =>
+          forkJoin({
+            tiendas: this.adminApi.obtenerTiendas({ size: 6 }),
+            pendientes: this.adminApi.obtenerTiendas({
+              size: 4,
+              estadoRevision: 'PENDIENTE',
+            }),
+          }),
+        ),
         finalize(() => this.procesandoTienda.set(null)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (tiendas) => {
+        next: ({ tiendas, pendientes }) => {
           this.tiendas.set(tiendas.contenido);
+          this.tiendasPendientesResumen.set(pendientes.contenido);
           this.totalTiendas.set(tiendas.totalElementos);
+          this.tiendasPendientes.set(pendientes.totalElementos);
+          this.ultimaActualizacion.set(new Date());
           this.mensajeExito.set('Estado de tienda actualizado correctamente.');
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),

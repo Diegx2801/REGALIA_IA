@@ -2,63 +2,471 @@
   display: block;
 }
 
-.admin-seccion {
+.admin-pedidos {
   display: grid;
   gap: 1rem;
+  min-width: 0;
 }
 
-.admin-seccion .rg-panel__hero {
-  /* Cabecera tipo command center para diferenciar administracion de cliente/vendedor. */
+.admin-pedidos__hero {
+  align-items: center;
   background:
-    radial-gradient(circle at 88% 16%, rgba(215, 173, 75, 0.2), transparent 8rem),
-    linear-gradient(135deg, #17101b 0%, #3c1730 58%, #5a2440 100%);
+    radial-gradient(circle at 88% 15%, rgba(215, 173, 75, 0.24), transparent 9rem),
+    linear-gradient(135deg, #17101b 0%, #42182f 58%, #67283f 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 1.6rem;
   box-shadow: 0 24px 60px rgba(23, 16, 27, 0.18);
   color: #fff;
-  padding: clamp(1rem, 2vw, 1.5rem);
+  display: flex;
+  gap: 1.25rem;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(1rem, 2.4vw, 1.65rem);
 }
 
-.admin-seccion span {
-  color: var(--rg-color-primary);
+.admin-pedidos__hero > div:first-child {
+  min-width: 0;
+}
+.admin-pedidos__hero > div:first-child > span,
+.admin-pedidos__cabecera-directorio span,
+.admin-pedidos__alerta span {
+  font-size: 0.72rem;
   font-weight: 950;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
 }
-
-.admin-seccion .rg-panel__hero span,
-.admin-seccion .rg-panel__hero h2,
-.admin-seccion .rg-panel__hero p {
+.admin-pedidos__hero h2 {
   color: #fff;
+  font-size: clamp(1.75rem, 3vw, 2.65rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0.42rem 0 0.72rem;
+}
+.admin-pedidos__hero p {
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 48rem;
 }
 
-.admin-seccion .rg-panel__hero p {
-  max-width: 44rem;
-  opacity: 0.76;
+.admin-pedidos__hero-sello {
+  align-items: center;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 1.15rem;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.75rem;
+  max-width: 18rem;
+  padding: 0.9rem;
+}
+.admin-pedidos__hero-sello svg {
+  color: var(--rg-color-gold);
+  flex: 0 0 auto;
+  height: 2rem;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  width: 2rem;
+}
+.admin-pedidos__hero-sello :is(strong, small) {
+  display: block;
+}
+.admin-pedidos__hero-sello strong {
+  color: #fff;
+  font-size: 0.85rem;
+}
+.admin-pedidos__hero-sello small {
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.12rem;
 }
 
-.admin-seccion p,
-.admin-seccion small {
+.admin-pedidos__campo-busqueda {
+  grid-column: span 2;
+}
+.admin-pedidos__rango-fechas {
+  border: 0;
+  display: grid;
+  gap: 0.65rem;
+  grid-column: span 2;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+.admin-pedidos__rango-fechas legend {
+  color: var(--rg-color-primary-dark);
+  font-size: 0.72rem;
+  font-weight: 950;
+  grid-column: 1 / -1;
+  letter-spacing: 0.06em;
+  margin-bottom: -0.35rem;
+  text-transform: uppercase;
+}
+.admin-pedidos__acciones-filtros {
+  align-items: stretch;
+  display: flex;
+  gap: 0.5rem;
+}
+.rg-filtros-panel .admin-pedidos__acciones-filtros > button {
+  min-height: 2.85rem;
+}
+.rg-filtros-panel .admin-pedidos__acciones-filtros > .admin-pedidos__limpiar {
+  background: #fff;
+  border: 1px solid var(--rg-color-border);
+  box-shadow: none;
+  color: var(--rg-color-primary);
+}
+.rg-filtros-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.admin-pedidos__error-filtros {
+  background: var(--rg-color-danger-soft);
+  border: 1px solid color-mix(in srgb, var(--rg-color-danger) 25%, transparent);
+  border-radius: 0.75rem;
+  color: var(--rg-color-danger);
+  font-size: 0.82rem;
+  font-weight: 800;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+}
+
+.admin-pedidos__alerta {
+  align-items: center;
+  background: linear-gradient(135deg, #fff8e8, #fff);
+  border: 1px solid color-mix(in srgb, var(--rg-color-gold) 46%, white);
+  border-radius: 1.15rem;
+  box-shadow: 0 12px 30px rgba(98, 66, 12, 0.08);
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+}
+.admin-pedidos__alerta > div:first-child {
+  background: var(--rg-color-gold-soft);
+  border-radius: 0.85rem;
+  color: #795316;
+  display: grid;
+  flex: 0 0 auto;
+  height: 2.9rem;
+  place-items: center;
+  width: 2.9rem;
+}
+.admin-pedidos__alerta svg {
+  height: 1.5rem;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  width: 1.5rem;
+}
+.admin-pedidos__alerta span {
+  color: #795316;
+  display: block;
+}
+.admin-pedidos__alerta strong {
+  color: var(--rg-color-ink);
+  display: block;
+  margin-top: 0.18rem;
+}
+.admin-pedidos__alerta p {
   color: var(--rg-color-muted);
+  font-size: 0.84rem;
+  margin: 0.2rem 0 0;
 }
 
-.admin-seccion__lista {
-  background: linear-gradient(180deg, rgba(255, 250, 245, 0.94), rgba(255, 255, 255, 0.96)), #fff;
+.admin-pedidos__directorio {
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(90, 36, 64, 0.1);
   border-radius: 1.4rem;
   box-shadow: 0 18px 42px rgba(35, 25, 39, 0.08);
   min-width: 0;
-  padding: clamp(0.85rem, 1.8vw, 1.1rem);
+  overflow: hidden;
+}
+.admin-pedidos__cabecera-directorio {
+  align-items: end;
+  border-bottom: 1px solid var(--rg-color-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem clamp(1rem, 2vw, 1.35rem);
+}
+.admin-pedidos__cabecera-directorio span {
+  color: var(--rg-color-primary);
+}
+.admin-pedidos__cabecera-directorio h3 {
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  letter-spacing: -0.03em;
+  margin: 0.25rem 0 0;
+}
+.admin-pedidos__cabecera-directorio p {
+  color: var(--rg-color-muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+  margin: 0;
+  white-space: nowrap;
+}
+.admin-pedidos__actualizando {
+  background: var(--rg-color-gold-soft);
+  color: #6f4a12;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin: 0;
+  padding: 0.65rem 1rem;
+  text-align: center;
 }
 
-.admin-seccion__resumen-pedido {
-  display: grid;
-  gap: 0.4rem;
-  justify-items: end;
+.admin-pedidos__tabla-contenedor {
+  overflow-x: auto;
+}
+.admin-pedidos__tabla {
+  border-collapse: collapse;
+  min-width: 80rem;
+  width: 100%;
+}
+.admin-pedidos__tabla caption {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+.admin-pedidos__tabla th {
+  background: var(--rg-color-surface-2);
+  color: var(--rg-color-primary-dark);
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  padding: 0.75rem 0.85rem;
+  text-align: left;
+  text-transform: uppercase;
+}
+.admin-pedidos__tabla td {
+  border-top: 1px solid color-mix(in srgb, var(--rg-color-border) 72%, white);
+  color: var(--rg-color-ink);
+  font-size: 0.84rem;
+  padding: 0.9rem 0.85rem;
+  vertical-align: middle;
+}
+.admin-pedidos__tabla tbody tr {
+  transition: background-color var(--rg-transition-standard);
+}
+.admin-pedidos__tabla tbody tr:hover {
+  background: color-mix(in srgb, var(--rg-color-primary-soft) 38%, white);
+}
+.admin-pedidos__tabla td :is(strong, small, time, span) {
+  display: block;
+}
+.admin-pedidos__tabla td small,
+.admin-pedidos__tabla td time,
+.admin-pedidos__tabla
+  td
+  > span:not(.admin-pedidos__estado, .admin-pedidos__pago, .admin-pedidos__prioridad) {
+  color: var(--rg-color-muted);
+  margin-top: 0.2rem;
+}
+.admin-pedidos__texto-alerta {
+  color: var(--rg-color-danger) !important;
+  font-weight: 850;
+}
+.admin-pedidos__monto {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 799.98px) {
-  .admin-seccion__resumen-pedido {
-    justify-items: start;
+.admin-pedidos__estado,
+.admin-pedidos__pago,
+.admin-pedidos__prioridad {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex !important;
+  font-size: 0.72rem;
+  font-weight: 900;
+  gap: 0.38rem;
+  line-height: 1;
+  padding: 0.47rem 0.65rem;
+  white-space: nowrap;
+}
+.admin-pedidos__estado > span {
+  background: currentColor;
+  border-radius: 50%;
+  height: 0.4rem;
+  width: 0.4rem;
+}
+.admin-pedidos__estado[data-estado='RESERVADO'] {
+  background: var(--rg-color-primary-soft);
+  color: var(--rg-color-primary);
+}
+.admin-pedidos__estado[data-estado='EN_PREPARACION'],
+.admin-pedidos__estado[data-estado='LISTO'] {
+  background: var(--rg-color-gold-soft);
+  color: #795316;
+}
+.admin-pedidos__estado[data-estado='ENTREGADO'] {
+  background: var(--rg-color-success-soft);
+  color: var(--rg-color-success);
+}
+.admin-pedidos__estado[data-estado='ANULADO'] {
+  background: var(--rg-color-danger-soft);
+  color: var(--rg-color-danger);
+}
+.admin-pedidos__pago {
+  background: var(--rg-color-success-soft);
+  color: var(--rg-color-success);
+  margin-top: 0.35rem;
+}
+.admin-pedidos__pago--pendiente {
+  background: var(--rg-color-gold-soft);
+  color: #795316;
+}
+.admin-pedidos__prioridad[data-prioridad='alta'] {
+  background: var(--rg-color-danger-soft);
+  color: var(--rg-color-danger);
+}
+.admin-pedidos__prioridad[data-prioridad='media'] {
+  background: var(--rg-color-gold-soft);
+  color: #795316;
+}
+.admin-pedidos__prioridad[data-prioridad='normal'] {
+  background: var(--rg-color-primary-soft);
+  color: var(--rg-color-primary);
+}
+.admin-pedidos__prioridad[data-prioridad='cerrada'] {
+  background: var(--rg-color-surface-2);
+  color: var(--rg-color-muted);
+}
+.admin-pedidos__columna-accion {
+  text-align: right !important;
+}
+
+.admin-pedidos__tarjetas {
+  display: none;
+}
+.admin-pedidos__directorio > app-estado-pantalla {
+  margin: 1rem;
+}
+
+@media (max-width: 1199.98px) {
+  .admin-pedidos__campo-busqueda,
+  .admin-pedidos__rango-fechas {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 999.98px) {
+  .admin-pedidos__hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .admin-pedidos__hero-sello {
+    max-width: none;
+    width: 100%;
+  }
+  .admin-pedidos__tabla-contenedor {
+    display: none;
+  }
+  .admin-pedidos__tarjetas {
+    display: grid;
+    gap: 0.8rem;
+    padding: 0.85rem;
+  }
+  .admin-pedidos__tarjeta {
+    background: linear-gradient(
+      145deg,
+      #fff,
+      color-mix(in srgb, var(--rg-color-surface-2) 62%, white)
+    );
+    border: 1px solid var(--rg-color-border);
+    border-radius: 1.15rem;
+    box-shadow: 0 12px 28px rgba(35, 25, 39, 0.06);
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+  .admin-pedidos__tarjeta > header {
+    align-items: start;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+  .admin-pedidos__tarjeta > header > div {
+    min-width: 0;
+  }
+  .admin-pedidos__tarjeta > header small,
+  .admin-pedidos__tarjeta > header p {
+    color: var(--rg-color-muted);
+    margin: 0;
+  }
+  .admin-pedidos__tarjeta > header h4 {
+    font-size: 1.05rem;
+    margin: 0.15rem 0 0.2rem;
+  }
+  .admin-pedidos__tarjeta-estados {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .admin-pedidos__tarjeta-estados .admin-pedidos__pago {
+    margin-top: 0;
+  }
+  .admin-pedidos__tarjeta dl {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+  .admin-pedidos__tarjeta dl > div {
+    background: var(--rg-color-surface-2);
+    border-radius: 0.8rem;
+    min-width: 0;
+    padding: 0.65rem;
+  }
+  .admin-pedidos__tarjeta dt {
+    color: var(--rg-color-muted);
+    font-size: 0.67rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .admin-pedidos__tarjeta dd {
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    margin: 0.2rem 0 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .admin-pedidos__acciones-filtros,
+  .admin-pedidos__cabecera-directorio,
+  .admin-pedidos__alerta,
+  .admin-pedidos__tarjeta > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .admin-pedidos__acciones-filtros > button {
+    width: 100%;
+  }
+  .admin-pedidos__cabecera-directorio p {
+    white-space: normal;
+  }
+  .admin-pedidos__rango-fechas {
+    grid-template-columns: 1fr;
+  }
+  .admin-pedidos__tarjeta dl {
+    grid-template-columns: 1fr;
+  }
+  .admin-pedidos__tarjeta > header .admin-pedidos__prioridad {
+    align-self: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-pedidos__tabla tbody tr {
+    transition: none;
   }
 }

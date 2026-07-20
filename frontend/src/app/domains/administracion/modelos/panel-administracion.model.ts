@@ -3,8 +3,10 @@ export interface UsuarioAdministracion {
   nombreCompleto: string;
   correo: string;
   telefono: string;
+  correoVerificado: boolean;
   estado: boolean;
   fechaCreacion: string | null;
+  fechaActualizacion: string | null;
 }
 
 export interface VendedorAdministracion {
@@ -37,6 +39,15 @@ export interface TiendaAdministracion {
   estado: boolean;
   fechaCreacion: string | null;
   fechaActualizacion: string | null;
+}
+
+export interface ProductoCatalogoTiendaAdministracion {
+  idProducto: number;
+  nombre: string;
+  tipoProducto: string;
+  descripcion: string;
+  precio: number;
+  stock: number;
 }
 
 export interface ProductoPedidoAdministracion {
