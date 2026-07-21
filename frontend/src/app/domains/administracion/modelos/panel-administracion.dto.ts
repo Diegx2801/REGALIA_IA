@@ -4,6 +4,7 @@ export interface UsuarioAdministracionDto {
   apellidos: string | null;
   correo: string | null;
   telefono: string | null;
+  correoVerificado: boolean | null;
   estado: boolean | null;
   fechaCreacion: string | null;
   fechaActualizacion: string | null;
@@ -46,6 +47,18 @@ export interface TiendaAdministracionDto {
   estado: boolean | null;
   fechaCreacion: string | null;
   fechaActualizacion: string | null;
+}
+
+export interface ProductoCatalogoTiendaAdministracionDto {
+  idProducto: number;
+  idTienda: number;
+  nombreTienda: string | null;
+  idTipoProducto: number;
+  tipoProducto: string | null;
+  nombre: string | null;
+  descripcion: string | null;
+  precio: number | null;
+  stock: number | null;
 }
 
 export interface DetallePedidoAdministracionDto {

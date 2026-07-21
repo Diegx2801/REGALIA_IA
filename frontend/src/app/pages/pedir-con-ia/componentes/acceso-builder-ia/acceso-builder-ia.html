@@ -1,0 +1,28 @@
+<section class="auth-gate" aria-labelledby="builder-auth-title">
+  <div class="auth-gate__icon" aria-hidden="true">IA</div>
+  <div class="auth-gate__content">
+    <span class="auth-gate__eyebrow">Acceso requerido</span>
+    <h2 id="builder-auth-title">Inicia sesión para recibir recomendaciones</h2>
+    <p>
+      Puedes conocer cómo funciona el asistente desde esta página. Para enviar una solicitud y
+      consultar productos reales necesitas una cuenta de REGALIA.
+    </p>
+    <div class="auth-gate__actions">
+      <a
+        class="auth-gate__primary"
+        routerLink="/login"
+        [queryParams]="{ retorno: '/pedir-con-ia' }"
+      >
+        Iniciar sesión
+      </a>
+      <a
+        class="auth-gate__secondary"
+        routerLink="/login"
+        [queryParams]="{ modo: 'registro', retorno: '/pedir-con-ia' }"
+      >
+        Crear cuenta
+      </a>
+    </div>
+    <small>Tu solicitud no se enviará hasta que hayas iniciado sesión.</small>
+  </div>
+</section>

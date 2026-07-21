@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   inject,
@@ -8,17 +9,23 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import { CarritoCheckoutService } from '../../../core/carrito/carrito-checkout.service';
+import { obtenerMensajeErrorUsuario } from '../../../core/http/modelos/error-api.model';
 import { ProductoApiService } from '../../../domains/catalogo/acceso-datos/producto-api.service';
 import { Producto } from '../../../domains/catalogo/modelos/producto.model';
+import { TipoProductoApiService } from '../../../domains/datos-maestros/acceso-datos/tipo-producto-api.service';
+import { TipoProducto } from '../../../domains/datos-maestros/modelos/tipo-producto.model';
+import { TiendaPublicaApiService } from '../../../domains/tiendas/acceso-datos/tienda-publica-api.service';
+import { TiendaPublica } from '../../../domains/tiendas/modelos/tienda-publica.model';
 import { CalendarioComercial } from '../componentes/calendario-comercial/calendario-comercial';
 import { CtaVendedorInicio } from '../componentes/cta-vendedor-inicio/cta-vendedor-inicio';
 import { DestacadosInicio } from '../componentes/destacados-inicio/destacados-inicio';
 import { HeroInicio } from '../componentes/hero-inicio/hero-inicio';
 import { ModeloNegocioInicio } from '../componentes/modelo-negocio-inicio/modelo-negocio-inicio';
-import { CategoriaInicio, CampanaComercial, PasoModeloNegocio } from '../modelos/inicio.model';
+import { CampanaComercial, PasoModeloNegocio } from '../modelos/inicio.model';
 
 @Component({
   selector: 'app-pagina-inicio',
@@ -31,113 +38,109 @@ import { CategoriaInicio, CampanaComercial, PasoModeloNegocio } from '../modelos
   ],
   templateUrl: './pagina-inicio.html',
   styleUrl: './pagina-inicio.css',
-  // Los estilos usan clases prefijadas por feature; se comparten con componentes internos sin duplicar CSS.
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  // Las clases landing-* se comparten únicamente con los componentes internos de esta página.
   encapsulation: ViewEncapsulation.None,
 })
 export class PaginaInicio implements AfterViewInit, OnInit {
   private readonly router = inject(Router);
   private readonly productoApiService = inject(ProductoApiService);
+  private readonly tipoProductoApiService = inject(TipoProductoApiService);
+  private readonly tiendaPublicaApiService = inject(TiendaPublicaApiService);
+  private readonly carritoCheckout = inject(CarritoCheckoutService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly formularioBusqueda = new FormGroup({
-    ocasion: new FormControl('Dia de la Madre', { nonNullable: true }),
-    presupuesto: new FormControl('S/ 50 - S/ 300+', { nonNullable: true }),
-    fecha: new FormControl('', { nonNullable: true }),
-    distrito: new FormControl('Todos', { nonNullable: true }),
-  });
-
-  readonly mesActivo = signal('FEB');
+  readonly controlBusqueda = new FormControl('', { nonNullable: true });
+  readonly categorias = signal<TipoProducto[]>([]);
+  readonly tiendasDestacadas = signal<TiendaPublica[]>([]);
   readonly productosDestacados = signal<Producto[]>([]);
+
+  readonly cargandoCategorias = signal(true);
+  readonly cargandoTiendasDestacadas = signal(true);
   readonly cargandoProductosDestacados = signal(true);
+
+  readonly mensajeErrorCategorias = signal<string | null>(null);
+  readonly mensajeErrorTiendasDestacadas = signal<string | null>(null);
   readonly mensajeErrorProductosDestacados = signal<string | null>(null);
+  readonly mensajeCarrito = signal<string | null>(null);
 
-  readonly categorias: readonly CategoriaInicio[] = [
-    // Los iconos salen de public/assets para que Angular los sirva sin acoplarlos al build TS.
-    {
-      etiqueta: 'Cumpleaños',
-      tipoIcono: 'cuadro',
-      iconoUrl: '/assets/brand/iconos/cumpleanos-1.png',
-      busqueda: 'cumpleanos',
-    },
-    {
-      etiqueta: 'Día de la Madre',
-      tipoIcono: 'circulo',
-      iconoUrl: '/assets/brand/iconos/diadelamadre.png',
-      busqueda: 'madre',
-    },
-    {
-      etiqueta: 'Aniversarios',
-      tipoIcono: 'anillo',
-      iconoUrl: '/assets/brand/iconos/aniversario.png',
-      busqueda: 'aniversario',
-    },
-    {
-      etiqueta: 'Graduación',
-      tipoIcono: 'tarjeta',
-      iconoUrl: '/assets/brand/iconos/graduacion.png',
-      busqueda: 'graduacion',
-    },
-    {
-      etiqueta: 'Condolencias',
-      tipoIcono: 'hoja',
-      iconoUrl: '/assets/brand/iconos/condolencias.png',
-      busqueda: 'condolencias',
-    },
-    {
-      etiqueta: 'Más categorías',
-      tipoIcono: 'mas',
-      iconoUrl: '/assets/brand/iconos/mascateg.png',
-    },
+  readonly meses = [
+    'ENE',
+    'FEB',
+    'MAR',
+    'ABR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AGO',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DIC',
   ];
-
-  readonly meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
   readonly diasSemana = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
-  readonly diasFebrero = Array.from({ length: 28 }, (_, indice) => indice + 1);
-
   readonly campanas: readonly CampanaComercial[] = [
     {
+      dia: 14,
+      mes: 'FEB',
       fecha: '14 FEB',
-      titulo: 'San Valentin',
-      descripcion: 'Flores y detalles romanticos',
-      sugerencias: ['Ramos premium', 'Box romantico', 'Torta mini'],
+      titulo: 'San Valentín',
+      descripcion: 'Flores y detalles románticos',
+      sugerencias: ['Ramos premium', 'Box romántico', 'Torta mini'],
+      icono: 'floral',
     },
     {
+      dia: 8,
+      mes: 'MAR',
       fecha: '08 MAR',
-      titulo: 'Dia de la Mujer',
+      titulo: 'Día de la Mujer',
       descripcion: 'Experiencias delicadas y mensajes memorables',
       sugerencias: ['Box floral', 'Carta premium', 'Chocolate artesanal'],
+      icono: 'floral',
     },
     {
-      fecha: '2DO MAY',
-      titulo: 'Dia de la Madre',
+      dia: 10,
+      mes: 'MAY',
+      fecha: '10 MAY',
+      titulo: 'Día de la Madre',
       descripcion: 'Sorpresas elegantes para agradecer con estilo',
       sugerencias: ['Desayuno sorpresa', 'Arreglo floral', 'Taza personalizada'],
+      icono: 'personalizado',
     },
     {
-      fecha: '3ER JUN',
-      titulo: 'Dia del Padre',
-      descripcion: 'Regalos sobrios, utiles y con personalidad',
+      dia: 21,
+      mes: 'JUN',
+      fecha: '21 JUN',
+      titulo: 'Día del Padre',
+      descripcion: 'Regalos sobrios, útiles y con personalidad',
       sugerencias: ['Kit ejecutivo', 'Box gourmet', 'Agenda personalizada'],
+      icono: 'fisico',
     },
     {
+      dia: 31,
+      mes: 'OCT',
       fecha: '31 OCT',
       titulo: 'Halloween',
-      descripcion: 'Campanas tematicas para marcas y celebraciones',
-      sugerencias: ['Candy box', 'Mini cake', 'Pack tematico'],
+      descripcion: 'Campañas temáticas para marcas y celebraciones',
+      sugerencias: ['Candy box', 'Mini cake', 'Pack temático'],
+      icono: 'comestible',
     },
     {
+      dia: 25,
+      mes: 'DIC',
       fecha: '25 DIC',
       titulo: 'Navidad',
       descripcion: 'Temporada alta para detalles familiares y corporativos',
       sugerencias: ['Canasta premium', 'Gift box', 'Vino y chocolates'],
+      icono: 'box',
     },
   ];
 
   readonly pasosModeloNegocio: readonly PasoModeloNegocio[] = [
-    { numero: '01', descripcion: 'El cliente describe ocasion, presupuesto, fecha y distrito.' },
-    { numero: '02', descripcion: 'REGALIA compara disponibilidad, reputacion, cercania y estilo.' },
-    { numero: '03', descripcion: 'El vendedor recibe solicitudes compatibles, no conversaciones al azar.' },
-    { numero: '04', descripcion: 'La plataforma monetiza por reserva, campanas destacadas y visibilidad premium.' },
+    { numero: '01', descripcion: 'Describe la ocasión, el estilo y tu presupuesto.' },
+    { numero: '02', descripcion: 'Compara productos disponibles de tiendas aprobadas.' },
+    { numero: '03', descripcion: 'Personaliza el detalle y confirma las condiciones de entrega.' },
+    { numero: '04', descripcion: 'Reserva de forma segura y sigue tu pedido desde REGALIA.' },
   ];
 
   ngAfterViewInit(): void {
@@ -147,44 +150,95 @@ export class PaginaInicio implements AfterViewInit, OnInit {
   }
 
   ngOnInit(): void {
+    this.cargarCategorias();
+    this.cargarTiendasDestacadas();
     this.cargarProductosDestacados();
   }
 
-  buscarDetalles(): void {
-    const valores = this.formularioBusqueda.getRawValue();
-    const filtros = [valores.ocasion, valores.presupuesto, valores.distrito]
-      .map((valor) => valor.trim())
-      .filter(Boolean)
-      .join(' ');
-
+  buscarRegalos(): void {
+    const busqueda = this.controlBusqueda.value.trim();
     void this.router.navigate(['/catalogo'], {
-      queryParams: filtros ? { busqueda: filtros } : undefined,
+      queryParams: busqueda ? { busqueda } : undefined,
     });
   }
 
-  buscarCategoria(categoria: CategoriaInicio): void {
+  buscarCategoria(categoria: TipoProducto): void {
     void this.router.navigate(['/catalogo'], {
-      queryParams: categoria.busqueda ? { busqueda: categoria.busqueda } : undefined,
+      queryParams: { tipo: categoria.nombre },
     });
   }
 
-  private cargarProductosDestacados(): void {
+  explorarTienda(tienda: TiendaPublica): void {
+    void this.router.navigate(['/catalogo/tiendas', tienda.idTienda]);
+  }
+
+  agregarAlCarrito(producto: Producto): void {
+    if (!producto.disponible || producto.stock <= 0) return;
+
+    this.carritoCheckout.agregarProducto(producto);
+    this.mensajeCarrito.set(`${producto.nombre} se agregó a tu carrito.`);
+  }
+
+  cargarCategorias(): void {
+    this.cargandoCategorias.set(true);
+    this.mensajeErrorCategorias.set(null);
+
+    this.tipoProductoApiService
+      .obtenerTiposProducto()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.cargandoCategorias.set(false)),
+      )
+      .subscribe({
+        next: (categorias) =>
+          this.categorias.set(categorias.filter((categoria) => categoria.estado)),
+        error: (error: unknown) => {
+          this.categorias.set([]);
+          this.mensajeErrorCategorias.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos cargar las categorías.'),
+          );
+        },
+      });
+  }
+
+  cargarTiendasDestacadas(): void {
+    this.cargandoTiendasDestacadas.set(true);
+    this.mensajeErrorTiendasDestacadas.set(null);
+
+    this.tiendaPublicaApiService
+      .obtenerTiendasPublicas()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.cargandoTiendasDestacadas.set(false)),
+      )
+      .subscribe({
+        next: (tiendas) => this.tiendasDestacadas.set(tiendas.slice(0, 4)),
+        error: (error: unknown) => {
+          this.tiendasDestacadas.set([]);
+          this.mensajeErrorTiendasDestacadas.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos cargar las tiendas destacadas.'),
+          );
+        },
+      });
+  }
+
+  cargarProductosDestacados(): void {
     this.cargandoProductosDestacados.set(true);
     this.mensajeErrorProductosDestacados.set(null);
 
     this.productoApiService
-      .obtenerProductos({ size: 4, soloDisponibles: true })
+      .obtenerProductos({ size: 8, soloDisponibles: true })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.cargandoProductosDestacados.set(false)),
       )
       .subscribe({
-        next: (pagina) => {
-          this.productosDestacados.set(pagina.contenido);
-        },
-        error: () => {
+        next: (pagina) => this.productosDestacados.set(pagina.contenido),
+        error: (error: unknown) => {
           this.productosDestacados.set([]);
-          this.mensajeErrorProductosDestacados.set('No pudimos cargar productos destacados reales.');
+          this.mensajeErrorProductosDestacados.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos cargar los productos destacados.'),
+          );
         },
       });
   }

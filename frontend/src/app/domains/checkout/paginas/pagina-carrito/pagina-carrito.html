@@ -1,76 +1,86 @@
-<section class="cart-page">
+<div class="cart-page">
   <div class="rg-page__container--retail cart-page__container">
     <header class="cart-hero">
       <div>
-        <span class="cart-hero__eyebrow">Carrito REGALIA</span>
-        <h1>Reserva productos con precio fijo sin mezclarlo con cotizaciones personalizadas.</h1>
+        <span class="cart-hero__eyebrow">Tu selección</span>
+        <h1>Revisa tus regalos antes de continuar</h1>
         <p>
-          Este carrito es para regalos listos para reservar. Si necesitas algo unico o todavia no
-          tienes claro que pedir, usa el apartado de solicitud con IA.
+          Ajusta cantidades y personalización. El stock, la entrega y el importe final se validan
+          antes de abrir el pago seguro.
         </p>
       </div>
-
-      <div class="cart-hero__media">
-        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" width="104" height="104" loading="lazy" decoding="async" />
-        <a class="cart-button cart-button--primary" routerLink="/pedir-con-ia">Cotizar con IA</a>
-      </div>
+      <a class="cart-button cart-button--secondary" routerLink="/catalogo">Seguir comprando</a>
     </header>
 
     <nav class="checkout-steps" aria-label="Progreso del checkout">
-      <span class="checkout-steps__item checkout-steps__item--active">1. Carrito</span>
-      <span class="checkout-steps__item">2. Datos de entrega</span>
-      <span class="checkout-steps__item">3. Pago seguro</span>
+      <span class="checkout-steps__item checkout-steps__item--active" aria-current="step">
+        <b>1</b> Carrito
+      </span>
+      <span class="checkout-steps__item"><b>2</b> Entrega y pago</span>
+      <span class="checkout-steps__item"><b>3</b> Confirmación</span>
     </nav>
 
     @if (vieneDeCheckout()) {
-      <section class="cart-result" [class.cart-result--pending]="estadoPago() === 'pending'">
-        <span class="cart-result__eyebrow">Resultado de checkout</span>
+      <section
+        class="cart-result"
+        [class.cart-result--pending]="estadoPago() === 'pending'"
+        [class.cart-result--failure]="estadoPago() === 'failure'"
+        [attr.role]="estadoPago() === 'failure' ? 'alert' : 'status'"
+        aria-live="polite"
+      >
+        <span class="cart-result__eyebrow">Resultado del pago</span>
         @switch (estadoPago()) {
           @case ('success') {
             <h2>Pago aprobado</h2>
-            <p>Limpiamos el carrito local. El backend confirma el pedido mediante la pasarela configurada.</p>
+            <p>La pasarela aceptó el pago. Puedes consultar el pedido y su seguimiento.</p>
           }
           @case ('failure') {
-            <h2>Pago rechazado</h2>
-            <p>Puedes revisar el carrito e intentar nuevamente con la misma solicitud.</p>
+            <h2>El pago no se completó</h2>
+            <p>Tu selección sigue disponible para que revises los datos e intentes nuevamente.</p>
           }
           @case ('pending') {
-            <h2>Pago pendiente</h2>
-            <p>El pedido se actualizara cuando la pasarela confirme el resultado.</p>
+            <h2>Pago pendiente de confirmación</h2>
+            <p>Actualizaremos el pedido cuando la pasarela confirme el resultado.</p>
           }
           @default {
-            <h2>Retorno de checkout</h2>
-            <p>Revisa el estado de tu operacion antes de continuar.</p>
+            <h2>Revisa el estado de tu operación</h2>
+            <p>Consulta tus pedidos antes de realizar un nuevo intento de pago.</p>
           }
         }
         <div class="cart-result__actions">
-          <a class="cart-button cart-button--primary" routerLink="/catalogo">Volver al catalogo</a>
-          <a class="cart-button cart-button--secondary" routerLink="/cliente/pedidos">Ver pedidos</a>
+          <a class="cart-button cart-button--primary" routerLink="/cliente/pedidos">Ver mis pedidos</a>
+          <a class="cart-button cart-button--secondary" routerLink="/catalogo">Volver al catálogo</a>
         </div>
       </section>
     }
 
     @if (carrito.estaVacio() && !vieneDeCheckout()) {
       <section class="cart-empty">
-        <img src="/assets/brand/iconos/carrito.png" alt="Carrito REGALIA" width="160" height="160" loading="lazy" decoding="async" />
-        <h2>Tu carrito esta vacio</h2>
-        <p>
-          Agrega productos con precio fijo desde el catalogo o crea una solicitud personalizada con IA.
-        </p>
+        <img
+          src="/assets/brand/iconos/carrito.png"
+          alt=""
+          width="160"
+          height="160"
+          loading="eager"
+          decoding="async"
+        />
+        <span class="cart-hero__eyebrow">Carrito vacío</span>
+        <h2>Aún no agregaste regalos</h2>
+        <p>Explora productos disponibles o pídele al asistente una recomendación personalizada.</p>
         <div class="cart-empty__actions">
-          <a class="cart-button cart-button--primary" routerLink="/catalogo">Ver catalogo</a>
-          <a class="cart-button cart-button--secondary" routerLink="/pedir-con-ia">Cotizar con IA</a>
+          <a class="cart-button cart-button--primary" routerLink="/catalogo">Explorar catálogo</a>
+          <a class="cart-button cart-button--secondary" routerLink="/pedir-con-ia">Pedir con IA</a>
         </div>
       </section>
     } @else if (!carrito.estaVacio()) {
-      <section class="cart-layout">
+      <section class="cart-layout" aria-label="Contenido del carrito">
         <div class="cart-list">
           <header class="cart-list__head">
             <div>
               <span>Productos seleccionados</span>
-              <strong>{{ carrito.cantidadItems() }} item(s) en tu carrito</strong>
+              <strong>{{ carrito.cantidadItems() }} unidades</strong>
             </div>
-            <button class="cart-item__remove" type="button" (click)="carrito.limpiarCarrito()">
+            <button class="cart-item__remove" type="button" (click)="solicitarVaciarCarrito()">
               Vaciar carrito
             </button>
           </header>
@@ -78,55 +88,50 @@
           <div class="cart-list__items">
             @for (item of carrito.items(); track item.idProducto) {
               <article class="cart-item">
-                <div
+                <img
                   class="cart-item__media"
-                  [style.background-image]="'url(' + item.urlImagen + ')'"
-                  role="img"
-                  [attr.aria-label]="item.nombre"
-                ></div>
+                  [src]="item.urlImagen"
+                  [alt]="item.nombre"
+                  width="160"
+                  height="160"
+                  loading="lazy"
+                  decoding="async"
+                />
 
                 <div class="cart-item__body">
                   <div class="cart-item__top">
                     <div>
                       <span class="cart-item__seller">{{ item.nombreTienda }}</span>
                       <h2>{{ item.nombre }}</h2>
+                      <small>{{ item.tipoProducto }} · Stock disponible: {{ item.stockDisponible }}</small>
                     </div>
                     <strong>{{ item.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
                   </div>
 
-                  <p>
-                    Producto de {{ item.tipoProducto }} listo para reservar. Puedes agregar una nota
-                    corta para personalizacion o coordinacion con el vendedor.
-                  </p>
-
-                  <div class="cart-item__meta">
-                    <span>{{ item.tipoProducto }}</span>
-                    <span>Stock {{ item.stockDisponible }}</span>
-                    <span>Subtotal {{ item.precioUnitario * item.cantidad | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span>
-                  </div>
-
-                  <label class="cart-checkout-field cart-checkout-field--full">
-                    <span>Nota para el vendedor</span>
+                  <label class="cart-checkout-field">
+                    <span>Nota para el vendedor <small>(opcional)</small></span>
                     <textarea
+                      #nota
                       rows="2"
-                      [ngModel]="item.observacion ?? ''"
-                      (ngModelChange)="actualizarObservacion(item.idProducto, $event)"
-                      placeholder="Nombre, dedicatoria, colores u ocasion"
+                      maxlength="250"
+                      [value]="item.observacion ?? ''"
+                      (blur)="actualizarObservacion(item.idProducto, nota.value)"
+                      placeholder="Ej.: dedicatoria, nombre o colores preferidos"
                     ></textarea>
+                    <small>La confirmaremos con la tienda antes de preparar el regalo.</small>
                   </label>
 
                   <div class="cart-item__actions">
-                    <div class="quantity-control" [attr.aria-label]="'Control de cantidad para ' + item.nombre">
+                    <div class="quantity-control" [attr.aria-label]="'Cantidad de ' + item.nombre">
                       <button
                         type="button"
                         (click)="actualizarCantidad(item.idProducto, item.cantidad - 1)"
                         [disabled]="item.cantidad <= 1"
                         [attr.aria-label]="'Disminuir cantidad de ' + item.nombre"
-                      >
-                        -
-                      </button>
+                      >−</button>
                       <input
                         type="number"
+                        inputmode="numeric"
                         min="1"
                         [max]="item.stockDisponible"
                         [ngModel]="item.cantidad"
@@ -138,19 +143,20 @@
                         (click)="actualizarCantidad(item.idProducto, item.cantidad + 1)"
                         [disabled]="item.cantidad >= item.stockDisponible"
                         [attr.aria-label]="'Aumentar cantidad de ' + item.nombre"
-                      >
-                        +
-                      </button>
+                      >+</button>
                     </div>
+
+                    <strong class="cart-item__subtotal">
+                      Subtotal
+                      <span>{{ item.precioUnitario * item.cantidad | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span>
+                    </strong>
 
                     <button
                       class="cart-item__remove"
                       type="button"
                       [attr.aria-label]="'Quitar ' + item.nombre + ' del carrito'"
                       (click)="carrito.quitarProducto(item.idProducto)"
-                    >
-                      Quitar
-                    </button>
+                    >Quitar</button>
                   </div>
                 </div>
               </article>
@@ -158,56 +164,63 @@
           </div>
         </div>
 
-        <aside class="cart-summary">
-          <span class="cart-summary__eyebrow">Resumen</span>
-          <h2>Solicitud de compra</h2>
-          <p>Validaremos stock, tienda, entrega y monto real antes de enviar el checkout al backend.</p>
+        <aside class="cart-summary" aria-labelledby="cart-summary-title">
+          <span class="cart-summary__eyebrow">Resumen de compra</span>
+          <h2 id="cart-summary-title">Tu reserva</h2>
 
           @if (cantidadTiendas() > 1) {
-            <div class="cart-summary__notice">
-              El checkout real solo prepara pedidos de una misma tienda. Separa tu compra para
-              continuar sin rechazo del backend.
+            <div class="cart-summary__notice" role="alert">
+              <strong>Hay productos de {{ cantidadTiendas() }} tiendas</strong>
+              <span>El backend prepara un checkout por tienda. Deja productos de una sola tienda para continuar.</span>
             </div>
           }
 
-          <div class="cart-summary__rows">
-            <div>
-              <span>Productos</span>
-              <strong>{{ carrito.cantidadItems() }}</strong>
-            </div>
-            <div>
-              <span>Tiendas</span>
-              <strong>{{ cantidadTiendas() }}</strong>
-            </div>
-            <div>
-              <span>Subtotal</span>
-              <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-            </div>
+          <div class="cart-summary__rows" aria-live="polite">
+            <div><span>Unidades</span><strong>{{ carrito.cantidadItems() }}</strong></div>
+            <div><span>Tienda(s)</span><strong>{{ cantidadTiendas() }}</strong></div>
+            <div><span>Entrega</span><strong>Por definir</strong></div>
             <div class="cart-summary__total">
               <span>Total referencial</span>
               <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
             </div>
           </div>
 
+          <p class="cart-summary__helper">El total definitivo se valida con stock y modalidad de pago.</p>
           <button
             class="cart-button cart-button--primary cart-button--block"
             type="button"
             [disabled]="!puedePrepararCheckout()"
-            [attr.aria-disabled]="!puedePrepararCheckout()"
             (click)="prepararCheckout()"
-          >
-            Preparar checkout
-          </button>
+          >Continuar con entrega y pago</button>
           <a class="cart-button cart-button--secondary cart-button--block" routerLink="/catalogo">
             Seguir comprando
           </a>
 
           <div class="cart-confirmation">
             <strong>Compra protegida por REGALIA</strong>
-            <p>La reserva se confirma despues de validar disponibilidad y condiciones de entrega.</p>
+            <p>No se genera un pedido hasta que la pasarela confirme el pago inicial.</p>
           </div>
         </aside>
       </section>
     }
   </div>
-</section>
+</div>
+
+<app-dialogo-ui
+  [abierto]="confirmacionVaciarAbierta()"
+  idDialogo="confirmar-vaciar-carrito"
+  idTitulo="confirmar-vaciar-titulo"
+  idDescripcion="confirmar-vaciar-descripcion"
+  tamano="sm"
+  (solicitudCierre)="cerrarConfirmacionVaciar()"
+>
+  <div class="cart-dialog">
+    <span class="cart-dialog__eyebrow">Confirmar acción</span>
+    <h2 id="confirmar-vaciar-titulo">¿Vaciar todo el carrito?</h2>
+    <p id="confirmar-vaciar-descripcion">Se eliminarán todos los productos y sus notas de personalización.</p>
+    <div class="cart-dialog__actions">
+      <button class="cart-button cart-button--secondary" type="button" (click)="cerrarConfirmacionVaciar()">Conservar productos</button>
+      <button class="cart-button cart-button--danger" type="button" (click)="confirmarVaciarCarrito()">Sí, vaciar carrito</button>
+    </div>
+  </div>
+</app-dialogo-ui>

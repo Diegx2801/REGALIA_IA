@@ -10,5 +10,5 @@ export const autenticacionGuard: CanActivateFn = (_route, state) => {
   if (sesion.estaAutenticado()) return true;
 
   const rutaLogin = state.url.startsWith('/admin') ? '/admin/login' : '/login';
-  return router.createUrlTree([rutaLogin]);
+  return router.createUrlTree([rutaLogin], { queryParams: { retorno: state.url } });
 };

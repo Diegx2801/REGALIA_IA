@@ -1,7 +1,9 @@
 package com.regalia.backend.builderIA.infrastructure.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -22,7 +24,11 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class BuilderIAClient {
+
+    private static final String MENSAJE_SERVICIO_NO_DISPONIBLE =
+            "La asistencia inteligente no está disponible en este momento. Intenta nuevamente en unos minutos.";
 
     private final BuilderIAProperties properties;
     private final ObjectMapper objectMapper;

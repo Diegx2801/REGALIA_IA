@@ -7,7 +7,7 @@ import { IdentidadCuenta } from '../../autenticacion/modelos/autenticacion.model
 import { UsuarioApiService } from '../acceso-datos/usuario-api.service';
 import { SolicitudActualizarPerfilUsuario, UsuarioPerfil } from '../modelos/usuario.model';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ClientePanelStore {
   private readonly usuarioApi = inject(UsuarioApiService);
   private readonly cuentaIdentidadApi = inject(CuentaIdentidadApiService);

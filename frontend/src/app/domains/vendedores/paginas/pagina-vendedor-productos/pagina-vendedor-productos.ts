@@ -618,7 +618,8 @@ export class PaginaVendedorProductos implements OnInit {
     }
 
     if (!control.hasError('tipoNoDisponible')) return;
-    const { tipoNoDisponible: _tipoNoDisponible, ...otrosErrores } = control.errors ?? {};
+    const otrosErrores = { ...(control.errors ?? {}) };
+    delete otrosErrores['tipoNoDisponible'];
     control.setErrors(Object.keys(otrosErrores).length > 0 ? otrosErrores : null);
   }
 

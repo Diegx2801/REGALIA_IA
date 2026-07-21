@@ -1,223 +1,419 @@
-<section class="cliente-perfil">
-  <header class="cliente-perfil__hero">
-    <span>Perfil cliente</span>
-    <h2>Datos personales y contacto</h2>
-    <p>Mantén actualizados tus datos de contacto y protege el acceso a tu cuenta.</p>
+<section class="perfil" aria-labelledby="perfil-titulo">
+  <nav class="perfil__migas" aria-label="Ruta de navegación">
+    <a routerLink="/">Inicio</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Mi perfil</span>
+  </nav>
+
+  <header class="perfil__hero">
+    <div class="perfil__hero-contenido">
+      <span class="perfil__eyebrow">Cuenta REGALIA</span>
+      <h2 id="perfil-titulo">Tu perfil, acceso y seguridad</h2>
+      <p>
+        Mantén tus datos al día y revisa cómo proteges tu experiencia de compra.
+      </p>
+    </div>
+    <div class="perfil__hero-sello" aria-hidden="true">
+      <span>Cuenta</span>
+      <strong>segura</strong>
+    </div>
   </header>
 
   @if (store.cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tu perfil." />
-  } @else if (store.mensajeError()) {
+    <section class="perfil__carga" aria-live="polite" aria-busy="true">
+      <span class="perfil__skeleton perfil__skeleton--titulo"></span>
+      <span class="perfil__skeleton"></span>
+      <div class="perfil__skeleton-grid">
+        <span class="perfil__skeleton perfil__skeleton--card"></span>
+        <span class="perfil__skeleton perfil__skeleton--card"></span>
+      </div>
+      <span class="visually-hidden">Cargando los datos de tu perfil.</span>
+    </section>
+  } @else if (store.mensajeError() && !store.perfil()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Error"
+      etiqueta="No pudimos cargar tu cuenta"
       [titulo]="store.mensajeError() ?? 'No pudimos cargar tu perfil.'"
+      descripcion="Comprueba tu conexión y vuelve a intentarlo."
       textoAccion="Reintentar"
       (accion)="store.cargarPanel(true)"
     />
   } @else {
-    @if (store.mensajeExito()) {
-      <app-estado-pantalla tipo="exito" etiqueta="Guardado" [titulo]="store.mensajeExito() ?? ''" />
-    }
+    <div class="perfil__mensajes" aria-live="polite">
+      @if (store.mensajeExito()) {
+        <p class="perfil__mensaje perfil__mensaje--exito">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m5 12 4 4L19 6" />
+          </svg>
+          {{ store.mensajeExito() }}
+        </p>
+      }
+      @if (store.mensajeError()) {
+        <p class="perfil__mensaje perfil__mensaje--error" role="alert">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 9v4m0 4h.01M10.3 4.2 2.8 17.3A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.7L13.7 4.2a2 2 0 0 0-3.4 0Z" />
+          </svg>
+          {{ store.mensajeError() }}
+        </p>
+      }
+    </div>
 
-    <section class="cliente-perfil__grid">
-      <article class="cliente-perfil__card cliente-perfil__card--cuenta">
-        <span>Cuenta</span>
-        <h3>{{ store.perfil()?.nombreCompleto }}</h3>
+    <section class="perfil__resumen" aria-labelledby="resumen-cuenta-titulo">
+      <div class="perfil__avatar" aria-hidden="true">{{ iniciales() }}</div>
+      <div class="perfil__resumen-identidad">
+        <span class="perfil__eyebrow">Mi cuenta</span>
+        <h2 id="resumen-cuenta-titulo">{{ store.perfil()?.nombreCompleto }}</h2>
         <p>{{ store.perfil()?.correo }}</p>
-        <div class="cliente-perfil__account-status">
-          <strong>{{ store.perfil()?.estado ? 'Cuenta activa' : 'Cuenta inactiva' }}</strong>
-          <strong
-            class="cliente-perfil__verification-status"
-            [class.cliente-perfil__verification-status--verified]="store.perfil()?.correoVerificado"
-          >
-            {{ store.perfil()?.correoVerificado ? 'Correo verificado' : 'Correo pendiente' }}
-          </strong>
+      </div>
+      <dl class="perfil__indicadores">
+        <div>
+          <dt>Estado</dt>
+          <dd>
+            <span class="perfil__punto perfil__punto--activo" aria-hidden="true"></span>
+            {{ store.perfil()?.estado ? 'Activa' : 'Inactiva' }}
+          </dd>
         </div>
-        @if (!store.perfil()?.correoVerificado) {
-          <div class="cliente-perfil__verification-note">
-            <p>Confirma tu correo para proteger tu cuenta y recibir avisos importantes.</p>
-            <div class="cliente-perfil__verification-actions">
-              <button
-                type="button"
-                class="cliente-perfil__verification-action"
-                [disabled]="store.reenviandoVerificacion()"
-                (click)="reenviarVerificacionCorreo()"
-              >
-                {{ store.reenviandoVerificacion() ? 'Reenviando...' : 'Reenviar enlace' }}
-              </button>
-              <button
-                type="button"
-                class="cliente-perfil__verification-action cliente-perfil__verification-action--ghost"
-                [disabled]="store.refrescandoPerfil()"
-                (click)="refrescarEstadoCorreo()"
-              >
-                {{ store.refrescandoPerfil() ? 'Actualizando...' : 'Actualizar estado' }}
-              </button>
-            </div>
-          </div>
-        }
-      </article>
-
-      <article
-        class="cliente-perfil__card cliente-perfil__card--identidad cliente-perfil__card--venta"
-      >
-        <span>Vender en REGALIA</span>
-        <h3>Abre tu vitrina</h3>
-        <p>Usa esta misma cuenta para crear una tienda y gestionar tus productos.</p>
-        <a appBoton="secundario" routerLink="/vender">Conocer el proceso</a>
-      </article>
-
-      <article
-        class="cliente-perfil__card cliente-perfil__card--identidad cliente-perfil__card--acceso"
-      >
-        <span>Acceso</span>
-        <h3>Metodos de ingreso</h3>
-        <p>Añade una forma práctica de iniciar sesión en tu cuenta.</p>
-
-        <div class="cliente-perfil__identity">
-          <div>
-            <strong>Google</strong>
-            @if (store.identidadGoogle(); as identidadGoogle) {
-              <small>{{ identidadGoogle.correo }}</small>
-            } @else {
-              <small>Vincula tu correo verificado de Google.</small>
-            }
-          </div>
-          <span
-            class="cliente-perfil__identity-status"
-            [class.cliente-perfil__identity-status--active]="store.googleVinculado()"
-          >
-            {{ store.googleVinculado() ? 'Vinculado' : 'Pendiente' }}
-          </span>
+        <div>
+          <dt>Correo</dt>
+          <dd [class.perfil__indicador-pendiente]="!store.perfil()?.correoVerificado">
+            {{ store.perfil()?.correoVerificado ? 'Verificado' : 'Pendiente' }}
+          </dd>
         </div>
-
-        @if (!store.googleVinculado()) {
-          <app-boton-google-login
-            modo="login"
-            [disabled]="store.vinculandoGoogle()"
-            [mostrarCuentaGoogle]="false"
-            (idTokenObtenido)="vincularGoogle($event)"
-            (errorAutenticacion)="registrarErrorGoogle($event)"
-          />
-        } @else {
-          <p class="cliente-perfil__identity-note">
-            Ya puedes iniciar sesion con Google usando este mismo correo.
-          </p>
-        }
-      </article>
-
-      <form
-        appFormularioPanel
-        appFormularioUnaColumna
-        class="cliente-perfil__formulario"
-        [formGroup]="formularioPerfil"
-        (ngSubmit)="guardarPerfil()"
-      >
-        <label appCampoFormulario>
-          Nombres
-          <input type="text" formControlName="nombres" autocomplete="given-name" />
-          @if (campoTieneError('nombres')) {
-            <small appErrorCampo>Los nombres son obligatorios.</small>
-          }
-        </label>
-
-        <label appCampoFormulario>
-          Apellidos
-          <input type="text" formControlName="apellidos" autocomplete="family-name" />
-          @if (campoTieneError('apellidos')) {
-            <small appErrorCampo>Los apellidos son obligatorios.</small>
-          }
-        </label>
-
-        <label appCampoFormulario>
-          Telefono
-          <input
-            type="tel"
-            formControlName="telefono"
-            autocomplete="tel"
-            placeholder="Ej. 999888777"
-          />
-          @if (campoTieneError('telefono')) {
-            <small appErrorCampo>El telefono no debe superar 20 caracteres.</small>
-          }
-        </label>
-
-        <button
-          appBoton
-          appBotonBloque
-          [appBotonCargando]="store.guardandoPerfil()"
-          type="submit"
-          [disabled]="store.guardandoPerfil()"
-        >
-          {{ store.guardandoPerfil() ? 'Guardando...' : 'Guardar perfil' }}
-        </button>
-      </form>
-
-      <form
-        appFormularioPanel
-        appFormularioUnaColumna
-        class="cliente-perfil__formulario cliente-perfil__formulario--contrasena"
-        [formGroup]="formularioContrasena"
-        (ngSubmit)="cambiarContrasena()"
-      >
-        <header class="cliente-perfil__formulario-header">
-          <span>Seguridad</span>
-          <h3>Cambiar contrasena</h3>
-          <p>Por seguridad, cerraremos tu sesion despues de actualizarla.</p>
-        </header>
-
-        <label appCampoFormulario>
-          Contrasena actual
-          <input
-            type="password"
-            autocomplete="current-password"
-            formControlName="contrasenaActual"
-          />
-          @if (campoContrasenaTieneError('contrasenaActual')) {
-            <small appErrorCampo>Ingresa tu contrasena actual.</small>
-          }
-        </label>
-
-        <label appCampoFormulario>
-          Nueva contrasena
-          <input type="password" autocomplete="new-password" formControlName="nuevaContrasena" />
-          @if (campoContrasenaTieneError('nuevaContrasena')) {
-            <small appErrorCampo>Usa entre 8 y 100 caracteres.</small>
-          }
-        </label>
-
-        <label appCampoFormulario>
-          Confirmar nueva contrasena
-          <input
-            type="password"
-            autocomplete="new-password"
-            formControlName="confirmarContrasena"
-          />
-          @if (
-            campoContrasenaTieneError('confirmarContrasena') ||
-            (formularioContrasena.controls.confirmarContrasena.touched && !contrasenasCoinciden())
-          ) {
-            <small appErrorCampo>Las contrasenas deben coincidir.</small>
-          }
-        </label>
-
-        @if (mensajeCambioContrasena()) {
-          <p class="cliente-perfil__password-error" role="alert">{{ mensajeCambioContrasena() }}</p>
-        }
-
-        <button
-          appBoton
-          appBotonBloque
-          [appBotonCargando]="cambiandoContrasena()"
-          type="submit"
-          [disabled]="cambiandoContrasena()"
-        >
-          {{ cambiandoContrasena() ? 'Actualizando...' : 'Actualizar contrasena' }}
-        </button>
-      </form>
+        <div>
+          <dt>Métodos de acceso</dt>
+          <dd>{{ cantidadMetodosAcceso() }}</dd>
+        </div>
+      </dl>
     </section>
 
-    <app-panel-documentos-usuario />
+    @if (!store.perfil()?.correoVerificado) {
+      <section class="perfil__alerta" aria-labelledby="verificacion-titulo">
+        <div class="perfil__alerta-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM4 7l8 6 8-6" /></svg>
+        </div>
+        <div>
+          <span class="perfil__eyebrow">Acción recomendada</span>
+          <h2 id="verificacion-titulo">Verifica tu correo electrónico</h2>
+          <p>
+            Confirma el enlace que enviamos a {{ store.perfil()?.correo }} para proteger la cuenta
+            y habilitar operaciones sensibles.
+          </p>
+        </div>
+        <div class="perfil__alerta-acciones">
+          <button
+            type="button"
+            class="perfil__boton perfil__boton--primario"
+            [disabled]="store.reenviandoVerificacion()"
+            (click)="reenviarVerificacionCorreo()"
+          >
+            {{ store.reenviandoVerificacion() ? 'Enviando enlace…' : 'Reenviar enlace' }}
+          </button>
+          <button
+            type="button"
+            class="perfil__boton perfil__boton--texto"
+            [disabled]="store.refrescandoPerfil()"
+            (click)="refrescarEstadoCorreo()"
+          >
+            {{ store.refrescandoPerfil() ? 'Comprobando…' : 'Ya lo verifiqué' }}
+          </button>
+        </div>
+      </section>
+    }
+
+    <div class="perfil__contenido">
+      <section class="perfil__columna-principal" aria-label="Configuración del perfil">
+        <article class="perfil__panel" aria-labelledby="datos-personales-titulo">
+          <header class="perfil__panel-encabezado">
+            <div class="perfil__panel-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0m8-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /></svg>
+            </div>
+            <div>
+              <span class="perfil__eyebrow">Datos personales</span>
+              <h2 id="datos-personales-titulo">Información de contacto</h2>
+              <p>Usaremos estos datos para tus compras, entregas y comunicaciones importantes.</p>
+            </div>
+          </header>
+
+          <form
+            class="perfil__formulario"
+            [formGroup]="formularioPerfil"
+            (ngSubmit)="guardarPerfil()"
+            novalidate
+          >
+            <div class="perfil__campos-dobles">
+              <label class="perfil__campo">
+                <span>Nombres</span>
+                <input
+                  type="text"
+                  formControlName="nombres"
+                  autocomplete="given-name"
+                  [attr.aria-invalid]="campoTieneError('nombres')"
+                  [attr.aria-describedby]="campoTieneError('nombres') ? 'nombres-error' : null"
+                />
+                @if (campoTieneError('nombres')) {
+                  <small id="nombres-error" class="perfil__error">Ingresa tus nombres.</small>
+                }
+              </label>
+
+              <label class="perfil__campo">
+                <span>Apellidos</span>
+                <input
+                  type="text"
+                  formControlName="apellidos"
+                  autocomplete="family-name"
+                  [attr.aria-invalid]="campoTieneError('apellidos')"
+                  [attr.aria-describedby]="campoTieneError('apellidos') ? 'apellidos-error' : null"
+                />
+                @if (campoTieneError('apellidos')) {
+                  <small id="apellidos-error" class="perfil__error">Ingresa tus apellidos.</small>
+                }
+              </label>
+            </div>
+
+            <label class="perfil__campo">
+              <span>Teléfono</span>
+              <input
+                type="tel"
+                formControlName="telefono"
+                autocomplete="tel"
+                inputmode="tel"
+                placeholder="Ej. 999 888 777"
+                [attr.aria-invalid]="campoTieneError('telefono')"
+                [attr.aria-describedby]="campoTieneError('telefono') ? 'telefono-error' : 'telefono-ayuda'"
+              />
+              <small id="telefono-ayuda" class="perfil__ayuda">Opcional. Máximo 20 caracteres.</small>
+              @if (campoTieneError('telefono')) {
+                <small id="telefono-error" class="perfil__error">Revisa la longitud del teléfono.</small>
+              }
+            </label>
+
+            <div class="perfil__formulario-pie">
+              <p>El correo de la cuenta no se puede modificar desde este formulario.</p>
+              <button
+                type="submit"
+                class="perfil__boton perfil__boton--primario"
+                [disabled]="store.guardandoPerfil()"
+              >
+                {{ store.guardandoPerfil() ? 'Guardando cambios…' : 'Guardar cambios' }}
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <article class="perfil__panel" aria-labelledby="seguridad-titulo">
+          <header class="perfil__panel-encabezado">
+            <div class="perfil__panel-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Zm-3-10 2 2 4-5" /></svg>
+            </div>
+            <div>
+              <span class="perfil__eyebrow">Seguridad</span>
+              <h2 id="seguridad-titulo">Actualizar contraseña</h2>
+              <p>Al cambiarla cerraremos esta sesión y deberás ingresar nuevamente.</p>
+            </div>
+          </header>
+
+          <form
+            class="perfil__formulario"
+            [formGroup]="formularioContrasena"
+            (ngSubmit)="cambiarContrasena()"
+            novalidate
+          >
+            <input
+              class="perfil__usuario-autocomplete"
+              type="email"
+              name="username"
+              autocomplete="username"
+              [value]="store.perfil()?.correo ?? ''"
+              tabindex="-1"
+              aria-hidden="true"
+              readonly
+            />
+            <label class="perfil__campo">
+              <span>Contraseña actual</span>
+              <span class="perfil__entrada-con-accion">
+                <input
+                  [type]="mostrarContrasenaActual() ? 'text' : 'password'"
+                  autocomplete="current-password"
+                  formControlName="contrasenaActual"
+                  [attr.aria-invalid]="campoContrasenaTieneError('contrasenaActual')"
+                  [attr.aria-describedby]="campoContrasenaTieneError('contrasenaActual') ? 'contrasena-actual-error' : null"
+                />
+                <button
+                  type="button"
+                  (click)="alternarVisibilidad('actual')"
+                  [attr.aria-label]="mostrarContrasenaActual() ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual'"
+                  [attr.aria-pressed]="mostrarContrasenaActual()"
+                >
+                  {{ mostrarContrasenaActual() ? 'Ocultar' : 'Mostrar' }}
+                </button>
+              </span>
+              @if (campoContrasenaTieneError('contrasenaActual')) {
+                <small id="contrasena-actual-error" class="perfil__error">Ingresa tu contraseña actual.</small>
+              }
+            </label>
+
+            <div class="perfil__campos-dobles">
+              <label class="perfil__campo">
+                <span>Nueva contraseña</span>
+                <span class="perfil__entrada-con-accion">
+                  <input
+                    [type]="mostrarNuevaContrasena() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    formControlName="nuevaContrasena"
+                    [attr.aria-invalid]="campoContrasenaTieneError('nuevaContrasena')"
+                    [attr.aria-describedby]="campoContrasenaTieneError('nuevaContrasena') ? 'nueva-contrasena-error' : 'nueva-contrasena-ayuda'"
+                  />
+                  <button
+                    type="button"
+                    (click)="alternarVisibilidad('nueva')"
+                    [attr.aria-label]="mostrarNuevaContrasena() ? 'Ocultar nueva contraseña' : 'Mostrar nueva contraseña'"
+                    [attr.aria-pressed]="mostrarNuevaContrasena()"
+                  >
+                    {{ mostrarNuevaContrasena() ? 'Ocultar' : 'Mostrar' }}
+                  </button>
+                </span>
+                <small id="nueva-contrasena-ayuda" class="perfil__ayuda">Usa entre 8 y 100 caracteres.</small>
+                @if (campoContrasenaTieneError('nuevaContrasena')) {
+                  <small id="nueva-contrasena-error" class="perfil__error">Debe tener entre 8 y 100 caracteres.</small>
+                }
+              </label>
+
+              <label class="perfil__campo">
+                <span>Confirmar contraseña</span>
+                <span class="perfil__entrada-con-accion">
+                  <input
+                    [type]="mostrarConfirmacionContrasena() ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    formControlName="confirmarContrasena"
+                    [attr.aria-invalid]="formularioContrasena.controls.confirmarContrasena.touched && !contrasenasCoinciden()"
+                    [attr.aria-describedby]="formularioContrasena.controls.confirmarContrasena.touched && !contrasenasCoinciden() ? 'confirmar-contrasena-error' : null"
+                  />
+                  <button
+                    type="button"
+                    (click)="alternarVisibilidad('confirmacion')"
+                    [attr.aria-label]="mostrarConfirmacionContrasena() ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'"
+                    [attr.aria-pressed]="mostrarConfirmacionContrasena()"
+                  >
+                    {{ mostrarConfirmacionContrasena() ? 'Ocultar' : 'Mostrar' }}
+                  </button>
+                </span>
+                @if (
+                  campoContrasenaTieneError('confirmarContrasena') ||
+                  (formularioContrasena.controls.confirmarContrasena.touched && !contrasenasCoinciden())
+                ) {
+                  <small id="confirmar-contrasena-error" class="perfil__error">Las contraseñas deben coincidir.</small>
+                }
+              </label>
+            </div>
+
+            @if (mensajeCambioContrasena()) {
+              <p class="perfil__mensaje perfil__mensaje--error" role="alert">
+                {{ mensajeCambioContrasena() }}
+              </p>
+            }
+
+            <div class="perfil__formulario-pie">
+              <p>No compartas tu contraseña ni reutilices una que uses en otros servicios.</p>
+              <button
+                type="submit"
+                class="perfil__boton perfil__boton--primario"
+                [disabled]="cambiandoContrasena()"
+              >
+                {{ cambiandoContrasena() ? 'Actualizando contraseña…' : 'Actualizar contraseña' }}
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <app-panel-documentos-usuario />
+      </section>
+
+      <aside class="perfil__columna-lateral" aria-label="Acceso y configuración de cuenta">
+        <section class="perfil__panel perfil__panel--lateral" aria-labelledby="metodos-acceso-titulo">
+          <header>
+            <span class="perfil__eyebrow">Métodos de acceso</span>
+            <h2 id="metodos-acceso-titulo">Cómo ingresas a REGALIA</h2>
+            <p>Revisa las credenciales asociadas a esta cuenta.</p>
+          </header>
+
+          <ul class="perfil__metodos">
+            <li>
+              <span class="perfil__metodo-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-12 0h14v11H5z" /></svg>
+              </span>
+              <div>
+                <strong>Correo y contraseña</strong>
+                <small>{{ store.perfil()?.correo }}</small>
+              </div>
+              <span class="perfil__estado perfil__estado--activo">Activo</span>
+            </li>
+            <li>
+              <span class="perfil__metodo-icono perfil__metodo-icono--google" aria-hidden="true">G</span>
+              <div>
+                <strong>Google</strong>
+                @if (store.identidadGoogle(); as identidadGoogle) {
+                  <small>{{ identidadGoogle.correo }}</small>
+                } @else {
+                  <small>Acceso rápido con tu cuenta Google</small>
+                }
+              </div>
+              <span
+                class="perfil__estado"
+                [class.perfil__estado--activo]="store.googleVinculado()"
+              >
+                {{ store.googleVinculado() ? 'Vinculado' : 'Disponible' }}
+              </span>
+            </li>
+          </ul>
+
+          @if (!store.googleVinculado()) {
+            <div class="perfil__google-accion">
+              <p>Google debe usar el mismo correo verificado de tu cuenta REGALIA.</p>
+              <app-boton-google-login
+                modo="login"
+                [disabled]="store.vinculandoGoogle()"
+                [mostrarCuentaGoogle]="false"
+                (idTokenObtenido)="vincularGoogle($event)"
+                (errorAutenticacion)="registrarErrorGoogle($event)"
+              />
+            </div>
+          } @else {
+            <p class="perfil__nota-segura">
+              Google está vinculado. Ya puedes usarlo para iniciar sesión con este correo.
+            </p>
+          }
+        </section>
+
+        <section class="perfil__panel perfil__panel--lateral" aria-labelledby="configuracion-cuenta-titulo">
+          <header>
+            <span class="perfil__eyebrow">Configuración</span>
+            <h2 id="configuracion-cuenta-titulo">Información de la cuenta</h2>
+          </header>
+          <dl class="perfil__datos-cuenta">
+            <div>
+              <dt>Correo principal</dt>
+              <dd>{{ store.perfil()?.correo }}</dd>
+            </div>
+            <div>
+              <dt>Teléfono</dt>
+              <dd>{{ store.perfil()?.telefono }}</dd>
+            </div>
+            <div>
+              <dt>Miembro desde</dt>
+              <dd>
+                {{ formatearMesAnio(store.perfil()?.fechaCreacion) }}
+              </dd>
+            </div>
+          </dl>
+          <a class="perfil__enlace-vendedor" routerLink="/vender">
+            <span>
+              <strong>¿Quieres vender en REGALIA?</strong>
+              <small>Conoce el proceso para abrir tu tienda.</small>
+            </span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </a>
+        </section>
+      </aside>
+    </div>
   }
 </section>

@@ -9,6 +9,7 @@ export function mapearTiendaPublicaDesdeDto(dto: TiendaPublicaDto): TiendaPublic
     direccionReferencia: dto.direccionReferencia?.trim() || 'Ubicacion pendiente',
     estadoRevision: dto.estadoRevision?.trim() || 'PENDIENTE',
     tiendaFormalizada: Boolean(dto.tiendaFormalizada),
+    fechaCreacion: dto.fechaCreacion ?? null,
     rubros: (dto.rubros ?? []).map((rubro) => ({
       idRubro: rubro.idRubro,
       nombre: rubro.nombre?.trim() || 'Rubro REGALIA',

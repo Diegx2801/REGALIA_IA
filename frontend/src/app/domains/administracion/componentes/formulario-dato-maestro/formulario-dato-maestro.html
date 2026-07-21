@@ -1,4 +1,4 @@
-<section class="formulario-dato" aria-labelledby="titulo-formulario-dato">
+<section class="formulario-dato" aria-labelledby="titulo-formulario-dato" [attr.aria-busy]="procesando()">
   <header class="formulario-dato__encabezado">
     <div>
       <span>{{ dato() ? 'Edición' : 'Nuevo registro' }}</span>
@@ -21,6 +21,7 @@
         etiqueta="Nombre"
         [control]="formulario.controls.nombre"
         placeholder="Escribe un nombre descriptivo"
+        ayuda="Usa un nombre claro y reconocible para toda la operación."
         mensajeError="Ingresa un nombre válido dentro del límite permitido."
       />
 
@@ -77,7 +78,7 @@
 
     <footer class="formulario-dato__acciones">
       <button appBoton type="submit" [disabled]="procesando()" [appBotonCargando]="procesando()">
-        {{ procesando() ? 'Guardando...' : 'Guardar cambios' }}
+        {{ procesando() ? 'Guardando…' : dato() ? 'Guardar cambios' : 'Crear registro' }}
       </button>
       <button appBoton="fantasma" type="button" [disabled]="procesando()" (click)="cancelar.emit()">
         Cancelar

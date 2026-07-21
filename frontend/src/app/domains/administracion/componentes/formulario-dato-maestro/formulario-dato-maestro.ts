@@ -1,4 +1,13 @@
-import { Component, input, OnChanges, output, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  input,
+  OnChanges,
+  output,
+  SimpleChanges,
+} from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -36,8 +45,11 @@ import {
   ],
   templateUrl: './formulario-dato-maestro.html',
   styleUrl: './formulario-dato-maestro.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormularioDatoMaestro implements OnChanges {
+  private readonly elemento: ElementRef<HTMLElement> = inject(ElementRef);
+
   readonly tipo = input<TipoDatoMaestroAdmin>('RUBRO');
   readonly dato = input<DatoMaestroAdmin | null>(null);
   readonly categoriasDocumento = input<readonly CategoriaDocumentoAdmin[]>([]);
@@ -80,7 +92,14 @@ export class FormularioDatoMaestro implements OnChanges {
 
   enviar(): void {
     this.formulario.markAllAsTouched();
-    if (this.formulario.invalid || this.procesando()) return;
+    if (this.formulario.invalid || this.procesando()) {
+      queueMicrotask(() =>
+        this.elemento.nativeElement
+          .querySelector<HTMLElement>('input.ng-invalid, select.ng-invalid, textarea.ng-invalid')
+          ?.focus(),
+      );
+      return;
+    }
 
     const valores = this.formulario.getRawValue();
     this.guardar.emit({

@@ -1,140 +1,368 @@
-<main class="solicitud-checkout">
-  <a appBoton="fantasma" appBotonTamano="sm" class="solicitud-checkout__volver" routerLink="/catalogo">Volver al catalogo</a>
+<div class="solicitud-checkout">
+  <div class="solicitud-checkout__container">
+    <a
+      appBoton="fantasma"
+      appBotonTamano="sm"
+      class="solicitud-checkout__volver"
+      [routerLink]="usaCarrito() ? '/carrito' : '/catalogo'"
+    >
+      {{ usaCarrito() ? 'Volver al carrito' : 'Volver al catálogo' }}
+    </a>
 
-  @if (cargandoDatos()) {
-    <section class="solicitud-checkout__estado">
-      <span>Preparando solicitud</span>
-      <h1>Cargando producto y opciones de entrega.</h1>
-      <p>Estamos consultando el backend para trabajar con datos reales.</p>
-    </section>
-  } @else if (itemsSolicitud().length > 0) {
-    <section class="solicitud-checkout__layout">
-      <article class="solicitud-checkout__producto">
-        @if (producto(); as productoActual) {
-          <span>{{ productoActual.tipoProducto }}</span>
-          <h1>{{ productoActual.nombre }}</h1>
-          <p>{{ productoActual.descripcion }}</p>
-        } @else {
-          <span>Checkout de carrito</span>
-          <h1>{{ cantidadItemsSolicitud() }} regalo(s) seleccionados.</h1>
-          <p>Revisaremos tienda, entrega, stock y pago inicial antes de enviar al backend.</p>
-        }
-
-        <div class="solicitud-checkout__resumen">
-          <strong>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
-          <small>{{ cantidadItemsSolicitud() }} unidad(es) solicitadas</small>
+    @if (cargandoDatos()) {
+      <section class="solicitud-checkout__estado" role="status" aria-live="polite">
+        <span class="checkout-loader" aria-hidden="true"></span>
+        <div>
+          <small>Preparando checkout</small>
+          <h1>Estamos cargando entrega y formas de pago</h1>
+          <p>Consultamos las opciones vigentes antes de mostrarte el formulario.</p>
         </div>
+      </section>
+    } @else if (itemsSolicitud().length > 0) {
+      <header class="checkout-hero">
+        <div>
+          <span>Checkout REGALIA</span>
+          <h1>Completa la entrega y revisa tu pago</h1>
+          <p>El backend validará stock, monto y disponibilidad antes de enviarte a la pasarela.</p>
+        </div>
+        <div class="checkout-hero__security">
+          <strong>Pago protegido</strong>
+          <small>No almacenamos datos de tarjeta.</small>
+        </div>
+      </header>
 
-        @if (usaCarrito()) {
-          <div class="solicitud-checkout__items">
-            @for (item of itemsSolicitud(); track item.idProducto) {
+      <nav class="checkout-progress" aria-label="Progreso del checkout">
+        <span class="checkout-progress__done"><b>1</b> Carrito revisado</span>
+        <span class="checkout-progress__active" aria-current="step"><b>2</b> Entrega y pago</span>
+        <span><b>3</b> Confirmación</span>
+      </nav>
+
+      @if (resultadoCheckout(); as resultado) {
+        <section
+          id="checkout-confirmacion"
+          class="checkout-confirmation"
+          role="status"
+          aria-live="polite"
+          tabindex="-1"
+        >
+          <div>
+            <span>Checkout preparado</span>
+            <h2>Tu solicitud está lista para continuar</h2>
+            <p>
+              REGALIA validó el monto inicial de
+              <strong>{{
+                resultado.monto | currency: resultado.moneda : 'symbol-narrow' : '1.2-2'
+              }}</strong
+              >. El pedido se confirmará cuando la pasarela apruebe el pago.
+            </p>
+          </div>
+          <div class="checkout-confirmation__actions">
+            @if (resultado.urlRedireccion) {
+              <a
+                appBoton
+                [href]="resultado.urlRedireccion"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Continuar al pago <span class="sr-only">(se abre en una pestaña nueva)</span></a
+              >
+            }
+            <button appBoton="secundario" type="button" (click)="editarSolicitud()">
+              Revisar datos
+            </button>
+          </div>
+        </section>
+      }
+
+      <section class="solicitud-checkout__layout">
+        <form
+          class="solicitud-checkout__formulario"
+          [formGroup]="formulario"
+          (ngSubmit)="prepararCheckout()"
+          novalidate
+        >
+          <header class="solicitud-checkout__cabecera">
+            <span>Datos de la solicitud</span>
+            <h2>Configura tu pedido</h2>
+            <p>Los campos marcados como obligatorios deben completarse antes de pagar.</p>
+          </header>
+
+          @if (mensajeError()) {
+            <div class="solicitud-checkout__alerta" role="alert" aria-live="assertive">
+              <strong>No pudimos continuar</strong>
+              <p>{{ mensajeError() }}</p>
+            </div>
+          }
+
+          <fieldset class="checkout-section" id="checkout-entrega" tabindex="-1">
+            <legend>
+              <span>1</span>
+              <span
+                ><strong>Pedido y entrega</strong
+                ><small>Indica cómo y cuándo quieres recibirlo.</small></span
+              >
+            </legend>
+
+            <div class="checkout-section__grid">
+              @if (producto(); as productoActual) {
+                <label appCampoFormulario>
+                  <span>Cantidad <b aria-hidden="true">*</b></span>
+                  <input
+                    id="checkout-cantidad"
+                    type="number"
+                    inputmode="numeric"
+                    min="1"
+                    [max]="productoActual.stock"
+                    formControlName="cantidad"
+                    [attr.aria-invalid]="campoTieneError('cantidad')"
+                    aria-describedby="checkout-cantidad-ayuda checkout-cantidad-error"
+                  />
+                  <small id="checkout-cantidad-ayuda"
+                    >Disponible: {{ productoActual.stock }} unidades.</small
+                  >
+                  @if (campoTieneError('cantidad')) {
+                    <small id="checkout-cantidad-error" appErrorCampo
+                      >Ingresa una cantidad entre 1 y {{ productoActual.stock }}.</small
+                    >
+                  }
+                </label>
+              }
+
+              <label appCampoFormulario>
+                <span>Modalidad de entrega <b aria-hidden="true">*</b></span>
+                <select
+                  id="checkout-tipo-entrega"
+                  formControlName="idTipoEntrega"
+                  [attr.aria-invalid]="campoTieneError('idTipoEntrega')"
+                  aria-describedby="checkout-entrega-error"
+                >
+                  @for (tipoEntrega of tiposEntrega(); track tipoEntrega.idTipoEntrega) {
+                    <option [ngValue]="tipoEntrega.idTipoEntrega">{{ tipoEntrega.nombre }}</option>
+                  }
+                </select>
+                @if (campoTieneError('idTipoEntrega')) {
+                  <small id="checkout-entrega-error" appErrorCampo
+                    >Selecciona una modalidad de entrega disponible.</small
+                  >
+                }
+              </label>
+
+              <label appCampoFormulario>
+                <span>Fecha solicitada <b aria-hidden="true">*</b></span>
+                <input
+                  id="checkout-fecha"
+                  type="date"
+                  [min]="fechaMinimaEntrega"
+                  formControlName="fechaEntrega"
+                  [attr.aria-invalid]="campoTieneError('fechaEntrega')"
+                  aria-describedby="checkout-fecha-ayuda checkout-fecha-error"
+                />
+                <small id="checkout-fecha-ayuda"
+                  >La fecha más próxima disponible es {{ fechaMinimaEntrega }}.</small
+                >
+                @if (campoTieneError('fechaEntrega')) {
+                  <small id="checkout-fecha-error" appErrorCampo
+                    >Elige una fecha válida desde {{ fechaMinimaEntrega }}.</small
+                  >
+                }
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="checkout-section checkout-section--payment">
+            <legend>
+              <span>2</span>
+              <span
+                ><strong>Pago inicial</strong
+                ><small>Selecciona una opción habilitada por REGALIA.</small></span
+              >
+            </legend>
+
+            <div
+              class="checkout-payment-options"
+              [attr.aria-invalid]="campoTieneError('codigoTipoPago')"
+            >
+              @for (opcion of opcionesPago(); track opcion.codigo) {
+                <label class="checkout-payment-option">
+                  <input type="radio" formControlName="codigoTipoPago" [value]="opcion.codigo" />
+                  <span>
+                    <strong>{{ opcion.nombre }}</strong>
+                    <small>{{
+                      opcion.descripcion || 'El backend calculará el importe correspondiente.'
+                    }}</small>
+                  </span>
+                </label>
+              } @empty {
+                <p class="checkout-payment-empty">
+                  {{
+                    requiereLogin()
+                      ? 'Inicia sesión para consultar las opciones de pago.'
+                      : 'No hay opciones de pago disponibles en este momento.'
+                  }}
+                </p>
+              }
+            </div>
+            @if (campoTieneError('codigoTipoPago') && !requiereLogin()) {
+              <small appErrorCampo>Selecciona una modalidad de pago inicial.</small>
+            }
+          </fieldset>
+
+          <fieldset class="checkout-section">
+            <legend>
+              <span>3</span>
+              <span
+                ><strong>Personalización</strong
+                ><small>Comparte indicaciones claras para la tienda.</small></span
+              >
+            </legend>
+
+            <label appCampoFormulario>
+              <span>
+                Personalización y observaciones
+                @if (requiereObservacionGeneral()) {
+                  <b aria-hidden="true">*</b>
+                }
+              </span>
+              <textarea
+                id="checkout-observacion"
+                rows="5"
+                maxlength="1000"
+                formControlName="observacion"
+                [attr.aria-invalid]="campoTieneError('observacion')"
+                aria-describedby="checkout-observacion-ayuda checkout-observacion-error"
+                placeholder="Ej.: nombre, dedicatoria, colores, ocasión, horario o referencia de entrega"
+              ></textarea>
+              <small id="checkout-observacion-ayuda">
+                {{ formulario.controls.observacion.value.length }}/1000 caracteres.
+                @if (usaCarrito()) {
+                  Las notas de cada producto también se enviarán a la tienda.
+                }
+              </small>
+              @if (campoTieneError('observacion')) {
+                <small id="checkout-observacion-error" appErrorCampo>
+                  {{
+                    requiereObservacionGeneral()
+                      ? 'Describe la personalización del regalo.'
+                      : 'La observación no debe superar 1000 caracteres.'
+                  }}
+                </small>
+              }
+            </label>
+          </fieldset>
+
+          @if (requiereLogin()) {
+            <section class="checkout-login" aria-labelledby="checkout-login-title">
               <div>
-                <strong>{{ item.nombre }}</strong>
-                <small>{{ item.cantidad }} x {{ item.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small>
+                <strong id="checkout-login-title">Inicia sesión para continuar al pago</strong>
+                <p>Necesitamos asociar la compra y su seguimiento a tu cuenta de cliente.</p>
               </div>
+              <a
+                appBoton="secundario"
+                routerLink="/login"
+                [queryParams]="{ retorno: rutaRetorno() }"
+                >Iniciar sesión</a
+              >
+            </section>
+          } @else if (requiereRolCliente()) {
+            <section class="checkout-login" aria-labelledby="checkout-role-title">
+              <div>
+                <strong id="checkout-role-title">Cambia a una cuenta de cliente</strong>
+                <p>
+                  Vendedores y administradores no pueden confirmar compras desde su panel operativo.
+                </p>
+              </div>
+              <a appBoton="secundario" routerLink="/acceso-denegado">Ir a mi espacio</a>
+            </section>
+          } @else if (requiereCorreoVerificado()) {
+            <section class="checkout-login" aria-labelledby="checkout-verification-title">
+              <div>
+                <strong id="checkout-verification-title"
+                  >Verifica tu correo para proteger la compra</strong
+                >
+                <p>
+                  Podrás reenviar el mensaje de verificación desde la configuración de tu perfil.
+                </p>
+              </div>
+              <a appBoton="secundario" routerLink="/cliente/perfil">Revisar mi cuenta</a>
+            </section>
+          }
+
+          <button
+            appBoton
+            appBotonBloque
+            [appBotonCargando]="enviandoSolicitud()"
+            type="submit"
+            [disabled]="enviandoSolicitud() || checkoutBloqueado() || !!resultadoCheckout()"
+          >
+            @if (enviandoSolicitud()) {
+              Validando y preparando pago…
+            } @else if (resultadoCheckout()) {
+              Checkout preparado
+            } @else {
+              Validar y preparar pago
+            }
+          </button>
+          <p class="checkout-submit-help">No se realizará ningún cobro al presionar este botón.</p>
+        </form>
+
+        <aside class="checkout-summary" aria-labelledby="checkout-summary-title">
+          <div class="checkout-summary__header">
+            <span>Resumen de compra</span>
+            <h2 id="checkout-summary-title">{{ cantidadItemsSolicitud() }} unidad(es)</h2>
+          </div>
+
+          <div class="checkout-summary__items">
+            @for (item of itemsSolicitud(); track item.idProducto) {
+              <article>
+                <img
+                  [src]="item.urlImagen"
+                  [alt]="item.nombre"
+                  width="72"
+                  height="72"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div>
+                  <strong>{{ item.nombre }}</strong>
+                  <small>{{ item.nombreTienda }} · {{ item.cantidad }} unidad(es)</small>
+                  <span>{{
+                    item.precioUnitario * item.cantidad
+                      | currency: 'PEN' : 'symbol-narrow' : '1.2-2'
+                  }}</span>
+                </div>
+              </article>
             }
           </div>
-        }
-      </article>
 
-      <form appFormularioPanel class="solicitud-checkout__formulario" [formGroup]="formulario" (ngSubmit)="prepararCheckout()">
-        <div class="solicitud-checkout__cabecera">
-          <span>Solicitud personalizada</span>
-          <h2>Define entrega, cantidad y pago inicial.</h2>
+          <dl class="checkout-summary__totals">
+            <div>
+              <dt>Productos</dt>
+              <dd>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+            </div>
+            <div>
+              <dt>Entrega</dt>
+              <dd>Por confirmar</dd>
+            </div>
+            <div class="checkout-summary__total">
+              <dt>Total referencial</dt>
+              <dd>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+            </div>
+          </dl>
+
+          <div class="checkout-summary__trust">
+            <strong>Validación antes del cobro</strong>
+            <p>El backend vuelve a comprobar stock, tienda, importe y condiciones de entrega.</p>
+          </div>
+        </aside>
+      </section>
+    } @else {
+      <section class="solicitud-checkout__estado" role="alert">
+        <div>
+          <small>Solicitud no disponible</small>
+          <h1>No pudimos cargar los productos seleccionados</h1>
+          <p>Vuelve al catálogo y elige una opción disponible para continuar.</p>
+          <a appBoton routerLink="/catalogo">Explorar catálogo</a>
         </div>
-
-        @if (mensajeError()) {
-          <p class="solicitud-checkout__alerta">{{ mensajeError() }}</p>
-        }
-
-        @if (resultadoCheckout(); as resultado) {
-          <section class="solicitud-checkout__exito">
-            <span>Checkout preparado</span>
-            <strong>{{ resultado.monto | currency: resultado.moneda : 'symbol-narrow' : '1.2-2' }}</strong>
-            @if (resultado.urlRedireccion) {
-              <a appBoton [href]="resultado.urlRedireccion" target="_blank" rel="noreferrer">Continuar al pago</a>
-            }
-          </section>
-        }
-
-        @if (producto(); as productoActual) {
-          <label appCampoFormulario>
-            <span>Cantidad</span>
-            <input type="number" min="1" [max]="productoActual.stock" formControlName="cantidad" />
-            @if (campoTieneError('cantidad')) {
-              <small appErrorCampo>Ingresa una cantidad valida segun el stock disponible.</small>
-            }
-          </label>
-        }
-
-        <label appCampoFormulario>
-          <span>Tipo de entrega</span>
-          <select formControlName="idTipoEntrega">
-            @for (tipoEntrega of tiposEntrega(); track tipoEntrega.idTipoEntrega) {
-              <option [ngValue]="tipoEntrega.idTipoEntrega">{{ tipoEntrega.nombre }}</option>
-            }
-          </select>
-          @if (campoTieneError('idTipoEntrega')) {
-            <small appErrorCampo>Selecciona una modalidad de entrega.</small>
-          }
-        </label>
-
-        <label appCampoFormulario>
-          <span>Pago inicial</span>
-          <select formControlName="codigoTipoPago">
-            @for (opcion of opcionesPago(); track opcion.codigo) {
-              <option [value]="opcion.codigo">{{ opcion.nombre }}</option>
-            }
-          </select>
-          @if (campoTieneError('codigoTipoPago')) {
-            <small appErrorCampo>Selecciona una modalidad de pago.</small>
-          }
-        </label>
-
-        <label appCampoFormulario>
-          <span>Fecha de entrega</span>
-          <input type="date" [min]="fechaMinimaEntrega" formControlName="fechaEntrega" />
-          @if (campoTieneError('fechaEntrega')) {
-            <small appErrorCampo>Selecciona una fecha valida.</small>
-          }
-        </label>
-
-        <label appCampoFormulario class="solicitud-checkout__campo-completo">
-          <span>Personalizacion y observaciones</span>
-          <textarea
-            rows="5"
-            formControlName="observacion"
-            placeholder="Ej. nombre, dedicatoria, colores, ocasion, horario o referencia de entrega"
-          ></textarea>
-          @if (campoTieneError('observacion')) {
-            <small appErrorCampo>
-              @if (requiereObservacionGeneral()) {
-                Describe la personalizacion del regalo.
-              } @else {
-                La observacion no debe superar 1000 caracteres.
-              }
-            </small>
-          }
-        </label>
-
-        @if (requiereLogin()) {
-          <a appBoton="secundario" class="solicitud-checkout__login" routerLink="/login">Iniciar sesion antes de pagar</a>
-        }
-
-        <button appBoton appBotonBloque [appBotonCargando]="enviandoSolicitud()" type="submit" [disabled]="enviandoSolicitud() || requiereLogin()">
-          @if (enviandoSolicitud()) {
-            Preparando checkout...
-          } @else {
-            Preparar pago
-          }
-        </button>
-      </form>
-    </section>
-  } @else {
-    <section class="solicitud-checkout__estado">
-      <span>Solicitud no disponible</span>
-      <h1>No pudimos cargar el producto seleccionado.</h1>
-      <a appBoton routerLink="/catalogo">Explorar catalogo</a>
-    </section>
-  }
-</main>
+      </section>
+    }
+  </div>
+</div>

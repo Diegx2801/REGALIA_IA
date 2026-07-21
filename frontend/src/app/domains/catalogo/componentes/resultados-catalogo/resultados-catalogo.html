@@ -27,6 +27,10 @@
     }
   </div>
 
+  @if (mensajeCarrito()) {
+    <p class="catalog-cart-status" role="status" aria-live="polite">{{ mensajeCarrito() }}</p>
+  }
+
   @if (cargando()) {
     <div class="product-grid" aria-label="Cargando productos">
       @for (item of [1, 2, 3, 4, 5, 6]; track item) {
@@ -36,19 +40,21 @@
   } @else if (mensajeError()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Error de catalogo"
+      etiqueta="Error de catálogo"
       titulo="No pudimos cargar productos"
       [descripcion]="mensajeError()"
+      textoAccion="Reintentar"
+      (accion)="reintentar.emit()"
     />
   } @else if (productos().length === 0) {
-      <app-estado-pantalla
-        tipo="vacio"
-        etiqueta="Sin resultados"
-        titulo="No encontramos regalos con esos filtros."
-        descripcion="Prueba con otra busqueda o limpia los filtros para ver todo el catalogo real."
-        textoAccion="Ver todo"
-        (accion)="limpiarFiltros.emit()"
-      />
+    <app-estado-pantalla
+      tipo="vacio"
+      etiqueta="Sin resultados"
+      titulo="No encontramos regalos con esos filtros."
+      descripcion="Prueba con otra búsqueda o limpia los filtros para ver todo el catálogo real."
+      textoAccion="Ver todo"
+      (accion)="limpiarFiltros.emit()"
+    />
   } @else {
     <div class="product-grid">
       @for (producto of productos(); track identificarProducto($index, producto)) {

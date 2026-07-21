@@ -1,27 +1,30 @@
-<main class="landing-page">
+<div class="landing-page">
   <app-hero-inicio
-    [formularioBusqueda]="formularioBusqueda"
-    [categorias]="categorias"
-    (buscarDetalles)="buscarDetalles()"
+    [controlBusqueda]="controlBusqueda"
+    [categorias]="categorias()"
+    [cargandoCategorias]="cargandoCategorias()"
+    [mensajeErrorCategorias]="mensajeErrorCategorias()"
+    (buscarRegalos)="buscarRegalos()"
     (buscarCategoria)="buscarCategoria($event)"
-  />
-
-  <app-calendario-comercial
-    [campanas]="campanas"
-    [meses]="meses"
-    [diasSemana]="diasSemana"
-    [diasFebrero]="diasFebrero"
-    [mesActivo]="mesActivo()"
-    (seleccionarMes)="mesActivo.set($event)"
+    (reintentarCategorias)="cargarCategorias()"
   />
 
   <app-destacados-inicio
+    [tiendas]="tiendasDestacadas()"
     [productos]="productosDestacados()"
-    [cargando]="cargandoProductosDestacados()"
-    [mensajeError]="mensajeErrorProductosDestacados()"
+    [cargandoTiendas]="cargandoTiendasDestacadas()"
+    [cargandoProductos]="cargandoProductosDestacados()"
+    [mensajeErrorTiendas]="mensajeErrorTiendasDestacadas()"
+    [mensajeErrorProductos]="mensajeErrorProductosDestacados()"
+    [mensajeCarrito]="mensajeCarrito()"
+    (explorarTienda)="explorarTienda($event)"
+    (agregarProducto)="agregarAlCarrito($event)"
+    (reintentarTiendas)="cargarTiendasDestacadas()"
+    (reintentarProductos)="cargarProductosDestacados()"
   />
 
-  <app-modelo-negocio-inicio [pasos]="pasosModeloNegocio" />
+  <app-calendario-comercial [campanas]="campanas" [meses]="meses" [diasSemana]="diasSemana" />
 
+  <app-modelo-negocio-inicio [pasos]="pasosModeloNegocio" />
   <app-cta-vendedor-inicio />
-</main>
+</div>

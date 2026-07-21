@@ -1,57 +1,144 @@
 <section class="festive-calendar rg-page__container--retail" aria-labelledby="titulo-calendario">
-  <article class="festive-calendar__campaign">
-    <span class="eyebrow">Calendario comercial</span>
-    <strong class="festive-calendar__status">Campana activa</strong>
-    <h2 id="titulo-calendario">{{ campanas()[0].titulo }}</h2>
-    <b>{{ campanas()[0].fecha }}</b>
-    <p>{{ campanas()[0].descripcion }}</p>
-    <a class="landing-button landing-button--light" routerLink="/catalogo" [queryParams]="{ busqueda: campanas()[0].titulo }">
-      Preparar campana
-    </a>
-
-    <div class="festive-calendar__suggestions">
-      <span>Productos sugeridos</span>
-      <div>
-        @for (sugerencia of campanas()[0].sugerencias; track sugerencia) {
-          <strong>{{ sugerencia }}</strong>
-        }
+  <article class="festive-calendar__campaign" aria-live="polite">
+    @if (campanaActiva(); as campanaSeleccionada) {
+      <div class="festive-calendar__campaign-topline">
+        <span class="eyebrow">Calendario comercial</span>
+        <strong class="festive-calendar__status">
+          <span aria-hidden="true"></span>
+          {{ estadoCampana() }}
+        </strong>
       </div>
-    </div>
 
-    <div class="festive-calendar__events">
+      <div class="festive-calendar__spotlight">
+        <div>
+          <span class="festive-calendar__date">{{ campanaSeleccionada.fecha }}</span>
+          <h2 id="titulo-calendario">{{ campanaSeleccionada.titulo }}</h2>
+          <p>{{ campanaSeleccionada.descripcion }}</p>
+          @if (diasHastaCampana(); as dias) {
+            @if (dias > 0) {
+              <small>Faltan {{ dias }} días para esta temporada.</small>
+            }
+          }
+        </div>
+        <span
+          class="regalia-sprite festive-calendar__visual"
+          [attr.data-icono]="campanaSeleccionada.icono"
+          aria-hidden="true"
+        ></span>
+      </div>
+
+      <a
+        class="landing-button landing-button--light"
+        routerLink="/catalogo"
+        [queryParams]="{ busqueda: campanaSeleccionada.titulo }"
+      >
+        Explorar regalos para esta fecha
+        <span aria-hidden="true">→</span>
+      </a>
+
+      <div class="festive-calendar__suggestions">
+        <span>Ideas para comenzar</span>
+        <div>
+          @for (sugerencia of campanaSeleccionada.sugerencias; track sugerencia) {
+            <strong>{{ sugerencia }}</strong>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="festive-calendar__campaign-empty">
+        <span class="regalia-sprite" data-icono="fisico" aria-hidden="true"></span>
+        <div>
+          <span class="eyebrow">Calendario comercial</span>
+          <h2 id="titulo-calendario">Un mes para regalar a tu manera</h2>
+          <p>
+            No hay una campaña destacada en {{ mesActivo() }}, pero el catálogo permanece disponible
+            para cualquier ocasión.
+          </p>
+          <a class="landing-button landing-button--light" routerLink="/catalogo">
+            Explorar catálogo
+          </a>
+        </div>
+      </div>
+    }
+
+    <nav class="festive-calendar__events" aria-label="Fechas comerciales de REGALIA">
       @for (campana of campanas(); track campana.fecha) {
-        <button type="button" [class.is-active]="$index === 0">
+        <button
+          type="button"
+          [class.is-active]="indiceCampanaActiva() === $index"
+          [attr.aria-pressed]="indiceCampanaActiva() === $index"
+          (click)="seleccionarCampana($index)"
+        >
           <span>{{ campana.fecha }}</span>
           <strong>{{ campana.titulo }}</strong>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
         </button>
       }
-    </div>
+    </nav>
   </article>
 
-  <article class="festive-calendar__month" aria-label="Calendario de temporadas">
+  <article
+    id="panel-calendario-comercial"
+    class="festive-calendar__month"
+    aria-label="Calendario de temporadas"
+  >
     <header>
-      <h2>2026</h2>
-      <span>Temporadas de regalos</span>
+      <div>
+        <span>Temporadas REGALIA</span>
+        <h2>{{ mesActivo() }} {{ anio() }}</h2>
+      </div>
+      <span class="festive-calendar__legend">
+        <i aria-hidden="true"></i>
+        Fecha comercial
+      </span>
     </header>
 
-    <div class="festive-calendar__months" role="tablist" aria-label="Meses">
+    <div class="festive-calendar__months" role="group" aria-label="Seleccionar mes">
       @for (mes of meses(); track mes) {
-        <button type="button" [class.is-active]="mesActivo() === mes" (click)="seleccionarMes.emit(mes)">
+        <button
+          type="button"
+          [attr.aria-pressed]="mesActivo() === mes"
+          [class.is-active]="mesActivo() === mes"
+          (click)="seleccionarMes(mes)"
+        >
           {{ mes }}
         </button>
       }
     </div>
 
-    <div class="festive-calendar__week">
+    <div class="festive-calendar__week" aria-hidden="true">
       @for (dia of diasSemana(); track dia) {
         <span>{{ dia }}</span>
       }
     </div>
 
-    <div class="festive-calendar__days">
-      @for (dia of diasFebrero(); track dia) {
-        <button type="button" [class.is-event]="dia === 14">{{ dia }}</button>
+    <div class="festive-calendar__days" role="grid" [attr.aria-label]="mesActivo() + ' ' + anio()">
+      @for (dia of diasCalendario(); track $index) {
+        @if (dia === null) {
+          <span class="is-empty" aria-hidden="true"></span>
+        } @else if (campanaDelDia(dia); as campana) {
+          <button
+            type="button"
+            class="is-event"
+            [class.is-active]="esDiaActivo(dia)"
+            [attr.aria-label]="dia + ' de ' + mesActivo() + ': ' + campana.titulo"
+            [attr.aria-current]="esDiaActivo(dia) ? 'date' : null"
+            (click)="seleccionarDia(dia)"
+          >
+            <span>{{ dia }}</span>
+            <i aria-hidden="true"></i>
+          </button>
+        } @else {
+          <span role="gridcell">{{ dia }}</span>
+        }
       }
     </div>
+
+    <footer class="festive-calendar__month-footer">
+      <span>Selecciona una fecha destacada para ver ideas de regalo.</span>
+      <a routerLink="/catalogo">Ver catálogo completo <span aria-hidden="true">→</span></a>
+    </footer>
   </article>
 </section>

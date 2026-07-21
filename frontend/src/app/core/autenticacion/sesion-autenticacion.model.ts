@@ -14,3 +14,11 @@ export interface SesionAutenticacion {
   usuario: UsuarioSesion;
   expiraEn: number;
 }
+
+export type MotivoCambioSesion = 'inicio' | 'reemplazo' | 'cierre' | 'expiracion';
+
+export interface CambioIdentidadSesion {
+  readonly idUsuarioAnterior: number | null;
+  readonly idUsuarioActual: number | null;
+  readonly motivo: MotivoCambioSesion;
+}

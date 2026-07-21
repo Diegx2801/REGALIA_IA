@@ -1,101 +1,342 @@
-<section class="admin-seccion">
+<section class="admin-usuarios" aria-labelledby="titulo-usuarios">
   <header class="rg-panel__hero">
-    <span>Usuarios</span>
-    <h2>Gestion de cuentas</h2>
-    <p>Consulta operativa de usuarios gestionables desde administracion.</p>
+    <span>Operación de cuentas</span>
+    <h2 id="titulo-usuarios">Gestión de usuarios</h2>
+    <p>
+      Consulta cuentas de clientes, comprueba su estado y controla su acceso con acciones
+      administrativas trazables.
+    </p>
   </header>
 
-  <form app-filtros-panel [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
+  <form
+    app-filtros-panel
+    [formGroup]="formularioFiltros"
+    aria-label="Filtros de usuarios"
+    (ngSubmit)="aplicarFiltros()"
+  >
     <label>
-      Estado
+      Estado de cuenta
       <select formControlName="estado">
-        <option value="ACTIVO">Activos</option>
-        <option value="INACTIVO">Inactivos</option>
-        <option value="TODOS">Todos</option>
+        <option value="ACTIVO">Activas</option>
+        <option value="INACTIVO">Inactivas</option>
+        <option value="TODOS">Todas</option>
       </select>
     </label>
+
     <label>
-      Buscar por correo
-      <input type="search" formControlName="busqueda" placeholder="correo@ejemplo.com" />
+      Buscar por
+      <select formControlName="campoBusqueda">
+        <option value="correo">Correo</option>
+        <option value="nombre">Nombre</option>
+        <option value="telefono">Teléfono</option>
+        <option value="id_usuario">ID de usuario</option>
+      </select>
     </label>
-    <button type="submit">Aplicar filtros</button>
+
+    <label class="admin-usuarios__campo-busqueda">
+      Término de búsqueda
+      <input
+        type="search"
+        formControlName="busqueda"
+        autocomplete="off"
+        placeholder="Escribe para localizar una cuenta"
+      />
+    </label>
+
+    <label>
+      Ordenar por
+      <select formControlName="orden">
+        <option value="fechaCreacion,desc">Más recientes</option>
+        <option value="fechaCreacion,asc">Más antiguas</option>
+        <option value="nombre,asc">Nombre A–Z</option>
+        <option value="nombre,desc">Nombre Z–A</option>
+        <option value="correo,asc">Correo A–Z</option>
+        <option value="idUsuario,desc">ID descendente</option>
+      </select>
+    </label>
+
+    <label>
+      Resultados por página
+      <select formControlName="tamanioPagina">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </label>
+
+    <div class="admin-usuarios__acciones-filtros">
+      <button type="submit" [disabled]="cargando()">
+        {{ cargando() ? 'Consultando…' : 'Aplicar filtros' }}
+      </button>
+      <button
+        class="admin-usuarios__limpiar"
+        type="button"
+        [disabled]="cargando()"
+        (click)="limpiarFiltros()"
+      >
+        Limpiar
+      </button>
+    </div>
   </form>
 
-  @if (cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando usuarios." />
-  } @else if (mensajeError()) {
+  @if (cargando() && !cargaCompletada()) {
+    <app-estado-pantalla
+      tipo="carga"
+      etiqueta="Cargando"
+      titulo="Consultando las cuentas registradas"
+      descripcion="Estamos aplicando los filtros administrativos disponibles."
+    />
+  } @else if (mensajeErrorCarga() && !cargaCompletada()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Error"
-      [titulo]="mensajeError() ?? 'No pudimos cargar usuarios.'"
+      etiqueta="No disponible"
+      [titulo]="mensajeErrorCarga() ?? 'No pudimos cargar usuarios.'"
+      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
       textoAccion="Reintentar"
       (accion)="cargarUsuarios()"
     />
   } @else {
-    @if (mensajeExito()) {
-      <app-estado-pantalla
-        tipo="exito"
-        etiqueta="Operación correcta"
-        [titulo]="mensajeExito() ?? ''"
-      />
-    }
+    <div class="admin-usuarios__mensajes" aria-live="polite">
+      @if (mensajeErrorCarga()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Consulta no actualizada"
+          [titulo]="mensajeErrorCarga() ?? ''"
+          textoAccion="Reintentar"
+          (accion)="cargarUsuarios()"
+        />
+      }
+      @if (mensajeErrorAccion()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Acción no completada"
+          [titulo]="mensajeErrorAccion() ?? ''"
+          descripcion="La cuenta conserva su estado anterior. Puedes volver a intentarlo."
+        />
+      }
+      @if (mensajeExito()) {
+        <app-estado-pantalla
+          tipo="exito"
+          etiqueta="Cambio confirmado"
+          [titulo]="mensajeExito() ?? ''"
+        />
+      }
+    </div>
 
-    <app-grupo-metricas-panel ariaEtiqueta="Resumen de usuarios">
+    <app-grupo-metricas-panel ariaEtiqueta="Resumen del resultado de usuarios">
       <app-tarjeta-metrica
-        etiqueta="Total usuarios"
+        etiqueta="Cuentas encontradas"
         [valor]="totalUsuarios()"
-        [descripcion]="'Mostrando ' + usuarios().length + ' cuenta(s) recientes.'"
+        descripcion="Total que coincide con los filtros aplicados."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Activas en esta página"
+        [valor]="usuariosActivosPagina()"
+        [descripcion]="usuarios().length + ' cuenta(s) visibles en esta página.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Correos verificados"
+        [valor]="usuariosVerificadosPagina()"
+        descripcion="Verificación registrada en la página actual."
       />
     </app-grupo-metricas-panel>
 
-    <app-lista-panel class="admin-seccion__lista" ariaEtiqueta="Usuarios administrativos">
-      @for (usuario of usuarios(); track usuario.idUsuario) {
-        <app-fila-panel [ariaEtiqueta]="usuario.nombreCompleto">
-          <div class="admin-seccion__datos-usuario">
-            <strong>{{ usuario.nombreCompleto }}</strong>
-            <small>{{ usuario.correo }}</small>
-            <p>{{ usuario.telefono }} - Creado {{ usuario.fechaCreacion | date: 'dd/MM/yyyy' }}</p>
-          </div>
-          <div class="admin-seccion__gestion-usuario">
-            <span
-              class="admin-seccion__estado"
-              [class.admin-seccion__estado--activo]="usuario.estado"
-              [class.admin-seccion__estado--inactivo]="!usuario.estado"
-            >
-              {{ usuario.estado ? 'Activo' : 'Inactivo' }}
-            </span>
-            <button
-              [appBoton]="usuario.estado ? 'peligro' : 'secundario'"
-              appBotonTamano="sm"
-              [appBotonCargando]="procesandoUsuario() === usuario.idUsuario"
-              type="button"
-              [disabled]="procesandoUsuario() !== null"
-              [attr.aria-label]="
-                (usuario.estado ? 'Desactivar' : 'Reactivar') +
-                ' cuenta de ' +
-                usuario.nombreCompleto
-              "
-              (click)="cambiarEstadoUsuario(usuario)"
-            >
-              @if (procesandoUsuario() === usuario.idUsuario) {
-                {{ usuario.estado ? 'Desactivando...' : 'Reactivando...' }}
-              } @else {
-                {{ usuario.estado ? 'Desactivar' : 'Reactivar' }}
+    <section
+      class="admin-usuarios__resultados"
+      [attr.aria-busy]="cargando()"
+      aria-labelledby="titulo-resultados-usuarios"
+    >
+      <div class="admin-usuarios__cabecera-resultados">
+        <div>
+          <span>Directorio operativo</span>
+          <h3 id="titulo-resultados-usuarios">Cuentas gestionables</h3>
+        </div>
+        <p>{{ totalUsuarios() }} resultado(s)</p>
+      </div>
+
+      @if (cargando()) {
+        <p class="admin-usuarios__actualizando" role="status">Actualizando resultados…</p>
+      }
+
+      @if (usuarios().length > 0) {
+        <div class="admin-usuarios__tabla-contenedor">
+          <table class="admin-usuarios__tabla">
+            <caption>
+              Usuarios gestionables según los filtros aplicados
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Usuario</th>
+                <th scope="col">Contacto</th>
+                <th scope="col">Verificación</th>
+                <th scope="col">Registro</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="admin-usuarios__columna-accion">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (usuario of usuarios(); track usuario.idUsuario) {
+                <tr>
+                  <td>
+                    <strong>{{ usuario.nombreCompleto }}</strong>
+                    <small>ID #{{ usuario.idUsuario }}</small>
+                  </td>
+                  <td>
+                    <a [href]="'mailto:' + usuario.correo">{{ usuario.correo }}</a>
+                    <small>{{ usuario.telefono }}</small>
+                  </td>
+                  <td>
+                    <span
+                      class="admin-usuarios__insignia"
+                      [class.admin-usuarios__insignia--verificada]="usuario.correoVerificado"
+                    >
+                      {{ usuario.correoVerificado ? 'Verificado' : 'Pendiente' }}
+                    </span>
+                  </td>
+                  <td>
+                    <time [attr.datetime]="usuario.fechaCreacion">
+                      {{ usuario.fechaCreacion | date: 'dd MMM yyyy' }}
+                    </time>
+                  </td>
+                  <td>
+                    <span
+                      class="admin-usuarios__estado"
+                      [class.admin-usuarios__estado--activo]="usuario.estado"
+                      [class.admin-usuarios__estado--inactivo]="!usuario.estado"
+                      [attr.aria-label]="
+                        'Estado de la cuenta: ' + (usuario.estado ? 'activa' : 'inactiva')
+                      "
+                    >
+                      <span aria-hidden="true"></span>
+                      {{ usuario.estado ? 'Activa' : 'Inactiva' }}
+                    </span>
+                  </td>
+                  <td class="admin-usuarios__columna-accion">
+                    <div class="admin-usuarios__acciones-registro">
+                      <a
+                        appBoton="fantasma"
+                        appBotonTamano="sm"
+                        [routerLink]="['/admin/usuarios', usuario.idUsuario]"
+                        [attr.aria-label]="'Ver detalle de ' + usuario.nombreCompleto"
+                      >
+                        Ver detalle
+                      </a>
+                      <button
+                        [appBoton]="usuario.estado ? 'peligro' : 'secundario'"
+                        appBotonTamano="sm"
+                        [appBotonCargando]="procesandoUsuario() === usuario.idUsuario"
+                        type="button"
+                        [disabled]="procesandoUsuario() !== null || cargando()"
+                        [attr.aria-label]="
+                          (usuario.estado ? 'Desactivar' : 'Reactivar') +
+                          ' cuenta de ' +
+                          usuario.nombreCompleto
+                        "
+                        (click)="cambiarEstadoUsuario(usuario)"
+                      >
+                        @if (procesandoUsuario() === usuario.idUsuario) {
+                          {{ usuario.estado ? 'Desactivando…' : 'Reactivando…' }}
+                        } @else {
+                          {{ usuario.estado ? 'Desactivar' : 'Reactivar' }}
+                        }
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               }
-            </button>
-          </div>
-        </app-fila-panel>
-      } @empty {
+            </tbody>
+          </table>
+        </div>
+
+        <div class="admin-usuarios__tarjetas" aria-label="Usuarios en vista móvil">
+          @for (usuario of usuarios(); track usuario.idUsuario) {
+            <article class="admin-usuarios__tarjeta">
+              <header>
+                <div>
+                  <small>Usuario #{{ usuario.idUsuario }}</small>
+                  <h4>{{ usuario.nombreCompleto }}</h4>
+                </div>
+                <span
+                  class="admin-usuarios__estado"
+                  [class.admin-usuarios__estado--activo]="usuario.estado"
+                  [class.admin-usuarios__estado--inactivo]="!usuario.estado"
+                  [attr.aria-label]="
+                    'Estado de la cuenta: ' + (usuario.estado ? 'activa' : 'inactiva')
+                  "
+                >
+                  <span aria-hidden="true"></span>
+                  {{ usuario.estado ? 'Activa' : 'Inactiva' }}
+                </span>
+              </header>
+
+              <dl>
+                <div>
+                  <dt>Correo</dt>
+                  <dd>
+                    <a [href]="'mailto:' + usuario.correo">{{ usuario.correo }}</a>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Teléfono</dt>
+                  <dd>{{ usuario.telefono }}</dd>
+                </div>
+                <div>
+                  <dt>Verificación</dt>
+                  <dd>{{ usuario.correoVerificado ? 'Correo verificado' : 'Correo pendiente' }}</dd>
+                </div>
+                <div>
+                  <dt>Registro</dt>
+                  <dd>{{ usuario.fechaCreacion | date: 'dd/MM/yyyy' }}</dd>
+                </div>
+              </dl>
+
+              <div
+                class="admin-usuarios__acciones-registro admin-usuarios__acciones-registro--movil"
+              >
+                <a
+                  appBoton="secundario"
+                  appBotonBloque
+                  [routerLink]="['/admin/usuarios', usuario.idUsuario]"
+                >
+                  Ver detalle
+                </a>
+                <button
+                  [appBoton]="usuario.estado ? 'peligro' : 'secundario'"
+                  [appBotonCargando]="procesandoUsuario() === usuario.idUsuario"
+                  appBotonBloque
+                  type="button"
+                  [disabled]="procesandoUsuario() !== null || cargando()"
+                  [attr.aria-label]="
+                    (usuario.estado ? 'Desactivar' : 'Reactivar') +
+                    ' cuenta de ' +
+                    usuario.nombreCompleto
+                  "
+                  (click)="cambiarEstadoUsuario(usuario)"
+                >
+                  @if (procesandoUsuario() === usuario.idUsuario) {
+                    {{ usuario.estado ? 'Desactivando…' : 'Reactivando…' }}
+                  } @else {
+                    {{ usuario.estado ? 'Desactivar cuenta' : 'Reactivar cuenta' }}
+                  }
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
         <app-estado-pantalla
           tipo="vacio"
           etiqueta="Sin resultados"
-          titulo="No hay usuarios registrados."
+          titulo="No encontramos cuentas con estos filtros"
+          descripcion="Ajusta el estado o el término de búsqueda para ampliar la consulta."
+          [textoAccion]="hayFiltrosActivos() ? 'Limpiar filtros' : null"
+          (accion)="limpiarFiltros()"
         />
       }
-    </app-lista-panel>
+    </section>
 
     <app-paginacion-panel
-      ariaEtiqueta="Paginacion de usuarios"
+      ariaEtiqueta="Paginación de usuarios"
       [paginaActual]="paginaActual()"
       [totalPaginas]="totalPaginas()"
       (anterior)="paginaAnterior()"

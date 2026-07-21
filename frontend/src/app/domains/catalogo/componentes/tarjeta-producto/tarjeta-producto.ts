@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Producto } from '../../modelos/producto.model';
 
@@ -8,6 +8,7 @@ import { Producto } from '../../modelos/producto.model';
   imports: [CurrencyPipe, RouterLink],
   templateUrl: './tarjeta-producto.html',
   styleUrl: './tarjeta-producto.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TarjetaProducto {
   readonly producto = input.required<Producto>();
@@ -23,5 +24,11 @@ export class TarjetaProducto {
     const producto = this.producto();
     if (!producto.disponible || producto.stock <= 0) return;
     this.agregar.emit(producto);
+  }
+
+  usarImagenAlternativa(evento: Event): void {
+    const imagen = evento.currentTarget as HTMLImageElement;
+    if (imagen.src.endsWith('/assets/brand/producto-fallback.svg')) return;
+    imagen.src = '/assets/brand/producto-fallback.svg';
   }
 }

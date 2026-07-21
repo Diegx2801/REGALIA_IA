@@ -1,8 +1,11 @@
+import { DOCUMENT } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
   ElementRef,
+  effect,
   inject,
   input,
   signal,
@@ -24,6 +27,8 @@ export type IconoLayoutPrivado =
   | 'vendedores'
   | 'datos'
   | 'catalogo'
+  | 'carrito'
+  | 'inicio'
   | 'acceso';
 
 export interface EnlaceLayoutPrivado {
@@ -31,15 +36,49 @@ export interface EnlaceLayoutPrivado {
   ruta: string;
   descripcion: string;
   icono?: IconoLayoutPrivado;
+  encabezadoGrupo?: string;
   queryParams?: Record<string, string>;
   patronesActivos?: RegExp[];
 }
+
+export interface AccionRapidaLayoutPrivado {
+  etiqueta: string;
+  ruta: string;
+  descripcion: string;
+  icono: Extract<IconoLayoutPrivado, 'catalogo' | 'carrito' | 'inicio'>;
+  ariaLabel?: string;
+  insignia?: number | string | null;
+  destacada?: boolean;
+  ocultaEnMovil?: boolean;
+  etiquetaDesdeSm?: boolean;
+}
+
+const ACCIONES_RAPIDAS_PREDETERMINADAS: readonly AccionRapidaLayoutPrivado[] = [
+  {
+    etiqueta: 'Catálogo',
+    ruta: '/catalogo',
+    descripcion: 'Explorar productos',
+    icono: 'catalogo',
+    ocultaEnMovil: true,
+    etiquetaDesdeSm: true,
+  },
+  {
+    etiqueta: 'Inicio',
+    ruta: '/',
+    descripcion: 'Volver a REGALIA',
+    icono: 'inicio',
+    ariaLabel: 'Ir al inicio de REGALIA',
+    destacada: true,
+    etiquetaDesdeSm: true,
+  },
+];
 
 @Component({
   selector: 'app-layout-privado',
   imports: [RouterLink, NgbTooltip],
   templateUrl: './layout-privado.html',
   styleUrl: './layout-privado.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:keydown.escape)': 'cerrarMenuMovil()',
     '(document:keydown.tab)': 'mantenerFocoMenu($event)',
@@ -48,17 +87,25 @@ export interface EnlaceLayoutPrivado {
 export class LayoutPrivadoComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
   private readonly botonAbrirMenu = viewChild<ElementRef<HTMLButtonElement>>('botonAbrirMenu');
   private readonly botonCerrarMenu = viewChild<ElementRef<HTMLButtonElement>>('botonCerrarMenu');
   private readonly menuLateral = viewChild<ElementRef<HTMLElement>>('menuLateral');
   private readonly contenidoPrincipal = viewChild<ElementRef<HTMLElement>>('contenidoPrincipal');
-  private rutaBaseActual = this.obtenerRutaBase(this.router.url);
+  private readonly rutaActual = signal(this.obtenerRutaBase(this.router.url));
 
   readonly titulo = input.required<string>();
   readonly etiqueta = input.required<string>();
   readonly descripcion = input.required<string>();
   readonly variante = input<VarianteLayoutPrivado>('cliente');
-  readonly enlaces = input<EnlaceLayoutPrivado[]>([]);
+  readonly enlaces = input<readonly EnlaceLayoutPrivado[]>([]);
+  readonly ariaEtiquetaMenu = input('Navegación privada');
+  readonly ariaEtiquetaSecciones = input('Secciones del panel');
+  readonly ariaEtiquetaAcciones = input('Acciones rápidas privadas');
+  readonly accionesRapidas = input<readonly AccionRapidaLayoutPrivado[]>(
+    ACCIONES_RAPIDAS_PREDETERMINADAS,
+  );
+  readonly mostrarAccionesEnMenuMovil = input(false);
   readonly menuMovilAbierto = signal(false);
 
   readonly sesion = inject(SesionAutenticacionService);
@@ -87,8 +134,20 @@ export class LayoutPrivadoComponent {
       .join('');
   });
   readonly rolVisible = computed(() => this.sesion.rolActual() ?? 'INVITADO');
+  readonly enlaceActual = computed(() =>
+    this.enlaces().find((enlace) => this.coincideEnlace(enlace, this.rutaActual())),
+  );
+  readonly tituloSeccionActual = computed(() => this.enlaceActual()?.etiqueta ?? this.titulo());
 
   constructor() {
+    effect((limpiar) => {
+      if (!this.menuMovilAbierto()) return;
+
+      const overflowAnterior = this.document.body.style.overflow;
+      this.document.body.style.overflow = 'hidden';
+      limpiar(() => (this.document.body.style.overflow = overflowAnterior));
+    });
+
     this.router.events
       .pipe(
         filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
@@ -96,9 +155,9 @@ export class LayoutPrivadoComponent {
       )
       .subscribe((evento) => {
         const rutaSiguiente = this.obtenerRutaBase(evento.urlAfterRedirects);
-        if (rutaSiguiente === this.rutaBaseActual) return;
+        if (rutaSiguiente === this.rutaActual()) return;
 
-        this.rutaBaseActual = rutaSiguiente;
+        this.rutaActual.set(rutaSiguiente);
         setTimeout(() => this.contenidoPrincipal()?.nativeElement.focus(), 0);
       });
   }
@@ -150,7 +209,10 @@ export class LayoutPrivadoComponent {
   }
 
   enlaceActivo(enlace: EnlaceLayoutPrivado): boolean {
-    const rutaActual = this.obtenerRutaBase(this.router.url);
+    return this.coincideEnlace(enlace, this.rutaActual());
+  }
+
+  private coincideEnlace(enlace: EnlaceLayoutPrivado, rutaActual: string): boolean {
     if (enlace.patronesActivos?.length) {
       return enlace.patronesActivos.some((patron) => patron.test(rutaActual));
     }

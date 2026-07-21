@@ -6,7 +6,15 @@
     [routerLink]="['/catalogo', productoActual.idProducto]"
     [attr.aria-label]="'Ver detalle de ' + productoActual.nombre"
   >
-    <img [src]="imagenPrincipal()" [alt]="productoActual.nombre" loading="lazy" decoding="async" />
+    <img
+      [src]="imagenPrincipal()"
+      [alt]="productoActual.nombre"
+      loading="lazy"
+      decoding="async"
+      width="640"
+      height="410"
+      (error)="usarImagenAlternativa($event)"
+    />
     <span class="product-card__badge">{{ etiquetaEstado() }}</span>
   </a>
 
@@ -28,17 +36,23 @@
 
     <div class="product-card__footer">
       <div class="product-card__price">
+        <span>Precio</span>
         <strong>{{ productoActual.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
       </div>
-      <button
-        class="product-card__button"
-        type="button"
-        [disabled]="!productoActual.disponible"
-        [attr.aria-label]="'Agregar ' + productoActual.nombre + ' al carrito'"
-        (click)="agregarAlCarrito()"
-      >
-        Agregar
-      </button>
+      <div class="product-card__actions">
+        <a class="product-card__detail" [routerLink]="['/catalogo', productoActual.idProducto]">
+          Ver detalle
+        </a>
+        <button
+          class="product-card__button"
+          type="button"
+          [disabled]="!productoActual.disponible"
+          [attr.aria-label]="'Agregar ' + productoActual.nombre + ' al carrito'"
+          (click)="agregarAlCarrito()"
+        >
+          Agregar
+        </button>
+      </div>
     </div>
   </div>
 </article>

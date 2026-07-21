@@ -115,4 +115,33 @@ describe('ProductoApiService', () => {
 
     expect(mensajeError).toBe('Producto no encontrado.');
   });
+
+  it('consulta los productos públicos de una tienda', () => {
+    let cantidad = 0;
+
+    service.obtenerProductosPorTienda(8).subscribe((productos) => (cantidad = productos.length));
+
+    const request = httpMock.expectOne(ENDPOINTS_API.tiendas.productos(8));
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      status: 'success',
+      data: [
+        {
+          idProducto: 1,
+          idTienda: 8,
+          nombreTienda: 'Detalles del Valle',
+          idTipoProducto: 3,
+          tipoProducto: 'PACK O BOX',
+          nombre: 'Box especial',
+          descripcion: 'Selección lista para regalar',
+          precio: 99,
+          stock: 5,
+          imagenes: [],
+        },
+      ],
+      message: null,
+    });
+
+    expect(cantidad).toBe(1);
+  });
 });

@@ -19,4 +19,16 @@ export class TiendaPublicaApiService {
       map((respuesta) => (respuesta.data ?? []).map(mapearTiendaPublicaDesdeDto)),
     );
   }
+
+  obtenerTiendaPublicaPorId(idTienda: number): Observable<TiendaPublica> {
+    return this.http
+      .get<RespuestaApi<TiendaPublicaDto>>(ENDPOINTS_API.tiendas.publicaPorId(idTienda))
+      .pipe(
+        timeout(TIEMPO_ESPERA_TIENDAS_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'Tienda no encontrada.');
+          return mapearTiendaPublicaDesdeDto(respuesta.data);
+        }),
+      );
+  }
 }

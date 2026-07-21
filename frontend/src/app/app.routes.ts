@@ -25,11 +25,13 @@ export const routes: Routes = [
     children: [
       {
         path: '',
+        title: 'Regalos personalizados y tiendas locales | REGALIA',
         loadComponent: () =>
           import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),
       },
       {
         path: 'verificar-correo',
+        title: 'Verificar correo | REGALIA',
         loadComponent: () =>
           import('./domains/autenticacion/paginas/pagina-verificar-correo/pagina-verificar-correo').then(
             (m) => m.PaginaVerificarCorreo,
@@ -37,6 +39,7 @@ export const routes: Routes = [
       },
       {
         path: 'restablecer-contrasena',
+        title: 'Restablecer contraseña | REGALIA',
         loadComponent: () =>
           import('./domains/autenticacion/paginas/pagina-recuperar-contrasena/pagina-recuperar-contrasena').then(
             (m) => m.PaginaRecuperarContrasena,
@@ -49,6 +52,7 @@ export const routes: Routes = [
       },
       {
         path: 'pedir-con-ia',
+        title: 'Encuentra un regalo con IA | REGALIA',
         loadComponent: () =>
           import('./pages/pedir-con-ia/pagina-pedir-con-ia/pagina-pedir-con-ia').then(
             (m) => m.PaginaPedirConIa,
@@ -56,6 +60,7 @@ export const routes: Routes = [
       },
       {
         path: 'vendedores',
+        title: 'Vendedores y tiendas | REGALIA',
         loadComponent: () =>
           import('./domains/catalogo/paginas/pagina-catalogo/pagina-catalogo').then(
             (m) => m.PaginaCatalogo,
@@ -63,6 +68,7 @@ export const routes: Routes = [
       },
       {
         path: 'vender',
+        title: 'Abre tu tienda | REGALIA',
         loadComponent: () =>
           import('./domains/vendedores/onboarding/paginas/pagina-empezar-a-vender/pagina-empezar-a-vender').then(
             (m) => m.PaginaEmpezarAVender,
@@ -70,6 +76,7 @@ export const routes: Routes = [
       },
       {
         path: 'modelo',
+        title: 'Cómo funciona | REGALIA',
         loadComponent: () =>
           import('./pages/inicio/pagina-inicio/pagina-inicio').then((m) => m.PaginaInicio),
       },
@@ -80,9 +87,18 @@ export const routes: Routes = [
       },
       {
         path: 'carrito',
+        title: 'Carrito de compras | REGALIA',
         loadComponent: () =>
           import('./domains/checkout/paginas/pagina-carrito/pagina-carrito').then(
             (m) => m.PaginaCarrito,
+          ),
+      },
+      {
+        path: 'acceso-denegado',
+        title: 'Acceso no disponible | REGALIA',
+        loadComponent: () =>
+          import('./pages/acceso-denegado/pagina-acceso-denegado/pagina-acceso-denegado').then(
+            (m) => m.PaginaAccesoDenegado,
           ),
       },
     ],
@@ -120,6 +136,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
+    title: 'Página no encontrada | REGALIA',
     loadComponent: () =>
       import('./pages/no-encontrado/pagina-no-encontrado/pagina-no-encontrado').then(
         (m) => m.PaginaNoEncontrado,

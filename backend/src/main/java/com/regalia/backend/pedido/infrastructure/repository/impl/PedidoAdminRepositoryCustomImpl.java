@@ -2,6 +2,7 @@ package com.regalia.backend.pedido.infrastructure.repository.impl;
 
 import com.regalia.backend.pago.infrastructure.entity.PagoEntity;
 import com.regalia.backend.pedido.application.PedidoAdminSortField;
+import com.regalia.backend.pedido.application.PedidoAdminEstadoFiltro;
 import com.regalia.backend.pedido.application.PedidoPagoFiltro;
 import com.regalia.backend.pedido.application.PedidoSearchField;
 import com.regalia.backend.pedido.infrastructure.entity.PedidoEntity;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +45,13 @@ public class PedidoAdminRepositoryCustomImpl implements PedidoAdminRepositoryCus
     @Override
     public Page<PedidoEntity> findPedidosAdministracion(
             PedidoPagoFiltro filtroPago,
+            PedidoAdminEstadoFiltro filtroEstadoPedido,
+            Long idTienda,
             PedidoSearchField campoBusqueda,
             String busqueda,
             Long busquedaId,
+            LocalDateTime fechaCreacionDesde,
+            LocalDateTime fechaCreacionHastaExclusiva,
             PedidoAdminSortField sortField,
             Sort.Direction sortDirection,
             Pageable pageable
@@ -56,9 +62,13 @@ public class PedidoAdminRepositoryCustomImpl implements PedidoAdminRepositoryCus
 
         String where = construirWhere(
                 filtroPago,
+                filtroEstadoPedido,
+                idTienda,
                 campoBusqueda,
                 busqueda,
                 busquedaId,
+                fechaCreacionDesde,
+                fechaCreacionHastaExclusiva,
                 parametros
         );
 
@@ -100,15 +110,27 @@ public class PedidoAdminRepositoryCustomImpl implements PedidoAdminRepositoryCus
 
     private String construirWhere(
             PedidoPagoFiltro filtroPago,
+            PedidoAdminEstadoFiltro filtroEstadoPedido,
+            Long idTienda,
             PedidoSearchField campoBusqueda,
             String busqueda,
             Long busquedaId,
+            LocalDateTime fechaCreacionDesde,
+            LocalDateTime fechaCreacionHastaExclusiva,
             Map<String, Object> parametros
     ) {
         StringBuilder where = new StringBuilder(" WHERE p.estado = true");
 
         agregarBusqueda(where, campoBusqueda, busqueda, busquedaId, parametros);
         agregarFiltroPago(where, filtroPago);
+        agregarFiltroEstadoPedido(where, filtroEstadoPedido, parametros);
+        agregarFiltroTienda(where, idTienda, parametros);
+        agregarFiltroFechas(
+                where,
+                fechaCreacionDesde,
+                fechaCreacionHastaExclusiva,
+                parametros
+        );
 
         return where.toString();
     }
@@ -159,6 +181,49 @@ public class PedidoAdminRepositoryCustomImpl implements PedidoAdminRepositoryCus
 
         if (filtroPago == PedidoPagoFiltro.CON_SALDO) {
             where.append(" AND ").append(MONTO_PAGADO_APROBADO).append(" < p.total");
+        }
+    }
+
+    private void agregarFiltroEstadoPedido(
+            StringBuilder where,
+            PedidoAdminEstadoFiltro filtroEstadoPedido,
+            Map<String, Object> parametros
+    ) {
+        if (filtroEstadoPedido == PedidoAdminEstadoFiltro.TODOS) {
+            return;
+        }
+
+        where.append(" AND p.estadoPedido = :estadoPedido");
+        parametros.put("estadoPedido", filtroEstadoPedido.estadoPedido());
+    }
+
+    private void agregarFiltroTienda(
+            StringBuilder where,
+            Long idTienda,
+            Map<String, Object> parametros
+    ) {
+        if (idTienda == null) {
+            return;
+        }
+
+        where.append(" AND t.idTienda = :idTienda");
+        parametros.put("idTienda", idTienda);
+    }
+
+    private void agregarFiltroFechas(
+            StringBuilder where,
+            LocalDateTime fechaCreacionDesde,
+            LocalDateTime fechaCreacionHastaExclusiva,
+            Map<String, Object> parametros
+    ) {
+        if (fechaCreacionDesde != null) {
+            where.append(" AND p.fechaCreacion >= :fechaCreacionDesde");
+            parametros.put("fechaCreacionDesde", fechaCreacionDesde);
+        }
+
+        if (fechaCreacionHastaExclusiva != null) {
+            where.append(" AND p.fechaCreacion < :fechaCreacionHastaExclusiva");
+            parametros.put("fechaCreacionHastaExclusiva", fechaCreacionHastaExclusiva);
         }
     }
 

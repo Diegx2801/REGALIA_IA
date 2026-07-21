@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import {
@@ -18,10 +26,13 @@ import { CredencialesLogin, ResultadoLogin } from '../../modelos/autenticacion.m
   styleUrl: './pagina-admin-login.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PaginaAdminLogin {
+export class PaginaAdminLogin implements OnInit {
   private readonly autenticacionApi = inject(AutenticacionApiService);
   private readonly sesionAutenticacion = inject(SesionAutenticacionService);
   private readonly router = inject(Router);
+  private readonly rutaActiva = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private rutaRetorno = '/admin';
 
   readonly estaEnviando = signal(false);
   readonly mensajeError = signal('');
@@ -38,6 +49,18 @@ export class PaginaAdminLogin {
     }),
     recordarSesion: new FormControl(false, { nonNullable: true }),
   });
+
+  ngOnInit(): void {
+    this.rutaActiva.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((parametros) => {
+        const retorno = parametros.get('retorno');
+        this.rutaRetorno = this.esRetornoAdministrativoSeguro(retorno) ? retorno : '/admin';
+        if (parametros.get('motivo') === 'sesion-expirada') {
+          this.mensajeError.set('Tu sesión expiró. Inicia sesión nuevamente para continuar.');
+        }
+      });
+  }
 
   alternarContrasena(): void {
     this.mostrarContrasena.update((valor) => !valor);
@@ -105,7 +128,11 @@ export class PaginaAdminLogin {
       sesion,
       this.formularioLogin.controls.recordarSesion.value,
     );
-    void this.router.navigateByUrl('/admin');
+    void this.router.navigateByUrl(this.rutaRetorno);
+  }
+
+  private esRetornoAdministrativoSeguro(retorno: string | null): retorno is string {
+    return Boolean(retorno?.startsWith('/admin') && !retorno.startsWith('//'));
   }
 
   private obtenerRolPrincipal(roles: RolUsuario[]): RolUsuario {

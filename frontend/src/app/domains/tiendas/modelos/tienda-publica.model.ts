@@ -11,4 +11,5 @@ export interface TiendaPublica {
   estadoRevision: string;
   tiendaFormalizada: boolean;
   rubros: RubroTiendaPublica[];
+  fechaCreacion?: string | null;
 }

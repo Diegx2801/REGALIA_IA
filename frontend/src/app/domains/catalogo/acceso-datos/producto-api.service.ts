@@ -68,6 +68,15 @@ export class ProductoApiService {
       );
   }
 
+  obtenerProductosPorTienda(idTienda: number): Observable<Producto[]> {
+    return this.http
+      .get<RespuestaApi<ProductoPublicoDto[]>>(ENDPOINTS_API.tiendas.productos(idTienda))
+      .pipe(
+        timeout(TIEMPO_ESPERA_CATALOGO_MS),
+        map((respuesta) => (respuesta.data ?? []).map(mapearProductoDesdeDto)),
+      );
+  }
+
   private mapearOrden(orden: OrdenCatalogo): string {
     if (orden === 'priceAsc') return 'precio,asc';
     if (orden === 'priceDesc') return 'precio,desc';

@@ -1,7 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize, Observable, of, switchMap } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
@@ -9,9 +18,7 @@ import { RespuestaPaginada } from '../../../../shared/modelos/respuesta-api.mode
 import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { FiltrosPanelComponent } from '../../../../shared/ui/filtros-panel/filtros-panel';
-import { FilaPanelComponent } from '../../../../shared/ui/fila-panel/fila-panel';
 import { GrupoMetricasPanelComponent } from '../../../../shared/ui/grupo-metricas-panel/grupo-metricas-panel';
-import { ListaPanelComponent } from '../../../../shared/ui/lista-panel/lista-panel';
 import { PaginacionPanelComponent } from '../../../../shared/ui/paginacion-panel/paginacion-panel';
 import { TarjetaMetricaComponent } from '../../../../shared/ui/tarjeta-metrica/tarjeta-metrica';
 import {
@@ -20,22 +27,25 @@ import {
 } from '../../acceso-datos/panel-administracion-api.service';
 import { UsuarioAdministracion } from '../../modelos/panel-administracion.model';
 
+type CampoBusquedaUsuario = NonNullable<ConsultaUsuariosAdmin['searchField']>;
+type OrdenUsuarios = NonNullable<ConsultaUsuariosAdmin['sort']>;
+
 @Component({
   selector: 'app-pagina-admin-usuarios',
   imports: [
     DatePipe,
     ReactiveFormsModule,
+    RouterLink,
     BotonDirective,
     EstadoPantallaComponent,
     FiltrosPanelComponent,
-    FilaPanelComponent,
     GrupoMetricasPanelComponent,
-    ListaPanelComponent,
     PaginacionPanelComponent,
     TarjetaMetricaComponent,
   ],
   templateUrl: './pagina-admin-usuarios.html',
   styleUrl: './pagina-admin-usuarios.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaAdminUsuarios implements OnInit {
   private readonly adminApi = inject(PanelAdministracionApiService);
@@ -46,12 +56,29 @@ export class PaginaAdminUsuarios implements OnInit {
   readonly paginaActual = signal(0);
   readonly totalPaginas = signal(0);
   readonly cargando = signal(true);
+  readonly cargaCompletada = signal(false);
   readonly procesandoUsuario = signal<number | null>(null);
-  readonly mensajeError = signal<string | null>(null);
+  readonly mensajeErrorCarga = signal<string | null>(null);
+  readonly mensajeErrorAccion = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
+
+  readonly usuariosActivosPagina = computed(
+    () => this.usuarios().filter((usuario) => usuario.estado).length,
+  );
+  readonly usuariosVerificadosPagina = computed(
+    () => this.usuarios().filter((usuario) => usuario.correoVerificado).length,
+  );
+  hayFiltrosActivos(): boolean {
+    const filtros = this.formularioFiltros.getRawValue();
+    return filtros.estado !== 'TODOS' || filtros.busqueda.trim().length > 0;
+  }
+
   readonly formularioFiltros = new FormGroup({
     estado: new FormControl<'ACTIVO' | 'INACTIVO' | 'TODOS'>('ACTIVO', { nonNullable: true }),
+    campoBusqueda: new FormControl<CampoBusquedaUsuario>('correo', { nonNullable: true }),
     busqueda: new FormControl('', { nonNullable: true }),
+    orden: new FormControl<OrdenUsuarios>('fechaCreacion,desc', { nonNullable: true }),
+    tamanioPagina: new FormControl<10 | 20 | 50>(10, { nonNullable: true }),
   });
 
   ngOnInit(): void {
@@ -60,8 +87,7 @@ export class PaginaAdminUsuarios implements OnInit {
 
   cargarUsuarios(): void {
     this.cargando.set(true);
-    this.mensajeError.set(null);
-    this.mensajeExito.set(null);
+    this.mensajeErrorCarga.set(null);
 
     this.adminApi
       .obtenerUsuarios(this.crearConsultaUsuarios())
@@ -70,24 +96,39 @@ export class PaginaAdminUsuarios implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (pagina) => this.actualizarPagina(pagina),
-        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        next: (pagina) => {
+          this.actualizarPagina(pagina);
+          this.cargaCompletada.set(true);
+        },
+        error: (error: unknown) => this.mensajeErrorCarga.set(this.obtenerMensajeError(error)),
       });
   }
 
   aplicarFiltros(): void {
     this.paginaActual.set(0);
+    this.limpiarMensajesAccion();
     this.cargarUsuarios();
   }
 
+  limpiarFiltros(): void {
+    this.formularioFiltros.reset({
+      estado: 'TODOS',
+      campoBusqueda: 'correo',
+      busqueda: '',
+      orden: 'fechaCreacion,desc',
+      tamanioPagina: 10,
+    });
+    this.aplicarFiltros();
+  }
+
   paginaAnterior(): void {
-    if (this.paginaActual() === 0) return;
+    if (this.paginaActual() === 0 || this.cargando()) return;
     this.paginaActual.update((pagina) => pagina - 1);
     this.cargarUsuarios();
   }
 
   paginaSiguiente(): void {
-    if (this.paginaActual() + 1 >= this.totalPaginas()) return;
+    if (this.paginaActual() + 1 >= this.totalPaginas() || this.cargando()) return;
     this.paginaActual.update((pagina) => pagina + 1);
     this.cargarUsuarios();
   }
@@ -95,20 +136,19 @@ export class PaginaAdminUsuarios implements OnInit {
   cambiarEstadoUsuario(usuario: UsuarioAdministracion): void {
     const accion = usuario.estado ? 'desactivar' : 'reactivar';
     const consecuencia = usuario.estado
-      ? 'La cuenta perderá acceso a REGALIA.'
+      ? 'La cuenta perderá inmediatamente el acceso y sus sesiones vigentes dejarán de ser válidas.'
       : 'La cuenta recuperará el acceso a REGALIA.';
 
     if (
       !confirmarAccionCritica(
-        `Vas a ${accion} la cuenta de "${usuario.nombreCompleto}" (${usuario.correo}). ${consecuencia}`,
+        `Confirma que deseas ${accion} la cuenta de ${usuario.nombreCompleto} (${usuario.correo}). ${consecuencia}`,
       )
     ) {
       return;
     }
 
     this.procesandoUsuario.set(usuario.idUsuario);
-    this.mensajeError.set(null);
-    this.mensajeExito.set(null);
+    this.limpiarMensajesAccion();
 
     const operacion = usuario.estado
       ? this.adminApi.desactivarUsuario(usuario.idUsuario)
@@ -125,11 +165,11 @@ export class PaginaAdminUsuarios implements OnInit {
           this.actualizarPagina(pagina);
           this.mensajeExito.set(
             usuario.estado
-              ? 'Usuario desactivado correctamente.'
-              : 'Usuario reactivado correctamente.',
+              ? `La cuenta de ${usuario.nombreCompleto} fue desactivada.`
+              : `La cuenta de ${usuario.nombreCompleto} fue reactivada.`,
           );
         },
-        error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeError(error)),
+        error: (error: unknown) => this.mensajeErrorAccion.set(this.obtenerMensajeError(error)),
       });
   }
 
@@ -146,11 +186,14 @@ export class PaginaAdminUsuarios implements OnInit {
   }
 
   private crearConsultaUsuarios(): ConsultaUsuariosAdmin {
+    const filtros = this.formularioFiltros.getRawValue();
     return {
       page: this.paginaActual(),
-      size: 12,
-      estado: this.formularioFiltros.controls.estado.value,
-      search: this.formularioFiltros.controls.busqueda.value,
+      size: filtros.tamanioPagina,
+      estado: filtros.estado,
+      searchField: filtros.campoBusqueda,
+      search: filtros.busqueda,
+      sort: filtros.orden,
     };
   }
 
@@ -158,6 +201,11 @@ export class PaginaAdminUsuarios implements OnInit {
     this.usuarios.set(pagina.contenido);
     this.totalUsuarios.set(pagina.totalElementos);
     this.totalPaginas.set(pagina.totalPaginas);
+  }
+
+  private limpiarMensajesAccion(): void {
+    this.mensajeErrorAccion.set(null);
+    this.mensajeExito.set(null);
   }
 
   private obtenerMensajeError(error: unknown): string {

@@ -5,18 +5,21 @@ import { ENDPOINTS_API } from '../../../core/configuracion/endpoints-api';
 import { RespuestaApi, RespuestaPaginada } from '../../../shared/modelos/respuesta-api.model';
 import {
   mapearPedidoAdministracionDesdeDto,
+  mapearProductoCatalogoTiendaAdministracionDesdeDto,
   mapearTiendaAdministracionDesdeDto,
   mapearUsuarioAdministracionDesdeDto,
   mapearVendedorAdministracionDesdeDto,
 } from '../mapeadores/panel-administracion.mapper';
 import {
   PedidoAdministracionDto,
+  ProductoCatalogoTiendaAdministracionDto,
   TiendaAdministracionDto,
   UsuarioAdministracionDto,
   VendedorAdministracionDto,
 } from '../modelos/panel-administracion.dto';
 import {
   PedidoAdministracion,
+  ProductoCatalogoTiendaAdministracion,
   TiendaAdministracion,
   UsuarioAdministracion,
   VendedorAdministracion,
@@ -28,21 +31,81 @@ export interface ConsultaUsuariosAdmin {
   page?: number;
   size?: number;
   estado?: 'ACTIVO' | 'INACTIVO' | 'TODOS';
+  searchField?: 'nombre' | 'correo' | 'telefono' | 'id_usuario';
   search?: string;
+  sort?:
+    | 'idUsuario,asc'
+    | 'idUsuario,desc'
+    | 'nombre,asc'
+    | 'nombre,desc'
+    | 'correo,asc'
+    | 'correo,desc'
+    | 'fechaCreacion,asc'
+    | 'fechaCreacion,desc';
+}
+
+export interface ConsultaVendedoresAdmin {
+  page?: number;
+  size?: number;
+  estado?: 'ACTIVO' | 'INACTIVO' | 'TODOS';
+  verificacion?: 'VERIFICADO' | 'SIN_VERIFICAR' | 'TODOS';
+  searchField?: 'nombre' | 'correo' | 'id_vendedor' | 'id_usuario';
+  search?: string;
+  sort?:
+    | 'idVendedor,asc'
+    | 'idVendedor,desc'
+    | 'idUsuario,asc'
+    | 'idUsuario,desc'
+    | 'nombre,asc'
+    | 'nombre,desc'
+    | 'correo,asc'
+    | 'correo,desc'
+    | 'fechaCreacion,asc'
+    | 'fechaCreacion,desc';
 }
 
 export interface ConsultaTiendasAdmin {
   page?: number;
   size?: number;
-  estadoRevision?: string;
+  estadoRevision?: 'PENDIENTE' | 'APROBADA' | 'OBSERVADA' | 'RECHAZADA';
+  searchField?: 'nombre' | 'vendedor' | 'correo_vendedor' | 'id_tienda';
   search?: string;
+  sort?:
+    | 'idTienda,asc'
+    | 'idTienda,desc'
+    | 'nombre,asc'
+    | 'nombre,desc'
+    | 'estadoRevision,asc'
+    | 'estadoRevision,desc'
+    | 'nombreVendedor,asc'
+    | 'nombreVendedor,desc'
+    | 'fechaCreacion,asc'
+    | 'fechaCreacion,desc';
 }
 
 export interface ConsultaPedidosAdmin {
   page?: number;
   size?: number;
-  estadoPago?: string;
+  estadoPago?: 'PAGADO' | 'CON_SALDO';
+  estadoPedido?: 'RESERVADO' | 'EN_PREPARACION' | 'LISTO' | 'ENTREGADO' | 'ANULADO';
+  idTienda?: number;
+  searchField?: 'id_pedido' | 'nombre_tienda' | 'id_usuario';
   search?: string;
+  fechaDesde?: string;
+  fechaHasta?: string;
+  sort?:
+    | 'idPedido,asc'
+    | 'idPedido,desc'
+    | 'fechaCreacion,asc'
+    | 'fechaCreacion,desc'
+    | 'fechaEntrega,asc'
+    | 'fechaEntrega,desc'
+    | 'nombreTienda,asc'
+    | 'nombreTienda,desc'
+    | 'total,asc'
+    | 'total,desc'
+    | 'saldoPendiente,asc'
+    | 'saldoPendiente,desc';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -55,11 +118,13 @@ export class PanelAdministracionApiService {
     let params = new HttpParams()
       .set('page', consulta.page ?? 0)
       .set('size', consulta.size ?? 5)
-      .set('sort', 'idUsuario,desc')
+      .set('sort', consulta.sort ?? 'idUsuario,desc')
       .set('estado', consulta.estado ?? 'ACTIVO');
 
     if (consulta.search?.trim()) {
-      params = params.set('searchField', 'correo').set('search', consulta.search.trim());
+      params = params
+        .set('searchField', consulta.searchField ?? 'correo')
+        .set('search', consulta.search.trim());
     }
 
     return this.http
@@ -73,11 +138,21 @@ export class PanelAdministracionApiService {
       );
   }
 
-  obtenerVendedores(size = 5): Observable<RespuestaPaginada<VendedorAdministracion>> {
-    const params = new HttpParams()
-      .set('page', 0)
-      .set('size', size)
-      .set('sort', 'fechaCreacion,desc');
+  obtenerVendedores(
+    consulta: ConsultaVendedoresAdmin = {},
+  ): Observable<RespuestaPaginada<VendedorAdministracion>> {
+    let params = new HttpParams()
+      .set('page', consulta.page ?? 0)
+      .set('size', consulta.size ?? 5)
+      .set('estado', consulta.estado ?? 'TODOS')
+      .set('verificacion', consulta.verificacion ?? 'TODOS')
+      .set('sort', consulta.sort ?? 'fechaCreacion,desc');
+
+    if (consulta.search?.trim()) {
+      params = params
+        .set('searchField', consulta.searchField ?? 'nombre')
+        .set('search', consulta.search.trim());
+    }
 
     return this.http
       .get<RespuestaApi<RespuestaPaginada<VendedorAdministracionDto>>>(
@@ -88,6 +163,13 @@ export class PanelAdministracionApiService {
         timeout(TIEMPO_ESPERA_ADMIN_MS),
         map((respuesta) => this.mapearPagina(respuesta, mapearVendedorAdministracionDesdeDto)),
       );
+  }
+
+  obtenerUsuarioPorId(idUsuario: number): Observable<UsuarioAdministracion> {
+    return this.obtenerDetalle(
+      ENDPOINTS_API.administracion.usuarioPorId(idUsuario),
+      mapearUsuarioAdministracionDesdeDto,
+    );
   }
 
   obtenerVendedorPorId(idVendedor: number): Observable<VendedorAdministracion> {
@@ -111,14 +193,16 @@ export class PanelAdministracionApiService {
     let params = new HttpParams()
       .set('page', consulta.page ?? 0)
       .set('size', consulta.size ?? 6)
-      .set('sort', 'idTienda,desc');
+      .set('sort', consulta.sort ?? 'fechaCreacion,desc');
 
     if (consulta.estadoRevision) {
       params = params.set('estadoRevision', consulta.estadoRevision);
     }
 
     if (consulta.search?.trim()) {
-      params = params.set('searchField', 'nombre').set('search', consulta.search.trim());
+      params = params
+        .set('searchField', consulta.searchField ?? 'nombre')
+        .set('search', consulta.search.trim());
     }
 
     return this.http
@@ -139,20 +223,53 @@ export class PanelAdministracionApiService {
     );
   }
 
+  obtenerCatalogoPublicoTienda(
+    idTienda: number,
+  ): Observable<ProductoCatalogoTiendaAdministracion[]> {
+    return this.http
+      .get<RespuestaApi<ProductoCatalogoTiendaAdministracionDto[]>>(
+        ENDPOINTS_API.tiendas.productos(idTienda),
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_ADMIN_MS),
+        map((respuesta) =>
+          (respuesta.data ?? []).map(mapearProductoCatalogoTiendaAdministracionDesdeDto),
+        ),
+      );
+  }
+
   obtenerPedidos(
     consulta: ConsultaPedidosAdmin = {},
   ): Observable<RespuestaPaginada<PedidoAdministracion>> {
     let params = new HttpParams()
       .set('page', consulta.page ?? 0)
       .set('size', consulta.size ?? 6)
-      .set('sort', 'fechaCreacion,desc');
+      .set('sort', consulta.sort ?? 'fechaCreacion,desc');
 
     if (consulta.estadoPago) {
       params = params.set('estadoPago', consulta.estadoPago);
     }
 
+    if (consulta.estadoPedido) {
+      params = params.set('estadoPedido', consulta.estadoPedido);
+    }
+
+    if (consulta.idTienda) {
+      params = params.set('idTienda', consulta.idTienda);
+    }
+
     if (consulta.search?.trim()) {
-      params = params.set('searchField', 'nombreTienda').set('search', consulta.search.trim());
+      params = params
+        .set('searchField', consulta.searchField ?? 'id_pedido')
+        .set('search', consulta.search.trim());
+    }
+
+    if (consulta.fechaDesde) {
+      params = params.set('fechaDesde', consulta.fechaDesde);
+    }
+
+    if (consulta.fechaHasta) {
+      params = params.set('fechaHasta', consulta.fechaHasta);
     }
 
     return this.http

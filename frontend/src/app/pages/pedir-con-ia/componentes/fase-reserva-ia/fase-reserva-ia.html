@@ -1,10 +1,10 @@
 <section class="builder-phase builder-card builder-card--centered" aria-labelledby="reservation-title">
   <div class="builder-card__header">
     <div>
-      <span class="builder-card__eyebrow">Fase 4 de 4</span>
-      <h2 id="reservation-title" class="builder-card__title">Confirma tu seleccion</h2>
+      <span class="builder-card__eyebrow">Paso 3 de 3</span>
+      <h2 id="reservation-title" class="builder-card__title">Confirma tu elección</h2>
       <p class="builder-card__text">
-        REGALIA agregara el producto real seleccionado al carrito para continuar con checkout.
+        Revisa el producto recomendado antes de agregarlo al carrito y continuar con checkout.
       </p>
     </div>
   </div>
@@ -12,19 +12,19 @@
   @if (productoSeleccionado(); as producto) {
     <div class="builder-reservation-layout">
       <article class="builder-seller-final">
-        <span>Producto recomendado</span>
+        <span>Producto elegido</span>
         <h3>{{ producto.nombre }}</h3>
         <p>{{ producto.descripcion }}</p>
         <button type="button" class="builder-secondary-action" (click)="buscarEnCatalogo.emit()">
-          Buscar mas opciones
+          Buscar más opciones
         </button>
       </article>
 
-      <aside class="builder-reservation-box">
+      <aside class="builder-reservation-box" aria-label="Resumen económico">
         <div><span>Tienda</span><strong>{{ producto.nombreTienda }}</strong></div>
-        <div><span>Stock</span><strong>{{ producto.stock }}</strong></div>
+        <div><span>Disponibilidad</span><strong>{{ producto.stock }} unidades</strong></div>
         <div class="builder-reservation-box__total">
-          <span>Total producto</span>
+          <span>Total del producto</span>
           <strong>{{ producto.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
         </div>
       </aside>
@@ -33,17 +33,22 @@
 
   <div class="builder-phase-actions">
     <button type="button" class="builder-secondary-action" (click)="volver.emit()">Volver</button>
-    <button type="button" class="builder-primary-action" (click)="confirmarSolicitud.emit()">
-      Agregar al carrito
+    <button
+      type="button"
+      class="builder-primary-action"
+      [disabled]="productoAgregado()"
+      (click)="confirmarSolicitud.emit()"
+    >
+      {{ productoAgregado() ? 'Agregado al carrito' : 'Agregar al carrito' }}
     </button>
   </div>
 
   @if (mensajeExito()) {
-    <div class="builder-confirmation">
-      <span>Producto agregado</span>
+    <div class="builder-confirmation" role="status" aria-live="polite">
+      <span>Producto agregado correctamente</span>
       <strong>{{ mensajeExito() }}</strong>
       <button type="button" class="builder-secondary-action" (click)="irAlCarrito.emit()">
-        Ir al carrito
+        Revisar mi carrito
       </button>
     </div>
   }

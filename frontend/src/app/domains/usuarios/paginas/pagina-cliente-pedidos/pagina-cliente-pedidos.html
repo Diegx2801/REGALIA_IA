@@ -1,81 +1,310 @@
 <section class="cliente-pedidos">
   <header class="cliente-pedidos__hero">
-    <span>Mis pedidos</span>
-    <h2>Historial y seguimiento</h2>
-    <p>Revisa el estado y los detalles de las compras que hiciste en REGALIA.</p>
+    <div>
+      <span class="cliente-pedidos__sobrelinea">Mis pedidos</span>
+      <h2>Tu regalo, siempre a la vista</h2>
+      <p>
+        Consulta el avance de cada compra, revisa sus pagos y encuentra rápidamente el pedido que
+        necesitas.
+      </p>
+    </div>
+
+    <div class="cliente-pedidos__hero-dato" aria-live="polite">
+      <span>Pedidos encontrados</span>
+      <strong>{{ store.totalElementos() }}</strong>
+      <small>en la consulta actual</small>
+    </div>
   </header>
 
-  @if (store.cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando tus pedidos." />
-  } @else if (store.mensajeError()) {
-    <app-estado-pantalla
-      tipo="error"
-      etiqueta="Error"
-      [titulo]="store.mensajeError() ?? 'No pudimos cargar tus pedidos.'"
-      textoAccion="Reintentar"
-      (accion)="recargarPedidos()"
-    />
-  } @else {
-    <article class="cliente-card">
-      <header class="cliente-pedidos__toolbar">
-        <div>
-          <span>Pedidos encontrados</span>
-          <h3>{{ store.totalElementos() }} {{ store.totalElementos() === 1 ? 'pedido' : 'pedidos' }}</h3>
-        </div>
+  <section class="cliente-pedidos__metricas" aria-label="Resumen de la página actual">
+    <article>
+      <span>Total encontrado</span>
+      <strong>{{ store.totalElementos() }}</strong>
+      <small>En todo tu historial filtrado</small>
+    </article>
+    <article>
+      <span>En camino</span>
+      <strong>{{ pedidosEnCursoPagina() }}</strong>
+      <small>En esta página</small>
+    </article>
+    <article>
+      <span>Entregados</span>
+      <strong>{{ pedidosEntregadosPagina() }}</strong>
+      <small>En esta página</small>
+    </article>
+    <article [class.cliente-pedidos__metrica--alerta]="pedidosConSaldoPagina() > 0">
+      <span>Con saldo</span>
+      <strong>{{ pedidosConSaldoPagina() }}</strong>
+      <small>En esta página</small>
+    </article>
+  </section>
 
-        <form class="cliente-pedidos__filtros" [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
-          <label>
-            Buscar
-            <input type="search" formControlName="q" placeholder="Número de pedido o tienda" />
-          </label>
-          <label>
-            Estado
-            <select formControlName="estado">
-              <option value="">Todos</option>
-              <option value="RESERVADO">Reservado</option>
-              <option value="EN_PREPARACION">En preparación</option>
-              <option value="LISTO">Listo para entrega</option>
-              <option value="ENTREGADO">Entregado</option>
-              <option value="ANULADO">Anulado</option>
-            </select>
-          </label>
-          <label>
-            Pago
-            <select formControlName="estadoPago">
-              <option value="">Todos</option>
-              <option value="PAGADO">Pagado</option>
-              <option value="CON_SALDO">Con saldo pendiente</option>
-            </select>
-          </label>
-          <div class="cliente-pedidos__acciones-filtro">
-            <button appBoton="secundario" appBotonTamano="sm" type="submit">Aplicar</button>
-            <button appBoton="fantasma" appBotonTamano="sm" type="button" (click)="limpiarFiltros()">Limpiar</button>
-          </div>
-        </form>
+  <article class="cliente-pedidos__bandeja">
+    <header class="cliente-pedidos__cabecera-bandeja">
+      <div>
+        <span class="cliente-pedidos__sobrelinea">Historial de compras</span>
+        <h3>Encuentra y sigue tus pedidos</h3>
+        <p>Los filtros se conservan en la dirección de la página para que puedas volver sin perder contexto.</p>
+      </div>
+      @if (cantidadFiltrosActivos() > 0) {
+        <span class="cliente-pedidos__contador-filtros">
+          {{ cantidadFiltrosActivos() }}
+          {{ cantidadFiltrosActivos() === 1 ? 'filtro activo' : 'filtros activos' }}
+        </span>
+      }
+    </header>
+
+    <nav class="cliente-pedidos__vistas" aria-label="Filtrar pedidos rápidamente por estado">
+      @for (estado of estadosRapidos; track estado.valor) {
+        <button
+          type="button"
+          [disabled]="store.cargando()"
+          [attr.aria-pressed]="(consultaActual().estado ?? '') === estado.valor"
+          (click)="aplicarEstadoRapido(estado.valor)"
+        >
+          {{ estado.etiqueta }}
+        </button>
+      }
+    </nav>
+
+    <form
+      class="cliente-pedidos__filtros"
+      [formGroup]="formularioFiltros"
+      (ngSubmit)="aplicarFiltros()"
+    >
+      <fieldset [disabled]="store.cargando()">
+        <legend class="sr-only">Filtros del historial de pedidos</legend>
+
+        <label class="cliente-pedidos__busqueda">
+          <span>Buscar pedido o tienda</span>
+          <span class="cliente-pedidos__control-busqueda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path
+                d="m20 20-4.2-4.2m1.2-5.3a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+                stroke-linecap="round"
+                stroke-width="1.8"
+              />
+            </svg>
+            <input
+              type="search"
+              formControlName="q"
+              placeholder="Ej.: 1042 o nombre de tienda"
+              autocomplete="off"
+              aria-describedby="ayuda-busqueda-pedidos-cliente"
+            />
+          </span>
+          <small id="ayuda-busqueda-pedidos-cliente">Busca por número de pedido o nombre de tienda.</small>
+        </label>
+
+        <label>
+          <span>Estado del pedido</span>
+          <select formControlName="estado">
+            <option value="">Todos los estados</option>
+            <option value="RESERVADO">Reservado</option>
+            <option value="EN_PREPARACION">En preparación</option>
+            <option value="LISTO">Listo para entrega</option>
+            <option value="ENTREGADO">Entregado</option>
+            <option value="ANULADO">Anulado</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Estado del pago</span>
+          <select formControlName="estadoPago">
+            <option value="">Todos los pagos</option>
+            <option value="PAGADO">Pago completo</option>
+            <option value="CON_SALDO">Con saldo pendiente</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Ordenar por</span>
+          <select formControlName="sort">
+            <option value="fechaCreacion,desc">Más recientes primero</option>
+            <option value="fechaEntrega,asc">Próxima entrega</option>
+            <option value="saldoPendiente,desc">Mayor saldo pendiente</option>
+            <option value="total,desc">Mayor importe</option>
+            <option value="nombreTienda,asc">Tienda de A a Z</option>
+          </select>
+        </label>
+
+        <div class="cliente-pedidos__acciones-filtro">
+          <button appBoton type="submit">Aplicar filtros</button>
+          <button appBoton="fantasma" type="button" (click)="limpiarFiltros()">Limpiar</button>
+        </div>
+      </fieldset>
+    </form>
+
+    <section
+      class="cliente-pedidos__resultados"
+      aria-labelledby="titulo-resultados-pedidos-cliente"
+      [attr.aria-busy]="store.cargando()"
+    >
+      <header class="cliente-pedidos__resultados-cabecera">
+        <div>
+          <span class="cliente-pedidos__sobrelinea">Resultados</span>
+          <h4 id="titulo-resultados-pedidos-cliente">
+            {{ store.totalElementos() }}
+            {{ store.totalElementos() === 1 ? 'pedido encontrado' : 'pedidos encontrados' }}
+          </h4>
+        </div>
+        @if (!store.cargando() && !store.mensajeError()) {
+          <small>Página {{ store.paginaActual() + 1 }} de {{ store.totalPaginas() || 1 }}</small>
+        }
       </header>
 
-      @if (store.pedidos().length === 0) {
-        <app-estado-pantalla
-          tipo="vacio"
-          etiqueta="Sin resultados"
-          titulo="No encontramos pedidos con esos filtros."
-          descripcion="Prueba con otro número, tienda o estado."
-          textoAccion="Limpiar filtros"
-          (accion)="limpiarFiltros()"
-        />
-      } @else {
-        <app-lista-panel ariaEtiqueta="Listado de tus pedidos">
-          @for (pedido of store.pedidos(); track pedido.idPedido) {
-            <app-fila-panel tipo="triple" [ariaEtiqueta]="'Pedido número ' + pedido.idPedido">
-              <div class="cliente-pedidos__resumen-pedido">
-                <strong>Pedido #{{ pedido.idPedido }} · {{ etiquetaEstado(pedido.estadoPedido) }}</strong>
-                <small>{{ pedido.nombreTienda }} · Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}</small>
-              </div>
-              <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
-              <a appBoton="secundario" appBotonTamano="sm" [routerLink]="['/cliente/pedidos', pedido.idPedido]">Ver detalle</a>
-            </app-fila-panel>
+      @if (store.cargando()) {
+        <div class="cliente-pedidos__cargando" role="status" aria-live="polite">
+          <span class="sr-only">Consultando tus pedidos.</span>
+          @for (elemento of [1, 2, 3]; track elemento) {
+            <div aria-hidden="true"><span></span><span></span><span></span></div>
           }
-        </app-lista-panel>
+        </div>
+      } @else if (store.mensajeError()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="No pudimos cargar tu historial"
+          [titulo]="store.mensajeError() ?? 'No pudimos cargar tus pedidos.'"
+          descripcion="Comprueba tu conexión y vuelve a intentarlo. Conservaremos los filtros seleccionados."
+          textoAccion="Reintentar"
+          (accion)="recargarPedidos()"
+        />
+      } @else if (store.pedidos().length === 0) {
+        @if (cantidadFiltrosActivos() > 0) {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Sin coincidencias"
+            titulo="Ningún pedido coincide con estos filtros."
+            descripcion="Prueba otro estado, número o tienda para ampliar la búsqueda."
+            textoAccion="Limpiar filtros"
+            (accion)="limpiarFiltros()"
+          />
+        } @else {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Tu historial está listo"
+            titulo="Aún no tienes pedidos confirmados."
+            descripcion="Cuando completes tu primera compra, podrás seguir aquí cada etapa de preparación y entrega."
+            textoAccion="Explorar catálogo"
+            rutaAccion="/catalogo"
+          />
+        }
+      } @else {
+        <ul class="cliente-pedidos__lista" aria-label="Tus pedidos">
+          @for (pedido of store.pedidos(); track pedido.idPedido) {
+            <li>
+              <article
+                class="pedido-cliente"
+                [class.pedido-cliente--anulado]="pedido.estadoPedido === 'ANULADO'"
+                [attr.aria-labelledby]="'pedido-cliente-' + pedido.idPedido"
+              >
+                <header class="pedido-cliente__cabecera">
+                  <div>
+                    <span class="pedido-cliente__numero">Pedido #{{ pedido.idPedido }}</span>
+                    <h5 [id]="'pedido-cliente-' + pedido.idPedido">{{ pedido.nombreTienda }}</h5>
+                    @if (pedido.fechaCreacion) {
+                      <small>Comprado el {{ pedido.fechaCreacion | date: 'dd/MM/yyyy' }}</small>
+                    }
+                  </div>
+                  <span
+                    class="pedido-cliente__estado"
+                    [attr.data-estado]="pedido.estadoPedido"
+                  >
+                    {{ etiquetaEstado(pedido.estadoPedido) }}
+                  </span>
+                </header>
+
+                <div class="pedido-cliente__datos">
+                  <div>
+                    <span>Entrega</span>
+                    <strong>{{ pedido.tipoEntrega }}</strong>
+                    @if (pedido.fechaEntrega) {
+                      <time [attr.datetime]="pedido.fechaEntrega">
+                        Fecha solicitada: {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}
+                      </time>
+                    } @else {
+                      <small>Fecha por coordinar</small>
+                    }
+                  </div>
+                  <div>
+                    <span>Total</span>
+                    <strong>{{ pedido.total | currency: 'PEN' : 'S/' : '1.2-2' }}</strong>
+                    <small>{{ etiquetaPago(pedido) }}</small>
+                  </div>
+                  <div>
+                    <span>Pagado</span>
+                    <strong>{{ pedido.montoPagado | currency: 'PEN' : 'S/' : '1.2-2' }}</strong>
+                    @if (pedido.saldoPendiente > 0) {
+                      <small>Saldo {{ pedido.saldoPendiente | currency: 'PEN' : 'S/' : '1.2-2' }}</small>
+                    } @else {
+                      <small>Sin saldo pendiente</small>
+                    }
+                  </div>
+                </div>
+
+                @if (pedido.estadoPedido === 'ANULADO') {
+                  <div class="pedido-cliente__anulado" role="status">
+                    <strong>Pedido anulado</strong>
+                    <span>Consulta el detalle para revisar la información disponible.</span>
+                  </div>
+                } @else {
+                  <div class="pedido-cliente__seguimiento">
+                    <div>
+                      <span>Seguimiento</span>
+                      <strong>{{ etiquetaEstado(pedido.estadoPedido) }}</strong>
+                    </div>
+                    <ol [attr.aria-label]="'Seguimiento del pedido ' + pedido.idPedido">
+                      @for (paso of pasosSeguimiento; track paso.estado; let indice = $index) {
+                        <li
+                          [attr.data-paso]="estadoPaso(pedido.estadoPedido, indice)"
+                          [attr.aria-current]="
+                            estadoPaso(pedido.estadoPedido, indice) === 'actual' ? 'step' : null
+                          "
+                        >
+                          <span aria-hidden="true"></span>
+                          <small>{{ paso.etiqueta }}</small>
+                        </li>
+                      }
+                    </ol>
+                  </div>
+                }
+
+                <footer class="pedido-cliente__pie">
+                  <div class="pedido-cliente__pago" aria-label="Progreso del pago">
+                    <span>
+                      <strong>{{ porcentajePagado(pedido) }}% pagado</strong>
+                      <small>
+                        {{ pedido.montoPagado | currency: 'PEN' : 'S/' : '1.2-2' }} de
+                        {{ pedido.total | currency: 'PEN' : 'S/' : '1.2-2' }}
+                      </small>
+                    </span>
+                    <span
+                      class="pedido-cliente__barra"
+                      role="progressbar"
+                      aria-label="Porcentaje pagado"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      [attr.aria-valuenow]="porcentajePagado(pedido)"
+                    >
+                      <span [style.width.%]="porcentajePagado(pedido)"></span>
+                    </span>
+                  </div>
+                  <a
+                    appBoton="secundario"
+                    appBotonTamano="sm"
+                    [routerLink]="['/cliente/pedidos', pedido.idPedido]"
+                    [attr.aria-label]="'Ver detalle del pedido ' + pedido.idPedido"
+                  >
+                    Ver detalle
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                      <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+                    </svg>
+                  </a>
+                </footer>
+              </article>
+            </li>
+          }
+        </ul>
 
         <app-paginacion-panel
           [paginaActual]="store.paginaActual()"
@@ -85,6 +314,6 @@
           (siguiente)="paginaSiguiente()"
         />
       }
-    </article>
-  }
+    </section>
+  </article>
 </section>

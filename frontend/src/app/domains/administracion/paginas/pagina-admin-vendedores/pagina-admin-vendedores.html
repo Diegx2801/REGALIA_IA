@@ -1,83 +1,311 @@
-<section class="admin-vendedores">
+<section class="admin-vendedores" aria-labelledby="titulo-vendedores">
   <header class="admin-vendedores__hero">
-    <span>Vendedores</span>
-    <h2>Actividad comercial</h2>
-    <p>Consulta perfiles vendedores, estado de verificación y volumen de tiendas asociadas.</p>
+    <div>
+      <span>Red comercial</span>
+      <h2 id="titulo-vendedores">Gestión de vendedores</h2>
+      <p>
+        Supervisa perfiles comerciales, validación de identidad y cobertura de tiendas desde un
+        directorio conectado al backend real.
+      </p>
+    </div>
+    <div class="admin-vendedores__hero-sello" aria-label="Entorno de supervisión comercial">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path d="M12 3 4.5 6v5.2c0 4.5 3 8.3 7.5 9.8 4.5-1.5 7.5-5.3 7.5-9.8V6L12 3Z" />
+        <path d="m8.7 12 2.1 2.1 4.5-4.5" />
+      </svg>
+      <div>
+        <strong>Supervisión comercial</strong>
+        <small>Consulta segura y trazable</small>
+      </div>
+    </div>
   </header>
 
-  @if (store.cargandoVendedores()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando vendedores." />
-  } @else if (store.mensajeError()) {
+  <form
+    app-filtros-panel
+    [formGroup]="formularioFiltros"
+    aria-label="Filtros de vendedores"
+    (ngSubmit)="aplicarFiltros()"
+  >
+    <label>
+      Estado operativo
+      <select formControlName="estado">
+        <option value="TODOS">Todos</option>
+        <option value="ACTIVO">Activos</option>
+        <option value="INACTIVO">Inactivos</option>
+      </select>
+    </label>
+    <label>
+      Verificación
+      <select formControlName="verificacion">
+        <option value="TODOS">Todos</option>
+        <option value="VERIFICADO">Verificados</option>
+        <option value="SIN_VERIFICAR">Sin verificar</option>
+      </select>
+    </label>
+    <label>
+      Buscar por
+      <select formControlName="campoBusqueda">
+        <option value="nombre">Nombre</option>
+        <option value="correo">Correo</option>
+        <option value="id_vendedor">ID de vendedor</option>
+        <option value="id_usuario">ID de usuario</option>
+      </select>
+    </label>
+    <label class="admin-vendedores__campo-busqueda">
+      Término de búsqueda
+      <input
+        type="search"
+        formControlName="busqueda"
+        autocomplete="off"
+        placeholder="Localiza un perfil comercial"
+      />
+    </label>
+    <label>
+      Ordenar por
+      <select formControlName="orden">
+        <option value="fechaCreacion,desc">Más recientes</option>
+        <option value="fechaCreacion,asc">Más antiguos</option>
+        <option value="nombre,asc">Nombre A–Z</option>
+        <option value="nombre,desc">Nombre Z–A</option>
+        <option value="correo,asc">Correo A–Z</option>
+        <option value="idVendedor,desc">ID descendente</option>
+      </select>
+    </label>
+    <label>
+      Por página
+      <select formControlName="tamanioPagina">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </label>
+    <div class="admin-vendedores__acciones-filtros">
+      <button type="submit" [disabled]="cargando()">
+        {{ cargando() ? 'Consultando…' : 'Aplicar filtros' }}
+      </button>
+      <button
+        class="admin-vendedores__limpiar"
+        type="button"
+        [disabled]="cargando()"
+        (click)="limpiarFiltros()"
+      >
+        Limpiar
+      </button>
+    </div>
+  </form>
+
+  @if (cargando() && !cargaCompletada()) {
+    <app-estado-pantalla
+      tipo="carga"
+      etiqueta="Directorio comercial"
+      titulo="Consultando vendedores"
+      descripcion="Estamos sincronizando perfiles, verificación y tiendas asociadas."
+    />
+  } @else if (mensajeError() && !cargaCompletada()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Error"
-      [titulo]="store.mensajeError() ?? 'No pudimos cargar vendedores.'"
+      etiqueta="Directorio no disponible"
+      [titulo]="mensajeError() ?? 'No pudimos cargar vendedores.'"
+      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
       textoAccion="Reintentar"
-      (accion)="store.cargarVendedores()"
+      (accion)="cargarVendedores()"
     />
   } @else {
-    <section class="admin-vendedores__metricas">
+    @if (mensajeError()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="Consulta no actualizada"
+        [titulo]="mensajeError() ?? ''"
+        textoAccion="Reintentar"
+        (accion)="cargarVendedores()"
+      />
+    }
+
+    <app-grupo-metricas-panel ariaEtiqueta="Resumen de vendedores filtrados">
       <app-tarjeta-metrica
-        etiqueta="Vendedores"
-        [valor]="store.totalVendedores()"
-        descripcion="Total reportado por backend."
+        etiqueta="Perfiles encontrados"
+        [valor]="totalVendedores()"
+        descripcion="Total que coincide con la consulta actual."
       />
       <app-tarjeta-metrica
-        etiqueta="Verificados"
-        [valor]="verificados()"
-        descripcion="Perfiles comerciales verificados en esta vista."
+        etiqueta="Verificados en página"
+        [valor]="vendedoresVerificadosPagina()"
+        [descripcion]="vendedores().length + ' perfil(es) visibles.'"
+      />
+      <app-tarjeta-metrica
+        etiqueta="Activos en página"
+        [valor]="vendedoresActivosPagina()"
+        descripcion="Perfiles con operación habilitada."
       />
       <app-tarjeta-metrica
         etiqueta="Tiendas activas"
-        [valor]="tiendasActivas()"
-        descripcion="Suma de tiendas activas asociadas."
+        [valor]="tiendasActivasPagina()"
+        descripcion="Cobertura comercial de la página actual."
       />
-    </section>
+    </app-grupo-metricas-panel>
 
-    <article class="admin-card">
-      <header class="admin-vendedores__toolbar">
+    <section
+      class="admin-vendedores__directorio"
+      [attr.aria-busy]="cargando()"
+      aria-labelledby="titulo-directorio-vendedores"
+    >
+      <header class="admin-vendedores__cabecera-directorio">
         <div>
-          <span>Listado</span>
-          <h3>{{ vendedoresFiltrados().length }} vendedores</h3>
+          <span>Directorio operativo</span>
+          <h3 id="titulo-directorio-vendedores">Perfiles comerciales</h3>
         </div>
-        <label>
-          Buscar
-          <input type="search" placeholder="Nombre o correo" (input)="buscar($event)" />
-        </label>
+        <p>{{ totalVendedores() }} resultado(s)</p>
       </header>
 
-      @if (vendedoresFiltrados().length === 0) {
+      @if (cargando()) {
+        <p class="admin-vendedores__actualizando" role="status">Actualizando el directorio…</p>
+      }
+
+      @if (vendedores().length > 0) {
+        <div class="admin-vendedores__tabla-contenedor">
+          <table class="admin-vendedores__tabla">
+            <caption>
+              Vendedores según los filtros administrativos aplicados
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Vendedor</th>
+                <th scope="col">Validación</th>
+                <th scope="col">Portafolio</th>
+                <th scope="col">Registro</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="admin-vendedores__columna-accion">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (vendedor of vendedores(); track vendedor.idVendedor) {
+                <tr>
+                  <td>
+                    <strong>{{ vendedor.nombreCompleto }}</strong>
+                    <a [href]="'mailto:' + vendedor.correo">{{ vendedor.correo }}</a>
+                    <small
+                      >Vendedor #{{ vendedor.idVendedor }} · Usuario #{{
+                        vendedor.idUsuario
+                      }}</small
+                    >
+                  </td>
+                  <td>
+                    <span
+                      class="admin-vendedores__insignia"
+                      [class.admin-vendedores__insignia--verificada]="vendedor.verificado"
+                    >
+                      {{ vendedor.verificado ? 'Identidad verificada' : 'Revisión pendiente' }}
+                    </span>
+                  </td>
+                  <td>
+                    <strong class="admin-vendedores__dato-numerico">
+                      {{ vendedor.tiendasActivas }}/{{ vendedor.tiendasTotales }}
+                    </strong>
+                    <small>tiendas activas</small>
+                  </td>
+                  <td>
+                    <time [attr.datetime]="vendedor.fechaCreacion">
+                      {{ vendedor.fechaCreacion | date: 'dd MMM yyyy' }}
+                    </time>
+                  </td>
+                  <td>
+                    <span
+                      class="admin-vendedores__estado"
+                      [class.admin-vendedores__estado--activo]="vendedor.estado"
+                      [class.admin-vendedores__estado--inactivo]="!vendedor.estado"
+                      [attr.aria-label]="
+                        'Estado del vendedor: ' + (vendedor.estado ? 'activo' : 'inactivo')
+                      "
+                    >
+                      <span aria-hidden="true"></span>
+                      {{ vendedor.estado ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="admin-vendedores__columna-accion">
+                    <a
+                      appBoton="secundario"
+                      appBotonTamano="sm"
+                      [routerLink]="['/admin/vendedores', vendedor.idVendedor]"
+                      [attr.aria-label]="'Revisar perfil de ' + vendedor.nombreCompleto"
+                    >
+                      Revisar perfil
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="admin-vendedores__tarjetas" aria-label="Vendedores en vista móvil">
+          @for (vendedor of vendedores(); track vendedor.idVendedor) {
+            <article class="admin-vendedores__tarjeta">
+              <header>
+                <div class="admin-vendedores__avatar" aria-hidden="true">
+                  {{ vendedor.nombreCompleto.charAt(0) }}
+                </div>
+                <div class="admin-vendedores__identidad">
+                  <small>Vendedor #{{ vendedor.idVendedor }}</small>
+                  <h4>{{ vendedor.nombreCompleto }}</h4>
+                  <a [href]="'mailto:' + vendedor.correo">{{ vendedor.correo }}</a>
+                </div>
+                <span
+                  class="admin-vendedores__estado"
+                  [class.admin-vendedores__estado--activo]="vendedor.estado"
+                  [class.admin-vendedores__estado--inactivo]="!vendedor.estado"
+                  [attr.aria-label]="
+                    'Estado del vendedor: ' + (vendedor.estado ? 'activo' : 'inactivo')
+                  "
+                >
+                  <span aria-hidden="true"></span>
+                  {{ vendedor.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+              </header>
+              <div class="admin-vendedores__tarjeta-resumen">
+                <div>
+                  <span>Validación</span>
+                  <strong>{{ vendedor.verificado ? 'Verificada' : 'Pendiente' }}</strong>
+                </div>
+                <div>
+                  <span>Tiendas</span>
+                  <strong
+                    >{{ vendedor.tiendasActivas }}/{{ vendedor.tiendasTotales }} activas</strong
+                  >
+                </div>
+                <div>
+                  <span>Registro</span>
+                  <strong>{{ vendedor.fechaCreacion | date: 'dd/MM/yyyy' }}</strong>
+                </div>
+              </div>
+              <a
+                appBoton="secundario"
+                appBotonBloque
+                [routerLink]="['/admin/vendedores', vendedor.idVendedor]"
+                [attr.aria-label]="'Revisar perfil de ' + vendedor.nombreCompleto"
+              >
+                Revisar perfil comercial
+              </a>
+            </article>
+          }
+        </div>
+      } @else {
         <app-estado-pantalla
           tipo="vacio"
-          etiqueta="Sin resultados"
-          titulo="No hay vendedores con ese criterio."
+          etiqueta="Sin coincidencias"
+          titulo="No encontramos vendedores con estos filtros"
+          descripcion="Ajusta el estado, la verificación o el término de búsqueda."
+          [textoAccion]="hayFiltrosActivos() ? 'Limpiar filtros' : null"
+          (accion)="limpiarFiltros()"
         />
-      } @else {
-        <app-lista-panel ariaEtiqueta="Vendedores administrativos">
-          @for (vendedor of vendedoresFiltrados(); track vendedor.idVendedor) {
-            <app-fila-panel tipo="triple" [ariaEtiqueta]="vendedor.nombreCompleto">
-              <div>
-                <strong>{{ vendedor.nombreCompleto }}</strong>
-                <small>{{ vendedor.correo }}</small>
-              </div>
-              <b [ngbTooltip]="'Tiendas totales: ' + vendedor.tiendasTotales">
-                {{ vendedor.tiendasActivas }} activas
-              </b>
-              <div class="admin-vendedores__acciones">
-                <span>{{ vendedor.verificado ? 'Verificado' : 'Pendiente' }}</span>
-                <a
-                  appBoton="secundario"
-                  appBotonTamano="sm"
-                  [routerLink]="['/admin/vendedores', vendedor.idVendedor]"
-                  [attr.aria-label]="'Ver detalle de ' + vendedor.nombreCompleto"
-                >
-                  Ver detalle
-                </a>
-              </div>
-            </app-fila-panel>
-          }
-        </app-lista-panel>
       }
-    </article>
+    </section>
+
+    <app-paginacion-panel
+      ariaEtiqueta="Paginación de vendedores"
+      [paginaActual]="paginaActual()"
+      [totalPaginas]="totalPaginas()"
+      (anterior)="paginaAnterior()"
+      (siguiente)="paginaSiguiente()"
+    />
   }
 </section>

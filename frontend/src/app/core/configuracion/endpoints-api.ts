@@ -66,6 +66,7 @@ export const ENDPOINTS_API = {
   },
   administracion: {
     usuarios: `${RUTA_BASE_API}/admin/usuarios`,
+    usuarioPorId: (idUsuario: number) => `${RUTA_BASE_API}/admin/usuarios/${idUsuario}`,
     desactivarUsuario: (idUsuario: number) =>
       `${RUTA_BASE_API}/admin/usuarios/${idUsuario}/desactivar`,
     reactivarUsuario: (idUsuario: number) =>
@@ -76,6 +77,11 @@ export const ENDPOINTS_API = {
     tiendaPorId: (idTienda: number) => `${RUTA_BASE_API}/admin/tiendas/${idTienda}`,
     pedidos: `${RUTA_BASE_API}/admin/pedidos`,
     pedidoPorId: (idPedido: number) => `${RUTA_BASE_API}/admin/pedidos/${idPedido}`,
+    documentos: `${RUTA_BASE_API}/admin/usuarios-documentos`,
+    documentoPorId: (idDocumento: number) =>
+      `${RUTA_BASE_API}/admin/usuarios-documentos/${idDocumento}`,
+    accionDocumento: (idDocumento: number, accion: 'verificar' | 'observar' | 'rechazar') =>
+      `${RUTA_BASE_API}/admin/usuarios-documentos/${idDocumento}/${accion}`,
     rubros: `${RUTA_BASE_API}/admin/rubros`,
     tiposProducto: `${RUTA_BASE_API}/admin/tipos-producto`,
     tiposEntrega: `${RUTA_BASE_API}/admin/tipos-entrega`,

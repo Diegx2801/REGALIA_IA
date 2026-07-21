@@ -1,94 +1,355 @@
-<section class="admin-seccion">
-  <header class="rg-panel__hero">
-    <span>Pedidos</span>
-    <h2>Seguimiento operativo</h2>
-    <p>Vista administrativa de pedidos globales y saldos pendientes.</p>
+<section class="admin-pedidos" aria-labelledby="titulo-pedidos">
+  <header class="admin-pedidos__hero">
+    <div>
+      <span>Control de operaciones</span>
+      <h2 id="titulo-pedidos">Gestión de pedidos</h2>
+      <p>
+        Supervisa entregas, saldos y prioridades del marketplace desde un directorio global
+        conectado a los pedidos reales de REGALIA.
+      </p>
+    </div>
+    <div class="admin-pedidos__hero-sello" aria-label="Centro de seguimiento de pedidos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path d="M5 4h14v16H5z" />
+        <path d="M8 8h8M8 12h5M8 16h3" />
+        <path d="m15 15 1.5 1.5L19 14" />
+      </svg>
+      <div>
+        <strong>Seguimiento operativo</strong>
+        <small>Entregas y riesgo financiero visibles</small>
+      </div>
+    </div>
   </header>
 
-  <form app-filtros-panel [formGroup]="formularioFiltros" (ngSubmit)="aplicarFiltros()">
+  <form
+    app-filtros-panel
+    [formGroup]="formularioFiltros"
+    aria-label="Filtros de pedidos"
+    (ngSubmit)="aplicarFiltros()"
+  >
     <label>
-      Estado de pago
-      <select formControlName="estadoPago">
-        <option value="">Todos</option>
-        <option value="PENDIENTE">Pendiente</option>
-        <option value="PAGADO">Pagado</option>
-        <option value="PARCIAL">Parcial</option>
+      Estado del pedido
+      <select formControlName="estadoPedido">
+        <option value="TODOS">Todos</option>
+        <option value="RESERVADO">Reservados</option>
+        <option value="EN_PREPARACION">En preparación</option>
+        <option value="LISTO">Listos para entregar</option>
+        <option value="ENTREGADO">Entregados</option>
+        <option value="ANULADO">Anulados</option>
       </select>
     </label>
     <label>
-      Buscar tienda
-      <input type="search" formControlName="busqueda" placeholder="Nombre de tienda" />
+      Estado de pago
+      <select formControlName="estadoPago">
+        <option value="TODOS">Todos</option>
+        <option value="PAGADO">Pagados</option>
+        <option value="CON_SALDO">Con saldo pendiente</option>
+      </select>
     </label>
-    <button type="submit">Aplicar filtros</button>
+    <label>
+      ID de tienda
+      <input type="number" formControlName="idTienda" min="1" step="1" placeholder="Ej. 12" />
+    </label>
+    <label>
+      Buscar por
+      <select formControlName="campoBusqueda">
+        <option value="id_pedido">ID de pedido</option>
+        <option value="nombre_tienda">Nombre de tienda</option>
+        <option value="id_usuario">ID de cliente</option>
+      </select>
+    </label>
+    <label class="admin-pedidos__campo-busqueda">
+      Término de búsqueda
+      <input
+        type="search"
+        formControlName="busqueda"
+        autocomplete="off"
+        placeholder="Localiza un pedido"
+      />
+    </label>
+    <fieldset class="admin-pedidos__rango-fechas">
+      <legend>Fecha de creación</legend>
+      <label>
+        Desde
+        <input type="date" formControlName="fechaDesde" />
+      </label>
+      <label>
+        Hasta
+        <input type="date" formControlName="fechaHasta" />
+      </label>
+    </fieldset>
+    <label>
+      Ordenar por
+      <select formControlName="orden">
+        <option value="fechaCreacion,desc">Más recientes</option>
+        <option value="fechaCreacion,asc">Más antiguos</option>
+        <option value="fechaEntrega,asc">Entrega más próxima</option>
+        <option value="saldoPendiente,desc">Mayor saldo</option>
+        <option value="total,desc">Mayor total</option>
+        <option value="nombreTienda,asc">Tienda A–Z</option>
+        <option value="idPedido,desc">ID descendente</option>
+      </select>
+    </label>
+    <label>
+      Por página
+      <select formControlName="tamanioPagina">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </label>
+    <div class="admin-pedidos__acciones-filtros">
+      <button type="submit" [disabled]="cargando()">
+        {{ cargando() ? 'Consultando…' : 'Aplicar filtros' }}
+      </button>
+      <button
+        class="admin-pedidos__limpiar"
+        type="button"
+        [disabled]="cargando()"
+        (click)="limpiarFiltros()"
+      >
+        Limpiar
+      </button>
+    </div>
+    @if (mensajeValidacion()) {
+      <p class="admin-pedidos__error-filtros" role="alert">{{ mensajeValidacion() }}</p>
+    }
   </form>
 
-  @if (cargando()) {
-    <app-estado-pantalla tipo="carga" etiqueta="Cargando" titulo="Consultando pedidos." />
-  } @else if (mensajeError()) {
+  @if (cargando() && !cargaCompletada()) {
+    <app-estado-pantalla
+      tipo="carga"
+      etiqueta="Operación global"
+      titulo="Consultando pedidos"
+      descripcion="Estamos sincronizando entregas, estados y saldos registrados."
+    />
+  } @else if (mensajeError() && !cargaCompletada()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Error"
-      [titulo]="mensajeError() ?? 'No pudimos cargar pedidos.'"
+      etiqueta="Directorio no disponible"
+      [titulo]="mensajeError() ?? 'No pudimos cargar los pedidos.'"
+      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
       textoAccion="Reintentar"
       (accion)="cargarPedidos()"
     />
   } @else {
-    <app-grupo-metricas-panel ariaEtiqueta="Resumen de pedidos">
+    @if (mensajeError()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="Consulta no actualizada"
+        [titulo]="mensajeError() ?? ''"
+        textoAccion="Reintentar"
+        (accion)="cargarPedidos()"
+      />
+    }
+
+    <app-grupo-metricas-panel ariaEtiqueta="Resumen de pedidos filtrados">
       <app-tarjeta-metrica
-        etiqueta="Total pedidos"
+        etiqueta="Pedidos encontrados"
         [valor]="totalPedidos()"
-        [descripcion]="'Mostrando ' + pedidos().length + ' pedido(s) recientes.'"
+        descripcion="Total que coincide con la consulta actual."
       />
       <app-tarjeta-metrica
-        etiqueta="Pagado"
-        [valor]="montoPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
-        descripcion="Monto pagado en esta pagina."
+        etiqueta="Alertas en página"
+        [valor]="pedidosConAlerta()"
+        descripcion="Pedidos abiertos con saldo o entrega vencida."
       />
       <app-tarjeta-metrica
-        etiqueta="Saldo"
+        etiqueta="Entregas próximas"
+        [valor]="entregasProximas()"
+        descripcion="Programadas para los próximos tres días."
+      />
+      <app-tarjeta-metrica
+        etiqueta="Saldo en página"
         [valor]="saldoPendiente() | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
-        descripcion="Saldo pendiente en esta pagina."
+        [descripcion]="'Pagado: ' + (montoPagado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2')"
       />
     </app-grupo-metricas-panel>
 
-    <app-lista-panel class="admin-seccion__lista" ariaEtiqueta="Pedidos administrativos">
-      @for (pedido of pedidos(); track pedido.idPedido) {
-        <app-fila-panel [ariaEtiqueta]="'Pedido ' + pedido.idPedido">
-          <div>
-            <strong>#{{ pedido.idPedido }} - {{ pedido.estadoPedido }}</strong>
-            <small>{{ pedido.nombreTienda }} - {{ pedido.tipoEntrega }}</small>
-            <p>
-              Entrega {{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }} -
-              {{ pedido.cantidadItems }} item(s)
-            </p>
-          </div>
-          <div class="admin-seccion__resumen-pedido">
-            <b>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
-            <small
-              >Saldo
-              {{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</small
-            >
-            <a
-              appBoton="secundario"
-              appBotonTamano="sm"
-              [routerLink]="['/admin/pedidos', pedido.idPedido]"
-              [attr.aria-label]="'Ver detalle del pedido ' + pedido.idPedido"
-            >
-              Ver detalle
-            </a>
-          </div>
-        </app-fila-panel>
-      } @empty {
+    @if (pedidosConAlerta() > 0) {
+      <aside class="admin-pedidos__alerta" aria-label="Alerta operativa de pedidos">
+        <div aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8v4.5m0 3h.01" />
+            <path
+              d="M10.1 4.7 3.8 16a2 2 0 0 0 1.75 3h12.9a2 2 0 0 0 1.75-3L13.9 4.7a2.2 2.2 0 0 0-3.8 0Z"
+            />
+          </svg>
+        </div>
+        <div>
+          <span>Prioridad operativa</span>
+          <strong>{{ pedidosConAlerta() }} pedido(s) requieren seguimiento en esta página</strong>
+          <p>Revisa primero entregas vencidas y luego los pedidos abiertos con saldo pendiente.</p>
+        </div>
+      </aside>
+    }
+
+    <section
+      class="admin-pedidos__directorio"
+      [attr.aria-busy]="cargando()"
+      aria-labelledby="titulo-directorio-pedidos"
+    >
+      <header class="admin-pedidos__cabecera-directorio">
+        <div>
+          <span>Directorio operativo</span>
+          <h3 id="titulo-directorio-pedidos">Pedidos globales</h3>
+        </div>
+        <p>{{ totalPedidos() }} resultado(s)</p>
+      </header>
+
+      @if (cargando()) {
+        <p class="admin-pedidos__actualizando" role="status">Actualizando el directorio…</p>
+      }
+
+      @if (pedidos().length > 0) {
+        <div class="admin-pedidos__tabla-contenedor">
+          <table class="admin-pedidos__tabla">
+            <caption>
+              Pedidos según los filtros administrativos aplicados
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Pedido</th>
+                <th scope="col">Tienda</th>
+                <th scope="col">Entrega</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Finanzas</th>
+                <th scope="col">Prioridad</th>
+                <th scope="col" class="admin-pedidos__columna-accion">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pedido of pedidos(); track pedido.idPedido) {
+                <tr>
+                  <td>
+                    <strong>#{{ pedido.idPedido }}</strong>
+                    <small>Cliente #{{ pedido.idUsuario }}</small>
+                    <time [attr.datetime]="pedido.fechaCreacion">{{
+                      pedido.fechaCreacion | date: 'dd MMM yyyy, HH:mm'
+                    }}</time>
+                  </td>
+                  <td>
+                    <strong>{{ pedido.nombreTienda }}</strong>
+                    <small>Tienda #{{ pedido.idTienda }}</small>
+                    <span>{{ pedido.cantidadItems }} unidad(es)</span>
+                  </td>
+                  <td>
+                    <strong>{{ pedido.tipoEntrega }}</strong>
+                    <time [attr.datetime]="pedido.fechaEntrega">{{
+                      pedido.fechaEntrega | date: 'dd MMM yyyy'
+                    }}</time>
+                    @if (estaEntregaVencida(pedido)) {
+                      <small class="admin-pedidos__texto-alerta">Fecha vencida</small>
+                    }
+                  </td>
+                  <td>
+                    <span class="admin-pedidos__estado" [attr.data-estado]="pedido.estadoPedido">
+                      <span aria-hidden="true"></span>
+                      {{ etiquetaEstadoPedido(pedido.estadoPedido) }}
+                    </span>
+                  </td>
+                  <td>
+                    <strong class="admin-pedidos__monto">{{
+                      pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2'
+                    }}</strong>
+                    <span
+                      class="admin-pedidos__pago"
+                      [class.admin-pedidos__pago--pendiente]="pedido.saldoPendiente > 0"
+                    >
+                      {{ etiquetaPago(pedido) }} ·
+                      {{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      class="admin-pedidos__prioridad"
+                      [attr.data-prioridad]="nivelPrioridad(pedido)"
+                    >
+                      {{ etiquetaPrioridad(pedido) }}
+                    </span>
+                  </td>
+                  <td class="admin-pedidos__columna-accion">
+                    <a
+                      appBoton="secundario"
+                      appBotonTamano="sm"
+                      [routerLink]="['/admin/pedidos', pedido.idPedido]"
+                      [attr.aria-label]="'Revisar detalle del pedido ' + pedido.idPedido"
+                    >
+                      Revisar pedido
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="admin-pedidos__tarjetas" aria-label="Pedidos en vista móvil">
+          @for (pedido of pedidos(); track pedido.idPedido) {
+            <article class="admin-pedidos__tarjeta">
+              <header>
+                <div>
+                  <small>Pedido #{{ pedido.idPedido }}</small>
+                  <h4>{{ pedido.nombreTienda }}</h4>
+                  <p>Cliente #{{ pedido.idUsuario }} · {{ pedido.cantidadItems }} unidad(es)</p>
+                </div>
+                <span
+                  class="admin-pedidos__prioridad"
+                  [attr.data-prioridad]="nivelPrioridad(pedido)"
+                >
+                  {{ etiquetaPrioridad(pedido) }}
+                </span>
+              </header>
+              <div class="admin-pedidos__tarjeta-estados">
+                <span class="admin-pedidos__estado" [attr.data-estado]="pedido.estadoPedido">
+                  <span aria-hidden="true"></span>{{ etiquetaEstadoPedido(pedido.estadoPedido) }}
+                </span>
+                <span
+                  class="admin-pedidos__pago"
+                  [class.admin-pedidos__pago--pendiente]="pedido.saldoPendiente > 0"
+                >
+                  {{ etiquetaPago(pedido) }}
+                </span>
+              </div>
+              <dl>
+                <div>
+                  <dt>Entrega</dt>
+                  <dd>{{ pedido.fechaEntrega | date: 'dd/MM/yyyy' }}</dd>
+                </div>
+                <div>
+                  <dt>Total</dt>
+                  <dd>{{ pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+                </div>
+                <div>
+                  <dt>Saldo</dt>
+                  <dd>{{ pedido.saldoPendiente | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+                </div>
+              </dl>
+              <a
+                appBoton="secundario"
+                appBotonBloque
+                [routerLink]="['/admin/pedidos', pedido.idPedido]"
+                [attr.aria-label]="'Revisar detalle del pedido ' + pedido.idPedido"
+              >
+                Revisar pedido
+              </a>
+            </article>
+          }
+        </div>
+      } @else {
         <app-estado-pantalla
           tipo="vacio"
-          etiqueta="Sin resultados"
-          titulo="No hay pedidos registrados."
+          etiqueta="Sin coincidencias"
+          titulo="No encontramos pedidos con estos filtros"
+          descripcion="Ajusta el estado, la tienda, las fechas o el término de búsqueda."
+          [textoAccion]="hayFiltrosActivos() ? 'Limpiar filtros' : null"
+          (accion)="limpiarFiltros()"
         />
       }
-    </app-lista-panel>
+    </section>
 
     <app-paginacion-panel
-      ariaEtiqueta="Paginacion de pedidos"
+      ariaEtiqueta="Paginación de pedidos"
       [paginaActual]="paginaActual()"
       [totalPaginas]="totalPaginas()"
       (anterior)="paginaAnterior()"

@@ -133,11 +133,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tipos-entrega/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tipos-producto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tipos-producto/**").permitAll()
-
                         /*
                          * Contexto público autenticado: cliente/vendedor.
                          * Un token ADMIN no debe entrar a estas rutas.
                          */
+                        .requestMatchers(HttpMethod.POST, "/api/builder-ia/recomendar-productos")
+                        .access(publicAccess())
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me").access(publicAccess())
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/me").access(publicAccess())
                         .requestMatchers(HttpMethod.POST, "/api/auth/session/refresh").access(publicAccess())

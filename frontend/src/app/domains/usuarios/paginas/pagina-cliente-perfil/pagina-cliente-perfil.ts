@@ -1,16 +1,19 @@
-import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { SesionAutenticacionService } from '../../../../core/autenticacion/sesion-autenticacion.service';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
-import { BotonDirective } from '../../../../shared/directivas/boton.directive';
-import {
-  CampoFormularioDirective,
-  ErrorCampoDirective,
-  FormularioPanelDirective,
-} from '../../../../shared/directivas/formulario-panel.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { BotonGoogleLogin } from '../../../autenticacion/componentes/boton-google-login/boton-google-login';
 import { ClientePanelStore } from '../../estado/cliente-panel.store';
@@ -21,10 +24,6 @@ import { PanelDocumentosUsuario } from '../../componentes/panel-documentos-usuar
   selector: 'app-pagina-cliente-perfil',
   imports: [
     ReactiveFormsModule,
-    BotonDirective,
-    CampoFormularioDirective,
-    ErrorCampoDirective,
-    FormularioPanelDirective,
     EstadoPantallaComponent,
     BotonGoogleLogin,
     PanelDocumentosUsuario,
@@ -32,6 +31,7 @@ import { PanelDocumentosUsuario } from '../../componentes/panel-documentos-usuar
   ],
   templateUrl: './pagina-cliente-perfil.html',
   styleUrl: './pagina-cliente-perfil.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaClientePerfil implements OnInit {
   readonly store = inject(ClientePanelStore);
@@ -42,15 +42,37 @@ export class PaginaClientePerfil implements OnInit {
 
   readonly cambiandoContrasena = signal(false);
   readonly mensajeCambioContrasena = signal<string | null>(null);
+  readonly mostrarContrasenaActual = signal(false);
+  readonly mostrarNuevaContrasena = signal(false);
+  readonly mostrarConfirmacionContrasena = signal(false);
+
+  readonly iniciales = computed(() => {
+    const perfil = this.store.perfil();
+    if (!perfil) return 'RG';
+
+    return `${perfil.nombres.charAt(0)}${perfil.apellidos.charAt(0)}`.toUpperCase();
+  });
+
+  readonly cantidadMetodosAcceso = computed(
+    () => 1 + (this.store.googleVinculado() ? 1 : 0),
+  );
 
   readonly formularioPerfil = new FormGroup({
     nombres: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(100)],
+      validators: [
+        Validators.required,
+        Validators.pattern(/\S/),
+        Validators.maxLength(100),
+      ],
     }),
     apellidos: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(100)],
+      validators: [
+        Validators.required,
+        Validators.pattern(/\S/),
+        Validators.maxLength(100),
+      ],
     }),
     telefono: new FormControl('', {
       nonNullable: true,
@@ -159,6 +181,28 @@ export class PaginaClientePerfil implements OnInit {
             obtenerMensajeErrorUsuario(error, 'No pudimos cambiar tu contrasena.'),
           ),
       });
+  }
+
+  alternarVisibilidad(campo: 'actual' | 'nueva' | 'confirmacion'): void {
+    const visibilidad = {
+      actual: this.mostrarContrasenaActual,
+      nueva: this.mostrarNuevaContrasena,
+      confirmacion: this.mostrarConfirmacionContrasena,
+    }[campo];
+
+    visibilidad.update((valor) => !valor);
+  }
+
+  formatearMesAnio(fecha: string | null | undefined): string {
+    if (!fecha) return 'No disponible';
+
+    const valor = new Date(fecha);
+    if (Number.isNaN(valor.getTime())) return 'No disponible';
+
+    return new Intl.DateTimeFormat('es-PE', {
+      month: 'long',
+      year: 'numeric',
+    }).format(valor);
   }
 
   contrasenasCoinciden(): boolean {

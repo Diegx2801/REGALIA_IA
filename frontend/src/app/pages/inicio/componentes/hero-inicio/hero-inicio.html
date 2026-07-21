@@ -1,56 +1,99 @@
 <section class="landing-hero rg-page__container--retail" aria-labelledby="titulo-inicio">
   <div class="landing-hero__frame">
-    <div class="landing-hero__overlay"></div>
     <div class="landing-hero__content">
-      <h1 id="titulo-inicio">Regalos personalizados en tu ciudad, sin perder tiempo.</h1>
+      <span class="landing-hero__eyebrow">Regalos locales, elegidos con intención</span>
+      <h1 id="titulo-inicio">Encuentra el detalle que sí se siente personal.</h1>
       <p>
-        Descubre emprendedores locales, compara opciones y reserva con una se&ntilde;a clara y
-        segura.
+        Explora productos de tiendas aprobadas, compara opciones reales y prepara una sorpresa
+        memorable desde un solo lugar.
       </p>
 
-      <form
-        class="hero-search"
-        [formGroup]="formularioBusqueda()"
-        (ngSubmit)="buscarDetalles.emit()"
-        aria-label="Busqueda rapida de regalos"
-      >
-        <app-campo-texto id="busqueda-ocasion" etiqueta="Ocasion" [control]="controlOcasion()" />
-        <app-campo-texto id="busqueda-presupuesto" etiqueta="Presupuesto" [control]="controlPresupuesto()" />
-        <app-campo-texto id="busqueda-fecha" etiqueta="Fecha" tipo="date" [control]="controlFecha()" />
-        <app-campo-texto id="busqueda-distrito" etiqueta="Distrito" [control]="controlDistrito()" />
-        <button type="submit">Buscar detalles</button>
+      <form class="hero-search" (ngSubmit)="buscarRegalos.emit()" role="search">
+        <label for="busqueda-regalos">¿Qué regalo estás buscando?</label>
+        <div class="hero-search__control">
+          <span class="hero-search__icon" aria-hidden="true"></span>
+          <input
+            id="busqueda-regalos"
+            type="search"
+            [formControl]="controlBusqueda()"
+            placeholder="Ej. flores, box, graduación..."
+            autocomplete="off"
+          />
+          <button type="submit">Buscar regalos</button>
+        </div>
       </form>
+
+      <div class="landing-hero__actions" aria-label="Acciones para descubrir regalos">
+        <a class="landing-button landing-button--primary" routerLink="/catalogo"
+          >Explorar catálogo</a
+        >
+        <a class="landing-button landing-button--secondary" routerLink="/pedir-con-ia">
+          Pedir ayuda a REGALIA IA
+        </a>
+      </div>
+
+      <ul class="landing-hero__assurances" aria-label="Beneficios de comprar en REGALIA">
+        <li>Tiendas revisadas</li>
+        <li>Disponibilidad real</li>
+        <li>Compra organizada</li>
+      </ul>
+    </div>
+    <div class="landing-hero__visual" aria-hidden="true">
+      <span>Ideas que emocionan</span>
     </div>
   </div>
 
-  <nav class="occasion-strip" aria-label="Categorias destacadas">
-    @for (categoria of categorias(); track categoria.etiqueta) {
-      <button type="button" class="occasion-strip__item" (click)="buscarCategoria.emit(categoria)">
-        @if (categoria.iconoUrl) {
-          <!-- Icono decorativo: el texto del boton ya comunica la accion para lectores de pantalla. -->
-          <span class="occasion-strip__asset-frame" aria-hidden="true">
-            <img
-              class="occasion-strip__asset"
-              [src]="categoria.iconoUrl"
-              alt=""
-              loading="lazy"
-              width="58"
-              height="58"
-            />
-          </span>
-        } @else {
-          <span
-            class="occasion-strip__icon"
-            [class.occasion-strip__icon--cuadro]="categoria.tipoIcono === 'cuadro'"
-            [class.occasion-strip__icon--circulo]="categoria.tipoIcono === 'circulo'"
-            [class.occasion-strip__icon--anillo]="categoria.tipoIcono === 'anillo'"
-            [class.occasion-strip__icon--tarjeta]="categoria.tipoIcono === 'tarjeta'"
-            [class.occasion-strip__icon--hoja]="categoria.tipoIcono === 'hoja'"
-            [class.occasion-strip__icon--mas]="categoria.tipoIcono === 'mas'"
-          ></span>
+  <div class="category-discovery" aria-labelledby="titulo-categorias">
+    <header class="discovery-heading">
+      <div>
+        <span>Explora a tu manera</span>
+        <h2 id="titulo-categorias">Encuentra por categoría</h2>
+      </div>
+      <a routerLink="/catalogo">Ver todo el catálogo <span aria-hidden="true">→</span></a>
+    </header>
+
+    <div class="category-discovery__grid" aria-live="polite">
+      @if (cargandoCategorias()) {
+        <span class="sr-only" role="status">Cargando categorías.</span>
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+          <span class="category-card category-card--skeleton" aria-hidden="true"></span>
         }
-        <strong>{{ categoria.etiqueta }}</strong>
-      </button>
-    }
-  </nav>
+      } @else if (mensajeErrorCategorias()) {
+        <app-estado-pantalla
+          tipo="error"
+          etiqueta="Categorías no disponibles"
+          titulo="No pudimos cargar las categorías"
+          [descripcion]="mensajeErrorCategorias() ?? ''"
+          textoAccion="Reintentar"
+          (accion)="reintentarCategorias.emit()"
+        />
+      } @else {
+        @for (categoria of categorias(); track categoria.idTipoProducto) {
+          <button
+            class="category-card"
+            type="button"
+            [attr.aria-label]="'Explorar productos de ' + categoria.nombre"
+            (click)="buscarCategoria.emit(categoria)"
+          >
+            <span
+              class="regalia-sprite category-card__visual"
+              [attr.data-icono]="iconoCategoria(categoria.nombre)"
+              aria-hidden="true"
+            ></span>
+            <span class="category-card__content">
+              <strong>{{ categoria.nombre }}</strong>
+              <small>
+                Explorar productos
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </small>
+            </span>
+          </button>
+        } @empty {
+          <p class="discovery-inline-state">Aún no hay categorías disponibles.</p>
+        }
+      }
+    </div>
+  </div>
 </section>
