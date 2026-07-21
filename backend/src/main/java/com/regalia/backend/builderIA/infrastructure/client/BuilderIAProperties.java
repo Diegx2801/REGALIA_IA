@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Configuracion del proveedor IA local compatible con el endpoint /v1/messages.
+ * Configuracion OpenAI-compatible para el proveedor IA de REGALIA.
  */
 @Getter
 @Setter
@@ -14,10 +14,14 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "regalia.builder-ia")
 public class BuilderIAProperties {
 
-    private String baseUrl = "http://localhost:8082";
-    private String messagesPath = "/v1/messages";
-    private String model = "claude-3-sonnet-20240229";
-    private String apiKey = "freecc";
+    private String baseUrl = "https://openrouter.ai/api/v1";
+    private String chatCompletionsPath = "/chat/completions";
+    private String model = "openai/gpt-4o-mini";
+    private String apiKey;
+    private String siteUrl;
+    private String appName = "REGALIA";
+    private int connectTimeoutMilliseconds = 5000;
+    private int readTimeoutMilliseconds = 20000;
     private int recommendationMaxTokens = 500;
     private int chatMaxTokens = 300;
 }

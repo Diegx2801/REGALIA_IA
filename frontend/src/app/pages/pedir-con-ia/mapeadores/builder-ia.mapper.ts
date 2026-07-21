@@ -4,7 +4,11 @@ import {
   BuilderIaRecomendacionRequestDto,
   BuilderIaRecomendacionResponseDto,
 } from '../modelos/builder-ia.dto';
-import { ResultadoRecomendacionIa, SolicitudRecomendacionIa } from '../modelos/builder-ia.model';
+import {
+  RecomendacionProductoIa,
+  ResultadoRecomendacionIa,
+  SolicitudRecomendacionIa,
+} from '../modelos/builder-ia.model';
 
 const IMAGEN_PRODUCTO_RECOMENDADO_FALLBACK = '/assets/brand/producto-fallback.svg';
 
@@ -21,7 +25,16 @@ export function mapearResultadoRecomendacionIaDesdeDto(
 ): ResultadoRecomendacionIa {
   return {
     respuesta: dto.respuesta?.trim() || 'No se recibio una interpretacion del asistente IA.',
-    productosRecomendados: (dto.productosRecomendados ?? []).map(mapearProductoRecomendadoDesdeDto),
+    productosRecomendados: (dto.productosRecomendados ?? []).map(mapearRecomendacionProductoDesdeDto),
+  };
+}
+
+function mapearRecomendacionProductoDesdeDto(
+  dto: BuilderIaProductoRecomendadoDto,
+): RecomendacionProductoIa {
+  return {
+    producto: mapearProductoRecomendadoDesdeDto(dto),
+    razon: dto.razon?.trim() || 'Recomendado segun tu busqueda.',
   };
 }
 

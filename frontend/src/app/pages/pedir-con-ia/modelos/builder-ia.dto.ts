@@ -11,6 +11,7 @@ export interface BuilderIaProductoRecomendadoDto {
   idTienda: number;
   nombreTienda: string | null;
   tipoProducto: string | null;
+  razon: string | null;
 }
 
 export interface BuilderIaRecomendacionResponseDto {

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Consultas paginadas y filtradas del marketplace publico.
@@ -22,5 +23,12 @@ public interface ProductoPublicoRepositoryCustom {
             ProductoPublicoSortField sortField,
             Sort.Direction sortDirection,
             Pageable pageable
+    );
+
+    List<ProductoEntity> findCandidatosPublicosBuilderIA(
+            String estadoRevision,
+            List<String> terminos,
+            BigDecimal precioMaximo,
+            int limite
     );
 }

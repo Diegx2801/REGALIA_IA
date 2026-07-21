@@ -13,6 +13,7 @@ public record BuilderIAProductoRecomendadoResponse(
         Integer stock,
         Long idTienda,
         String nombreTienda,
-        String tipoProducto
+        String tipoProducto,
+        String razon
 ) {
 }

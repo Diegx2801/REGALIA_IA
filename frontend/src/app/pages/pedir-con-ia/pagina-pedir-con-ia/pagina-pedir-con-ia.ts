@@ -12,7 +12,7 @@ import { FaseRecomendacionesIa } from '../componentes/fase-recomendaciones-ia/fa
 import { FaseReservaIa } from '../componentes/fase-reserva-ia/fase-reserva-ia';
 import { HeroBuilderIa } from '../componentes/hero-builder-ia/hero-builder-ia';
 import { PasosBuilderIa } from '../componentes/pasos-builder-ia/pasos-builder-ia';
-import { PasoBuilderIa } from '../modelos/builder-ia.model';
+import { PasoBuilderIa, RecomendacionProductoIa } from '../modelos/builder-ia.model';
 import { EstadoPantallaComponent } from '../../../shared/ui/estado-pantalla/estado-pantalla';
 
 @Component({
@@ -41,7 +41,7 @@ export class PaginaPedirConIa {
   readonly mensajeError = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
   readonly respuestaIa = signal<string | null>(null);
-  readonly productosRecomendados = signal<Producto[]>([]);
+  readonly productosRecomendados = signal<RecomendacionProductoIa[]>([]);
   readonly productoSeleccionado = signal<Producto | null>(null);
 
   readonly formulario = new FormGroup({
