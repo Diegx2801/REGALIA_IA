@@ -30,10 +30,7 @@ describe('guards de acceso', () => {
   beforeEach(() => {
     sesion = new SesionAutenticacionStub();
     TestBed.configureTestingModule({
-      providers: [
-        provideRouter([]),
-        { provide: SesionAutenticacionService, useValue: sesion },
-      ],
+      providers: [provideRouter([]), { provide: SesionAutenticacionService, useValue: sesion }],
     });
   });
 
@@ -54,7 +51,7 @@ describe('guards de acceso', () => {
     );
 
     expect(resultado instanceof UrlTree).toBe(true);
-    expect(router.serializeUrl(resultado as UrlTree)).toBe('/login');
+    expect(router.serializeUrl(resultado as UrlTree)).toBe('/login?retorno=%2Fcliente%2Fperfil');
   });
 
   it('permite acceso cuando el rol actual esta autorizado', () => {
@@ -72,11 +69,13 @@ describe('guards de acceso', () => {
     const router = TestBed.inject(Router);
 
     const resultado = TestBed.runInInjectionContext(() =>
-      rolGuard(crearRutaConRoles(['ADMIN']), {} as never),
+      rolGuard(crearRutaConRoles(['ADMIN']), crearEstadoNavegacion('/admin/usuarios')),
     );
 
     expect(resultado instanceof UrlTree).toBe(true);
-    expect(router.serializeUrl(resultado as UrlTree)).toBe('/acceso-denegado');
+    expect(router.serializeUrl(resultado as UrlTree)).toBe(
+      '/acceso-denegado?desde=%2Fadmin%2Fusuarios',
+    );
   });
 });
 

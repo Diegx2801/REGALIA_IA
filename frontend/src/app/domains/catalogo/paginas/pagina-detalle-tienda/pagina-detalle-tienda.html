@@ -1,0 +1,88 @@
+<main class="tienda-detalle">
+  <nav class="tienda-detalle__migas" aria-label="Migas de pan">
+    <a routerLink="/">Inicio</a>
+    <span aria-hidden="true">/</span>
+    <a routerLink="/catalogo">Catálogo</a>
+    @if (tienda(); as tiendaActual) {
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{{ tiendaActual.nombre }}</span>
+    }
+  </nav>
+
+  @if (cargando()) {
+    <section class="tienda-detalle__skeleton" aria-label="Cargando tienda">
+      <span></span>
+      <div><span></span><span></span><span></span></div>
+    </section>
+  } @else if (mensajeError()) {
+    <section class="tienda-detalle__estado" role="alert">
+      <span>TIENDA NO DISPONIBLE</span>
+      <h1>No pudimos abrir este escaparate</h1>
+      <p>{{ mensajeError() }}</p>
+      <a class="tienda-detalle__boton" routerLink="/catalogo">Volver al catálogo</a>
+    </section>
+  } @else if (tienda(); as tiendaActual) {
+    <header class="tienda-detalle__hero">
+      <div class="tienda-detalle__monograma" aria-hidden="true">{{ iniciales() }}</div>
+      <div class="tienda-detalle__presentacion">
+        <span>TIENDA APROBADA EN REGALIA</span>
+        <h1>{{ tiendaActual.nombre }}</h1>
+        <p>{{ tiendaActual.descripcion || 'Conoce su selección de regalos disponibles.' }}</p>
+        <div class="tienda-detalle__rubros" aria-label="Rubros de la tienda">
+          @for (rubro of tiendaActual.rubros; track rubro.idRubro) {
+            <span>{{ rubro.nombre }}</span>
+          }
+        </div>
+      </div>
+      <dl class="tienda-detalle__datos">
+        <div>
+          <dt>Catálogo disponible</dt>
+          <dd>{{ productosDisponibles().length }} productos</dd>
+        </div>
+        <div>
+          <dt>Referencia</dt>
+          <dd>{{ tiendaActual.direccionReferencia || 'Coordinación mediante REGALIA' }}</dd>
+        </div>
+        <div>
+          <dt>Tipo de negocio</dt>
+          <dd>
+            {{
+              tiendaActual.tiendaFormalizada ? 'Tienda formalizada' : 'Emprendimiento verificado'
+            }}
+          </dd>
+        </div>
+      </dl>
+    </header>
+
+    <section class="tienda-detalle__catalogo" aria-labelledby="productos-tienda">
+      <div class="tienda-detalle__cabecera-catalogo">
+        <div>
+          <span>SELECCIÓN DE LA TIENDA</span>
+          <h2 id="productos-tienda">Regalos disponibles</h2>
+        </div>
+        <a routerLink="/catalogo">Explorar todo el catálogo →</a>
+      </div>
+
+      @if (mensajeCarrito()) {
+        <p class="tienda-detalle__confirmacion" role="status" aria-live="polite">
+          {{ mensajeCarrito() }}
+        </p>
+      }
+
+      @if (productos().length) {
+        <div class="tienda-detalle__productos">
+          @for (producto of productos(); track producto.idProducto) {
+            <app-tarjeta-producto [producto]="producto" (agregar)="agregarAlCarrito($event)" />
+          }
+        </div>
+      } @else {
+        <section class="tienda-detalle__estado tienda-detalle__estado--compacto">
+          <span>CATÁLOGO EN PREPARACIÓN</span>
+          <h2>Esta tienda todavía no tiene productos publicados</h2>
+          <p>Mientras tanto, puedes descubrir otras opciones del catálogo REGALIA.</p>
+          <a class="tienda-detalle__boton" routerLink="/catalogo">Ver otros regalos</a>
+        </section>
+      }
+    </section>
+  }
+</main>

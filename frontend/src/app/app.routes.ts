@@ -93,6 +93,14 @@ export const routes: Routes = [
             (m) => m.PaginaCarrito,
           ),
       },
+      {
+        path: 'acceso-denegado',
+        title: 'Acceso no disponible | REGALIA',
+        loadComponent: () =>
+          import('./pages/acceso-denegado/pagina-acceso-denegado/pagina-acceso-denegado').then(
+            (m) => m.PaginaAccesoDenegado,
+          ),
+      },
     ],
   },
   {

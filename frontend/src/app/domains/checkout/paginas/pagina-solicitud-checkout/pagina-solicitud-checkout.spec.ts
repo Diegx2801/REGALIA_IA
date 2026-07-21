@@ -15,6 +15,8 @@ describe('PaginaSolicitudCheckout', () => {
   let fixture: ComponentFixture<PaginaSolicitudCheckout>;
   let pagina: PaginaSolicitudCheckout;
   let autenticado: ReturnType<typeof signal<boolean>>;
+  let usuarioActual: ReturnType<typeof signal<{ correoVerificado: boolean } | null>>;
+  let rolCliente: boolean;
   let resultado$: Subject<ResultadoCheckout>;
   let checkoutApi: {
     obtenerOpcionesPagoInicial: ReturnType<typeof vi.fn>;
@@ -23,6 +25,8 @@ describe('PaginaSolicitudCheckout', () => {
 
   beforeEach(() => {
     autenticado = signal(true);
+    usuarioActual = signal({ correoVerificado: true });
+    rolCliente = true;
     resultado$ = new Subject<ResultadoCheckout>();
     checkoutApi = {
       obtenerOpcionesPagoInicial: vi.fn(() =>
@@ -46,9 +50,21 @@ describe('PaginaSolicitudCheckout', () => {
             },
           },
         },
-        { provide: SesionAutenticacionService, useValue: { estaAutenticado: autenticado } },
+        {
+          provide: SesionAutenticacionService,
+          useValue: {
+            estaAutenticado: autenticado,
+            usuarioActual,
+            tieneRol: vi.fn((roles: string[]) => rolCliente && roles.includes('CLIENTE')),
+          },
+        },
         { provide: ProductoApiService, useValue: { obtenerProductoPorId: vi.fn() } },
-        { provide: TipoEntregaApiService, useValue: { obtenerTiposEntrega: vi.fn(() => of([{ idTipoEntrega: 1, nombre: 'Delivery' }])) } },
+        {
+          provide: TipoEntregaApiService,
+          useValue: {
+            obtenerTiposEntrega: vi.fn(() => of([{ idTipoEntrega: 1, nombre: 'Delivery' }])),
+          },
+        },
         { provide: CheckoutApiService, useValue: checkoutApi },
         { provide: CarritoCheckoutService, useValue: { items: signal([ITEM]) } },
       ],
@@ -118,6 +134,26 @@ describe('PaginaSolicitudCheckout', () => {
     expect(fixture.nativeElement.textContent).toContain('Inicia sesión para continuar al pago');
     const enlace = fixture.nativeElement.querySelector('.checkout-login a') as HTMLAnchorElement;
     expect(enlace.getAttribute('href')).toContain('retorno=%2Fcheckout%2Fcarrito');
+  });
+
+  it('bloquea el checkout para un rol distinto de CLIENTE', async () => {
+    rolCliente = false;
+    await crearPagina();
+
+    pagina.prepararCheckout();
+
+    expect(checkoutApi.crearSesionCheckout).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('cuenta de cliente');
+  });
+
+  it('bloquea el checkout hasta verificar el correo', async () => {
+    usuarioActual.set({ correoVerificado: false });
+    await crearPagina();
+
+    pagina.prepararCheckout();
+
+    expect(checkoutApi.crearSesionCheckout).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Verifica tu correo');
   });
 });
 

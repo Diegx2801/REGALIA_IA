@@ -80,6 +80,22 @@ describe('PaginaCatalogo', () => {
     expect(carrito.agregarProducto).toHaveBeenCalledWith(PRODUCTO);
     expect(pagina.mensajeCarrito()).toContain(PRODUCTO.nombre);
   });
+
+  it('reacciona cuando cambian los filtros de la URL sin recrear la página', async () => {
+    await harness.navigateByUrl('/catalogo?busqueda=box', PaginaCatalogo);
+    await harness.navigateByUrl('/catalogo?tipo=PACK%20O%20BOX&precioMaximo=120', PaginaCatalogo);
+    await harness.fixture.whenStable();
+
+    expect(productoApi.obtenerProductos).toHaveBeenLastCalledWith({
+      page: 0,
+      size: 12,
+      search: '',
+      idTipoProducto: 3,
+      precioMaximo: 120,
+      soloDisponibles: true,
+      orden: 'recommended',
+    });
+  });
 });
 
 const PRODUCTO: Producto = {

@@ -3,6 +3,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TipoProducto } from '../../../../domains/datos-maestros/modelos/tipo-producto.model';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
+import { IconoRegalia } from '../../modelos/inicio.model';
 
 @Component({
   selector: 'app-hero-inicio',
@@ -18,4 +19,24 @@ export class HeroInicio {
   readonly buscarRegalos = output<void>();
   readonly buscarCategoria = output<TipoProducto>();
   readonly reintentarCategorias = output<void>();
+
+  iconoCategoria(nombre: string): IconoRegalia {
+    const nombreNormalizado = nombre
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    if (nombreNormalizado.includes('floral') || nombreNormalizado.includes('flor')) return 'floral';
+    if (nombreNormalizado.includes('pack') || nombreNormalizado.includes('box')) return 'box';
+    if (
+      nombreNormalizado.includes('comestible') ||
+      nombreNormalizado.includes('torta') ||
+      nombreNormalizado.includes('alimento')
+    ) {
+      return 'comestible';
+    }
+    if (nombreNormalizado.includes('personalizado')) return 'personalizado';
+    if (nombreNormalizado.includes('accesorio')) return 'accesorio';
+    return 'fisico';
+  }
 }

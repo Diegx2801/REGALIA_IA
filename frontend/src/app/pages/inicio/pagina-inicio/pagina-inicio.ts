@@ -51,8 +51,6 @@ export class PaginaInicio implements AfterViewInit, OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly controlBusqueda = new FormControl('', { nonNullable: true });
-  readonly mesActivo = signal('FEB');
-
   readonly categorias = signal<TipoProducto[]>([]);
   readonly tiendasDestacadas = signal<TiendaPublica[]>([]);
   readonly productosDestacados = signal<Producto[]>([]);
@@ -66,46 +64,75 @@ export class PaginaInicio implements AfterViewInit, OnInit {
   readonly mensajeErrorProductosDestacados = signal<string | null>(null);
   readonly mensajeCarrito = signal<string | null>(null);
 
-  readonly meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+  readonly meses = [
+    'ENE',
+    'FEB',
+    'MAR',
+    'ABR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AGO',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DIC',
+  ];
   readonly diasSemana = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
-  readonly diasFebrero = Array.from({ length: 28 }, (_, indice) => indice + 1);
-
   readonly campanas: readonly CampanaComercial[] = [
     {
+      dia: 14,
+      mes: 'FEB',
       fecha: '14 FEB',
       titulo: 'San Valentín',
       descripcion: 'Flores y detalles románticos',
       sugerencias: ['Ramos premium', 'Box romántico', 'Torta mini'],
+      icono: 'floral',
     },
     {
+      dia: 8,
+      mes: 'MAR',
       fecha: '08 MAR',
       titulo: 'Día de la Mujer',
       descripcion: 'Experiencias delicadas y mensajes memorables',
       sugerencias: ['Box floral', 'Carta premium', 'Chocolate artesanal'],
+      icono: 'floral',
     },
     {
-      fecha: '2DO MAY',
+      dia: 10,
+      mes: 'MAY',
+      fecha: '10 MAY',
       titulo: 'Día de la Madre',
       descripcion: 'Sorpresas elegantes para agradecer con estilo',
       sugerencias: ['Desayuno sorpresa', 'Arreglo floral', 'Taza personalizada'],
+      icono: 'personalizado',
     },
     {
-      fecha: '3ER JUN',
+      dia: 21,
+      mes: 'JUN',
+      fecha: '21 JUN',
       titulo: 'Día del Padre',
       descripcion: 'Regalos sobrios, útiles y con personalidad',
       sugerencias: ['Kit ejecutivo', 'Box gourmet', 'Agenda personalizada'],
+      icono: 'fisico',
     },
     {
+      dia: 31,
+      mes: 'OCT',
       fecha: '31 OCT',
       titulo: 'Halloween',
       descripcion: 'Campañas temáticas para marcas y celebraciones',
       sugerencias: ['Candy box', 'Mini cake', 'Pack temático'],
+      icono: 'comestible',
     },
     {
+      dia: 25,
+      mes: 'DIC',
       fecha: '25 DIC',
       titulo: 'Navidad',
       descripcion: 'Temporada alta para detalles familiares y corporativos',
       sugerencias: ['Canasta premium', 'Gift box', 'Vino y chocolates'],
+      icono: 'box',
     },
   ];
 
@@ -137,14 +164,12 @@ export class PaginaInicio implements AfterViewInit, OnInit {
 
   buscarCategoria(categoria: TipoProducto): void {
     void this.router.navigate(['/catalogo'], {
-      queryParams: { busqueda: categoria.nombre },
+      queryParams: { tipo: categoria.nombre },
     });
   }
 
   explorarTienda(tienda: TiendaPublica): void {
-    void this.router.navigate(['/catalogo'], {
-      queryParams: { busqueda: tienda.nombre },
-    });
+    void this.router.navigate(['/catalogo/tiendas', tienda.idTienda]);
   }
 
   agregarAlCarrito(producto: Producto): void {
@@ -165,7 +190,8 @@ export class PaginaInicio implements AfterViewInit, OnInit {
         finalize(() => this.cargandoCategorias.set(false)),
       )
       .subscribe({
-        next: (categorias) => this.categorias.set(categorias.filter((categoria) => categoria.estado)),
+        next: (categorias) =>
+          this.categorias.set(categorias.filter((categoria) => categoria.estado)),
         error: (error: unknown) => {
           this.categorias.set([]);
           this.mensajeErrorCategorias.set(

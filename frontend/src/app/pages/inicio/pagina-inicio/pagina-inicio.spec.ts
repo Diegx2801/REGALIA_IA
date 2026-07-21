@@ -75,6 +75,9 @@ describe('PaginaInicio', () => {
     expect(contenido).toContain('Bienestar Natural');
     expect(contenido).toContain('Box mamá edición especial');
     expect(obtenerProductos).toHaveBeenCalledWith({ size: 8, soloDisponibles: true });
+    expect(
+      fixture.nativeElement.querySelector('.category-card__visual')?.getAttribute('data-icono'),
+    ).toBe('box');
   });
 
   it('navega al catálogo con el término escrito por el cliente', async () => {
@@ -130,6 +133,34 @@ describe('PaginaInicio', () => {
       'Día de la Mujer',
     );
     expect(botones[1].getAttribute('aria-pressed')).toBe('true');
-    expect(fixture.nativeElement.querySelectorAll('.festive-calendar__days button')).toHaveLength(0);
+    expect(
+      fixture.nativeElement.querySelector('.festive-calendar__month h2')?.textContent,
+    ).toContain('MAR 2026');
+    const fechaDestacada = fixture.nativeElement.querySelector(
+      '.festive-calendar__days button.is-event',
+    ) as HTMLButtonElement | null;
+    expect(fechaDestacada?.getAttribute('aria-label')).toContain('8 de MAR: Día de la Mujer');
+  });
+
+  it('actualiza el calendario completo y explica los meses sin campaña', async () => {
+    const fixture = TestBed.createComponent(PaginaInicio);
+    await fixture.whenStable();
+
+    const botonAbril = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        '.festive-calendar__months button',
+      ) as NodeListOf<HTMLButtonElement>,
+    ).find((boton) => boton.textContent?.trim() === 'ABR');
+    botonAbril?.click();
+    await fixture.whenStable();
+
+    expect(botonAbril?.getAttribute('aria-pressed')).toBe('true');
+    expect(
+      fixture.nativeElement.querySelector('.festive-calendar__month h2')?.textContent,
+    ).toContain('ABR 2026');
+    expect(fixture.nativeElement.querySelectorAll('.festive-calendar__days button')).toHaveLength(
+      0,
+    );
+    expect(fixture.nativeElement.textContent).toContain('No hay una campaña destacada en ABR');
   });
 });

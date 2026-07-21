@@ -56,6 +56,7 @@ describe('LayoutAdministracion', () => {
       '/admin/resumen',
       '/admin/usuarios',
       '/admin/vendedores',
+      '/admin/documentos',
       '/admin/tiendas',
       '/admin/pedidos',
       '/admin/datos-maestros',
@@ -105,7 +106,7 @@ describe('LayoutAdministracion', () => {
 
     expect(menu).toBeTruthy();
     expect(menu.querySelectorAll('nav[aria-label="Secciones de administración"] a')).toHaveLength(
-      6,
+      7,
     );
     expect(document.body.style.overflow).toBe('hidden');
 

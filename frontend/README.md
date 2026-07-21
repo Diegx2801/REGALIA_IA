@@ -1,59 +1,70 @@
-# Frontend
+# REGALIA Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.8.
+Aplicación web del marketplace REGALIA construida con Angular 21, TypeScript estricto,
+componentes standalone, Signals y ejecución zoneless. Contiene experiencias diferenciadas para
+cliente, vendedor y administrador.
 
-## Development server
+## Requisitos y ejecución local
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Node.js compatible con Angular 21 y npm 10 o superior.
+- Backend REGALIA disponible mediante el proxy definido en `proxy.conf.json`.
 
 ```bash
-ng generate component component-name
+npm install
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+El servidor local se publica en `http://localhost:4200`. Las rutas `/api` se envían al backend; el
+frontend no incluye mocks ni sustituye contratos ausentes.
+
+## Organización
+
+- `src/app/core`: autenticación, guards, interceptores, layouts y servicios globales.
+- `src/app/domains`: catálogo, checkout, usuarios, vendedores, administración y datos maestros.
+- `src/app/pages`: páginas públicas transversales, como Inicio y solicitud mediante IA.
+- `src/app/shared`: UI, directivas, modelos y utilidades reutilizables.
+- `src/app/design-system`: tokens versionados utilizados por la aplicación.
+
+Las URLs del API se centralizan en `core/configuracion/endpoints-api.ts`. Cada dominio mantiene
+separados DTO de red, modelo de presentación y mapeador cuando el contrato lo requiere.
+
+## Autenticación y carrito
+
+Spring Security es la autoridad final de acceso. Los guards conservan la ruta solicitada para volver
+después del login y el interceptor global cierra la sesión ante una respuesta 401 autenticada.
+
+El carrito se guarda localmente por identidad:
+
+- invitado: `regalia.carrito.checkout.invitado`;
+- usuario: `regalia.carrito.checkout.usuario.<id>`.
+
+Al iniciar sesión, el carrito invitado se combina una sola vez con el del usuario. Los carritos de
+cuentas diferentes permanecen aislados. No se deben guardar tokens, credenciales ni datos sensibles
+en nuevas claves de almacenamiento.
+
+## Calidad
 
 ```bash
-ng generate --help
+npm run format:check
+npm run lint
+npm run typecheck
+npm run test:ci
+npm run test:coverage
+npm run build
 ```
 
-## Building
+`npm run verify` ejecuta lint, typecheck, pruebas y build en ese orden. Las pruebas unitarias usan
+Vitest a través del builder oficial de Angular; la cobertura se genera localmente en `coverage/`.
 
-To build the project run:
+`format:check` también está disponible, pero la base heredada aún contiene archivos anteriores a la
+configuración de Prettier. Los archivos modificados deben formatearse con `npm run format`; la
+normalización total debe hacerse en un cambio mecánico independiente para conservar un historial
+revisable.
 
-```bash
-ng build
-```
+## Flujos críticos a verificar
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+1. Inicio de sesión y retorno a la ruta protegida original.
+2. Separación de carrito entre invitado y distintas cuentas.
+3. Catálogo, filtros sincronizados con URL y ficha pública de tienda.
+4. Checkout restringido a CLIENTE con correo verificado.
+5. Revisión documental administrativa y cambios de estado confirmados.

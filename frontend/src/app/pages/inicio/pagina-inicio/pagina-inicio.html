@@ -23,14 +23,7 @@
     (reintentarProductos)="cargarProductosDestacados()"
   />
 
-  <app-calendario-comercial
-    [campanas]="campanas"
-    [meses]="meses"
-    [diasSemana]="diasSemana"
-    [diasFebrero]="diasFebrero"
-    [mesActivo]="mesActivo()"
-    (seleccionarMes)="mesActivo.set($event)"
-  />
+  <app-calendario-comercial [campanas]="campanas" [meses]="meses" [diasSemana]="diasSemana" />
 
   <app-modelo-negocio-inicio [pasos]="pasosModeloNegocio" />
   <app-cta-vendedor-inicio />

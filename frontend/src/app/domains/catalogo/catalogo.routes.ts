@@ -8,6 +8,14 @@ export const CATALOGO_ROUTES: Routes = [
       import('./paginas/pagina-catalogo/pagina-catalogo').then((m) => m.PaginaCatalogo),
   },
   {
+    path: 'tiendas/:idTienda',
+    title: 'Tienda | REGALIA',
+    loadComponent: () =>
+      import('./paginas/pagina-detalle-tienda/pagina-detalle-tienda').then(
+        (m) => m.PaginaDetalleTienda,
+      ),
+  },
+  {
     path: ':idProducto',
     title: 'Detalle del regalo | REGALIA',
     loadComponent: () =>

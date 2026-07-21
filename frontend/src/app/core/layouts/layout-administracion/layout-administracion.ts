@@ -37,6 +37,12 @@ export class LayoutAdministracion {
       patronesActivos: [/^\/admin\/vendedores(?:\/[^/]+)?$/],
     },
     {
+      etiqueta: 'Documentos',
+      ruta: '/admin/documentos',
+      descripcion: 'Identidad y revisión documental',
+      icono: 'acceso',
+    },
+    {
       etiqueta: 'Tiendas',
       ruta: '/admin/tiendas',
       descripcion: 'Revisión y moderación comercial',

@@ -1,0 +1,161 @@
+<section class="admin-documents" aria-labelledby="admin-documents-title">
+  <header class="admin-documents__hero">
+    <div>
+      <span>Confianza e identidad</span>
+      <h2 id="admin-documents-title">Revisión documental</h2>
+      <p>Evalúa solicitudes reales y conserva trazabilidad del estado comunicado al usuario.</p>
+    </div>
+    <strong>{{ pendientes() }} pendiente(s)</strong>
+  </header>
+
+  <form
+    class="admin-documents__filters"
+    aria-label="Filtros documentales"
+    (submit)="$event.preventDefault()"
+  >
+    <label>
+      <span>Estado</span>
+      <select [ngModel]="estado()" (ngModelChange)="actualizarEstado($event)" name="estado">
+        <option value="TODOS">Todos</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="OBSERVADO">Observados</option>
+        <option value="VERIFICADO">Verificados</option>
+        <option value="RECHAZADO">Rechazados</option>
+      </select>
+    </label>
+    <label class="admin-documents__search">
+      <span>Buscar</span>
+      <input
+        type="search"
+        [ngModel]="busqueda()"
+        (ngModelChange)="actualizarBusqueda($event)"
+        name="busqueda"
+        placeholder="Usuario, correo o documento"
+        autocomplete="off"
+      />
+    </label>
+    <button type="button" (click)="cargarDocumentos()" [disabled]="cargando()">Actualizar</button>
+  </form>
+
+  @if (mensajeExito()) {
+    <p class="admin-documents__success" role="status">{{ mensajeExito() }}</p>
+  }
+  @if (mensajeError()) {
+    <p class="admin-documents__error" role="alert">{{ mensajeError() }}</p>
+  }
+
+  @if (cargando()) {
+    <app-estado-pantalla
+      tipo="carga"
+      etiqueta="Documentos"
+      titulo="Consultando solicitudes documentales"
+    />
+  } @else if (documentosFiltrados().length === 0) {
+    <app-estado-pantalla
+      tipo="vacio"
+      etiqueta="Sin resultados"
+      titulo="No hay documentos para estos filtros"
+      descripcion="Prueba con otro estado o limpia el término de búsqueda."
+    />
+  } @else {
+    <div class="admin-documents__layout">
+      <div class="admin-documents__list" aria-label="Solicitudes documentales">
+        @for (documento of documentosFiltrados(); track documento.idDocumento) {
+          <article
+            [class.is-selected]="documentoSeleccionado()?.idDocumento === documento.idDocumento"
+          >
+            <button type="button" (click)="seleccionarDocumento(documento.idDocumento)">
+              <span class="admin-documents__type">{{ documento.abreviatura }}</span>
+              <span
+                ><strong>{{ documento.nombreCompleto }}</strong
+                ><small>{{ documento.correo }}</small></span
+              >
+              <span
+                class="admin-documents__status"
+                [attr.data-estado]="documento.estadoVerificacion"
+                >{{ etiquetaEstado(documento.estadoVerificacion) }}</span
+              >
+              <span class="admin-documents__date">{{
+                documento.fechaActualizacion ?? documento.fechaCreacion | date: 'dd/MM/yyyy'
+              }}</span>
+            </button>
+          </article>
+        }
+      </div>
+
+      <aside class="admin-documents__detail" aria-live="polite">
+        @if (cargandoDetalle()) {
+          <app-estado-pantalla tipo="carga" etiqueta="Detalle" titulo="Abriendo documento" />
+        } @else if (documentoSeleccionado(); as documento) {
+          <header>
+            <div>
+              <span>Solicitud #{{ documento.idDocumento }}</span>
+              <h3>{{ documento.tipoDocumento }}</h3>
+            </div>
+            <button type="button" (click)="cerrarDetalle()" aria-label="Cerrar detalle">×</button>
+          </header>
+          <dl>
+            <div>
+              <dt>Usuario</dt>
+              <dd>{{ documento.nombreCompleto }}</dd>
+            </div>
+            <div>
+              <dt>Correo</dt>
+              <dd>{{ documento.correo }}</dd>
+            </div>
+            <div>
+              <dt>Número</dt>
+              <dd>{{ documento.numeroDocumento }}</dd>
+            </div>
+            <div>
+              <dt>Categoría</dt>
+              <dd>{{ documento.categoria }}</dd>
+            </div>
+            <div>
+              <dt>Estado</dt>
+              <dd>{{ etiquetaEstado(documento.estadoVerificacion) }}</dd>
+            </div>
+            <div>
+              <dt>Registrado</dt>
+              <dd>{{ documento.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+          </dl>
+          <div class="admin-documents__actions">
+            <button
+              appBoton
+              type="button"
+              class="is-approve"
+              [appBotonCargando]="procesando() === documento.idDocumento"
+              [disabled]="procesando() !== null || documento.estadoVerificacion === 'VERIFICADO'"
+              (click)="cambiarEstado(documento, 'verificar')"
+            >
+              Verificar
+            </button>
+            <button
+              type="button"
+              [disabled]="procesando() !== null"
+              (click)="cambiarEstado(documento, 'observar')"
+            >
+              Observar
+            </button>
+            <button
+              type="button"
+              class="is-reject"
+              [disabled]="procesando() !== null"
+              (click)="cambiarEstado(documento, 'rechazar')"
+            >
+              Rechazar
+            </button>
+          </div>
+        } @else {
+          <app-estado-pantalla
+            tipo="vacio"
+            etiqueta="Detalle"
+            titulo="Selecciona una solicitud"
+            descripcion="Aquí aparecerán sus datos y acciones administrativas."
+          />
+        }
+      </aside>
+    </div>
+  }
+</section>

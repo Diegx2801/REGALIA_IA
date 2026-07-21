@@ -1,12 +1,22 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SesionAutenticacionService } from '../autenticacion/sesion-autenticacion.service';
 import { Producto } from '../../domains/catalogo/modelos/producto.model';
 import { ItemCarrito } from './carrito.model';
 
-const CLAVE_CARRITO_REGALIA = 'regalia.carrito.checkout';
+const CLAVE_CARRITO_LEGADA = 'regalia.carrito.checkout';
+const PREFIJO_CARRITO_REGALIA = 'regalia.carrito.checkout';
 
 @Injectable({ providedIn: 'root' })
 export class CarritoCheckoutService {
-  private readonly itemsCarrito = signal<ItemCarrito[]>(this.obtenerItemsGuardados());
+  private readonly sesion = inject(SesionAutenticacionService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly idUsuarioActual = signal<number | null>(
+    this.sesion.usuarioActual()?.idUsuario ?? null,
+  );
+  private readonly itemsCarrito = signal<ItemCarrito[]>(
+    this.obtenerItemsGuardados(this.idUsuarioActual()),
+  );
 
   readonly items = computed(() => this.itemsCarrito());
   readonly cantidadItems = computed(() =>
@@ -17,7 +27,17 @@ export class CarritoCheckoutService {
   );
   readonly estaVacio = computed(() => this.itemsCarrito().length === 0);
 
-  agregarProducto(producto: Producto, cantidad = 1): void {
+  constructor() {
+    this.sesion.cambiosIdentidad$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ idUsuarioAnterior, idUsuarioActual }) => {
+        this.cambiarContextoCarrito(idUsuarioAnterior, idUsuarioActual);
+      });
+  }
+
+  agregarProducto(producto: Producto, cantidad = 1): boolean {
+    if (!producto.disponible || producto.stock <= 0) return false;
+
     const cantidadSegura = Math.max(1, Math.min(cantidad, producto.stock));
     const itemsActuales = this.itemsCarrito();
     const itemExistente = itemsActuales.find((item) => item.idProducto === producto.idProducto);
@@ -48,6 +68,7 @@ export class CarritoCheckoutService {
         ];
 
     this.actualizarCarrito(itemsActualizados);
+    return true;
   }
 
   actualizarCantidad(idProducto: number, cantidad: number): void {
@@ -83,20 +104,101 @@ export class CarritoCheckoutService {
 
   private actualizarCarrito(items: ItemCarrito[]): void {
     this.itemsCarrito.set(items);
-    // Contrato del backend: el carrito vive en frontend y se envia recien al confirmar checkout.
-    localStorage.setItem(CLAVE_CARRITO_REGALIA, JSON.stringify(items));
+    localStorage.setItem(this.obtenerClaveCarrito(this.idUsuarioActual()), JSON.stringify(items));
   }
 
-  private obtenerItemsGuardados(): ItemCarrito[] {
-    const contenido = localStorage.getItem(CLAVE_CARRITO_REGALIA);
+  private obtenerItemsGuardados(idUsuario: number | null): ItemCarrito[] {
+    const clave = this.obtenerClaveCarrito(idUsuario);
+    this.migrarClaveLegada(clave);
+    return this.leerItems(clave);
+  }
+
+  private leerItems(clave: string): ItemCarrito[] {
+    const contenido = localStorage.getItem(clave);
     if (!contenido) return [];
 
     try {
       const items = JSON.parse(contenido) as ItemCarrito[];
-      return Array.isArray(items) ? items : [];
+      if (!Array.isArray(items)) return [];
+
+      const itemsValidos = items.filter(
+        (item) =>
+          Number.isInteger(item.idProducto) &&
+          Number.isInteger(item.idTienda) &&
+          Number.isFinite(item.stockDisponible) &&
+          item.stockDisponible > 0,
+      );
+      return itemsValidos.map((item) => ({
+        ...item,
+        cantidad: Math.max(1, Math.min(Math.trunc(item.cantidad), item.stockDisponible)),
+      }));
     } catch {
-      localStorage.removeItem(CLAVE_CARRITO_REGALIA);
+      localStorage.removeItem(clave);
       return [];
     }
+  }
+
+  private cambiarContextoCarrito(
+    idUsuarioAnterior: number | null,
+    idUsuarioActual: number | null,
+  ): void {
+    const itemsSiguienteContexto =
+      idUsuarioAnterior === null && idUsuarioActual !== null
+        ? this.migrarCarritoInvitado(idUsuarioActual)
+        : this.obtenerItemsGuardados(idUsuarioActual);
+
+    this.idUsuarioActual.set(idUsuarioActual);
+    this.itemsCarrito.set(itemsSiguienteContexto);
+  }
+
+  private migrarCarritoInvitado(idUsuario: number): ItemCarrito[] {
+    const claveInvitado = this.obtenerClaveCarrito(null);
+    const claveUsuario = this.obtenerClaveCarrito(idUsuario);
+    const itemsInvitado = this.leerItems(claveInvitado);
+    const itemsUsuario = this.leerItems(claveUsuario);
+    const itemsCombinados = this.combinarItems(itemsUsuario, itemsInvitado);
+
+    localStorage.setItem(claveUsuario, JSON.stringify(itemsCombinados));
+    localStorage.removeItem(claveInvitado);
+    return itemsCombinados;
+  }
+
+  private combinarItems(base: ItemCarrito[], adicionales: ItemCarrito[]): ItemCarrito[] {
+    const items = new Map(base.map((item) => [item.idProducto, item]));
+
+    for (const adicional of adicionales) {
+      const existente = items.get(adicional.idProducto);
+      items.set(
+        adicional.idProducto,
+        existente
+          ? {
+              ...existente,
+              cantidad: Math.min(
+                existente.cantidad + adicional.cantidad,
+                existente.stockDisponible,
+              ),
+              observacion: existente.observacion ?? adicional.observacion,
+            }
+          : adicional,
+      );
+    }
+
+    return [...items.values()];
+  }
+
+  private migrarClaveLegada(claveDestino: string): void {
+    const contenidoLegado = localStorage.getItem(CLAVE_CARRITO_LEGADA);
+    if (!contenidoLegado) return;
+
+    if (localStorage.getItem(claveDestino) === null) {
+      localStorage.setItem(claveDestino, contenidoLegado);
+    }
+    localStorage.removeItem(CLAVE_CARRITO_LEGADA);
+  }
+
+  private obtenerClaveCarrito(idUsuario: number | null): string {
+    return idUsuario === null
+      ? `${PREFIJO_CARRITO_REGALIA}.invitado`
+      : `${PREFIJO_CARRITO_REGALIA}.usuario.${idUsuario}`;
   }
 }

@@ -14,7 +14,7 @@ import {
   VendedorAdministracion,
 } from '../modelos/panel-administracion.model';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class AdministracionPanelStore {
   private readonly adminApi = inject(PanelAdministracionApiService);
   private readonly datosMaestrosApi = inject(DatosMaestrosAdminApiService);

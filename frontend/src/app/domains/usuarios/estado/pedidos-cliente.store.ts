@@ -8,7 +8,7 @@ import {
 } from '../acceso-datos/pedido-cliente-api.service';
 import { PedidoCliente, PedidoClienteResumen } from '../modelos/pedido-cliente.model';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class PedidosClienteStore {
   private readonly pedidoApi = inject(PedidoClienteApiService);
   private readonly destroyRef = inject(DestroyRef);

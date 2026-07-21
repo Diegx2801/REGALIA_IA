@@ -1,0 +1,22 @@
+<main class="access-denied rg-page__container--retail" id="contenido-principal" tabindex="-1">
+  <section class="access-denied__card" aria-labelledby="access-denied-title">
+    <div class="access-denied__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M12 3 4.5 6v5.3c0 4.7 3.2 8.8 7.5 9.7 4.3-.9 7.5-5 7.5-9.7V6L12 3Z" />
+        <path d="m9.5 14.5 5-5M9.5 9.5l5 5" />
+      </svg>
+    </div>
+    <div>
+      <span class="access-denied__eyebrow">Permisos de cuenta</span>
+      <h1 id="access-denied-title">Este espacio pertenece a otro tipo de cuenta</h1>
+      <p>
+        Tu sesión sigue activa, pero no tiene el rol necesario para abrir esta sección. Puedes
+        regresar a tu espacio o continuar explorando REGALIA.
+      </p>
+    </div>
+    <div class="access-denied__actions">
+      <a class="access-denied__primary" [routerLink]="rutaPanel()">{{ etiquetaPanel() }}</a>
+      <a class="access-denied__secondary" routerLink="/">Volver al inicio</a>
+    </div>
+  </section>
+</main>

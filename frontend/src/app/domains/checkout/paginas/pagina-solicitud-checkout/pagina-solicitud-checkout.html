@@ -50,8 +50,10 @@
             <h2>Tu solicitud está lista para continuar</h2>
             <p>
               REGALIA validó el monto inicial de
-              <strong>{{ resultado.monto | currency: resultado.moneda : 'symbol-narrow' : '1.2-2' }}</strong>.
-              El pedido se confirmará cuando la pasarela apruebe el pago.
+              <strong>{{
+                resultado.monto | currency: resultado.moneda : 'symbol-narrow' : '1.2-2'
+              }}</strong
+              >. El pedido se confirmará cuando la pasarela apruebe el pago.
             </p>
           </div>
           <div class="checkout-confirmation__actions">
@@ -61,7 +63,8 @@
                 [href]="resultado.urlRedireccion"
                 target="_blank"
                 rel="noopener noreferrer"
-              >Continuar al pago <span class="sr-only">(se abre en una pestaña nueva)</span></a>
+                >Continuar al pago <span class="sr-only">(se abre en una pestaña nueva)</span></a
+              >
             }
             <button appBoton="secundario" type="button" (click)="editarSolicitud()">
               Revisar datos
@@ -93,7 +96,10 @@
           <fieldset class="checkout-section" id="checkout-entrega" tabindex="-1">
             <legend>
               <span>1</span>
-              <span><strong>Pedido y entrega</strong><small>Indica cómo y cuándo quieres recibirlo.</small></span>
+              <span
+                ><strong>Pedido y entrega</strong
+                ><small>Indica cómo y cuándo quieres recibirlo.</small></span
+              >
             </legend>
 
             <div class="checkout-section__grid">
@@ -110,9 +116,13 @@
                     [attr.aria-invalid]="campoTieneError('cantidad')"
                     aria-describedby="checkout-cantidad-ayuda checkout-cantidad-error"
                   />
-                  <small id="checkout-cantidad-ayuda">Disponible: {{ productoActual.stock }} unidades.</small>
+                  <small id="checkout-cantidad-ayuda"
+                    >Disponible: {{ productoActual.stock }} unidades.</small
+                  >
                   @if (campoTieneError('cantidad')) {
-                    <small id="checkout-cantidad-error" appErrorCampo>Ingresa una cantidad entre 1 y {{ productoActual.stock }}.</small>
+                    <small id="checkout-cantidad-error" appErrorCampo
+                      >Ingresa una cantidad entre 1 y {{ productoActual.stock }}.</small
+                    >
                   }
                 </label>
               }
@@ -130,7 +140,9 @@
                   }
                 </select>
                 @if (campoTieneError('idTipoEntrega')) {
-                  <small id="checkout-entrega-error" appErrorCampo>Selecciona una modalidad de entrega disponible.</small>
+                  <small id="checkout-entrega-error" appErrorCampo
+                    >Selecciona una modalidad de entrega disponible.</small
+                  >
                 }
               </label>
 
@@ -144,9 +156,13 @@
                   [attr.aria-invalid]="campoTieneError('fechaEntrega')"
                   aria-describedby="checkout-fecha-ayuda checkout-fecha-error"
                 />
-                <small id="checkout-fecha-ayuda">La fecha más próxima disponible es {{ fechaMinimaEntrega }}.</small>
+                <small id="checkout-fecha-ayuda"
+                  >La fecha más próxima disponible es {{ fechaMinimaEntrega }}.</small
+                >
                 @if (campoTieneError('fechaEntrega')) {
-                  <small id="checkout-fecha-error" appErrorCampo>Elige una fecha válida desde {{ fechaMinimaEntrega }}.</small>
+                  <small id="checkout-fecha-error" appErrorCampo
+                    >Elige una fecha válida desde {{ fechaMinimaEntrega }}.</small
+                  >
                 }
               </label>
             </div>
@@ -155,21 +171,33 @@
           <fieldset class="checkout-section checkout-section--payment">
             <legend>
               <span>2</span>
-              <span><strong>Pago inicial</strong><small>Selecciona una opción habilitada por REGALIA.</small></span>
+              <span
+                ><strong>Pago inicial</strong
+                ><small>Selecciona una opción habilitada por REGALIA.</small></span
+              >
             </legend>
 
-            <div class="checkout-payment-options" [attr.aria-invalid]="campoTieneError('codigoTipoPago')">
+            <div
+              class="checkout-payment-options"
+              [attr.aria-invalid]="campoTieneError('codigoTipoPago')"
+            >
               @for (opcion of opcionesPago(); track opcion.codigo) {
                 <label class="checkout-payment-option">
                   <input type="radio" formControlName="codigoTipoPago" [value]="opcion.codigo" />
                   <span>
                     <strong>{{ opcion.nombre }}</strong>
-                    <small>{{ opcion.descripcion || 'El backend calculará el importe correspondiente.' }}</small>
+                    <small>{{
+                      opcion.descripcion || 'El backend calculará el importe correspondiente.'
+                    }}</small>
                   </span>
                 </label>
               } @empty {
                 <p class="checkout-payment-empty">
-                  {{ requiereLogin() ? 'Inicia sesión para consultar las opciones de pago.' : 'No hay opciones de pago disponibles en este momento.' }}
+                  {{
+                    requiereLogin()
+                      ? 'Inicia sesión para consultar las opciones de pago.'
+                      : 'No hay opciones de pago disponibles en este momento.'
+                  }}
                 </p>
               }
             </div>
@@ -181,13 +209,18 @@
           <fieldset class="checkout-section">
             <legend>
               <span>3</span>
-              <span><strong>Personalización</strong><small>Comparte indicaciones claras para la tienda.</small></span>
+              <span
+                ><strong>Personalización</strong
+                ><small>Comparte indicaciones claras para la tienda.</small></span
+              >
             </legend>
 
             <label appCampoFormulario>
               <span>
                 Personalización y observaciones
-                @if (requiereObservacionGeneral()) { <b aria-hidden="true">*</b> }
+                @if (requiereObservacionGeneral()) {
+                  <b aria-hidden="true">*</b>
+                }
               </span>
               <textarea
                 id="checkout-observacion"
@@ -200,11 +233,17 @@
               ></textarea>
               <small id="checkout-observacion-ayuda">
                 {{ formulario.controls.observacion.value.length }}/1000 caracteres.
-                @if (usaCarrito()) { Las notas de cada producto también se enviarán a la tienda. }
+                @if (usaCarrito()) {
+                  Las notas de cada producto también se enviarán a la tienda.
+                }
               </small>
               @if (campoTieneError('observacion')) {
                 <small id="checkout-observacion-error" appErrorCampo>
-                  {{ requiereObservacionGeneral() ? 'Describe la personalización del regalo.' : 'La observación no debe superar 1000 caracteres.' }}
+                  {{
+                    requiereObservacionGeneral()
+                      ? 'Describe la personalización del regalo.'
+                      : 'La observación no debe superar 1000 caracteres.'
+                  }}
                 </small>
               }
             </label>
@@ -220,7 +259,30 @@
                 appBoton="secundario"
                 routerLink="/login"
                 [queryParams]="{ retorno: rutaRetorno() }"
-              >Iniciar sesión</a>
+                >Iniciar sesión</a
+              >
+            </section>
+          } @else if (requiereRolCliente()) {
+            <section class="checkout-login" aria-labelledby="checkout-role-title">
+              <div>
+                <strong id="checkout-role-title">Cambia a una cuenta de cliente</strong>
+                <p>
+                  Vendedores y administradores no pueden confirmar compras desde su panel operativo.
+                </p>
+              </div>
+              <a appBoton="secundario" routerLink="/acceso-denegado">Ir a mi espacio</a>
+            </section>
+          } @else if (requiereCorreoVerificado()) {
+            <section class="checkout-login" aria-labelledby="checkout-verification-title">
+              <div>
+                <strong id="checkout-verification-title"
+                  >Verifica tu correo para proteger la compra</strong
+                >
+                <p>
+                  Podrás reenviar el mensaje de verificación desde la configuración de tu perfil.
+                </p>
+              </div>
+              <a appBoton="secundario" routerLink="/cliente/perfil">Revisar mi cuenta</a>
             </section>
           }
 
@@ -229,11 +291,15 @@
             appBotonBloque
             [appBotonCargando]="enviandoSolicitud()"
             type="submit"
-            [disabled]="enviandoSolicitud() || requiereLogin() || !!resultadoCheckout()"
+            [disabled]="enviandoSolicitud() || checkoutBloqueado() || !!resultadoCheckout()"
           >
-            @if (enviandoSolicitud()) { Validando y preparando pago… }
-            @else if (resultadoCheckout()) { Checkout preparado }
-            @else { Validar y preparar pago }
+            @if (enviandoSolicitud()) {
+              Validando y preparando pago…
+            } @else if (resultadoCheckout()) {
+              Checkout preparado
+            } @else {
+              Validar y preparar pago
+            }
           </button>
           <p class="checkout-submit-help">No se realizará ningún cobro al presionar este botón.</p>
         </form>
@@ -247,20 +313,39 @@
           <div class="checkout-summary__items">
             @for (item of itemsSolicitud(); track item.idProducto) {
               <article>
-                <img [src]="item.urlImagen" [alt]="item.nombre" width="72" height="72" loading="lazy" decoding="async" />
+                <img
+                  [src]="item.urlImagen"
+                  [alt]="item.nombre"
+                  width="72"
+                  height="72"
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div>
                   <strong>{{ item.nombre }}</strong>
                   <small>{{ item.nombreTienda }} · {{ item.cantidad }} unidad(es)</small>
-                  <span>{{ item.precioUnitario * item.cantidad | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span>
+                  <span>{{
+                    item.precioUnitario * item.cantidad
+                      | currency: 'PEN' : 'symbol-narrow' : '1.2-2'
+                  }}</span>
                 </div>
               </article>
             }
           </div>
 
           <dl class="checkout-summary__totals">
-            <div><dt>Productos</dt><dd>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
-            <div><dt>Entrega</dt><dd>Por confirmar</dd></div>
-            <div class="checkout-summary__total"><dt>Total referencial</dt><dd>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd></div>
+            <div>
+              <dt>Productos</dt>
+              <dd>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+            </div>
+            <div>
+              <dt>Entrega</dt>
+              <dd>Por confirmar</dd>
+            </div>
+            <div class="checkout-summary__total">
+              <dt>Total referencial</dt>
+              <dd>{{ totalEstimado() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</dd>
+            </div>
           </dl>
 
           <div class="checkout-summary__trust">

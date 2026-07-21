@@ -106,6 +106,18 @@ export class PaginaSolicitudCheckout implements OnInit {
   });
 
   readonly requiereLogin = computed(() => !this.sesionAutenticacion.estaAutenticado());
+  readonly requiereRolCliente = computed(
+    () =>
+      this.sesionAutenticacion.estaAutenticado() && !this.sesionAutenticacion.tieneRol(['CLIENTE']),
+  );
+  readonly requiereCorreoVerificado = computed(
+    () =>
+      this.sesionAutenticacion.tieneRol(['CLIENTE']) &&
+      !this.sesionAutenticacion.usuarioActual()?.correoVerificado,
+  );
+  readonly checkoutBloqueado = computed(
+    () => this.requiereLogin() || this.requiereRolCliente() || this.requiereCorreoVerificado(),
+  );
   readonly requiereObservacionGeneral = computed(() => !this.usaCarrito());
   readonly cantidadItemsSolicitud = computed(() =>
     this.itemsSolicitud().reduce((total, item) => total + item.cantidad, 0),
@@ -127,6 +139,16 @@ export class PaginaSolicitudCheckout implements OnInit {
 
     if (this.requiereLogin()) {
       this.mensajeError.set('Inicia sesión como cliente para preparar el pago de tu solicitud.');
+      return;
+    }
+
+    if (this.requiereRolCliente()) {
+      this.mensajeError.set('El checkout está disponible únicamente para cuentas de cliente.');
+      return;
+    }
+
+    if (this.requiereCorreoVerificado()) {
+      this.mensajeError.set('Verifica el correo de tu cuenta antes de continuar al pago.');
       return;
     }
 
@@ -294,7 +316,9 @@ export class PaginaSolicitudCheckout implements OnInit {
     const productoActual = this.producto();
     if (!productoActual) return [];
 
-    return [this.mapearProductoAItemCheckout(productoActual, this.formulario.controls.cantidad.value)];
+    return [
+      this.mapearProductoAItemCheckout(productoActual, this.formulario.controls.cantidad.value),
+    ];
   }
 
   private mapearProductoAItemCheckout(producto: Producto, cantidad: number): ItemCarrito {
@@ -316,7 +340,10 @@ export class PaginaSolicitudCheckout implements OnInit {
     return new Set(items.map((item) => item.idTienda)).size === 1;
   }
 
-  private construirObservacionCheckout(observacionGeneral: string, items: ItemCarrito[]): string | null {
+  private construirObservacionCheckout(
+    observacionGeneral: string,
+    items: ItemCarrito[],
+  ): string | null {
     const observacionesItems = items
       .filter((item) => Boolean(item.observacion))
       .map((item) => `${item.nombre}: ${item.observacion}`);
@@ -330,7 +357,10 @@ export class PaginaSolicitudCheckout implements OnInit {
   private obtenerFechaMinimaEntrega(): string {
     const fecha = new Date();
     fecha.setDate(fecha.getDate() + 1);
-    return fecha.toISOString().slice(0, 10);
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
   }
 
   private enfocarPrimerCampoInvalido(): void {

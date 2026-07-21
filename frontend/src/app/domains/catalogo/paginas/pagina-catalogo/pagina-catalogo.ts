@@ -52,6 +52,7 @@ export class PaginaCatalogo implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly solicitudesProductos = new Subject<void>();
+  private catalogoInicializado = false;
 
   readonly productos = signal<Producto[]>([]);
   readonly tiposProducto = signal<TipoProducto[]>([]);
@@ -84,8 +85,8 @@ export class PaginaCatalogo implements OnInit {
   );
 
   ngOnInit(): void {
-    this.inicializarFiltrosDesdeUrl();
     this.configurarCargaProductos();
+    this.suscribirFiltrosUrl();
     this.cargarTiposProducto();
     this.cargarTiendas();
   }
@@ -181,18 +182,41 @@ export class PaginaCatalogo implements OnInit {
     this.filtrosMovilesAbiertos.update((abiertos) => !abiertos);
   }
 
-  private inicializarFiltrosDesdeUrl(): void {
-    const parametros = this.rutaActiva.snapshot.queryParamMap;
+  private suscribirFiltrosUrl(): void {
+    this.rutaActiva.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((parametros) => {
+        const filtrosCambiaron = this.aplicarFiltrosUrl(parametros);
+        if (this.catalogoInicializado && filtrosCambiaron) this.cargarProductos();
+      });
+  }
+
+  private aplicarFiltrosUrl(parametros: import('@angular/router').ParamMap): boolean {
     const precio = Number(parametros.get('precioMaximo'));
     const pagina = Number(parametros.get('pagina'));
     const orden = parametros.get('orden');
+    const busquedaUrl = parametros.get('busqueda')?.trim() ?? '';
+    const tipoUrl = parametros.get('tipo')?.trim() || 'Todas';
+    const precioUrl = Number.isFinite(precio) && precio > 0 ? precio : 300;
+    const paginaUrl = Number.isInteger(pagina) && pagina > 0 ? pagina - 1 : 0;
+    const disponiblesUrl = parametros.get('disponibles') !== 'false';
+    const ordenUrl = this.esOrdenCatalogo(orden) ? orden : 'recommended';
+    const filtrosCambiaron =
+      busquedaUrl !== this.terminoBusqueda() ||
+      tipoUrl !== this.tipoSeleccionado() ||
+      precioUrl !== this.precioMaximo() ||
+      paginaUrl !== this.paginaActual() ||
+      disponiblesUrl !== this.soloDisponibles() ||
+      ordenUrl !== this.ordenSeleccionado();
 
-    this.terminoBusqueda.set(parametros.get('busqueda')?.trim() ?? '');
-    this.tipoSeleccionado.set(parametros.get('tipo')?.trim() || 'Todas');
-    this.precioMaximo.set(Number.isFinite(precio) && precio > 0 ? precio : 300);
-    this.paginaActual.set(Number.isInteger(pagina) && pagina > 0 ? pagina - 1 : 0);
-    this.soloDisponibles.set(parametros.get('disponibles') !== 'false');
-    this.ordenSeleccionado.set(this.esOrdenCatalogo(orden) ? orden : 'recommended');
+    this.terminoBusqueda.set(busquedaUrl);
+    this.tipoSeleccionado.set(tipoUrl);
+    this.precioMaximo.set(precioUrl);
+    this.paginaActual.set(paginaUrl);
+    this.soloDisponibles.set(disponiblesUrl);
+    this.ordenSeleccionado.set(ordenUrl);
+    this.mensajeCarrito.set(null);
+    return filtrosCambiaron;
   }
 
   private configurarCargaProductos(): void {
@@ -238,12 +262,15 @@ export class PaginaCatalogo implements OnInit {
           ) {
             this.tipoSeleccionado.set('Todas');
           }
+          this.catalogoInicializado = true;
           this.sincronizarFiltrosEnUrl();
           this.cargarProductos();
         },
         error: () => {
           this.tiposProducto.set([]);
           this.tipoSeleccionado.set('Todas');
+          this.catalogoInicializado = true;
+          this.sincronizarFiltrosEnUrl();
           this.cargarProductos();
         },
       });

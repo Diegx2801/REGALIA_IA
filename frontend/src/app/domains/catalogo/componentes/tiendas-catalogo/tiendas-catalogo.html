@@ -1,6 +1,9 @@
 <section class="catalog-section catalog-section--sellers">
   <div class="catalog-toolbar catalog-toolbar--compact">
-    <app-encabezado-seccion etiqueta="Vendedores locales" [titulo]="tiendas().length + ' tiendas publicas'" />
+    <app-encabezado-seccion
+      etiqueta="Vendedores locales"
+      [titulo]="tiendas().length + ' tiendas publicas'"
+    />
     <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
   </div>
 
@@ -37,7 +40,9 @@
           <span class="seller-card__category">
             {{ tienda.rubros[0]?.nombre ?? 'Tienda REGALIA' }}
           </span>
-          <h3 class="seller-card__title">{{ tienda.nombre }}</h3>
+          <h3 class="seller-card__title">
+            <a [routerLink]="['/catalogo/tiendas', tienda.idTienda]">{{ tienda.nombre }}</a>
+          </h3>
           <p class="seller-card__text">{{ tienda.descripcion }}</p>
           <div class="seller-card__tags">
             @for (rubro of tienda.rubros; track rubro.idRubro) {
@@ -46,7 +51,7 @@
           </div>
           <div class="seller-card__footer">
             <span>{{ tienda.direccionReferencia }}</span>
-            <strong>{{ tienda.estadoRevision }}</strong>
+            <a [routerLink]="['/catalogo/tiendas', tienda.idTienda]">Ver tienda →</a>
           </div>
         </article>
       }
