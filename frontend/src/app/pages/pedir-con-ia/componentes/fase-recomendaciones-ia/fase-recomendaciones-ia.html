@@ -38,7 +38,7 @@
       </button>
     } @else {
       <div class="builder-recommendations">
-        @for (recomendacion of productos(); track identificarProducto($index, recomendacion)) {
+        @for (recomendacion of productos(); track identificarProducto($index, recomendacion); let posicion = $index) {
           @let producto = recomendacion.producto;
           <article
             class="builder-recommendation-card"
@@ -68,6 +68,7 @@
                 />
               </div>
               <p>{{ producto.descripcion }}</p>
+              <p class="builder-recommendation-card__reason">{{ recomendacion.razon }}</p>
               <div class="builder-recommendation-card__tags">
                 <app-insignia-ui [texto]="producto.tipoProducto" variante="primaria" />
                 <app-insignia-ui [texto]="'Stock ' + producto.stock" />

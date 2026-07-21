@@ -25,7 +25,6 @@ import { FaseReservaIa } from '../componentes/fase-reserva-ia/fase-reserva-ia';
 import { HeroBuilderIa } from '../componentes/hero-builder-ia/hero-builder-ia';
 import { PasosBuilderIa } from '../componentes/pasos-builder-ia/pasos-builder-ia';
 import { PasoBuilderIa, RecomendacionProductoIa } from '../modelos/builder-ia.model';
-import { EstadoPantallaComponent } from '../../../shared/ui/estado-pantalla/estado-pantalla';
 
 @Component({
   selector: 'app-pagina-pedir-con-ia',
