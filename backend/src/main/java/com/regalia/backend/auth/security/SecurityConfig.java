@@ -117,6 +117,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/password-recovery/reset").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admin/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/builder-ia/recomendar-productos").permitAll()
 
                         /*
                          * Marketplace público.

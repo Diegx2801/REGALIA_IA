@@ -37,8 +37,9 @@
         Explorar el catálogo
       </button>
     } @else {
-      <div class="builder-recommendations" aria-label="Productos recomendados">
-        @for (producto of productos(); track identificarProducto($index, producto); let posicion = $index) {
+      <div class="builder-recommendations">
+        @for (recomendacion of productos(); track identificarProducto($index, recomendacion)) {
+          @let producto = recomendacion.producto;
           <article
             class="builder-recommendation-card"
             [class.builder-recommendation-card--selected]="productoSeleccionado()?.idProducto === producto.idProducto"

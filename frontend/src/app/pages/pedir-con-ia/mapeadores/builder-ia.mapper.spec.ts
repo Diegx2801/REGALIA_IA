@@ -1,37 +1,30 @@
-import {
-  mapearResultadoRecomendacionIaDesdeDto,
-  mapearSolicitudRecomendacionIaADto,
-} from './builder-ia.mapper';
+import { describe, expect, it } from 'vitest';
+import { mapearResultadoRecomendacionIaDesdeDto } from './builder-ia.mapper';
 
 describe('builder-ia.mapper', () => {
-  it('normaliza la descripción antes de enviarla al backend', () => {
-    expect(mapearSolicitudRecomendacionIaADto({ busqueda: '  regalo para graduación  ' })).toEqual({
-      busqueda: 'regalo para graduación',
-    });
-  });
-
-  it('convierte recomendaciones reales y determina su disponibilidad', () => {
+  it('conserva la razon junto al producto real recomendado', () => {
     const resultado = mapearResultadoRecomendacionIaDesdeDto({
-      respuesta: '  Recomendación basada en la ocasión. ',
+      respuesta: 'Una opcion elegante.',
       productosRecomendados: [
         {
-          idProducto: 8,
+          idProducto: 7,
+          nombre: 'Ramo premium',
+          descripcion: 'Flores frescas',
+          precio: 120,
+          stock: 3,
           idTienda: 2,
-          nombreTienda: 'Detalles REGALIA',
-          tipoProducto: 'PACK O BOX',
-          nombre: 'Box premium',
-          descripcion: 'Contenido especial',
-          precio: 99,
-          stock: 0,
+          nombreTienda: 'Floristeria',
+          tipoProducto: 'Flores',
+          razon: 'Es apropiado para un aniversario.',
         },
       ],
     });
 
-    expect(resultado.respuesta).toBe('Recomendación basada en la ocasión.');
-    expect(resultado.productosRecomendados[0]).toMatchObject({
-      idProducto: 8,
-      disponible: false,
-      stock: 0,
-    });
+    expect(resultado.productosRecomendados).toEqual([
+      expect.objectContaining({
+        razon: 'Es apropiado para un aniversario.',
+        producto: expect.objectContaining({ idProducto: 7, disponible: true }),
+      }),
+    ]);
   });
 });

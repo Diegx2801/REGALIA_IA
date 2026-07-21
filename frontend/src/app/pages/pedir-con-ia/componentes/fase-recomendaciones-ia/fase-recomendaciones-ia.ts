@@ -2,6 +2,7 @@ import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Producto } from '../../../../domains/catalogo/modelos/producto.model';
+import { RecomendacionProductoIa } from '../../modelos/builder-ia.model';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
 
@@ -12,9 +13,7 @@ import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FaseRecomendacionesIa {
-  readonly respuestaIa = input.required<string | null>();
-  readonly descripcionActual = input.required<string>();
-  readonly productos = input.required<readonly Producto[]>();
+  readonly productos = input.required<readonly RecomendacionProductoIa[]>();
   readonly productoSeleccionado = input.required<Producto | null>();
   readonly seleccionarProducto = output<Producto>();
   readonly ajustarSolicitud = output<void>();
@@ -22,8 +21,8 @@ export class FaseRecomendacionesIa {
   readonly volver = output<void>();
   readonly continuar = output<void>();
 
-  identificarProducto(_indice: number, producto: Producto): number {
-    return producto.idProducto;
+  identificarProducto(_indice: number, recomendacion: RecomendacionProductoIa): number {
+    return recomendacion.producto.idProducto;
   }
 
   usarImagenAlternativa(evento: Event): void {

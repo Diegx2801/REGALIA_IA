@@ -12,5 +12,10 @@ export interface SolicitudRecomendacionIa {
 
 export interface ResultadoRecomendacionIa {
   respuesta: string;
-  productosRecomendados: Producto[];
+  productosRecomendados: RecomendacionProductoIa[];
+}
+
+export interface RecomendacionProductoIa {
+  producto: Producto;
+  razon: string;
 }

@@ -77,6 +77,64 @@ public class ProductoPublicoRepositoryCustomImpl implements ProductoPublicoRepos
         return new PageImpl<>(contenido, pageable, countQuery.getSingleResult());
     }
 
+    @Override
+    public List<ProductoEntity> findCandidatosPublicosBuilderIA(
+            String estadoRevision,
+            List<String> terminos,
+            BigDecimal precioMaximo,
+            int limite
+    ) {
+        Map<String, Object> parametros = new HashMap<>();
+        StringBuilder where = new StringBuilder("""
+                 WHERE p.estado = true
+                 AND p.visibleEnTienda = true
+                 AND p.stock > 0
+                 AND t.estado = true
+                 AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
+                """);
+        parametros.put("estadoRevision", estadoRevision);
+
+        if (precioMaximo != null) {
+            where.append(" AND p.precio <= :precioMaximo");
+            parametros.put("precioMaximo", precioMaximo);
+        }
+
+        if (terminos != null && !terminos.isEmpty()) {
+            where.append(" AND (");
+            for (int indice = 0; indice < terminos.size(); indice++) {
+                if (indice > 0) {
+                    where.append(" OR ");
+                }
+                String parametro = "termino" + indice;
+                where.append("""
+                        CAST(FUNCTION(
+                            'translate',
+                            LOWER(CONCAT(CONCAT(CONCAT(CONCAT(CONCAT(CONCAT(
+                                COALESCE(p.nombre, ''), ' '), COALESCE(p.descripcion, '')), ' '),
+                                COALESCE(t.nombre, '')), ' '), COALESCE(tp.nombre, ''))),
+                            'áéíóúüñ',
+                            'aeiouun'
+                        ) AS String) LIKE CONCAT('%%', :%s, '%%')
+                        """.formatted(parametro));
+                parametros.put(parametro, terminos.get(indice));
+            }
+            where.append(")");
+        }
+
+        TypedQuery<ProductoEntity> query = entityManager.createQuery(
+                """
+                        SELECT p
+                        FROM ProductoEntity p
+                        JOIN FETCH p.tienda t
+                        JOIN FETCH p.tipoProducto tp
+                        """ + where + " ORDER BY p.idProducto ASC",
+                ProductoEntity.class
+        );
+        aplicarParametros(query, parametros);
+        query.setMaxResults(limite);
+        return query.getResultList();
+    }
+
     private String construirWhere(
             String estadoRevision,
             String busqueda,
