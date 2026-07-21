@@ -13,6 +13,8 @@ import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FaseRecomendacionesIa {
+  readonly respuestaIa = input.required<string | null>();
+  readonly descripcionActual = input.required<string>();
   readonly productos = input.required<readonly RecomendacionProductoIa[]>();
   readonly productoSeleccionado = input.required<Producto | null>();
   readonly seleccionarProducto = output<Producto>();

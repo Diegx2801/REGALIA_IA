@@ -73,7 +73,15 @@ describe('PaginaPedirConIa', () => {
   it('presenta interpretación y productos juntos antes de confirmar', async () => {
     pagina.formulario.controls.necesidad.setValue('Flores para aniversario');
     pagina.continuar();
-    respuesta$.next({ respuesta: 'Buscamos una opción romántica y disponible.', productosRecomendados: [PRODUCTO] });
+    respuesta$.next({
+      respuesta: 'Buscamos una opción romántica y disponible.',
+      productosRecomendados: [
+        {
+          producto: PRODUCTO,
+          razon: 'Es una opción romántica para aniversario.',
+        },
+      ],
+    });
     respuesta$.complete();
     await fixture.whenStable();
 
