@@ -6,5 +6,6 @@ package com.regalia.backend.shared.security.limite;
 public enum TipoSujetoLimiteSeguridad {
     USUARIO,
     CORREO,
-    IP
+    IP,
+    GLOBAL
 }

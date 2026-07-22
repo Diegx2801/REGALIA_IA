@@ -6,5 +6,6 @@ package com.regalia.backend.shared.security.limite;
  */
 public enum PoliticaLimiteSeguridad {
     REENVIO_VERIFICACION_CORREO,
-    SOLICITUD_RECUPERACION_CONTRASENA
+    SOLICITUD_RECUPERACION_CONTRASENA,
+    CONSULTA_RUC
 }
