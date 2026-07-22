@@ -15,7 +15,6 @@ import com.regalia.backend.usuariodocumento.api.dto.UsuarioDocumentoResponse;
 import com.regalia.backend.usuariodocumento.infrastructure.entity.UsuarioDocumentoEntity;
 import com.regalia.backend.usuariodocumento.infrastructure.mapper.UsuarioDocumentoMapper;
 import com.regalia.backend.usuariodocumento.infrastructure.repository.UsuarioDocumentoJpaRepository;
-import com.regalia.backend.usuariodocumento.infrastructure.client.ApisPeruRucClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +32,7 @@ public class UsuarioDocumentoService {
     private final UsuarioJpaRepository usuarioRepository;
     private final TipoDocumentoJpaRepository tipoDocumentoRepository;
     private final UsuarioDocumentoMapper usuarioDocumentoMapper;
-    private final ApisPeruRucClient apisPeruRucClient;
+    private final ConsultaRucService consultaRucService;
 
     @Transactional(readOnly = true)
     public List<UsuarioDocumentoResponse> listarMisDocumentos(String correoUsuario) {
@@ -64,7 +63,7 @@ public class UsuarioDocumentoService {
      */
     @Transactional(readOnly = true)
     public ConsultaRucResponse consultarRuc(String numeroRuc) {
-        return apisPeruRucClient.consultar(normalizarRuc(numeroRuc));
+        return consultaRucService.consultar(normalizarRuc(numeroRuc));
     }
 
     /**
@@ -75,7 +74,7 @@ public class UsuarioDocumentoService {
     public UsuarioDocumentoResponse registrarRucPendiente(String correoUsuario, RegistrarRucRequest request) {
         UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
         String numeroRuc = normalizarRuc(request.numeroRuc());
-        ConsultaRucResponse consulta = apisPeruRucClient.consultar(numeroRuc);
+        ConsultaRucResponse consulta = consultaRucService.consultar(numeroRuc);
 
         if (!numeroRuc.equals(consulta.ruc())) {
             throw new ReglaNegocioException("La respuesta del servicio no corresponde al RUC consultado");
