@@ -206,12 +206,11 @@ describe('VendedorPanelStore', () => {
     const productoActualizado: ProductoVendedor = {
       ...crearProducto(10),
       nombre: 'Box premium actualizado',
-      imagenes: [{ urlImagen: '/productos/box-actualizado.webp', orden: 1 }],
+      imagenes: [{ idProductoImagen: 3, urlImagen: '/productos/box-actualizado.webp', orden: 1 }],
       urlImagen: '/productos/box-actualizado.webp',
     };
     const solicitud = crearSolicitudProducto({
       nombre: productoActualizado.nombre,
-      imagenes: productoActualizado.imagenes,
     });
     const alCompletar = vi.fn();
     vendedorApi.actualizarProducto.mockReturnValue(of(productoActualizado));
@@ -415,7 +414,6 @@ function crearSolicitudProducto(
     precio: 150,
     stock: 0,
     visibleEnTienda: true,
-    imagenes: [],
     ...cambios,
   };
 }

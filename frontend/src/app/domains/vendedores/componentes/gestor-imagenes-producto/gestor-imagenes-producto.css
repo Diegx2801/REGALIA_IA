@@ -1,0 +1,21 @@
+.gestor-imagenes { display:grid; gap:1rem; padding:1.25rem; border:1px solid var(--color-borde, #ead8cc); border-radius:1rem; background:#fffaf6; }
+.gestor-imagenes__cabecera { display:flex; align-items:start; justify-content:space-between; gap:1rem; }
+.gestor-imagenes__cabecera span { display:block; font-size:.75rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#8a5a14; }
+.gestor-imagenes__cabecera h3 { margin:.25rem 0; font-size:1.25rem; }
+.gestor-imagenes__cabecera p { margin:0; color:#6f6074; }
+.gestor-imagenes__accion { display:inline-flex; align-items:center; justify-content:center; min-height:2.75rem; padding:.65rem 1rem; border-radius:999px; background:#6b2248; color:#fff; font-weight:700; cursor:pointer; white-space:nowrap; }
+.gestor-imagenes__accion input { position:absolute; width:1px; height:1px; opacity:0; }
+.gestor-imagenes__accion--bloqueada { opacity:.65; cursor:wait; }
+.gestor-imagenes__mensaje { margin:0; padding:.75rem 1rem; border-radius:.75rem; }
+.gestor-imagenes__mensaje--error { background:#fff0ef; color:#9a2430; }
+.gestor-imagenes__mensaje--exito { background:#edf8f0; color:#216b3a; }
+.gestor-imagenes__vacio { margin:0; padding:1rem; border-radius:.75rem; background:#f8f1ea; color:#6f6074; }
+.gestor-imagenes__lista { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.75rem; padding:0; margin:0; list-style:none; }
+.gestor-imagenes__lista li { display:grid; grid-template-columns:64px 1fr; gap:.75rem; align-items:center; padding:.75rem; border:1px solid #ead8cc; border-radius:.75rem; }
+.gestor-imagenes__lista img { width:64px; height:64px; border-radius:.5rem; object-fit:cover; background:#f8f1ea; }
+.gestor-imagenes__lista strong,.gestor-imagenes__lista span { display:block; }
+.gestor-imagenes__lista span { margin-top:.15rem; font-size:.8rem; color:#6f6074; }
+.gestor-imagenes__controles { grid-column:1/-1; display:flex; gap:.5rem; }
+.gestor-imagenes__controles button { border:0; border-radius:.5rem; padding:.4rem .6rem; background:#f3ebe6; color:#5b1f3f; font-weight:700; cursor:pointer; }
+.gestor-imagenes__controles button:disabled { opacity:.5; cursor:not-allowed; }
+@media (max-width: 600px) { .gestor-imagenes__cabecera { flex-direction:column; } .gestor-imagenes__accion { width:100%; } }

@@ -26,6 +26,7 @@ export interface TiendaVendedor {
 }
 
 export interface ImagenProductoVendedor {
+  idProductoImagen: number;
   urlImagen: string;
   orden: number;
 }
@@ -104,5 +105,4 @@ export interface SolicitudProductoVendedor {
   precio: number;
   stock: number;
   visibleEnTienda: boolean;
-  imagenes: ImagenProductoVendedor[];
 }

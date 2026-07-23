@@ -1,0 +1,34 @@
+<section class="gestor-imagenes" aria-labelledby="titulo-imagenes-producto">
+  <header class="gestor-imagenes__cabecera">
+    <div>
+      <span>Imágenes del producto</span>
+      <h3 id="titulo-imagenes-producto">Presenta tu producto</h3>
+      <p>Agrega hasta 5 imágenes JPEG, PNG o WebP de máximo 5 MB.</p>
+    </div>
+    <label class="gestor-imagenes__accion" [class.gestor-imagenes__accion--bloqueada]="cargando()">
+      <input type="file" accept="image/jpeg,image/png,image/webp" multiple [disabled]="cargando()" (change)="seleccionarArchivos($event)" />
+      {{ cargando() ? 'Subiendo…' : 'Agregar imágenes' }}
+    </label>
+  </header>
+
+  @if (mensajeError(); as error) { <p class="gestor-imagenes__mensaje gestor-imagenes__mensaje--error" role="alert">{{ error }}</p> }
+  @if (mensajeExito(); as exito) { <p class="gestor-imagenes__mensaje gestor-imagenes__mensaje--exito" role="status">{{ exito }}</p> }
+
+  @if (imagenes().length === 0) {
+    <p class="gestor-imagenes__vacio">Aún no agregas imágenes. La primera será la portada.</p>
+  } @else {
+    <ol class="gestor-imagenes__lista">
+      @for (imagen of imagenes(); track imagen.idProductoImagen; let indice = $index) {
+        <li>
+          <img [src]="imagen.urlImagen" [alt]="'Imagen ' + (indice + 1) + ' del producto'" />
+          <div><strong>{{ indice === 0 ? 'Portada' : 'Imagen ' + (indice + 1) }}</strong><span>Orden {{ indice + 1 }}</span></div>
+          <div class="gestor-imagenes__controles">
+            <button type="button" [disabled]="indice === 0 || procesandoId() !== null" (click)="mover(indice, -1)">Subir</button>
+            <button type="button" [disabled]="indice === imagenes().length - 1 || procesandoId() !== null" (click)="mover(indice, 1)">Bajar</button>
+            <button type="button" [disabled]="procesandoId() !== null" (click)="eliminar(imagen)">Eliminar</button>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+</section>

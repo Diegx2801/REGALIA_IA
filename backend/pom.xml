@@ -30,6 +30,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<aws.sdk.version>2.25.70</aws.sdk.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -91,6 +92,12 @@
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+		<!-- Cliente S3 v2: R2 expone una API compatible con S3 sin acoplar el dominio a Cloudflare. -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>${aws.sdk.version}</version>
 		</dependency>
 
 		<dependency>

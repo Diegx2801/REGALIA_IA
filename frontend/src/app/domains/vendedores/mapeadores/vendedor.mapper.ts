@@ -54,6 +54,7 @@ export function mapearProductoVendedorDesdeDto(dto: ProductoVendedorDto): Produc
   const imagenes = (dto.imagenes ?? [])
     .filter((item) => Boolean(item.urlImagen?.trim()))
     .map((item, indice) => ({
+      idProductoImagen: item.idProductoImagen,
       urlImagen: item.urlImagen?.trim() ?? '',
       orden: item.orden ?? indice + 1,
     }))
@@ -137,13 +138,6 @@ export function mapearSolicitudTiendaADto(
 export function mapearSolicitudProductoADto(
   solicitud: SolicitudProductoVendedor,
 ): ProductoVendedorRequestDto {
-  const imagenes = solicitud.imagenes
-    .map((imagen) => ({
-      urlImagen: imagen.urlImagen.trim(),
-      orden: imagen.orden,
-    }))
-    .filter((imagen) => Boolean(imagen.urlImagen));
-
   return {
     idTipoProducto: solicitud.idTipoProducto,
     nombre: solicitud.nombre,
@@ -151,6 +145,5 @@ export function mapearSolicitudProductoADto(
     precio: solicitud.precio,
     stock: solicitud.stock,
     visibleEnTienda: solicitud.visibleEnTienda,
-    imagenes: imagenes.length > 0 ? imagenes : null,
   };
 }

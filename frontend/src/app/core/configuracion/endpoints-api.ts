@@ -44,6 +44,8 @@ export const ENDPOINTS_API = {
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos`,
     productoPorId: (idTienda: number, idProducto: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos/${idProducto}`,
+    imagenesProducto: (idTienda: number, idProducto: number) =>
+      `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos/${idProducto}/imagenes`,
     pedidosRecibidos: `${RUTA_BASE_API}/vendedores/me/pedidos`,
     pedidosPorTienda: (idTienda: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/pedidos`,

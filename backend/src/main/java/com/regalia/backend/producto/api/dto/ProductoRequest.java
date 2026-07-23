@@ -1,10 +1,8 @@
 package com.regalia.backend.producto.api.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * DTO de entrada para crear o actualizar productos.
@@ -29,8 +27,6 @@ public record ProductoRequest(
         @Min(value = 0, message = "El stock no puede ser negativo")
         Integer stock,
 
-        Boolean visibleEnTienda,
-
-        List<@Valid ProductoImagenRequest> imagenes
+        Boolean visibleEnTienda
 ) {
 }

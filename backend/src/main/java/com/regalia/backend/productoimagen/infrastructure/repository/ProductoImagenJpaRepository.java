@@ -21,4 +21,9 @@ public interface ProductoImagenJpaRepository extends JpaRepository<ProductoImage
     );
 
     Optional<ProductoImagenEntity> findByProductoIdProductoAndOrden(Long idProducto, Integer orden);
+
+    Optional<ProductoImagenEntity> findByIdProductoImagenAndProductoIdProductoAndEstadoTrue(
+            Long idProductoImagen,
+            Long idProducto
+    );
 }

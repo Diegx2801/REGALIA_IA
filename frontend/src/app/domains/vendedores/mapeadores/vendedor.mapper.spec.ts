@@ -18,9 +18,9 @@ describe('vendedor.mapper', () => {
     );
 
     expect(producto.imagenes).toEqual([
-      { urlImagen: '/productos/primera.webp', orden: 1 },
-      { urlImagen: '/productos/segunda.webp', orden: 2 },
-      { urlImagen: '/productos/tercera.webp', orden: 3 },
+      { idProductoImagen: 10, urlImagen: '/productos/primera.webp', orden: 1 },
+      { idProductoImagen: 20, urlImagen: '/productos/segunda.webp', orden: 2 },
+      { idProductoImagen: 30, urlImagen: '/productos/tercera.webp', orden: 3 },
     ]);
     expect(producto.urlImagen).toBe('/productos/primera.webp');
   });
@@ -39,16 +39,8 @@ describe('vendedor.mapper', () => {
     expect(producto.urlImagen).toBe('/assets/brand/producto-fallback.svg');
   });
 
-  it('recorta las URL y conserva la coleccion de imagenes en el DTO de solicitud', () => {
-    const dto = mapearSolicitudProductoADto(
-      crearSolicitud({
-        imagenes: [
-          { urlImagen: ' https://cdn.regalia.pe/segunda.webp ', orden: 2 },
-          { urlImagen: '   ', orden: 99 },
-          { urlImagen: ' https://cdn.regalia.pe/primera.webp ', orden: 1 },
-        ],
-      }),
-    );
+  it('no envía URLs de imágenes al crear o actualizar un producto', () => {
+    const dto = mapearSolicitudProductoADto(crearSolicitud());
 
     expect(dto).toEqual({
       idTipoProducto: 4,
@@ -57,24 +49,7 @@ describe('vendedor.mapper', () => {
       precio: 129.9,
       stock: 8,
       visibleEnTienda: true,
-      imagenes: [
-        { urlImagen: 'https://cdn.regalia.pe/segunda.webp', orden: 2 },
-        { urlImagen: 'https://cdn.regalia.pe/primera.webp', orden: 1 },
-      ],
     });
-  });
-
-  it('envia imagenes como null cuando la solicitud no contiene URL validas', () => {
-    const dto = mapearSolicitudProductoADto(
-      crearSolicitud({
-        imagenes: [
-          { urlImagen: '', orden: 1 },
-          { urlImagen: '   ', orden: 2 },
-        ],
-      }),
-    );
-
-    expect(dto.imagenes).toBeNull();
   });
 });
 
@@ -92,7 +67,6 @@ function crearProductoDto(
     precio: 129.9,
     stock: 8,
     visibleEnTienda: true,
-    imagenes: [],
     estado: true,
     fechaCreacion: '2026-07-20T10:00:00',
     fechaActualizacion: null,
@@ -110,7 +84,6 @@ function crearSolicitud(
     precio: 129.9,
     stock: 8,
     visibleEnTienda: true,
-    imagenes: [],
     ...cambios,
   };
 }

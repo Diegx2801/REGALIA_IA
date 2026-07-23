@@ -41,6 +41,13 @@ export interface ImagenProductoVendedorDto {
   orden: number | null;
 }
 
+export interface CargaImagenProductoDto {
+  claveTemporal: string;
+  urlCarga: string;
+  cabecerasRequeridas: Record<string, string>;
+  expiraEn: string;
+}
+
 export interface ProductoVendedorDto {
   idProducto: number;
   idTienda: number;
@@ -111,11 +118,6 @@ export interface TiendaVendedorRequestDto {
   idsRubros: number[];
 }
 
-export interface ProductoImagenVendedorRequestDto {
-  urlImagen: string;
-  orden: number;
-}
-
 export interface ProductoVendedorRequestDto {
   idTipoProducto: number;
   nombre: string;
@@ -123,5 +125,4 @@ export interface ProductoVendedorRequestDto {
   precio: number;
   stock: number;
   visibleEnTienda: boolean;
-  imagenes: ProductoImagenVendedorRequestDto[] | null;
 }

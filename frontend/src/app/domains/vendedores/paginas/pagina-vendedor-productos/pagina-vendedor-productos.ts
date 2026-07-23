@@ -13,7 +13,6 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
-  FormArray,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
@@ -30,9 +29,10 @@ import {
 } from '../../../../shared/directivas/formulario-panel.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
+import { GestorImagenesProductoComponent } from '../../componentes/gestor-imagenes-producto/gestor-imagenes-producto';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
-import { ProductoVendedor } from '../../modelos/vendedor.model';
+import { ImagenProductoVendedor, ProductoVendedor } from '../../modelos/vendedor.model';
 
 const PRECIO_MAXIMO = 99_999_999.99;
 const STOCK_MAXIMO = 2_147_483_647;
@@ -42,8 +42,7 @@ interface ContextoRutaProducto {
   idProducto: number | null;
 }
 
-interface ImagenVistaPrevia {
-  indice: number;
+interface ImagenVistaPrevia extends ImagenProductoVendedor {
   url: string;
 }
 
@@ -65,19 +64,6 @@ const maximoDosDecimales: ValidatorFn = (control: AbstractControl): ValidationEr
     : { maximoDosDecimales: true };
 };
 
-const urlImagenValida: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-  const valor = typeof control.value === 'string' ? control.value.trim() : '';
-  if (!valor) return null;
-  if (valor.startsWith('/') && !valor.startsWith('//')) return null;
-
-  try {
-    const url = new URL(valor);
-    return url.protocol === 'https:' || url.protocol === 'http:' ? null : { urlImagen: true };
-  } catch {
-    return { urlImagen: true };
-  }
-};
-
 /** Editor de catálogo conectado únicamente a los contratos reales del vendedor. */
 @Component({
   selector: 'app-pagina-vendedor-productos',
@@ -90,6 +76,7 @@ const urlImagenValida: ValidatorFn = (control: AbstractControl): ValidationError
     ErrorCampoDirective,
     EstadoPantallaComponent,
     InsigniaUi,
+    GestorImagenesProductoComponent,
   ],
   templateUrl: './pagina-vendedor-productos.html',
   styleUrl: './pagina-vendedor-productos.css',
@@ -114,6 +101,7 @@ export class PaginaVendedorProductos implements OnInit {
   readonly formularioEnviado = signal(false);
   readonly indiceImagenSeleccionada = signal(0);
   readonly tipoProductoOriginal = signal<{ idTipoProducto: number; nombre: string } | null>(null);
+  readonly imagenesProducto = signal<ImagenProductoVendedor[]>([]);
 
   readonly formularioProducto = new FormGroup({
     idTipoProducto: new FormControl<number | null>(null, [Validators.required]),
@@ -138,7 +126,6 @@ export class PaginaVendedorProductos implements OnInit {
       numeroEntero,
     ]),
     visibleEnTienda: new FormControl(true, { nonNullable: true }),
-    imagenes: new FormArray<FormControl<string>>([this.crearControlImagen()]),
   });
 
   readonly esEdicion = computed(() => this.idProducto() !== null);
@@ -210,17 +197,14 @@ export class PaginaVendedorProductos implements OnInit {
     return { texto: 'Visible', variante: 'exito' as const };
   });
 
-  readonly imagenesVistaPrevia = computed<ImagenVistaPrevia[]>(() => {
-    this.revisionFormulario();
-    return this.imagenes.controls
-      .map((control, indice) => ({ indice, url: control.value.trim() }))
-      .filter((imagen) => Boolean(imagen.url) && this.imagenes.at(imagen.indice).valid);
-  });
+  readonly imagenesVistaPrevia = computed<ImagenVistaPrevia[]>(() =>
+    this.imagenesProducto().map((imagen) => ({ ...imagen, url: imagen.urlImagen })),
+  );
 
   readonly imagenSeleccionada = computed(() => {
     const imagenes = this.imagenesVistaPrevia();
     return (
-      imagenes.find((imagen) => imagen.indice === this.indiceImagenSeleccionada()) ??
+      imagenes.find((imagen) => imagen.orden - 1 === this.indiceImagenSeleccionada()) ??
       imagenes[0] ??
       null
     );
@@ -236,14 +220,9 @@ export class PaginaVendedorProductos implements OnInit {
       this.formularioProducto.controls.stock,
     ];
     return (
-      controlesPrincipales.filter((control) => control.invalid).length +
-      this.imagenes.controls.filter((control) => control.invalid).length
+      controlesPrincipales.filter((control) => control.invalid).length
     );
   });
-
-  get imagenes(): FormArray<FormControl<string>> {
-    return this.formularioProducto.controls.imagenes;
-  }
 
   ngOnInit(): void {
     this.destroyRef.onDestroy(() => {
@@ -344,10 +323,6 @@ export class PaginaVendedorProductos implements OnInit {
         precio: Number(valor.precio),
         stock: Number(valor.stock),
         visibleEnTienda: valor.visibleEnTienda,
-        imagenes: valor.imagenes
-          .map((urlImagen) => urlImagen.trim())
-          .filter(Boolean)
-          .map((urlImagen, indice) => ({ urlImagen, orden: indice + 1 })),
       },
       idProducto ?? undefined,
       (producto) => {
@@ -370,70 +345,14 @@ export class PaginaVendedorProductos implements OnInit {
     );
   }
 
-  agregarImagen(): void {
-    this.imagenes.push(this.crearControlImagen());
-    this.imagenes.markAsDirty();
-    const nuevoIndice = this.imagenes.length - 1;
-    this.indiceImagenSeleccionada.set(nuevoIndice);
-    this.revisionFormulario.update((revision) => revision + 1);
-    queueMicrotask(() =>
-      this.elemento.nativeElement
-        .querySelector<HTMLElement>(`#producto-imagen-${nuevoIndice}`)
-        ?.focus(),
-    );
-  }
-
-  eliminarImagen(indice: number): void {
-    if (this.imagenes.length === 1) {
-      this.imagenes.at(0).reset('');
-      this.imagenes.markAsDirty();
-      this.indiceImagenSeleccionada.set(0);
-      this.indicesImagenNoDisponible.set(new Set());
-      queueMicrotask(() =>
-        this.elemento.nativeElement.querySelector<HTMLElement>('#producto-imagen-0')?.focus(),
-      );
-      return;
-    }
-
-    const indiceSeleccionadoAnterior = this.indiceImagenSeleccionada();
-    this.imagenes.removeAt(indice);
-    this.imagenes.markAsDirty();
-    this.indicesImagenNoDisponible.update(
-      (indices) =>
-        new Set(
-          [...indices]
-            .filter((actual) => actual !== indice)
-            .map((actual) => (actual > indice ? actual - 1 : actual)),
-        ),
-    );
-    const siguienteIndiceSeleccionado =
-      indiceSeleccionadoAnterior === indice
-        ? Math.min(indice, this.imagenes.length - 1)
-        : indiceSeleccionadoAnterior > indice
-          ? indiceSeleccionadoAnterior - 1
-          : indiceSeleccionadoAnterior;
-    this.indiceImagenSeleccionada.set(Math.max(0, siguienteIndiceSeleccionado));
-    this.revisionFormulario.update((revision) => revision + 1);
-    queueMicrotask(() =>
-      this.elemento.nativeElement
-        .querySelector<HTMLElement>(
-          `#producto-imagen-${Math.min(indice, this.imagenes.length - 1)}`,
-        )
-        ?.focus(),
-    );
+  actualizarImagenesProducto(imagenes: ImagenProductoVendedor[]): void {
+    this.imagenesProducto.set(imagenes);
+    this.indiceImagenSeleccionada.set(0);
+    this.indicesImagenNoDisponible.set(new Set());
   }
 
   seleccionarImagen(indice: number): void {
     this.indiceImagenSeleccionada.set(indice);
-  }
-
-  notificarCambioImagen(indice: number): void {
-    this.indiceImagenSeleccionada.set(indice);
-    this.indicesImagenNoDisponible.update((indices) => {
-      const siguientes = new Set(indices);
-      siguientes.delete(indice);
-      return siguientes;
-    });
   }
 
   marcarImagenNoDisponible(indice: number): void {
@@ -448,11 +367,6 @@ export class PaginaVendedorProductos implements OnInit {
     campo: Exclude<keyof typeof this.formularioProducto.controls, 'imagenes'>,
   ): boolean {
     const control = this.formularioProducto.controls[campo];
-    return control.invalid && (control.touched || control.dirty || this.formularioEnviado());
-  }
-
-  imagenTieneError(indice: number): boolean {
-    const control = this.imagenes.at(indice);
     return control.invalid && (control.touched || control.dirty || this.formularioEnviado());
   }
 
@@ -481,12 +395,6 @@ export class PaginaVendedorProductos implements OnInit {
     if (control.hasError('numeroEntero')) return 'El stock debe ser un número entero.';
     if (control.hasError('max')) return 'El stock supera el máximo permitido.';
     return 'Ingresa una cantidad igual o mayor a cero.';
-  }
-
-  mensajeErrorImagen(indice: number): string {
-    return this.imagenes.at(indice).hasError('maxlength')
-      ? 'La URL no puede superar los 500 caracteres.'
-      : 'Ingresa una URL http, https o una ruta interna válida.';
   }
 
   reintentarCargaProducto(): void {
@@ -528,13 +436,6 @@ export class PaginaVendedorProductos implements OnInit {
     if (idTienda !== null) void this.router.navigate(['/vendedor/tiendas', idTienda]);
   }
 
-  private crearControlImagen(valor = ''): FormControl<string> {
-    return new FormControl(valor, {
-      nonNullable: true,
-      validators: [Validators.maxLength(500), urlImagenValida],
-    });
-  }
-
   private obtenerContextoRuta(params: ParamMap): ContextoRutaProducto | null {
     const idTienda = Number(params.get('idTienda'));
     if (!Number.isInteger(idTienda) || idTienda <= 0) return null;
@@ -568,7 +469,7 @@ export class PaginaVendedorProductos implements OnInit {
       stock: null,
       visibleEnTienda: true,
     });
-    this.reemplazarImagenes([]);
+    this.imagenesProducto.set([]);
     this.formularioEnviado.set(false);
     this.formularioProducto.markAsPristine();
     this.formularioProducto.markAsUntouched();
@@ -589,20 +490,9 @@ export class PaginaVendedorProductos implements OnInit {
       stock: producto.stock,
       visibleEnTienda: producto.visibleEnTienda,
     });
-    this.reemplazarImagenes(producto.imagenes.map((imagen) => imagen.urlImagen));
+    this.imagenesProducto.set(producto.imagenes);
     this.formularioProducto.markAsPristine();
     this.formularioProducto.markAsUntouched();
-  }
-
-  private reemplazarImagenes(urlsImagenes: string[]): void {
-    this.imagenes.clear({ emitEvent: false });
-    const urls = urlsImagenes.length > 0 ? urlsImagenes : [''];
-    urls.forEach((urlImagen) =>
-      this.imagenes.push(this.crearControlImagen(urlImagen), { emitEvent: false }),
-    );
-    this.imagenes.updateValueAndValidity({ emitEvent: true });
-    this.indiceImagenSeleccionada.set(0);
-    this.indicesImagenNoDisponible.set(new Set());
   }
 
   private validarTipoProductoDisponible(): void {
@@ -630,10 +520,6 @@ export class PaginaVendedorProductos implements OnInit {
       { control: this.formularioProducto.controls.descripcion, id: 'producto-descripcion' },
       { control: this.formularioProducto.controls.precio, id: 'producto-precio' },
       { control: this.formularioProducto.controls.stock, id: 'producto-stock' },
-      ...this.imagenes.controls.map((control, indice) => ({
-        control,
-        id: `producto-imagen-${indice}`,
-      })),
     ];
     const primerCampo = campos.find(({ control }) => control.invalid);
     if (!primerCampo) return;

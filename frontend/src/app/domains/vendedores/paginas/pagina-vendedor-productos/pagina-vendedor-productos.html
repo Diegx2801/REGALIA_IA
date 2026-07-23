@@ -326,133 +326,21 @@
           </fieldset>
 
           <fieldset class="editor-producto__seccion" [disabled]="store.guardandoProducto()">
-            <legend class="sr-only">
-              Galería del producto. Enlaces reales, ordenados como aparecerán.
-            </legend>
-            <div class="editor-producto__cabecera-seccion" aria-hidden="true">
-              <span class="editor-producto__numero-seccion">03</span>
-              <span>
-                <strong>Galería del producto</strong>
-                <small>Enlaces reales, ordenados como aparecerán.</small>
-              </span>
-            </div>
-
-            <div class="editor-producto__aviso-medios">
-              <svg
-                class="size-5 shrink-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.8"
-                  d="M4 7.5h16v11H4v-11Zm3-3h10v3H7v-3Zm1 10 2.8-2.8 2.3 2.3 1.6-1.6L18 15.7"
+            <legend class="sr-only">Imágenes del producto.</legend>
+            @if (idProducto(); as idProducto) {
+              @if (idTienda(); as idTienda) {
+                <app-gestor-imagenes-producto
+                  [idTienda]="idTienda"
+                  [idProducto]="idProducto"
+                  [imagenesIniciales]="imagenesProducto()"
+                  (imagenesCambiadas)="actualizarImagenesProducto($event)"
                 />
-              </svg>
-              <p>
-                Agrega imágenes mediante enlaces públicos <strong>http o https</strong>; REGALIA
-                conservará el orden de la lista.
-              </p>
-            </div>
-
-            <div class="grid gap-3" formArrayName="imagenes">
-              @for (controlImagen of imagenes.controls; track controlImagen; let indice = $index) {
-                <div class="editor-producto__fila-imagen">
-                  <label appCampoFormulario [for]="'producto-imagen-' + indice">
-                    Imagen {{ indice + 1 }}{{ indice === 0 ? ' · Principal' : '' }}
-                    <input
-                      [id]="'producto-imagen-' + indice"
-                      type="url"
-                      inputmode="url"
-                      autocomplete="off"
-                      maxlength="500"
-                      [formControlName]="indice"
-                      placeholder="https://ejemplo.com/imagen-producto.webp"
-                      [attr.aria-invalid]="imagenTieneError(indice)"
-                      [attr.aria-describedby]="
-                        imagenTieneError(indice)
-                          ? 'producto-imagen-' +
-                            indice +
-                            '-ayuda producto-imagen-' +
-                            indice +
-                            '-error'
-                          : 'producto-imagen-' + indice + '-ayuda'
-                      "
-                      (input)="notificarCambioImagen(indice)"
-                      (focus)="seleccionarImagen(indice)"
-                    />
-                    <small
-                      [id]="'producto-imagen-' + indice + '-ayuda'"
-                      class="editor-producto__ayuda"
-                    >
-                      {{
-                        indice === 0
-                          ? 'Será la portada del producto.'
-                          : 'Complementa la vista principal con otro ángulo o detalle.'
-                      }}
-                    </small>
-                    @if (imagenTieneError(indice)) {
-                      <small [id]="'producto-imagen-' + indice + '-error'" appErrorCampo>
-                        {{ mensajeErrorImagen(indice) }}
-                      </small>
-                    }
-                  </label>
-                  <button
-                    class="editor-producto__quitar-imagen"
-                    appBoton="fantasma"
-                    appBotonTamano="sm"
-                    type="button"
-                    [attr.aria-label]="
-                      (imagenes.length === 1 ? 'Limpiar' : 'Quitar') + ' imagen ' + (indice + 1)
-                    "
-                    (click)="eliminarImagen(indice)"
-                  >
-                    <svg
-                      class="size-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.8"
-                        d="M6 7h12m-8 4v5m4-5v5M9 7l1-2h4l1 2m2 0-.7 12H7.7L7 7"
-                      />
-                    </svg>
-                    {{ imagenes.length === 1 ? 'Limpiar' : 'Quitar' }}
-                  </button>
-                </div>
               }
-            </div>
-
-            <button
-              class="w-fit"
-              appBoton="secundario"
-              appBotonTamano="sm"
-              type="button"
-              (click)="agregarImagen()"
-            >
-              <svg
-                class="size-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.8"
-                  d="M12 5v14M5 12h14"
-                />
-              </svg>
-              Añadir otra imagen
-            </button>
+            } @else {
+              <div class="editor-producto__aviso-medios">
+                <p>Guarda el producto primero. Luego podrás subir imágenes desde una galería segura.</p>
+              </div>
+            }
           </fieldset>
 
           <fieldset
@@ -495,13 +383,13 @@
               <article class="editor-producto__tarjeta-producto">
                 <figure class="editor-producto__imagen-principal">
                   @if (imagenSeleccionada(); as imagen) {
-                    @if (!imagenNoDisponible(imagen.indice)) {
+                    @if (!imagenNoDisponible(imagen.orden - 1)) {
                       <img
                         [src]="imagen.url"
                         [alt]="'Vista previa de ' + nombreVistaPrevia()"
                         width="720"
                         height="540"
-                        (error)="marcarImagenNoDisponible(imagen.indice)"
+                        (error)="marcarImagenNoDisponible(imagen.orden - 1)"
                       />
                     } @else {
                       <div class="editor-producto__imagen-vacia" role="status">
@@ -512,7 +400,7 @@
                           height="120"
                         />
                         <span>No pudimos cargar esta imagen.</span>
-                        <small>Revisa que el enlace sea público y esté disponible.</small>
+                        <small>Intenta volver a cargar la imagen desde la galería.</small>
                       </div>
                     }
                   } @else {
@@ -534,23 +422,23 @@
                     class="editor-producto__miniaturas"
                     aria-label="Seleccionar imagen para la vista previa"
                   >
-                    @for (imagen of imagenesVistaPrevia(); track imagen.indice) {
+                    @for (imagen of imagenesVistaPrevia(); track imagen.idProductoImagen) {
                       <button
                         type="button"
                         [class.editor-producto__miniatura--activa]="
-                          imagenSeleccionada().indice === imagen.indice
+                          imagenSeleccionada()?.idProductoImagen === imagen.idProductoImagen
                         "
-                        [attr.aria-label]="'Ver imagen ' + (imagen.indice + 1)"
-                        [attr.aria-pressed]="imagenSeleccionada().indice === imagen.indice"
-                        (click)="seleccionarImagen(imagen.indice)"
+                        [attr.aria-label]="'Ver imagen ' + imagen.orden"
+                        [attr.aria-pressed]="imagenSeleccionada()?.idProductoImagen === imagen.idProductoImagen"
+                        (click)="seleccionarImagen(imagen.orden - 1)"
                       >
-                        @if (!imagenNoDisponible(imagen.indice)) {
+                        @if (!imagenNoDisponible(imagen.orden - 1)) {
                           <img
                             [src]="imagen.url"
                             alt=""
                             width="56"
                             height="56"
-                            (error)="marcarImagenNoDisponible(imagen.indice)"
+                            (error)="marcarImagenNoDisponible(imagen.orden - 1)"
                           />
                         } @else {
                           <img

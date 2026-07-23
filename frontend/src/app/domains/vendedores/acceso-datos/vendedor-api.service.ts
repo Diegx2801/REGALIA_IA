@@ -15,6 +15,7 @@ import {
 import {
   PedidoRecibidoDetalleDto,
   PedidoRecibidoResumenDto,
+  CargaImagenProductoDto,
   ProductoVendedorDto,
   TiendaVendedorDto,
   VendedorPerfilDto,
@@ -23,6 +24,7 @@ import {
   PedidoRecibidoDetalle,
   PedidoRecibidoResumen,
   ProductoVendedor,
+  ImagenProductoVendedor,
   SolicitudProductoVendedor,
   SolicitudTiendaVendedor,
   TiendaVendedor,
@@ -163,6 +165,83 @@ export class VendedorApiService {
       .pipe(
         timeout(TIEMPO_ESPERA_VENDEDOR_MS),
         map(() => undefined),
+      );
+  }
+
+  solicitarCargaImagenProducto(
+    idTienda: number,
+    idProducto: number,
+    archivo: File,
+  ): Observable<CargaImagenProductoDto> {
+    return this.http
+      .post<RespuestaApi<CargaImagenProductoDto>>(
+        `${ENDPOINTS_API.vendedores.imagenesProducto(idTienda, idProducto)}/cargas`,
+        {
+          nombreArchivo: archivo.name,
+          tipoContenido: archivo.type,
+          tamanioBytes: archivo.size,
+        },
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo preparar la carga.');
+          return respuesta.data;
+        }),
+      );
+  }
+
+  confirmarCargaImagenProducto(
+    idTienda: number,
+    idProducto: number,
+    claveTemporal: string,
+  ): Observable<ImagenProductoVendedor> {
+    return this.http
+      .post<RespuestaApi<NonNullable<ProductoVendedorDto['imagenes']>[number]>>(
+        `${ENDPOINTS_API.vendedores.imagenesProducto(idTienda, idProducto)}/confirmar`,
+        { claveTemporal },
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          const imagen = respuesta.data;
+          if (!imagen) throw new Error(respuesta.message ?? 'No se pudo confirmar la imagen.');
+          return {
+            idProductoImagen: imagen.idProductoImagen,
+            urlImagen: imagen.urlImagen?.trim() ?? '',
+            orden: imagen.orden ?? 1,
+          };
+        }),
+      );
+  }
+
+  eliminarImagenProducto(idTienda: number, idProducto: number, idProductoImagen: number): Observable<void> {
+    return this.http
+      .delete<RespuestaApi<void>>(
+        `${ENDPOINTS_API.vendedores.imagenesProducto(idTienda, idProducto)}/${idProductoImagen}`,
+      )
+      .pipe(timeout(TIEMPO_ESPERA_VENDEDOR_MS), map(() => undefined));
+  }
+
+  ordenarImagenesProducto(
+    idTienda: number,
+    idProducto: number,
+    idsProductoImagen: number[],
+  ): Observable<ImagenProductoVendedor[]> {
+    return this.http
+      .put<RespuestaApi<NonNullable<ProductoVendedorDto['imagenes']>>>(
+        `${ENDPOINTS_API.vendedores.imagenesProducto(idTienda, idProducto)}/orden`,
+        { idsProductoImagen },
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) =>
+          (respuesta.data ?? []).map((imagen, indice) => ({
+            idProductoImagen: imagen.idProductoImagen,
+            urlImagen: imagen.urlImagen?.trim() ?? '',
+            orden: imagen.orden ?? indice + 1,
+          })),
+        ),
       );
   }
 

@@ -134,12 +134,9 @@ describe('PaginaVendedorProductos', () => {
     );
   });
 
-  it('crea con la galería ordenada y cambia a edición después del éxito', async () => {
+  it('crea el producto y cambia a edición antes de permitir cargar imágenes', async () => {
     const pagina = await abrirPagina('/vendedor/tiendas/10/productos/nuevo');
     completarFormularioValido(pagina);
-    pagina.imagenes.at(0).setValue(' https://cdn.regalia.test/portada.webp ');
-    pagina.agregarImagen();
-    pagina.imagenes.at(1).setValue('https://cdn.regalia.test/detalle.webp');
 
     pagina.guardarProducto();
 
@@ -152,10 +149,6 @@ describe('PaginaVendedorProductos', () => {
         precio: 129.9,
         stock: 6,
         visibleEnTienda: true,
-        imagenes: [
-          { urlImagen: 'https://cdn.regalia.test/portada.webp', orden: 1 },
-          { urlImagen: 'https://cdn.regalia.test/detalle.webp', orden: 2 },
-        ],
       } satisfies SolicitudProductoVendedor,
       undefined,
       expect.any(Function),
@@ -170,7 +163,7 @@ describe('PaginaVendedorProductos', () => {
     expect(TestBed.inject(Router).url).toBe('/vendedor/tiendas/10/productos/88/editar');
   });
 
-  it('precarga y conserva todas las imágenes al editar', async () => {
+  it('precarga las imágenes confirmadas al editar', async () => {
     const producto = crearProducto();
     vendedorApiMock.obtenerProductoPorId.mockReturnValue(of(producto));
 
@@ -178,10 +171,7 @@ describe('PaginaVendedorProductos', () => {
 
     expect(vendedorApiMock.obtenerProductoPorId).toHaveBeenCalledWith(10, 77);
     expect(pagina.formularioProducto.controls.nombre.value).toBe('Box memorable');
-    expect(pagina.imagenes.getRawValue()).toEqual([
-      'https://cdn.regalia.test/portada.webp',
-      'https://cdn.regalia.test/detalle.webp',
-    ]);
+    expect(pagina.imagenesProducto()).toEqual(producto.imagenes);
     const imagenPrevia = harness.fixture.nativeElement.querySelector(
       '.editor-producto__imagen-principal > img',
     ) as HTMLImageElement;
@@ -191,28 +181,7 @@ describe('PaginaVendedorProductos', () => {
     pagina.guardarProducto();
 
     const solicitud = storeMock.guardarProducto.mock.calls[0][1] as SolicitudProductoVendedor;
-    expect(solicitud.imagenes).toEqual(producto.imagenes);
     expect(storeMock.guardarProducto.mock.calls[0][2]).toBe(77);
-  });
-
-  it('conserva una imagen real aunque use la misma ruta del fallback visual', async () => {
-    const urlFallback = '/assets/brand/producto-fallback.svg';
-    vendedorApiMock.obtenerProductoPorId.mockReturnValue(
-      of(
-        crearProducto({
-          imagenes: [{ urlImagen: urlFallback, orden: 1 }],
-          urlImagen: urlFallback,
-        }),
-      ),
-    );
-    const pagina = await abrirPagina('/vendedor/tiendas/10/productos/77/editar');
-
-    expect(pagina.imagenes.getRawValue()).toEqual([urlFallback]);
-    pagina.guardarProducto();
-
-    expect(
-      (storeMock.guardarProducto.mock.calls[0][1] as SolicitudProductoVendedor).imagenes,
-    ).toEqual([{ urlImagen: urlFallback, orden: 1 }]);
   });
 
   it('bloquea el formulario y ofrece recuperación cuando falla la carga', async () => {
@@ -357,8 +326,8 @@ function crearTienda(): TiendaVendedor {
 
 function crearProducto(cambios: Partial<ProductoVendedor> = {}): ProductoVendedor {
   const imagenes = [
-    { urlImagen: 'https://cdn.regalia.test/portada.webp', orden: 1 },
-    { urlImagen: 'https://cdn.regalia.test/detalle.webp', orden: 2 },
+    { idProductoImagen: 1, urlImagen: 'https://cdn.regalia.test/portada.webp', orden: 1 },
+    { idProductoImagen: 2, urlImagen: 'https://cdn.regalia.test/detalle.webp', orden: 2 },
   ];
   return {
     idProducto: 77,
