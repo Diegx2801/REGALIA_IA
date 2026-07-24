@@ -4,6 +4,7 @@
       <span>Imágenes del producto</span>
       <h3 id="titulo-imagenes-producto">Presenta tu producto</h3>
       <p>Agrega hasta 5 imágenes JPEG, PNG o WebP de máximo 5 MB.</p>
+      <small>Las imágenes se guardan automáticamente.</small>
     </div>
     <label class="gestor-imagenes__accion" [class.gestor-imagenes__accion--bloqueada]="cargando()">
       <input type="file" accept="image/jpeg,image/png,image/webp" multiple [disabled]="cargando()" (change)="seleccionarArchivos($event)" />

@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, from, concatMap, switchMap, toArray } from 'rxjs';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
 import { ImagenProductoVendedor } from '../../modelos/vendedor.model';
+import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
 
 const TAMANIO_MAXIMO_BYTES = 5 * 1024 * 1024;
 const TIPOS_PERMITIDOS = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -78,6 +79,8 @@ export class GestorImagenesProductoComponent {
 
   eliminar(imagen: ImagenProductoVendedor): void {
     if (this.cargando() || this.procesandoId() !== null) return;
+    if (!confirmarAccionCritica('Eliminarás esta imagen de inmediato. ¿Deseas continuar?')) return;
+
     this.procesandoId.set(imagen.idProductoImagen);
     this.mensajeError.set(null);
     this.api

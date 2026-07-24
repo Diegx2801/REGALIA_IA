@@ -30,6 +30,7 @@ public class ProductoImagenEntity {
     @Column(name = "url_imagen", nullable = false, length = 500)
     private String urlImagen;
 
+    /** Clave interna del objeto en el proveedor de almacenamiento. */
     @Column(name = "clave_almacenamiento", length = 500)
     private String claveAlmacenamiento;
 
@@ -42,21 +43,17 @@ public class ProductoImagenEntity {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    public ProductoImagenEntity(ProductoEntity producto, String urlImagen, Integer orden) {
-        this.producto = producto;
-        this.urlImagen = urlImagen;
-        this.orden = orden;
-        this.estado = true;
-    }
-
     public ProductoImagenEntity(
             ProductoEntity producto,
             String urlImagen,
             String claveAlmacenamiento,
             Integer orden
     ) {
-        this(producto, urlImagen, orden);
+        this.producto = producto;
+        this.urlImagen = urlImagen;
         this.claveAlmacenamiento = claveAlmacenamiento;
+        this.orden = orden;
+        this.estado = true;
     }
 
     /**

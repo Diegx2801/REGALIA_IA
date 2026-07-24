@@ -426,10 +426,10 @@
                       <button
                         type="button"
                         [class.editor-producto__miniatura--activa]="
-                          imagenSeleccionada()?.idProductoImagen === imagen.idProductoImagen
+                          imagenSeleccionada().idProductoImagen === imagen.idProductoImagen
                         "
                         [attr.aria-label]="'Ver imagen ' + imagen.orden"
-                        [attr.aria-pressed]="imagenSeleccionada()?.idProductoImagen === imagen.idProductoImagen"
+                        [attr.aria-pressed]="imagenSeleccionada().idProductoImagen === imagen.idProductoImagen"
                         (click)="seleccionarImagen(imagen.orden - 1)"
                       >
                         @if (!imagenNoDisponible(imagen.orden - 1)) {
@@ -586,7 +586,7 @@
               @if (store.guardandoProducto()) {
                 Guardando…
               } @else {
-                {{ esEdicion() ? 'Guardar cambios' : 'Crear producto' }}
+                {{ esEdicion() ? 'Guardar información del producto' : 'Crear producto' }}
               }
             </button>
           </div>

@@ -3,6 +3,7 @@
 .gestor-imagenes__cabecera span { display:block; font-size:.75rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#8a5a14; }
 .gestor-imagenes__cabecera h3 { margin:.25rem 0; font-size:1.25rem; }
 .gestor-imagenes__cabecera p { margin:0; color:#6f6074; }
+.gestor-imagenes__cabecera small { display:block; margin-top:.4rem; color:#7a6d7d; }
 .gestor-imagenes__accion { display:inline-flex; align-items:center; justify-content:center; min-height:2.75rem; padding:.65rem 1rem; border-radius:999px; background:#6b2248; color:#fff; font-weight:700; cursor:pointer; white-space:nowrap; }
 .gestor-imagenes__accion input { position:absolute; width:1px; height:1px; opacity:0; }
 .gestor-imagenes__accion--bloqueada { opacity:.65; cursor:wait; }

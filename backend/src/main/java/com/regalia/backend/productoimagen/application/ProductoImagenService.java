@@ -14,20 +14,26 @@ import com.regalia.backend.productoimagen.infrastructure.repository.ProductoImag
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 /** Gestiona el ciclo seguro de imágenes sin acoplar el dominio al proveedor R2. */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "regalia.media", name = "provider", havingValue = "R2")
 public class ProductoImagenService {
@@ -107,12 +113,10 @@ public class ProductoImagenService {
                 .findByIdProductoImagenAndProductoIdProductoAndEstadoTrue(idProductoImagen, producto.getIdProducto())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la imagen solicitada"));
 
-        if (imagen.getClaveAlmacenamiento() != null) {
-            mediaStorage.eliminarObjeto(imagen.getClaveAlmacenamiento());
-        }
         imagen.setEstado(false);
-        productoImagenRepository.save(imagen);
+        productoImagenRepository.saveAndFlush(imagen);
         normalizarOrden(producto.getIdProducto());
+        eliminarObjetoDespuesDeConfirmarTransaccion(imagen.getClaveAlmacenamiento());
     }
 
     @Transactional
@@ -135,17 +139,7 @@ public class ProductoImagenService {
             throw new ReglaNegocioException("El orden debe incluir exactamente las imágenes activas del producto");
         }
 
-        List<ProductoImagenEntity> porOrden = new ArrayList<>();
-        for (int indice = 0; indice < idsProductoImagen.size(); indice++) {
-            Long idImagen = idsProductoImagen.get(indice);
-            ProductoImagenEntity imagen = activas.stream()
-                    .filter(actual -> Objects.equals(actual.getIdProductoImagen(), idImagen))
-                    .findFirst()
-                    .orElseThrow();
-            imagen.setOrden(indice + 1);
-            porOrden.add(imagen);
-        }
-        productoImagenRepository.saveAll(porOrden);
+        List<ProductoImagenEntity> porOrden = ordenarConPosicionesTemporales(activas, idsProductoImagen);
         return porOrden.stream().map(this::resumen).toList();
     }
 
@@ -188,10 +182,64 @@ public class ProductoImagenService {
     private void normalizarOrden(Long idProducto) {
         List<ProductoImagenEntity> activas = productoImagenRepository
                 .findByProductoIdProductoAndEstadoTrueOrderByOrdenAsc(idProducto);
-        for (int indice = 0; indice < activas.size(); indice++) {
-            activas.get(indice).setOrden(indice + 1);
+        ordenarConPosicionesTemporales(
+                activas,
+                activas.stream().map(ProductoImagenEntity::getIdProductoImagen).toList()
+        );
+    }
+
+    /**
+     * Evita colisiones transitorias al intercambiar posiciones bajo una restricción única.
+     */
+    private List<ProductoImagenEntity> ordenarConPosicionesTemporales(
+            List<ProductoImagenEntity> activas,
+            List<Long> idsProductoImagen
+    ) {
+        Map<Long, ProductoImagenEntity> imagenesPorId = new HashMap<>();
+        int mayorOrden = 0;
+
+        for (ProductoImagenEntity imagen : activas) {
+            imagenesPorId.put(imagen.getIdProductoImagen(), imagen);
+            mayorOrden = Math.max(mayorOrden, imagen.getOrden());
         }
-        productoImagenRepository.saveAll(activas);
+
+        int baseTemporal = mayorOrden + activas.size() + 1;
+        for (int indice = 0; indice < activas.size(); indice++) {
+            activas.get(indice).setOrden(baseTemporal + indice);
+        }
+        productoImagenRepository.saveAllAndFlush(activas);
+
+        List<ProductoImagenEntity> porOrden = new ArrayList<>();
+        for (int indice = 0; indice < idsProductoImagen.size(); indice++) {
+            ProductoImagenEntity imagen = imagenesPorId.get(idsProductoImagen.get(indice));
+            if (imagen == null) {
+                throw new IllegalStateException("La imagen activa no existe al actualizar el orden");
+            }
+            imagen.setOrden(indice + 1);
+            porOrden.add(imagen);
+        }
+        productoImagenRepository.saveAllAndFlush(porOrden);
+        return porOrden;
+    }
+
+    /**
+     * La base de datos se confirma antes de borrar el objeto remoto para no dejar referencias activas rotas.
+     */
+    private void eliminarObjetoDespuesDeConfirmarTransaccion(String claveAlmacenamiento) {
+        if (!StringUtils.hasText(claveAlmacenamiento)) {
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    mediaStorage.eliminarObjeto(claveAlmacenamiento);
+                } catch (RuntimeException exception) {
+                    log.warn("No se pudo eliminar un objeto de imagen inactivo tras confirmar la transacción");
+                }
+            }
+        });
     }
 
     private String normalizarTipoContenido(String tipoContenido) {
