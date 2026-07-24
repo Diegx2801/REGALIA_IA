@@ -1,4 +1,4 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -21,7 +21,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
-import { catchError, EMPTY, finalize, of, switchMap, tap } from 'rxjs';
+import { catchError, concatMap, EMPTY, finalize, from, of, switchMap, tap } from 'rxjs';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import {
   CampoFormularioDirective,
@@ -30,6 +30,11 @@ import {
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
 import { GestorImagenesProductoComponent } from '../../componentes/gestor-imagenes-producto/gestor-imagenes-producto';
+import {
+  ImagenProductoPendiente,
+  SelectorImagenesProductoComponent,
+} from '../../componentes/selector-imagenes-producto/selector-imagenes-producto';
+import { CargaImagenProductoService } from '../../acceso-datos/carga-imagen-producto.service';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
 import { ImagenProductoVendedor, ProductoVendedor } from '../../modelos/vendedor.model';
@@ -42,8 +47,10 @@ interface ContextoRutaProducto {
   idProducto: number | null;
 }
 
-interface ImagenVistaPrevia extends ImagenProductoVendedor {
+interface ImagenVistaPrevia {
+  idVistaPrevia: string;
   url: string;
+  orden: number;
 }
 
 const textoNoVacio: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
@@ -77,6 +84,7 @@ const maximoDosDecimales: ValidatorFn = (control: AbstractControl): ValidationEr
     EstadoPantallaComponent,
     InsigniaUi,
     GestorImagenesProductoComponent,
+    SelectorImagenesProductoComponent,
   ],
   templateUrl: './pagina-vendedor-productos.html',
   styleUrl: './pagina-vendedor-productos.css',
@@ -85,9 +93,11 @@ const maximoDosDecimales: ValidatorFn = (control: AbstractControl): ValidationEr
 export class PaginaVendedorProductos implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly destroyRef = inject(DestroyRef);
   private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly vendedorApi = inject(VendedorApiService);
+  private readonly cargaImagenProducto = inject(CargaImagenProductoService);
   private readonly revisionFormulario = signal(0);
   private readonly indicesImagenNoDisponible = signal<ReadonlySet<number>>(new Set());
   private secuenciaCargaProducto = 0;
@@ -102,6 +112,9 @@ export class PaginaVendedorProductos implements OnInit {
   readonly indiceImagenSeleccionada = signal(0);
   readonly tipoProductoOriginal = signal<{ idTipoProducto: number; nombre: string } | null>(null);
   readonly imagenesProducto = signal<ImagenProductoVendedor[]>([]);
+  readonly imagenesPendientes = signal<ImagenProductoPendiente[]>([]);
+  readonly cargandoImagenesIniciales = signal(false);
+  readonly mensajeCargaImagenesIniciales = signal<string | null>(null);
 
   readonly formularioProducto = new FormGroup({
     idTipoProducto: new FormControl<number | null>(null, [Validators.required]),
@@ -129,6 +142,9 @@ export class PaginaVendedorProductos implements OnInit {
   });
 
   readonly esEdicion = computed(() => this.idProducto() !== null);
+  readonly guardandoFormulario = computed(
+    () => this.store.guardandoProducto() || this.cargandoImagenesIniciales(),
+  );
   readonly tienda = computed(() => {
     const idTienda = this.idTienda();
     return this.store.tiendas().find((tienda) => tienda.idTienda === idTienda) ?? null;
@@ -197,9 +213,21 @@ export class PaginaVendedorProductos implements OnInit {
     return { texto: 'Visible', variante: 'exito' as const };
   });
 
-  readonly imagenesVistaPrevia = computed<ImagenVistaPrevia[]>(() =>
-    this.imagenesProducto().map((imagen) => ({ ...imagen, url: imagen.urlImagen })),
-  );
+  readonly imagenesVistaPrevia = computed<ImagenVistaPrevia[]>(() => {
+    const imagenesPersistidas = this.imagenesProducto().map((imagen) => ({
+      idVistaPrevia: `persistida-${imagen.idProductoImagen}`,
+      url: imagen.urlImagen,
+      orden: imagen.orden,
+    }));
+    const ordenInicial = imagenesPersistidas.length;
+    const imagenesPendientes = this.imagenesPendientes().map((imagen, indice) => ({
+      idVistaPrevia: `pendiente-${imagen.idLocal}`,
+      url: imagen.urlVistaPrevia,
+      orden: ordenInicial + indice + 1,
+    }));
+
+    return [...imagenesPersistidas, ...imagenesPendientes];
+  });
 
   readonly imagenSeleccionada = computed(() => {
     const imagenes = this.imagenesVistaPrevia();
@@ -228,6 +256,7 @@ export class PaginaVendedorProductos implements OnInit {
     this.destroyRef.onDestroy(() => {
       this.componenteActivo = false;
       this.secuenciaCargaProducto += 1;
+      this.limpiarImagenesPendientes();
     });
     this.store.limpiarMensajes();
     this.formularioProducto.events
@@ -287,7 +316,7 @@ export class PaginaVendedorProductos implements OnInit {
   }
 
   guardarProducto(): void {
-    if (this.store.guardandoProducto() || this.store.tiposProducto().length === 0) return;
+    if (this.guardandoFormulario() || this.store.tiposProducto().length === 0) return;
 
     this.store.limpiarMensajes();
     this.formularioEnviado.set(true);
@@ -336,10 +365,12 @@ export class PaginaVendedorProductos implements OnInit {
         }
         this.formularioProducto.markAsPristine();
         if (idProducto === null) {
-          void this.router.navigate(
-            ['/vendedor/tiendas', idTienda, 'productos', producto.idProducto, 'editar'],
-            { replaceUrl: true },
+          this.idProducto.set(producto.idProducto);
+          this.actualizarImagenesProducto(producto.imagenes);
+          this.location.replaceState(
+            `/vendedor/tiendas/${idTienda}/productos/${producto.idProducto}/editar`,
           );
+          this.cargarImagenesIniciales(idTienda, producto.idProducto);
         }
       },
     );
@@ -349,6 +380,28 @@ export class PaginaVendedorProductos implements OnInit {
     this.imagenesProducto.set(imagenes);
     this.indiceImagenSeleccionada.set(0);
     this.indicesImagenNoDisponible.set(new Set());
+  }
+
+  agregarImagenesPendientes(imagenes: ImagenProductoPendiente[]): void {
+    this.imagenesPendientes.update((actuales) => [...actuales, ...imagenes]);
+    this.mensajeCargaImagenesIniciales.set(null);
+    this.indicesImagenNoDisponible.set(new Set());
+  }
+
+  eliminarImagenPendiente(imagen: ImagenProductoPendiente): void {
+    URL.revokeObjectURL(imagen.urlVistaPrevia);
+    this.imagenesPendientes.update((actuales) =>
+      actuales.filter((actual) => actual.idLocal !== imagen.idLocal),
+    );
+    this.indicesImagenNoDisponible.set(new Set());
+  }
+
+  reintentarCargaImagenesIniciales(): void {
+    const idTienda = this.idTienda();
+    const idProducto = this.idProducto();
+    if (idTienda === null || idProducto === null || this.imagenesPendientes().length === 0) return;
+
+    this.cargarImagenesIniciales(idTienda, idProducto);
   }
 
   seleccionarImagen(indice: number): void {
@@ -431,8 +484,9 @@ export class PaginaVendedorProductos implements OnInit {
   }
 
   cancelar(): void {
-    if (this.store.guardandoProducto()) return;
+    if (this.guardandoFormulario()) return;
     const idTienda = this.idTienda();
+    this.limpiarImagenesPendientes();
     if (idTienda !== null) void this.router.navigate(['/vendedor/tiendas', idTienda]);
   }
 
@@ -461,6 +515,7 @@ export class PaginaVendedorProductos implements OnInit {
   }
 
   private reiniciarFormulario(): void {
+    this.limpiarImagenesPendientes();
     this.formularioProducto.reset({
       idTipoProducto: null,
       nombre: '',
@@ -539,6 +594,44 @@ export class PaginaVendedorProductos implements OnInit {
   }
 
   private hayCambiosPendientes(): boolean {
-    return this.formularioProducto.dirty;
+    return this.formularioProducto.dirty || this.imagenesPendientes().length > 0;
+  }
+
+  private cargarImagenesIniciales(idTienda: number, idProducto: number): void {
+    const pendientes = [...this.imagenesPendientes()];
+    if (pendientes.length === 0) return;
+
+    this.cargandoImagenesIniciales.set(true);
+    this.mensajeCargaImagenesIniciales.set('Estamos agregando tus imágenes al producto.');
+
+    from(pendientes)
+      .pipe(
+        concatMap((imagenPendiente) =>
+          this.cargaImagenProducto.cargarArchivo(idTienda, idProducto, imagenPendiente.archivo).pipe(
+            tap((imagen) => {
+              this.actualizarImagenesProducto([...this.imagenesProducto(), imagen]);
+              this.eliminarImagenPendiente(imagenPendiente);
+            }),
+          ),
+        ),
+        finalize(() => this.cargandoImagenesIniciales.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        complete: () => this.mensajeCargaImagenesIniciales.set('Producto creado e imágenes agregadas correctamente.'),
+        error: () => {
+          const faltantes = this.imagenesPendientes().length;
+          this.mensajeCargaImagenesIniciales.set(
+            faltantes === 1
+              ? 'El producto fue creado, pero queda 1 imagen por cargar. Puedes reintentarla.'
+              : `El producto fue creado, pero quedan ${faltantes} imágenes por cargar. Puedes reintentarlas.`,
+          );
+        },
+      });
+  }
+
+  private limpiarImagenesPendientes(): void {
+    this.imagenesPendientes().forEach((imagen) => URL.revokeObjectURL(imagen.urlVistaPrevia));
+    this.imagenesPendientes.set([]);
   }
 }

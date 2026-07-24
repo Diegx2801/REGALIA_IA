@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize, from, concatMap, switchMap, toArray } from 'rxjs';
+import { finalize, from, concatMap, toArray } from 'rxjs';
+import { CargaImagenProductoService } from '../../acceso-datos/carga-imagen-producto.service';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
+import {
+  esImagenProductoPermitida,
+  MAXIMO_IMAGENES_PRODUCTO,
+} from '../../modelos/imagen-producto.policy';
 import { ImagenProductoVendedor } from '../../modelos/vendedor.model';
 import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
-
-const TAMANIO_MAXIMO_BYTES = 5 * 1024 * 1024;
-const TIPOS_PERMITIDOS = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 /** Galería privada que carga archivos directamente al almacenamiento mediante URLs firmadas. */
 @Component({
@@ -18,7 +19,7 @@ const TIPOS_PERMITIDOS = new Set(['image/jpeg', 'image/png', 'image/webp']);
 })
 export class GestorImagenesProductoComponent {
   private readonly api = inject(VendedorApiService);
-  private readonly http = inject(HttpClient);
+  private readonly cargaImagenProducto = inject(CargaImagenProductoService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly idTienda = input.required<number>();
@@ -48,12 +49,12 @@ export class GestorImagenesProductoComponent {
     this.mensajeExito.set(null);
 
     if (archivos.length === 0 || this.cargando()) return;
-    const disponibles = 5 - this.imagenes().length;
+    const disponibles = MAXIMO_IMAGENES_PRODUCTO - this.imagenes().length;
     if (archivos.length > disponibles) {
       this.mensajeError.set(`Puedes agregar hasta ${disponibles} imagen${disponibles === 1 ? '' : 'es'} más.`);
       return;
     }
-    const invalido = archivos.find((archivo) => !TIPOS_PERMITIDOS.has(archivo.type) || archivo.size > TAMANIO_MAXIMO_BYTES);
+    const invalido = archivos.find((archivo) => !esImagenProductoPermitida(archivo));
     if (invalido) {
       this.mensajeError.set('Cada archivo debe ser JPEG, PNG o WebP y pesar como máximo 5 MB.');
       return;
@@ -114,16 +115,7 @@ export class GestorImagenesProductoComponent {
   }
 
   private cargarArchivo(archivo: File) {
-    return this.api.solicitarCargaImagenProducto(this.idTienda(), this.idProducto(), archivo).pipe(
-      switchMap((ticket) =>
-        this.http
-          .put(ticket.urlCarga, archivo, {
-            headers: new HttpHeaders(ticket.cabecerasRequeridas),
-            responseType: 'text',
-          })
-          .pipe(switchMap(() => this.api.confirmarCargaImagenProducto(this.idTienda(), this.idProducto(), ticket.claveTemporal))),
-      ),
-    );
+    return this.cargaImagenProducto.cargarArchivo(this.idTienda(), this.idProducto(), archivo);
   }
 
   private actualizarImagenes(imagenes: ImagenProductoVendedor[]): void {

@@ -1,9 +1,11 @@
+import { Location } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
+import { CargaImagenProductoService } from '../../acceso-datos/carga-imagen-producto.service';
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
 import { confirmarCambiosProductoGuard } from '../../guards/confirmar-cambios-producto.guard';
 import {
@@ -38,6 +40,9 @@ describe('PaginaVendedorProductos', () => {
   let vendedorApiMock: {
     obtenerProductoPorId: ReturnType<typeof vi.fn>;
   };
+  let cargaImagenProductoMock: {
+    cargarArchivo: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     guardandoProducto = signal(false);
@@ -64,11 +69,15 @@ describe('PaginaVendedorProductos', () => {
     vendedorApiMock = {
       obtenerProductoPorId: vi.fn(() => of(crearProducto())),
     };
+    cargaImagenProductoMock = {
+      cargarArchivo: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       providers: [
         { provide: VendedorPanelStore, useValue: storeMock },
         { provide: VendedorApiService, useValue: vendedorApiMock },
+        { provide: CargaImagenProductoService, useValue: cargaImagenProductoMock },
         provideRouter([
           {
             path: 'vendedor/tiendas/:idTienda/productos/nuevo',
@@ -134,7 +143,7 @@ describe('PaginaVendedorProductos', () => {
     );
   });
 
-  it('crea el producto y cambia a edición antes de permitir cargar imágenes', async () => {
+  it('crea el producto y cambia a edición sin navegación visible', async () => {
     const pagina = await abrirPagina('/vendedor/tiendas/10/productos/nuevo');
     completarFormularioValido(pagina);
 
@@ -160,7 +169,9 @@ describe('PaginaVendedorProductos', () => {
     alCompletar(crearProducto({ idProducto: 88 }));
     await harness.fixture.whenStable();
 
-    expect(TestBed.inject(Router).url).toBe('/vendedor/tiendas/10/productos/88/editar');
+    expect(pagina.esEdicion()).toBe(true);
+    expect(pagina.idProducto()).toBe(88);
+    expect(TestBed.inject(Location).path()).toBe('/vendedor/tiendas/10/productos/88/editar');
   });
 
   it('precarga las imágenes confirmadas al editar', async () => {

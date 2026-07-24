@@ -1,0 +1,41 @@
+<section class="selector-imagenes" aria-labelledby="titulo-selector-imagenes">
+  <header class="selector-imagenes__cabecera">
+    <div>
+      <span>Imágenes del producto</span>
+      <h3 id="titulo-selector-imagenes">Presenta tu producto</h3>
+      <p>Selecciona hasta 5 imágenes JPEG, PNG o WebP de máximo 5 MB.</p>
+      <small>Se cargarán de forma segura al crear el producto.</small>
+    </div>
+    <label class="selector-imagenes__accion" [class.selector-imagenes__accion--bloqueada]="bloqueado()">
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        [disabled]="bloqueado()"
+        (change)="seleccionarArchivos($event)"
+      />
+      Agregar imágenes
+    </label>
+  </header>
+
+  @if (mensajeError(); as error) {
+    <p class="selector-imagenes__mensaje selector-imagenes__mensaje--error" role="alert">{{ error }}</p>
+  }
+
+  @if (imagenes().length === 0) {
+    <p class="selector-imagenes__vacio">Aún no agregas imágenes. Puedes crear el producto y añadirlas después.</p>
+  } @else {
+    <ol class="selector-imagenes__lista">
+      @for (imagen of imagenes(); track imagen.idLocal; let indice = $index) {
+        <li>
+          <img [src]="imagen.urlVistaPrevia" [alt]="'Vista previa de imagen ' + (indice + 1)" />
+          <div>
+            <strong>{{ indice === 0 ? 'Portada' : 'Imagen ' + (indice + 1) }}</strong>
+            <span>{{ imagen.archivo.name }}</span>
+          </div>
+          <button type="button" [disabled]="bloqueado()" (click)="eliminar(imagen)">Quitar</button>
+        </li>
+      }
+    </ol>
+  }
+</section>
