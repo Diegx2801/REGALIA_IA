@@ -207,10 +207,17 @@ export class PaginaVendedorProductos implements OnInit {
 
   readonly estadoCatalogoVistaPrevia = computed(() => {
     if (!this.visibleVistaPrevia()) return { texto: 'Oculto', variante: 'neutral' as const };
-    if (this.stockVistaPrevia() === 0) {
-      return { texto: 'Sin stock', variante: 'advertencia' as const };
+    const tienda = this.tienda();
+    if (!tienda?.estado || tienda.estadoRevision !== 'APROBADA') {
+      return { texto: 'En espera de aprobación', variante: 'advertencia' as const };
     }
-    return { texto: 'Visible', variante: 'exito' as const };
+    if (this.imagenesProducto().length === 0) {
+      return { texto: 'Falta una imagen', variante: 'advertencia' as const };
+    }
+    if (this.stockVistaPrevia() === 0) {
+      return { texto: 'Agotado', variante: 'advertencia' as const };
+    }
+    return { texto: 'Publicado', variante: 'exito' as const };
   });
 
   readonly imagenesVistaPrevia = computed<ImagenVistaPrevia[]>(() => {
@@ -343,6 +350,7 @@ export class PaginaVendedorProductos implements OnInit {
 
     this.formularioEnviado.set(false);
     const revisionGuardada = this.revisionFormulario();
+    const esCreacion = idProducto === null;
     this.store.guardarProducto(
       idTienda,
       {
@@ -355,16 +363,26 @@ export class PaginaVendedorProductos implements OnInit {
       },
       idProducto ?? undefined,
       (producto) => {
+        if (!this.componenteActivo || this.idTienda() !== idTienda) {
+          return;
+        }
+
+        /*
+         * En creación no existe todavía un idProducto que permita relacionar la respuesta
+         * con el editor. El formulario queda bloqueado durante la operación, por lo que
+         * una variación interna de su estado no debe descartar una creación válida ni sus
+         * imágenes locales. En edición sí conservamos la protección contra una respuesta
+         * tardía de otro producto o de otra versión del formulario.
+         */
         if (
-          !this.componenteActivo ||
-          this.idTienda() !== idTienda ||
-          this.idProducto() !== idProducto ||
-          this.revisionFormulario() !== revisionGuardada
+          !esCreacion &&
+          (this.idProducto() !== idProducto || this.revisionFormulario() !== revisionGuardada)
         ) {
           return;
         }
+
         this.formularioProducto.markAsPristine();
-        if (idProducto === null) {
+        if (esCreacion) {
           this.idProducto.set(producto.idProducto);
           this.actualizarImagenesProducto(producto.imagenes);
           this.location.replaceState(
@@ -380,6 +398,12 @@ export class PaginaVendedorProductos implements OnInit {
     this.imagenesProducto.set(imagenes);
     this.indiceImagenSeleccionada.set(0);
     this.indicesImagenNoDisponible.set(new Set());
+
+    const idTienda = this.idTienda();
+    const idProducto = this.idProducto();
+    if (idTienda !== null && idProducto !== null) {
+      this.store.actualizarImagenesProducto(idTienda, idProducto, imagenes);
+    }
   }
 
   agregarImagenesPendientes(imagenes: ImagenProductoPendiente[]): void {

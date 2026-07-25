@@ -70,8 +70,8 @@
 
         <div class="editor-producto__hero-estado" aria-label="Estado de publicación">
           <app-insignia-ui
-            [texto]="visibleVistaPrevia() ? 'Visible al publicar' : 'Oculto en catálogo'"
-            [variante]="visibleVistaPrevia() ? 'exito' : 'neutral'"
+            [texto]="estadoCatalogoVistaPrevia().texto"
+            [variante]="estadoCatalogoVistaPrevia().variante"
           />
           <span>{{ tienda()?.nombre ?? 'Tu tienda REGALIA' }}</span>
         </div>
@@ -377,9 +377,10 @@
               <input id="producto-visible" type="checkbox" formControlName="visibleEnTienda" />
               <span class="editor-producto__interruptor" aria-hidden="true"><span></span></span>
               <span>
-                <strong>Mostrar en el catálogo</strong>
+                <strong>Mostrar cuando esté listo</strong>
                 <small>
-                  Será visible cuando la tienda esté aprobada y el producto tenga stock.
+                  Se mostrará a clientes cuando tu tienda esté aprobada y tenga al menos una imagen.
+                  Si el stock llega a cero, se mostrará como agotado.
                 </small>
               </span>
             </label>

@@ -9,6 +9,7 @@ import { CargaImagenProductoService } from '../../acceso-datos/carga-imagen-prod
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
 import { confirmarCambiosProductoGuard } from '../../guards/confirmar-cambios-producto.guard';
 import {
+  ImagenProductoVendedor,
   ProductoVendedor,
   SolicitudProductoVendedor,
   TiendaVendedor,
@@ -36,6 +37,7 @@ describe('PaginaVendedorProductos', () => {
     cargarContexto: ReturnType<typeof vi.fn>;
     limpiarMensajes: ReturnType<typeof vi.fn>;
     guardarProducto: ReturnType<typeof vi.fn>;
+    actualizarImagenesProducto: ReturnType<typeof vi.fn>;
   };
   let vendedorApiMock: {
     obtenerProductoPorId: ReturnType<typeof vi.fn>;
@@ -65,6 +67,7 @@ describe('PaginaVendedorProductos', () => {
         mensajeExito.set(null);
       }),
       guardarProducto: vi.fn(),
+      actualizarImagenesProducto: vi.fn(),
     };
     vendedorApiMock = {
       obtenerProductoPorId: vi.fn(() => of(crearProducto())),
@@ -172,6 +175,40 @@ describe('PaginaVendedorProductos', () => {
     expect(pagina.esEdicion()).toBe(true);
     expect(pagina.idProducto()).toBe(88);
     expect(TestBed.inject(Location).path()).toBe('/vendedor/tiendas/10/productos/88/editar');
+  });
+
+  it('inicia la carga de imágenes locales después de crear, aunque cambie el estado del formulario', async () => {
+    const pagina = await abrirPagina('/vendedor/tiendas/10/productos/nuevo');
+    const imagenConfirmada: ImagenProductoVendedor = {
+      idProductoImagen: 501,
+      urlImagen: 'https://cdn.regalia.test/producto.webp',
+      orden: 1,
+    };
+    completarFormularioValido(pagina);
+    pagina.imagenesPendientes.set([
+      {
+        idLocal: 'imagen-local-1',
+        archivo: new File(['imagen'], 'flores.webp', { type: 'image/webp' }),
+        urlVistaPrevia: 'blob:imagen-local-1',
+      },
+    ]);
+    cargaImagenProductoMock.cargarArchivo.mockReturnValue(of(imagenConfirmada));
+
+    pagina.guardarProducto();
+    pagina.formularioProducto.controls.nombre.markAsTouched();
+    const alCompletar = storeMock.guardarProducto.mock.calls[0][3] as (
+      producto: ProductoVendedor,
+    ) => void;
+    alCompletar(crearProducto({ idProducto: 88 }));
+    await harness.fixture.whenStable();
+
+    expect(cargaImagenProductoMock.cargarArchivo).toHaveBeenCalledWith(
+      10,
+      88,
+      expect.objectContaining({ name: 'flores.webp', type: 'image/webp' }),
+    );
+    expect(pagina.imagenesPendientes()).toEqual([]);
+    expect(pagina.imagenesProducto()).toEqual([imagenConfirmada]);
   });
 
   it('precarga las imágenes confirmadas al editar', async () => {
