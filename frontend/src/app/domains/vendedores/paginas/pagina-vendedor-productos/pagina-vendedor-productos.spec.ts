@@ -211,6 +211,28 @@ describe('PaginaVendedorProductos', () => {
     expect(pagina.imagenesProducto()).toEqual([imagenConfirmada]);
   });
 
+  it('conserva el orden de portada elegido antes de crear el producto', async () => {
+    const pagina = await abrirPagina('/vendedor/tiendas/10/productos/nuevo');
+    const primera = {
+      idLocal: 'imagen-local-1',
+      archivo: new File(['uno'], 'uno.webp', { type: 'image/webp' }),
+      urlVistaPrevia: 'blob:imagen-local-1',
+    };
+    const portada = {
+      idLocal: 'imagen-local-2',
+      archivo: new File(['dos'], 'dos.webp', { type: 'image/webp' }),
+      urlVistaPrevia: 'blob:imagen-local-2',
+    };
+
+    pagina.imagenesPendientes.set([primera, portada]);
+    pagina.actualizarOrdenImagenesPendientes([portada, primera]);
+
+    expect(pagina.imagenesPendientes().map((imagen) => imagen.idLocal)).toEqual([
+      'imagen-local-2',
+      'imagen-local-1',
+    ]);
+  });
+
   it('precarga las imágenes confirmadas al editar', async () => {
     const producto = crearProducto();
     vendedorApiMock.obtenerProductoPorId.mockReturnValue(of(producto));

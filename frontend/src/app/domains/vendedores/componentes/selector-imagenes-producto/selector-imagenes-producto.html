@@ -28,12 +28,19 @@
     <ol class="selector-imagenes__lista">
       @for (imagen of imagenes(); track imagen.idLocal; let indice = $index) {
         <li>
-          <img [src]="imagen.urlVistaPrevia" [alt]="'Vista previa de imagen ' + (indice + 1)" />
+          <img [src]="imagen.urlVistaPrevia" [alt]="nombreProducto() + ': vista previa de imagen ' + (indice + 1)" />
           <div>
             <strong>{{ indice === 0 ? 'Portada' : 'Imagen ' + (indice + 1) }}</strong>
-            <span>{{ imagen.archivo.name }}</span>
+            <span>{{ indice === 0 ? 'Imagen principal del producto' : imagen.archivo.name }}</span>
           </div>
-          <button type="button" [disabled]="bloqueado()" (click)="eliminar(imagen)">Quitar</button>
+          <div class="selector-imagenes__controles">
+            @if (indice > 0) {
+              <button type="button" [disabled]="bloqueado()" (click)="establecerPortada(indice)">Usar como portada</button>
+            }
+            <button type="button" [disabled]="bloqueado() || indice === 0" (click)="mover(indice, -1)">Subir</button>
+            <button type="button" [disabled]="bloqueado() || indice === imagenes().length - 1" (click)="mover(indice, 1)">Bajar</button>
+            <button type="button" [disabled]="bloqueado()" (click)="eliminar(imagen)">Quitar</button>
+          </div>
         </li>
       }
     </ol>

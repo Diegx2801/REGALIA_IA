@@ -15,7 +15,13 @@ public interface MediaStorage {
     /** Lee la cabecera del objeto para comprobar su firma binaria. */
     byte[] leerCabecera(String claveObjeto, int cantidadMaximaBytes);
 
-    void copiarObjeto(String claveOrigen, String claveDestino);
+    /**
+     * Promueve un objeto temporal a su ubicación pública final.
+     *
+     * La implementación debe preservar el tipo de contenido y aplicar la política de caché
+     * apropiada para un recurso final cuya clave no volverá a reutilizarse.
+     */
+    void promoverObjeto(String claveOrigen, String claveDestino, String tipoContenido);
 
     void eliminarObjeto(String claveObjeto);
 

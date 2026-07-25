@@ -91,7 +91,7 @@ public class ProductoImagenService {
 
         String claveFinal = "productos/" + producto.getIdProducto() + "/" + UUID.randomUUID()
                 + extensionPara(tipoContenido);
-        mediaStorage.copiarObjeto(claveTemporal, claveFinal);
+        mediaStorage.promoverObjeto(claveTemporal, claveFinal, tipoContenido);
         mediaStorage.eliminarObjeto(claveTemporal);
 
         int orden = productoImagenRepository

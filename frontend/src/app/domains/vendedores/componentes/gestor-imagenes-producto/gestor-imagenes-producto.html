@@ -20,10 +20,23 @@
   } @else {
     <ol class="gestor-imagenes__lista">
       @for (imagen of imagenes(); track imagen.idProductoImagen; let indice = $index) {
-        <li>
-          <img [src]="imagen.urlImagen" [alt]="'Imagen ' + (indice + 1) + ' del producto'" />
-          <div><strong>{{ indice === 0 ? 'Portada' : 'Imagen ' + (indice + 1) }}</strong><span>Orden {{ indice + 1 }}</span></div>
+        <li
+          [class.gestor-imagenes__item--arrastrando]="indiceArrastre() === indice"
+          [attr.draggable]="cargando() || procesandoId() !== null ? null : 'true'"
+          (dragstart)="iniciarArrastre(indice, $event)"
+          (dragover)="permitirSoltar($event)"
+          (drop)="soltarEn(indice, $event)"
+          (dragend)="finalizarArrastre()"
+        >
+          <img [src]="imagen.urlImagen" [alt]="nombreProducto() + ': imagen ' + (indice + 1)" />
+          <div>
+            <strong>{{ indice === 0 ? 'Portada' : 'Imagen ' + (indice + 1) }}</strong>
+            <span>{{ indice === 0 ? 'Imagen principal del producto' : 'Arrastra o usa los controles para ordenar' }}</span>
+          </div>
           <div class="gestor-imagenes__controles">
+            @if (indice > 0) {
+              <button type="button" [disabled]="procesandoId() !== null" (click)="establecerPortada(indice)">Usar como portada</button>
+            }
             <button type="button" [disabled]="indice === 0 || procesandoId() !== null" (click)="mover(indice, -1)">Subir</button>
             <button type="button" [disabled]="indice === imagenes().length - 1 || procesandoId() !== null" (click)="mover(indice, 1)">Bajar</button>
             <button type="button" [disabled]="procesandoId() !== null" (click)="eliminar(imagen)">Eliminar</button>

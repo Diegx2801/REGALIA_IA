@@ -343,6 +343,7 @@
                   <app-gestor-imagenes-producto
                     [idTienda]="idTienda"
                     [idProducto]="idProducto"
+                    [nombreProducto]="formularioProducto.controls.nombre.value ?? 'Producto'"
                     [imagenesIniciales]="imagenesProducto()"
                     (imagenesCambiadas)="actualizarImagenesProducto($event)"
                   />
@@ -350,9 +351,11 @@
               }
             } @else {
               <app-selector-imagenes-producto
+                [nombreProducto]="formularioProducto.controls.nombre.value ?? 'Producto'"
                 [imagenes]="imagenesPendientes()"
                 [bloqueado]="guardandoFormulario()"
                 (imagenesSeleccionadas)="agregarImagenesPendientes($event)"
+                (imagenesReordenadas)="actualizarOrdenImagenesPendientes($event)"
                 (imagenEliminada)="eliminarImagenPendiente($event)"
               />
             }

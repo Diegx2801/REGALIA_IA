@@ -19,9 +19,11 @@ export interface ImagenProductoPendiente {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectorImagenesProductoComponent {
+  readonly nombreProducto = input('Producto');
   readonly imagenes = input<readonly ImagenProductoPendiente[]>([]);
   readonly bloqueado = input(false);
   readonly imagenesSeleccionadas = output<ImagenProductoPendiente[]>();
+  readonly imagenesReordenadas = output<ImagenProductoPendiente[]>();
   readonly imagenEliminada = output<ImagenProductoPendiente>();
   readonly mensajeError = signal<string | null>(null);
 
@@ -59,5 +61,23 @@ export class SelectorImagenesProductoComponent {
   eliminar(imagen: ImagenProductoPendiente): void {
     if (this.bloqueado()) return;
     this.imagenEliminada.emit(imagen);
+  }
+
+  mover(indice: number, desplazamiento: -1 | 1): void {
+    const destino = indice + desplazamiento;
+    if (this.bloqueado() || destino < 0 || destino >= this.imagenes().length) return;
+
+    const reordenadas = [...this.imagenes()];
+    [reordenadas[indice], reordenadas[destino]] = [reordenadas[destino], reordenadas[indice]];
+    this.imagenesReordenadas.emit(reordenadas);
+  }
+
+  establecerPortada(indice: number): void {
+    if (this.bloqueado() || indice === 0) return;
+
+    const reordenadas = [...this.imagenes()];
+    const [portada] = reordenadas.splice(indice, 1);
+    reordenadas.unshift(portada);
+    this.imagenesReordenadas.emit(reordenadas);
   }
 }

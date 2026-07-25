@@ -412,6 +412,12 @@ export class PaginaVendedorProductos implements OnInit {
     this.indicesImagenNoDisponible.set(new Set());
   }
 
+  actualizarOrdenImagenesPendientes(imagenes: ImagenProductoPendiente[]): void {
+    this.imagenesPendientes.set([...imagenes]);
+    this.mensajeCargaImagenesIniciales.set(null);
+    this.indicesImagenNoDisponible.set(new Set());
+  }
+
   eliminarImagenPendiente(imagen: ImagenProductoPendiente): void {
     URL.revokeObjectURL(imagen.urlVistaPrevia);
     this.imagenesPendientes.update((actuales) =>

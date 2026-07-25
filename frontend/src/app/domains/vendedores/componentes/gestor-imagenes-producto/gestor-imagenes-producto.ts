@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize, from, concatMap, toArray } from 'rxjs';
+import { catchError, concatMap, finalize, from, map, of, toArray } from 'rxjs';
 import { CargaImagenProductoService } from '../../acceso-datos/carga-imagen-producto.service';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
 import {
@@ -24,6 +24,7 @@ export class GestorImagenesProductoComponent {
 
   readonly idTienda = input.required<number>();
   readonly idProducto = input.required<number>();
+  readonly nombreProducto = input('Producto');
   readonly imagenesIniciales = input<ImagenProductoVendedor[]>([]);
   readonly imagenesCambiadas = output<ImagenProductoVendedor[]>();
 
@@ -32,6 +33,7 @@ export class GestorImagenesProductoComponent {
   readonly procesandoId = signal<number | null>(null);
   readonly mensajeError = signal<string | null>(null);
   readonly mensajeExito = signal<string | null>(null);
+  readonly indiceArrastre = signal<number | null>(null);
   private inicializado = false;
 
   ngOnChanges(): void {
@@ -63,18 +65,40 @@ export class GestorImagenesProductoComponent {
     this.cargando.set(true);
     from(archivos)
       .pipe(
-        concatMap((archivo) => this.cargarArchivo(archivo)),
+        concatMap((archivo) =>
+          this.cargarArchivo(archivo).pipe(
+            map((imagen) => ({ imagen, error: false })),
+            catchError(() => of({ imagen: null, error: true })),
+          ),
+        ),
         toArray(),
         finalize(() => this.cargando.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (imagenes) => {
-          const actualizadas = [...this.imagenes(), ...imagenes].sort((a, b) => a.orden - b.orden);
-          this.actualizarImagenes(actualizadas);
-          this.mensajeExito.set('Imágenes agregadas correctamente.');
+        next: (resultados) => {
+          const imagenesConfirmadas = resultados.flatMap((resultado) =>
+            resultado.imagen === null ? [] : [resultado.imagen],
+          );
+          const errores = resultados.filter((resultado) => resultado.error).length;
+
+          if (imagenesConfirmadas.length > 0) {
+            const actualizadas = [...this.imagenes(), ...imagenesConfirmadas].sort(
+              (primera, segunda) => primera.orden - segunda.orden,
+            );
+            this.actualizarImagenes(actualizadas);
+          }
+
+          if (errores > 0) {
+            this.mensajeError.set(
+              errores === 1
+                ? 'Una imagen no pudo cargarse. Las demás imágenes válidas se conservaron.'
+                : `${errores} imágenes no pudieron cargarse. Las demás imágenes válidas se conservaron.`,
+            );
+          } else {
+            this.mensajeExito.set('Imágenes agregadas correctamente.');
+          }
         },
-        error: () => this.mensajeError.set('No pudimos cargar una de las imágenes. Inténtalo nuevamente.'),
       });
   }
 
@@ -103,7 +127,64 @@ export class GestorImagenesProductoComponent {
 
     const propuesto = [...actuales];
     [propuesto[indice], propuesto[destino]] = [propuesto[destino], propuesto[indice]];
-    this.procesandoId.set(propuesto[destino].idProductoImagen);
+    this.persistirOrden(propuesto, propuesto[destino].idProductoImagen);
+  }
+
+  establecerPortada(indice: number): void {
+    if (indice === 0 || this.cargando() || this.procesandoId() !== null) return;
+
+    const propuesto = [...this.imagenes()];
+    const [portada] = propuesto.splice(indice, 1);
+    propuesto.unshift(portada);
+    this.persistirOrden(propuesto, portada.idProductoImagen);
+  }
+
+  iniciarArrastre(indice: number, evento: DragEvent): void {
+    if (this.cargando() || this.procesandoId() !== null) {
+      evento.preventDefault();
+      return;
+    }
+
+    this.indiceArrastre.set(indice);
+    evento.dataTransfer?.setData('text/plain', String(indice));
+    if (evento.dataTransfer) evento.dataTransfer.effectAllowed = 'move';
+  }
+
+  permitirSoltar(evento: DragEvent): void {
+    if (this.indiceArrastre() !== null && !this.cargando() && this.procesandoId() === null) {
+      evento.preventDefault();
+      if (evento.dataTransfer) evento.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  soltarEn(indiceDestino: number, evento: DragEvent): void {
+    evento.preventDefault();
+    const indiceOrigen = this.indiceArrastre();
+    this.indiceArrastre.set(null);
+
+    if (
+      indiceOrigen === null ||
+      indiceOrigen === indiceDestino ||
+      this.cargando() ||
+      this.procesandoId() !== null
+    ) {
+      return;
+    }
+
+    const propuesto = [...this.imagenes()];
+    const [imagenMovida] = propuesto.splice(indiceOrigen, 1);
+    propuesto.splice(indiceDestino, 0, imagenMovida);
+    this.persistirOrden(propuesto, imagenMovida.idProductoImagen);
+  }
+
+  finalizarArrastre(): void {
+    this.indiceArrastre.set(null);
+  }
+
+  private persistirOrden(propuesto: ImagenProductoVendedor[], idProcesando: number): void {
+    if (this.cargando() || this.procesandoId() !== null) return;
+
+    this.procesandoId.set(idProcesando);
     this.mensajeError.set(null);
     this.api
       .ordenarImagenesProducto(this.idTienda(), this.idProducto(), propuesto.map((imagen) => imagen.idProductoImagen))

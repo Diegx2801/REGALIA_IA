@@ -17,6 +17,7 @@ public class R2MediaProperties {
     private String provider = "NONE";
     private String publicBaseUrl = "";
     private Duration uploadUrlExpiration = Duration.ofMinutes(10);
+    private String publicObjectCacheControl = "public, max-age=31536000, immutable";
     private R2 r2 = new R2();
 
     @Getter

@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -103,15 +104,24 @@ public class R2MediaStorage implements MediaStorage {
     }
 
     @Override
-    public void copiarObjeto(String claveOrigen, String claveDestino) {
+    public void promoverObjeto(String claveOrigen, String claveDestino, String tipoContenido) {
         validarClaveObjeto(claveOrigen);
         validarClaveObjeto(claveDestino);
+
+        String tipoNormalizado = obligatorio(tipoContenido, "El tipo de contenido del medio es obligatorio");
+        String cacheControl = obligatorio(
+                properties.getPublicObjectCacheControl(),
+                "La politica de cache para medios publicos es obligatoria"
+        );
 
         try {
             r2S3Client.copyObject(CopyObjectRequest.builder()
                     .copySource(bucket() + "/" + claveOrigen)
                     .destinationBucket(bucket())
                     .destinationKey(claveDestino)
+                    .metadataDirective(MetadataDirective.REPLACE)
+                    .contentType(tipoNormalizado)
+                    .cacheControl(cacheControl)
                     .build());
         } catch (S3Exception | SdkClientException exception) {
             throw proveedorNoDisponible(exception);
