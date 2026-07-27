@@ -177,6 +177,8 @@ public class SecurityConfig {
                          * Pedidos del cliente autenticado.
                          */
                         .requestMatchers(HttpMethod.POST, "/api/pedidos/confirmar").access(clienteVerificadoAccess())
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/*/codigo-entrega/reemitir")
+                        .access(clienteVerificadoAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos").access(clienteAccess())
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/**").access(clienteAccess())
 

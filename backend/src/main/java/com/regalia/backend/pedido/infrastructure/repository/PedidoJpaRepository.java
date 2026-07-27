@@ -58,4 +58,25 @@ public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>,
             @Param("correoVendedor") String correoVendedor,
             @Param("idPedido") Long idPedido
     );
+
+    /**
+     * Bloquea el pedido solo si pertenece al vendedor autenticado. La condicion
+     * de propiedad evita revelar pedidos ajenos durante cambios de estado.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT p
+            FROM PedidoEntity p
+            JOIN FETCH p.usuario cliente
+            JOIN FETCH p.tienda tienda
+            JOIN FETCH tienda.vendedor vendedor
+            JOIN FETCH vendedor.usuario usuarioVendedor
+            WHERE usuarioVendedor.correo = :correoVendedor
+              AND p.idPedido = :idPedido
+              AND p.estado = true
+            """)
+    Optional<PedidoEntity> buscarPedidoRecibidoPorVendedorParaActualizar(
+            @Param("correoVendedor") String correoVendedor,
+            @Param("idPedido") Long idPedido
+    );
 }

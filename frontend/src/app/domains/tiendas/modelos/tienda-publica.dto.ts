@@ -8,8 +8,9 @@ export interface TiendaPublicaDto {
   nombre: string | null;
   descripcion: string | null;
   direccionReferencia: string | null;
-  estadoRevision: string | null;
   tiendaFormalizada: boolean | null;
+  urlLogo: string | null;
+  urlPortada: string | null;
   rubros: RubroTiendaPublicaDto[] | null;
   fechaCreacion?: string | null;
 }

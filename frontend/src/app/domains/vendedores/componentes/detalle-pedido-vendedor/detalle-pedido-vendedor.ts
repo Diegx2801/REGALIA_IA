@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { InsigniaUi } from '../../../../shared/ui/insignia-ui/insignia-ui';
 import { PagoPedidoRecibido, PedidoRecibidoDetalle } from '../../modelos/vendedor.model';
@@ -23,9 +23,15 @@ export class DetallePedidoVendedor {
   readonly cargando = input(false);
   readonly mensajeError = input<string | null>(null);
   readonly mostrarCerrar = input(true);
+  readonly procesandoCumplimiento = input(false);
+  readonly mensajeCumplimiento = input<string | null>(null);
 
   readonly cerrar = output<void>();
   readonly reintentar = output<void>();
+  readonly iniciarPreparacion = output<void>();
+  readonly marcarListo = output<void>();
+  readonly confirmarEntrega = output<string>();
+  readonly codigoEntrega = signal('');
 
   readonly estadoPresentado = computed(() =>
     obtenerPresentacionEstadoPedido(this.pedido()?.estadoPedido ?? ''),
@@ -49,5 +55,15 @@ export class DetallePedidoVendedor {
 
   formatearFechaEntrega(fecha: string): string {
     return formatearFechaCalendario(fecha);
+  }
+
+  actualizarCodigoEntrega(valor: string): void {
+    this.codigoEntrega.set(valor.replace(/\D/g, '').slice(0, 6));
+  }
+
+  confirmarEntregaActual(): void {
+    const codigo = this.codigoEntrega().trim();
+    if (!/^\d{6}$/.test(codigo)) return;
+    this.confirmarEntrega.emit(codigo);
   }
 }

@@ -2,13 +2,19 @@ package com.regalia.backend.pedido.api;
 
 import com.regalia.backend.pedido.api.dto.PedidoRecibidoDetalleResponse;
 import com.regalia.backend.pedido.api.dto.PedidoRecibidoResumenResponse;
+import com.regalia.backend.pedido.api.dto.ConfirmarEntregaPedidoRequest;
+import com.regalia.backend.pedido.api.dto.EstadoCumplimientoPedidoResponse;
 import com.regalia.backend.pedido.application.PedidoRecibidoService;
+import com.regalia.backend.pedidocumplimiento.application.PedidoCumplimientoService;
 import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.shared.response.PaginaResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VendedorPedidoController {
 
     private final PedidoRecibidoService pedidoRecibidoService;
+    private final PedidoCumplimientoService pedidoCumplimientoService;
 
     @GetMapping("/pedidos")
     public ResponseEntity<ApiResponse<PaginaResponse<PedidoRecibidoResumenResponse>>> listarPedidosRecibidos(
@@ -69,6 +76,41 @@ public class VendedorPedidoController {
         PedidoRecibidoDetalleResponse pedido = pedidoRecibidoService
                 .buscarPedidoRecibidoPorId(authentication.getName(), idPedido);
 
+        return ResponseEntity.ok(ApiResponse.success(pedido));
+    }
+
+    /** Inicia la preparacion de un pedido reservado por esta tienda. */
+    @PostMapping("/pedidos/{idPedido}/preparacion")
+    public ResponseEntity<ApiResponse<EstadoCumplimientoPedidoResponse>> iniciarPreparacion(
+            @PathVariable Long idPedido,
+            Authentication authentication
+    ) {
+        EstadoCumplimientoPedidoResponse pedido = pedidoCumplimientoService
+                .iniciarPreparacion(authentication.getName(), idPedido);
+        return ResponseEntity.ok(ApiResponse.success(pedido));
+    }
+
+    /** Marca un pedido totalmente pagado como listo y envia el codigo al cliente. */
+    @PostMapping("/pedidos/{idPedido}/listo")
+    public ResponseEntity<ApiResponse<EstadoCumplimientoPedidoResponse>> marcarListo(
+            @PathVariable Long idPedido,
+            Authentication authentication
+    ) {
+        EstadoCumplimientoPedidoResponse pedido = pedidoCumplimientoService
+                .marcarListo(authentication.getName(), idPedido);
+        return ResponseEntity.ok(ApiResponse.success(pedido));
+    }
+
+    /** Confirma la entrega con el codigo que el cliente comparte al recibirla. */
+    @PostMapping("/pedidos/{idPedido}/confirmacion-entrega")
+    public ResponseEntity<ApiResponse<EstadoCumplimientoPedidoResponse>> confirmarEntrega(
+            @PathVariable Long idPedido,
+            @Valid @RequestBody ConfirmarEntregaPedidoRequest request,
+            Authentication authentication
+    ) {
+        EstadoCumplimientoPedidoResponse pedido = pedidoCumplimientoService.confirmarEntrega(
+                authentication.getName(), idPedido, request.codigoEntrega()
+        );
         return ResponseEntity.ok(ApiResponse.success(pedido));
     }
 }

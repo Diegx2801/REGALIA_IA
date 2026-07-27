@@ -5,6 +5,7 @@ import com.regalia.backend.pedido.api.dto.OpcionPagoResponse;
 import com.regalia.backend.pedido.api.dto.PedidoClienteResumenResponse;
 import com.regalia.backend.pedido.api.dto.PedidoResponse;
 import com.regalia.backend.pedido.application.PedidoService;
+import com.regalia.backend.pedidocumplimiento.application.PedidoCumplimientoService;
 import com.regalia.backend.shared.response.ApiResponse;
 import com.regalia.backend.shared.response.PaginaResponse;
 import jakarta.validation.Valid;
@@ -29,6 +30,7 @@ import java.util.List;
 public class PedidoController {
 
         private final PedidoService pedidoService;
+        private final PedidoCumplimientoService pedidoCumplimientoService;
 
         @GetMapping("/opciones/pago-inicial")
         public ResponseEntity<ApiResponse<List<OpcionPagoResponse>>> listarOpcionesPagoInicial() {
@@ -86,6 +88,16 @@ public class PedidoController {
                 return ResponseEntity.ok(
                         ApiResponse.success(pedido)
                 );
+        }
+
+        /** Reemite al correo de la cuenta un codigo para la entrega pendiente. */
+        @PostMapping("/{idPedido}/codigo-entrega/reemitir")
+        public ResponseEntity<ApiResponse<Void>> reenviarCodigoEntrega(
+                Principal principal,
+                @PathVariable Long idPedido
+        ) {
+                pedidoCumplimientoService.reenviarCodigoEntrega(principal.getName(), idPedido);
+                return ResponseEntity.ok(ApiResponse.success(null));
         }
 
 }

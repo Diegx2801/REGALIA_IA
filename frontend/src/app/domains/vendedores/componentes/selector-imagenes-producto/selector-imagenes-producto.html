@@ -4,7 +4,7 @@
       <span>Imágenes del producto</span>
       <h3 id="titulo-selector-imagenes">Presenta tu producto</h3>
       <p>Selecciona hasta 5 imágenes JPEG, PNG o WebP de máximo 5 MB.</p>
-      <small>Se cargarán de forma segura al crear el producto.</small>
+      <small>Quedarán listas al crear el producto.</small>
     </div>
     <label class="selector-imagenes__accion" [class.selector-imagenes__accion--bloqueada]="bloqueado()">
       <input
@@ -35,7 +35,14 @@
           </div>
           <div class="selector-imagenes__controles">
             @if (indice > 0) {
-              <button type="button" [disabled]="bloqueado()" (click)="establecerPortada(indice)">Usar como portada</button>
+              <button
+                type="button"
+                [disabled]="bloqueado()"
+                aria-label="Usar esta imagen como portada"
+                (click)="establecerPortada(indice)"
+              >
+                Portada
+              </button>
             }
             <button type="button" [disabled]="bloqueado() || indice === 0" (click)="mover(indice, -1)">Subir</button>
             <button type="button" [disabled]="bloqueado() || indice === imagenes().length - 1" (click)="mover(indice, 1)">Bajar</button>

@@ -107,10 +107,22 @@
     </nav>
 
     <header class="centro-tienda__hero">
+      @if (tiendaActual.urlPortada) {
+        <img
+          class="centro-tienda__portada"
+          [src]="tiendaActual.urlPortada"
+          alt=""
+          aria-hidden="true"
+        />
+      }
       <div class="centro-tienda__identidad">
-        <span class="centro-tienda__monograma" aria-hidden="true">
-          {{ inicialesTienda(tiendaActual.nombre) }}
-        </span>
+        <div class="centro-tienda__monograma" aria-hidden="true">
+          @if (tiendaActual.urlLogo) {
+            <img [src]="tiendaActual.urlLogo" alt="" />
+          } @else {
+            {{ inicialesTienda(tiendaActual.nombre) }}
+          }
+        </div>
 
         <div class="centro-tienda__identidad-copy min-w-0">
           <span class="centro-tienda__eyebrow">Centro de tienda</span>
@@ -176,6 +188,14 @@
         </a>
       </nav>
     </header>
+
+    <app-gestor-identidad-tienda
+      [idTienda]="tiendaActual.idTienda"
+      [nombreTienda]="tiendaActual.nombre"
+      [urlLogoInicial]="tiendaActual.urlLogo"
+      [urlPortadaInicial]="tiendaActual.urlPortada"
+      (actualizado)="recargarIdentidad()"
+    />
 
     @if (avisoComercial(); as aviso) {
       <aside

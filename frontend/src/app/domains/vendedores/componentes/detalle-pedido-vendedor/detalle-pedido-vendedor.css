@@ -86,6 +86,7 @@
 
 .detalle-pedido__resumen,
 .detalle-pedido__finanzas,
+.detalle-pedido__cumplimiento,
 .detalle-pedido__seccion,
 .detalle-pedido__observacion {
   border: 1px solid rgba(90, 36, 64, 0.1);
@@ -214,6 +215,88 @@
 
 .detalle-pedido__finanzas {
   background: var(--rg-color-surface);
+}
+
+.detalle-pedido__cumplimiento {
+  background: linear-gradient(135deg, var(--rg-color-bg-elevated), var(--rg-color-primary-soft));
+}
+
+.detalle-pedido__cumplimiento-ayuda,
+.detalle-pedido__cumplimiento-exito,
+.detalle-pedido__cumplimiento-mensaje {
+  color: var(--rg-color-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  margin: 1rem 0 0;
+}
+
+.detalle-pedido__cumplimiento-exito {
+  color: #166a55;
+  font-weight: 750;
+}
+
+.detalle-pedido__cumplimiento-mensaje {
+  background: var(--rg-color-gold-soft);
+  border-radius: var(--rg-radius-sm);
+  color: #775019;
+  padding: 0.7rem 0.8rem;
+}
+
+.detalle-pedido__accion-principal {
+  background: var(--rg-color-primary);
+  border: 0;
+  border-radius: var(--rg-radius-md);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 850;
+  margin-top: 1rem;
+  min-height: 2.7rem;
+  padding: 0.65rem 1rem;
+}
+
+.detalle-pedido__accion-principal:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.detalle-pedido__confirmacion-codigo {
+  margin-top: 1rem;
+}
+
+.detalle-pedido__confirmacion-codigo label {
+  color: var(--rg-color-ink);
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.detalle-pedido__confirmacion-codigo > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+}
+
+.detalle-pedido__confirmacion-codigo input {
+  background: #fff;
+  border: 1px solid var(--rg-color-border);
+  border-radius: var(--rg-radius-md);
+  color: var(--rg-color-ink);
+  font: inherit;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+  letter-spacing: 0.2em;
+  max-width: 10rem;
+  min-height: 2.7rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.detalle-pedido__confirmacion-codigo .detalle-pedido__accion-principal {
+  margin-top: 0;
 }
 
 .detalle-pedido__metricas {

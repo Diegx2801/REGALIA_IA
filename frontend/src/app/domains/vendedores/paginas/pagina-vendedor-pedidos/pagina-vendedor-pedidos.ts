@@ -3,12 +3,14 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
-import { combineLatest, distinctUntilChanged, map } from 'rxjs';
+import { combineLatest, distinctUntilChanged, finalize, map } from 'rxjs';
+import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import {
   ConsultaPedidosVendedor,
   EstadoPagoFiltroVendedor,
   EstadoPedidoFiltroVendedor,
   OrdenPedidosVendedor,
+  VendedorApiService,
 } from '../../acceso-datos/vendedor-api.service';
 import { DetallePedidoVendedor } from '../../componentes/detalle-pedido-vendedor/detalle-pedido-vendedor';
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
@@ -70,6 +72,7 @@ export class PaginaVendedorPedidos implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly vendedorApi = inject(VendedorApiService);
 
   readonly store = inject(VendedorPanelStore);
   readonly idTiendaFija = signal<number | null>(null);
@@ -79,6 +82,8 @@ export class PaginaVendedorPedidos implements OnInit {
     sort: ORDEN_PEDIDOS_PREDETERMINADO,
   });
   readonly dialogoDetalleAbierto = signal(false);
+  readonly procesandoCumplimiento = signal(false);
+  readonly mensajeCumplimiento = signal<string | null>(null);
 
   readonly formularioFiltros = new FormGroup({
     idTienda: new FormControl('', { nonNullable: true }),
@@ -251,8 +256,57 @@ export class PaginaVendedorPedidos implements OnInit {
     if (idPedido !== null) this.store.seleccionarPedido(idPedido, true);
   }
 
+  iniciarPreparacion(): void {
+    this.ejecutarAccionCumplimiento((idPedido) =>
+      this.vendedorApi.iniciarPreparacionPedido(idPedido),
+    );
+  }
+
+  marcarPedidoListo(): void {
+    this.ejecutarAccionCumplimiento((idPedido) => this.vendedorApi.marcarPedidoListo(idPedido));
+  }
+
+  confirmarEntrega(codigoEntrega: string): void {
+    this.ejecutarAccionCumplimiento((idPedido) =>
+      this.vendedorApi.confirmarEntregaPedido(idPedido, codigoEntrega),
+    );
+  }
+
   formatearFechaEntrega(fecha: string): string {
     return formatearFechaCalendario(fecha);
+  }
+
+  private ejecutarAccionCumplimiento(
+    accion: (idPedido: number) => ReturnType<VendedorApiService['marcarPedidoListo']>,
+  ): void {
+    const idPedido = this.store.idPedidoSeleccionado();
+    if (idPedido === null || this.procesandoCumplimiento()) return;
+
+    this.procesandoCumplimiento.set(true);
+    this.mensajeCumplimiento.set(null);
+    accion(idPedido)
+      .pipe(
+        finalize(() => this.procesandoCumplimiento.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (respuesta) => {
+          this.mensajeCumplimiento.set(
+            respuesta.estadoPedido === 'LISTO'
+              ? 'El pedido está listo. Enviamos el código de entrega al cliente.'
+              : respuesta.estadoPedido === 'ENTREGADO'
+                ? 'La entrega fue confirmada correctamente.'
+                : 'El pedido ahora está en preparación.',
+          );
+          this.store.actualizarEstadoPedido(idPedido, respuesta.estadoPedido);
+          this.store.seleccionarPedido(idPedido, true);
+        },
+        error: (error: unknown) => {
+          this.mensajeCumplimiento.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos actualizar este pedido. Inténtalo nuevamente.'),
+          );
+        },
+      });
   }
 
   private actualizarUrl(consulta: ConsultaPedidosVendedor): void {

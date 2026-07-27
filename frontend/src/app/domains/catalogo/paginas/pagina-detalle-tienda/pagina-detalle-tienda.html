@@ -23,7 +23,16 @@
     </section>
   } @else if (tienda(); as tiendaActual) {
     <header class="tienda-detalle__hero">
-      <div class="tienda-detalle__monograma" aria-hidden="true">{{ iniciales() }}</div>
+      @if (tiendaActual.urlPortada) {
+        <img class="tienda-detalle__portada" [src]="tiendaActual.urlPortada" alt="" aria-hidden="true" />
+      }
+      <div class="tienda-detalle__monograma" aria-hidden="true">
+        @if (tiendaActual.urlLogo) {
+          <img [src]="tiendaActual.urlLogo" alt="" />
+        } @else {
+          {{ iniciales() }}
+        }
+      </div>
       <div class="tienda-detalle__presentacion">
         <span>TIENDA APROBADA EN REGALIA</span>
         <h1>{{ tiendaActual.nombre }}</h1>
@@ -45,11 +54,7 @@
         </div>
         <div>
           <dt>Tipo de negocio</dt>
-          <dd>
-            {{
-              tiendaActual.tiendaFormalizada ? 'Tienda formalizada' : 'Emprendimiento verificado'
-            }}
-          </dd>
+          <dd>{{ tiendaActual.tiendaFormalizada ? 'Tienda formalizada' : 'Emprendimiento local' }}</dd>
         </div>
       </dl>
     </header>

@@ -41,6 +41,8 @@ export function mapearTiendaVendedorDesdeDto(dto: TiendaVendedorDto): TiendaVend
     direccionReferencia: dto.direccionReferencia?.trim() || 'Direccion pendiente',
     estadoRevision: dto.estadoRevision?.trim() || 'PENDIENTE',
     formalizada: Boolean(dto.tiendaFormalizada),
+    urlLogo: dto.urlLogo?.trim() || null,
+    urlPortada: dto.urlPortada?.trim() || null,
     idDocumentoFiscal: dto.idDocumentoFiscal,
     rubros: (dto.rubros ?? []).map((rubro) => ({
       idRubro: rubro.idRubro,

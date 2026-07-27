@@ -394,6 +394,8 @@ function crearTienda(idTienda = 10): TiendaVendedor {
     direccionReferencia: 'Centro',
     estadoRevision: 'APROBADA',
     formalizada: true,
+    urlLogo: null,
+    urlPortada: null,
     idDocumentoFiscal: null,
     rubros: [{ idRubro: 1, nombre: 'Regalos' }],
     estado: true,

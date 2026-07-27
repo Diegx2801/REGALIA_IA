@@ -513,7 +513,12 @@
     [pedido]="store.pedidoDetalle()"
     [cargando]="store.cargandoDetallePedido()"
     [mensajeError]="store.mensajeErrorDetallePedido()"
+    [procesandoCumplimiento]="procesandoCumplimiento()"
+    [mensajeCumplimiento]="mensajeCumplimiento()"
     (cerrar)="cerrarDetalle()"
     (reintentar)="reintentarDetalle()"
+    (iniciarPreparacion)="iniciarPreparacion()"
+    (marcarListo)="marcarPedidoListo()"
+    (confirmarEntrega)="confirmarEntrega($event)"
   />
 </app-dialogo-ui>

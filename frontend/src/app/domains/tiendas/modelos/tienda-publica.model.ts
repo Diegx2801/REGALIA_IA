@@ -8,8 +8,9 @@ export interface TiendaPublica {
   nombre: string;
   descripcion: string;
   direccionReferencia: string;
-  estadoRevision: string;
   tiendaFormalizada: boolean;
+  urlLogo: string | null;
+  urlPortada: string | null;
   rubros: RubroTiendaPublica[];
   fechaCreacion?: string | null;
 }

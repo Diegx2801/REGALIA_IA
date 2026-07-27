@@ -39,6 +39,8 @@ public class TiendaMapper {
     public TiendaResponse toResponse(
             TiendaEntity entity,
             Boolean tiendaFormalizada,
+            String urlLogo,
+            String urlPortada,
             List<TiendaResponse.RubroResumen> rubros
     ) {
         UsuarioDocumentoEntity documentoFiscal = entity.getDocumentoFiscal();
@@ -55,6 +57,8 @@ public class TiendaMapper {
                 entity.getDireccionReferencia(),
                 entity.getEstadoRevision(),
                 tiendaFormalizada,
+                urlLogo,
+                urlPortada,
                 documentoFiscal != null ? documentoFiscal.getIdUsuarioDocumento() : null,
                 documentoFiscal != null ? documentoFiscal.getNumeroDocumento() : null,
                 rubros,
@@ -78,6 +82,8 @@ public class TiendaMapper {
     public TiendaPublicaResponse toPublicaResponse(
             TiendaEntity tienda,
             Boolean tiendaFormalizada,
+            String urlLogo,
+            String urlPortada,
             List<TiendaPublicaResponse.RubroResumen> rubros
     ) {
         return new TiendaPublicaResponse(
@@ -85,8 +91,9 @@ public class TiendaMapper {
                 tienda.getNombre(),
                 tienda.getDescripcion(),
                 tienda.getDireccionReferencia(),
-                tienda.getEstadoRevision(),
                 tiendaFormalizada,
+                urlLogo,
+                urlPortada,
                 rubros
         );
     }
@@ -94,6 +101,8 @@ public class TiendaMapper {
     public TiendaPublicaDetalleResponse toPublicaDetalleResponse(
             TiendaEntity tienda,
             Boolean tiendaFormalizada,
+            String urlLogo,
+            String urlPortada,
             List<TiendaPublicaDetalleResponse.RubroResumen> rubros
     ) {
         return new TiendaPublicaDetalleResponse(
@@ -101,8 +110,9 @@ public class TiendaMapper {
                 tienda.getNombre(),
                 tienda.getDescripcion(),
                 tienda.getDireccionReferencia(),
-                tienda.getEstadoRevision(),
                 tiendaFormalizada,
+                urlLogo,
+                urlPortada,
                 rubros,
                 tienda.getFechaCreacion()
         );

@@ -36,6 +36,23 @@
     radial-gradient(circle at 90% 10%, rgb(220 171 54 / 18%), transparent 28%),
     linear-gradient(135deg, #fffaf7, #f6eaf0);
   box-shadow: 0 24px 60px rgb(56 28 43 / 10%);
+  overflow: hidden;
+  position: relative;
+  min-height: 19rem;
+}
+
+.tienda-detalle__portada {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+}
+
+.tienda-detalle__hero > :not(.tienda-detalle__portada) {
+  position: relative;
 }
 
 .tienda-detalle__monograma {
@@ -50,6 +67,12 @@
   font-size: 2rem;
   font-weight: 800;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
+}
+
+.tienda-detalle__monograma img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .tienda-detalle__presentacion > span,
@@ -243,6 +266,7 @@
     grid-template-columns: 1fr;
     gap: 1.25rem;
     border-radius: 1.25rem;
+    min-height: 0;
   }
 
   .tienda-detalle__monograma {

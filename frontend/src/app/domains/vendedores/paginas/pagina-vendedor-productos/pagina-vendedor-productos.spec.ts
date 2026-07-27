@@ -388,6 +388,8 @@ function crearTienda(): TiendaVendedor {
     direccionReferencia: 'Lima',
     estadoRevision: 'APROBADA',
     formalizada: true,
+    urlLogo: null,
+    urlPortada: null,
     idDocumentoFiscal: 1,
     rubros: [{ idRubro: 1, nombre: 'Regalos' }],
     estado: true,

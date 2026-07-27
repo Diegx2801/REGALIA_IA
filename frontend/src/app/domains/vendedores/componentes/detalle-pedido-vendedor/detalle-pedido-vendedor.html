@@ -1,7 +1,7 @@
 <section class="detalle-pedido" [attr.aria-busy]="cargando()">
   <header class="detalle-pedido__cabecera">
     <div class="min-w-0">
-      <span class="detalle-pedido__sobrelinea">Detalle operativo</span>
+      <span class="detalle-pedido__sobrelinea">Detalle del pedido</span>
       <h2 id="detalle-pedido-titulo">
         @if (pedido(); as pedidoActual) {
           Pedido #{{ pedidoActual.idPedido }}
@@ -9,7 +9,7 @@
           Detalle del pedido
         }
       </h2>
-      <p id="detalle-pedido-descripcion">Productos, entrega y trazabilidad de pagos registrados.</p>
+      <p id="detalle-pedido-descripcion">Revisa la compra, prepara el pedido y confirma su entrega.</p>
     </div>
 
     @if (mostrarCerrar()) {
@@ -126,7 +126,7 @@
           <span aria-hidden="true">01</span>
           <div>
             <h3 id="finanzas-pedido-titulo">Resumen financiero</h3>
-            <p>Importes registrados por el backend para este pedido.</p>
+            <p>Consulta los importes asociados a este pedido.</p>
           </div>
         </div>
 
@@ -146,9 +146,69 @@
         </dl>
       </section>
 
-      <section class="detalle-pedido__seccion" aria-labelledby="productos-pedido-titulo">
+      <section class="detalle-pedido__cumplimiento" aria-labelledby="cumplimiento-pedido-titulo">
         <div class="detalle-pedido__titulo-seccion">
           <span aria-hidden="true">02</span>
+          <div>
+            <h3 id="cumplimiento-pedido-titulo">Preparacion y entrega</h3>
+            <p>Avanza el pedido cuando cada etapa este realmente completada.</p>
+          </div>
+        </div>
+
+        @if (pedidoActual.estadoPedido === 'RESERVADO') {
+          <p class="detalle-pedido__cumplimiento-ayuda">
+            Confirma que puedes preparar el pedido antes de iniciar esta etapa.
+          </p>
+          <button type="button" class="detalle-pedido__accion-principal" [disabled]="procesandoCumplimiento()" (click)="iniciarPreparacion.emit()">
+            {{ procesandoCumplimiento() ? 'Actualizando…' : 'Iniciar preparación' }}
+          </button>
+        } @else if (pedidoActual.estadoPedido === 'EN_PREPARACION') {
+          @if (pedidoActual.saldoPendiente > 0) {
+            <p class="detalle-pedido__cumplimiento-ayuda">
+              El pedido sigue en preparación. Podrás marcarlo como listo cuando el saldo esté pagado.
+            </p>
+          } @else {
+            <p class="detalle-pedido__cumplimiento-ayuda">
+              El pedido está pagado. Al marcarlo como listo, el cliente recibirá su código de entrega.
+            </p>
+            <button type="button" class="detalle-pedido__accion-principal" [disabled]="procesandoCumplimiento()" (click)="marcarListo.emit()">
+              {{ procesandoCumplimiento() ? 'Actualizando…' : 'Marcar como listo' }}
+            </button>
+          }
+        } @else if (pedidoActual.estadoPedido === 'LISTO') {
+          <p class="detalle-pedido__cumplimiento-ayuda">
+            Solicita el código de seis dígitos que recibió el cliente y confírmalo solo durante la entrega.
+          </p>
+          <div class="detalle-pedido__confirmacion-codigo">
+            <label [for]="'codigo-entrega-' + pedidoActual.idPedido">Código de entrega</label>
+            <div>
+              <input
+                [id]="'codigo-entrega-' + pedidoActual.idPedido"
+                inputmode="numeric"
+                maxlength="6"
+                autocomplete="one-time-code"
+                [value]="codigoEntrega()"
+                (input)="actualizarCodigoEntrega($any($event.target).value)"
+                (keyup.enter)="confirmarEntregaActual()"
+                placeholder="000000"
+              />
+              <button type="button" class="detalle-pedido__accion-principal" [disabled]="procesandoCumplimiento() || codigoEntrega().length !== 6" (click)="confirmarEntregaActual()">
+                {{ procesandoCumplimiento() ? 'Confirmando…' : 'Confirmar entrega' }}
+              </button>
+            </div>
+          </div>
+        } @else if (pedidoActual.estadoPedido === 'ENTREGADO') {
+          <p class="detalle-pedido__cumplimiento-exito">La entrega fue confirmada y el pedido ya forma parte del historial.</p>
+        }
+
+        @if (mensajeCumplimiento()) {
+          <p class="detalle-pedido__cumplimiento-mensaje" role="status" aria-live="polite">{{ mensajeCumplimiento() }}</p>
+        }
+      </section>
+
+      <section class="detalle-pedido__seccion" aria-labelledby="productos-pedido-titulo">
+        <div class="detalle-pedido__titulo-seccion">
+          <span aria-hidden="true">03</span>
           <div>
             <h3 id="productos-pedido-titulo">Productos solicitados</h3>
             <p>
@@ -180,7 +240,7 @@
 
       <section class="detalle-pedido__seccion" aria-labelledby="pagos-pedido-titulo">
         <div class="detalle-pedido__titulo-seccion">
-          <span aria-hidden="true">03</span>
+          <span aria-hidden="true">04</span>
           <div>
             <h3 id="pagos-pedido-titulo">Historial de pagos</h3>
             <p>Movimientos informados por la pasarela de pago.</p>

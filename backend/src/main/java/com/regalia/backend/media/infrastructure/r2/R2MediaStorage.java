@@ -163,6 +163,29 @@ public class R2MediaStorage implements MediaStorage {
         return valor.trim();
     }
 
+    @Override
+    public byte[] leerObjeto(String claveObjeto, long tamanioMaximoBytes) {
+        validarClaveObjeto(claveObjeto);
+        if (tamanioMaximoBytes < 1 || tamanioMaximoBytes > 10_485_760) {
+            throw new IllegalArgumentException("El limite de lectura del objeto no es valido");
+        }
+
+        try {
+            HeadObjectResponse metadata = r2S3Client.headObject(
+                    HeadObjectRequest.builder().bucket(bucket()).key(claveObjeto).build()
+            );
+            if (metadata.contentLength() == null || metadata.contentLength() > tamanioMaximoBytes) {
+                throw new IllegalArgumentException("El objeto supera el limite de lectura permitido");
+            }
+            return r2S3Client.getObjectAsBytes(GetObjectRequest.builder()
+                    .bucket(bucket())
+                    .key(claveObjeto)
+                    .build()).asByteArray();
+        } catch (S3Exception | SdkClientException exception) {
+            throw proveedorNoDisponible(exception);
+        }
+    }
+
     private ServicioExternoNoDisponibleException proveedorNoDisponible(Exception exception) {
         return new ServicioExternoNoDisponibleException(
                 "El almacenamiento de medios no esta disponible en este momento"

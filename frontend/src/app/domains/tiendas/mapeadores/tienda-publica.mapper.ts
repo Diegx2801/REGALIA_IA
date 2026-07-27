@@ -7,8 +7,9 @@ export function mapearTiendaPublicaDesdeDto(dto: TiendaPublicaDto): TiendaPublic
     nombre: dto.nombre?.trim() || 'Tienda REGALIA',
     descripcion: dto.descripcion?.trim() || 'Descripcion pendiente',
     direccionReferencia: dto.direccionReferencia?.trim() || 'Ubicacion pendiente',
-    estadoRevision: dto.estadoRevision?.trim() || 'PENDIENTE',
     tiendaFormalizada: Boolean(dto.tiendaFormalizada),
+    urlLogo: dto.urlLogo?.trim() || null,
+    urlPortada: dto.urlPortada?.trim() || null,
     fechaCreacion: dto.fechaCreacion ?? null,
     rubros: (dto.rubros ?? []).map((rubro) => ({
       idRubro: rubro.idRubro,

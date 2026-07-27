@@ -4,7 +4,7 @@
       <span>Imágenes del producto</span>
       <h3 id="titulo-imagenes-producto">Presenta tu producto</h3>
       <p>Agrega hasta 5 imágenes JPEG, PNG o WebP de máximo 5 MB.</p>
-      <small>Las imágenes se guardan automáticamente.</small>
+      <small>Los cambios en tus imágenes se actualizan al instante.</small>
     </div>
     <label class="gestor-imagenes__accion" [class.gestor-imagenes__accion--bloqueada]="cargando()">
       <input type="file" accept="image/jpeg,image/png,image/webp" multiple [disabled]="cargando()" (change)="seleccionarArchivos($event)" />
@@ -35,7 +35,14 @@
           </div>
           <div class="gestor-imagenes__controles">
             @if (indice > 0) {
-              <button type="button" [disabled]="procesandoId() !== null" (click)="establecerPortada(indice)">Usar como portada</button>
+              <button
+                type="button"
+                [disabled]="procesandoId() !== null"
+                aria-label="Usar esta imagen como portada"
+                (click)="establecerPortada(indice)"
+              >
+                Portada
+              </button>
             }
             <button type="button" [disabled]="indice === 0 || procesandoId() !== null" (click)="mover(indice, -1)">Subir</button>
             <button type="button" [disabled]="indice === imagenes().length - 1 || procesandoId() !== null" (click)="mover(indice, 1)">Bajar</button>

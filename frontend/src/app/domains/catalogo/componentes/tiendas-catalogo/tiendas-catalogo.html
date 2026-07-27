@@ -25,17 +25,23 @@
       tipo="vacio"
       etiqueta="Sin tiendas"
       titulo="No hay tiendas publicas disponibles."
-      descripcion="Cuando el backend publique tiendas aprobadas, apareceran en esta seccion."
+      descripcion="Pronto encontraras nuevos emprendimientos y regalos para descubrir."
     />
   } @else {
     <div class="seller-grid">
       @for (tienda of tiendas(); track identificarTienda($index, tienda)) {
         <article class="seller-card">
           <div class="seller-card__head">
-            <app-insignia-ui
-              [texto]="tienda.tiendaFormalizada ? 'Formalizada' : tienda.estadoRevision"
-              [variante]="tienda.tiendaFormalizada ? 'exito' : 'advertencia'"
-            />
+            <div class="seller-card__identity">
+              @if (tienda.urlLogo) {
+                <img [src]="tienda.urlLogo" [alt]="'Logo de ' + tienda.nombre" />
+              } @else {
+                <span aria-hidden="true">{{ tienda.nombre.slice(0, 1) }}</span>
+              }
+            </div>
+            @if (tienda.tiendaFormalizada) {
+              <app-insignia-ui texto="Tienda formalizada" variante="exito" />
+            }
           </div>
           <span class="seller-card__category">
             {{ tienda.rubros[0]?.nombre ?? 'Tienda REGALIA' }}

@@ -18,6 +18,8 @@ public record TiendaResponse(
         String direccionReferencia,
         String estadoRevision,
         Boolean tiendaFormalizada,
+        String urlLogo,
+        String urlPortada,
         Long idDocumentoFiscal,
         String numeroDocumentoFiscal,
         List<RubroResumen> rubros,

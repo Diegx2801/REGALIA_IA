@@ -16,6 +16,8 @@ import {
   PedidoRecibidoDetalleDto,
   PedidoRecibidoResumenDto,
   CargaImagenProductoDto,
+  CargaImagenTiendaDto,
+  ImagenTiendaVendedorDto,
   ProductoVendedorDto,
   TiendaVendedorDto,
   VendedorPerfilDto,
@@ -25,6 +27,8 @@ import {
   PedidoRecibidoResumen,
   ProductoVendedor,
   ImagenProductoVendedor,
+  ImagenTiendaVendedor,
+  TipoImagenTienda,
   SolicitudProductoVendedor,
   SolicitudTiendaVendedor,
   TiendaVendedor,
@@ -53,6 +57,11 @@ export interface ConsultaPedidosVendedor {
   estado?: EstadoPedidoFiltroVendedor;
   estadoPago?: EstadoPagoFiltroVendedor;
   sort?: OrdenPedidosVendedor;
+}
+
+export interface EstadoCumplimientoPedidoDto {
+  idPedido: number;
+  estadoPedido: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -187,6 +196,57 @@ export class VendedorApiService {
         map((respuesta) => {
           if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo preparar la carga.');
           return respuesta.data;
+        }),
+      );
+  }
+
+  solicitarCargaImagenTienda(
+    idTienda: number,
+    tipoImagen: TipoImagenTienda,
+    archivo: File,
+  ): Observable<CargaImagenTiendaDto> {
+    return this.http
+      .post<RespuestaApi<CargaImagenTiendaDto>>(
+        `${ENDPOINTS_API.vendedores.imagenesTienda(idTienda)}/cargas`,
+        {
+          tipoImagen,
+          nombreArchivo: archivo.name,
+          tipoContenido: archivo.type,
+          tamanioBytes: archivo.size,
+        },
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo preparar la imagen.');
+          return respuesta.data;
+        }),
+      );
+  }
+
+  confirmarCargaImagenTienda(
+    idTienda: number,
+    tipoImagen: TipoImagenTienda,
+    claveTemporal: string,
+  ): Observable<ImagenTiendaVendedor> {
+    return this.http
+      .post<RespuestaApi<ImagenTiendaVendedorDto>>(
+        `${ENDPOINTS_API.vendedores.imagenesTienda(idTienda)}/${tipoImagen}/confirmar`,
+        { claveTemporal },
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          const imagen = respuesta.data;
+          if (!imagen?.urlImagen?.trim()) {
+            throw new Error(respuesta.message ?? 'No se pudo confirmar la imagen.');
+          }
+          return {
+            tipoImagen: imagen.tipoImagen,
+            urlImagen: imagen.urlImagen.trim(),
+            ancho: Number(imagen.ancho ?? 0),
+            alto: Number(imagen.alto ?? 0),
+          };
         }),
       );
   }
@@ -347,5 +407,41 @@ export class VendedorApiService {
           return mapearPedidoRecibidoDetalleDesdeDto(respuesta.data);
         }),
       );
+  }
+
+  iniciarPreparacionPedido(idPedido: number): Observable<EstadoCumplimientoPedidoDto> {
+    return this.ejecutarAccionPedido(ENDPOINTS_API.vendedores.iniciarPreparacionPedido(idPedido));
+  }
+
+  marcarPedidoListo(idPedido: number): Observable<EstadoCumplimientoPedidoDto> {
+    return this.ejecutarAccionPedido(ENDPOINTS_API.vendedores.marcarPedidoListo(idPedido));
+  }
+
+  confirmarEntregaPedido(
+    idPedido: number,
+    codigoEntrega: string,
+  ): Observable<EstadoCumplimientoPedidoDto> {
+    return this.http
+      .post<RespuestaApi<EstadoCumplimientoPedidoDto>>(
+        ENDPOINTS_API.vendedores.confirmarEntregaPedido(idPedido),
+        { codigoEntrega },
+      )
+      .pipe(
+        timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+        map((respuesta) => {
+          if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo confirmar la entrega.');
+          return respuesta.data;
+        }),
+      );
+  }
+
+  private ejecutarAccionPedido(endpoint: string): Observable<EstadoCumplimientoPedidoDto> {
+    return this.http.post<RespuestaApi<EstadoCumplimientoPedidoDto>>(endpoint, {}).pipe(
+      timeout(TIEMPO_ESPERA_VENDEDOR_MS),
+      map((respuesta) => {
+        if (!respuesta.data) throw new Error(respuesta.message ?? 'No se pudo actualizar el pedido.');
+        return respuesta.data;
+      }),
+    );
   }
 }

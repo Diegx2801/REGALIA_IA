@@ -16,6 +16,12 @@ public interface MediaStorage {
     byte[] leerCabecera(String claveObjeto, int cantidadMaximaBytes);
 
     /**
+     * Lee un objeto de tamaño acotado para validar su contenido antes de hacerlo público.
+     * No debe usarse para entregar medios al cliente.
+     */
+    byte[] leerObjeto(String claveObjeto, long tamanioMaximoBytes);
+
+    /**
      * Promueve un objeto temporal a su ubicación pública final.
      *
      * La implementación debe preservar el tipo de contenido y aplicar la política de caché

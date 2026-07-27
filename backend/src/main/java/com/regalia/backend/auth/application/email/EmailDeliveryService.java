@@ -34,4 +34,19 @@ public class EmailDeliveryService {
             LOGGER.error("No se pudo enviar el correo de recuperacion de contrasena a {}", destino, exception);
         }
     }
+
+    @Async("emailTaskExecutor")
+    public void enviarCodigoEntrega(
+            String destino,
+            String nombre,
+            Long idPedido,
+            String nombreTienda,
+            String codigoEntrega
+    ) {
+        try {
+            emailSender.enviarCodigoEntrega(destino, nombre, idPedido, nombreTienda, codigoEntrega);
+        } catch (RuntimeException exception) {
+            LOGGER.error("No se pudo enviar el codigo de entrega del pedido {}", idPedido, exception);
+        }
+    }
 }

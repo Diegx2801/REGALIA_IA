@@ -27,6 +27,8 @@ export interface TiendaVendedorDto {
   direccionReferencia: string | null;
   estadoRevision: string | null;
   tiendaFormalizada: boolean | null;
+  urlLogo: string | null;
+  urlPortada: string | null;
   idDocumentoFiscal: number | null;
   numeroDocumentoFiscal: string | null;
   rubros: RubroTiendaVendedorDto[] | null;
@@ -46,6 +48,17 @@ export interface CargaImagenProductoDto {
   urlCarga: string;
   cabecerasRequeridas: Record<string, string>;
   expiraEn: string;
+}
+
+export interface CargaImagenTiendaDto extends CargaImagenProductoDto {
+  tipoImagen: 'LOGO' | 'PORTADA';
+}
+
+export interface ImagenTiendaVendedorDto {
+  tipoImagen: 'LOGO' | 'PORTADA';
+  urlImagen: string | null;
+  ancho: number | null;
+  alto: number | null;
 }
 
 export interface ProductoVendedorDto {

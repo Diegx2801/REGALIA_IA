@@ -15,6 +15,7 @@ import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/e
 import { GrupoMetricasPanelComponent } from '../../../../shared/ui/grupo-metricas-panel/grupo-metricas-panel';
 import { InsigniaUi, VarianteInsignia } from '../../../../shared/ui/insignia-ui/insignia-ui';
 import { TarjetaMetricaComponent } from '../../../../shared/ui/tarjeta-metrica/tarjeta-metrica';
+import { GestorIdentidadTiendaComponent } from '../../componentes/gestor-identidad-tienda/gestor-identidad-tienda';
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
 import { ProductoVendedor, TiendaVendedor } from '../../modelos/vendedor.model';
 
@@ -49,6 +50,7 @@ interface ProductoInventarioVista {
     BotonDirective,
     EstadoPantallaComponent,
     GrupoMetricasPanelComponent,
+    GestorIdentidadTiendaComponent,
     InsigniaUi,
     TarjetaMetricaComponent,
   ],
@@ -208,6 +210,11 @@ export class PaginaVendedorTienda implements OnInit {
 
     this.store.limpiarMensajes();
     this.store.cargarCentroTienda(idTienda, true);
+  }
+
+  recargarIdentidad(): void {
+    const idTienda = this.idTienda();
+    if (idTienda !== null) this.store.cargarCentroTienda(idTienda, true);
   }
 
   estadoComercial(tienda: TiendaVendedor): string {

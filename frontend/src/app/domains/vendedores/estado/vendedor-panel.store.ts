@@ -536,6 +536,16 @@ export class VendedorPanelStore {
     this.suscripcionDetallePedido = suscripcion.closed ? null : suscripcion;
   }
 
+  /** Sincroniza las vistas de bandeja tras una transicion operativa confirmada. */
+  actualizarEstadoPedido(idPedido: number, estadoPedido: string): void {
+    this.pedidos.update((pedidos) =>
+      pedidos.map((pedido) => (pedido.idPedido === idPedido ? { ...pedido, estadoPedido } : pedido)),
+    );
+    this.pedidosTodos.update((pedidos) =>
+      pedidos.map((pedido) => (pedido.idPedido === idPedido ? { ...pedido, estadoPedido } : pedido)),
+    );
+  }
+
   cargarTiendasParaPedidos(forzar = false): void {
     if (this.contextoCargado && !forzar) {
       this.tiendasPedidosCargadas = true;

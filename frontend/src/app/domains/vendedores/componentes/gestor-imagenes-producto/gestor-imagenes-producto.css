@@ -11,14 +11,14 @@
 .gestor-imagenes__mensaje--error { background:#fff0ef; color:#9a2430; }
 .gestor-imagenes__mensaje--exito { background:#edf8f0; color:#216b3a; }
 .gestor-imagenes__vacio { margin:0; padding:1rem; border-radius:.75rem; background:#f8f1ea; color:#6f6074; }
-.gestor-imagenes__lista { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.75rem; padding:0; margin:0; list-style:none; }
-.gestor-imagenes__lista li { display:grid; grid-template-columns:64px 1fr; gap:.75rem; align-items:center; padding:.75rem; border:1px solid #ead8cc; border-radius:.75rem; cursor:grab; transition:opacity .15s ease,border-color .15s ease,box-shadow .15s ease; }
+.gestor-imagenes__lista { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr)); gap:.75rem; padding:0; margin:0; list-style:none; }
+.gestor-imagenes__lista li { display:grid; min-width:0; grid-template-columns:64px minmax(0,1fr); gap:.75rem; align-items:center; padding:.75rem; border:1px solid #ead8cc; border-radius:.75rem; cursor:grab; transition:opacity .15s ease,border-color .15s ease,box-shadow .15s ease; }
 .gestor-imagenes__lista li:focus-within { border-color:#6b2248; box-shadow:0 0 0 3px rgba(107,34,72,.12); }
 .gestor-imagenes__item--arrastrando { opacity:.55; cursor:grabbing; }
 .gestor-imagenes__lista img { width:64px; height:64px; border-radius:.5rem; object-fit:cover; background:#f8f1ea; }
-.gestor-imagenes__lista strong,.gestor-imagenes__lista span { display:block; }
+.gestor-imagenes__lista strong,.gestor-imagenes__lista span { display:block; min-width:0; }
 .gestor-imagenes__lista span { margin-top:.15rem; font-size:.8rem; color:#6f6074; }
-.gestor-imagenes__controles { grid-column:1/-1; display:flex; gap:.5rem; }
-.gestor-imagenes__controles button { border:0; border-radius:.5rem; padding:.4rem .6rem; background:#f3ebe6; color:#5b1f3f; font-weight:700; cursor:pointer; }
+.gestor-imagenes__controles { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:.5rem; }
+.gestor-imagenes__controles button { flex:1 1 5rem; min-width:0; border:0; border-radius:.5rem; padding:.4rem .6rem; background:#f3ebe6; color:#5b1f3f; font-weight:700; cursor:pointer; overflow-wrap:anywhere; }
 .gestor-imagenes__controles button:disabled { opacity:.5; cursor:not-allowed; }
-@media (max-width: 600px) { .gestor-imagenes__cabecera { flex-direction:column; } .gestor-imagenes__accion { width:100%; } }
+@media (max-width: 600px) { .gestor-imagenes__cabecera { flex-direction:column; } .gestor-imagenes__accion { width:100%; } .gestor-imagenes__controles button { flex-basis:calc(50% - .25rem); } }

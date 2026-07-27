@@ -46,16 +46,26 @@ export const ENDPOINTS_API = {
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos/${idProducto}`,
     imagenesProducto: (idTienda: number, idProducto: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/productos/${idProducto}/imagenes`,
+    imagenesTienda: (idTienda: number) =>
+      `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/imagenes`,
     pedidosRecibidos: `${RUTA_BASE_API}/vendedores/me/pedidos`,
     pedidosPorTienda: (idTienda: number) =>
       `${RUTA_BASE_API}/vendedores/me/tiendas/${idTienda}/pedidos`,
     pedidoRecibidoPorId: (idPedido: number) => `${RUTA_BASE_API}/vendedores/me/pedidos/${idPedido}`,
+    iniciarPreparacionPedido: (idPedido: number) =>
+      `${RUTA_BASE_API}/vendedores/me/pedidos/${idPedido}/preparacion`,
+    marcarPedidoListo: (idPedido: number) =>
+      `${RUTA_BASE_API}/vendedores/me/pedidos/${idPedido}/listo`,
+    confirmarEntregaPedido: (idPedido: number) =>
+      `${RUTA_BASE_API}/vendedores/me/pedidos/${idPedido}/confirmacion-entrega`,
   },
   pedidos: {
     propios: `${RUTA_BASE_API}/pedidos`,
     propioPorId: (idPedido: number) => `${RUTA_BASE_API}/pedidos/${idPedido}`,
     opcionesPagoInicial: `${RUTA_BASE_API}/pedidos/opciones/pago-inicial`,
     confirmar: `${RUTA_BASE_API}/pedidos/confirmar`,
+    reenviarCodigoEntrega: (idPedido: number) =>
+      `${RUTA_BASE_API}/pedidos/${idPedido}/codigo-entrega/reemitir`,
   },
   checkout: {
     sesiones: `${RUTA_BASE_API}/checkout/sessions`,
