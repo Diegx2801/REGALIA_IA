@@ -70,24 +70,24 @@ public class PedidoCumplimientoService {
         }
 
         exigirEstado(pedido, PedidoEntity.ESTADO_EN_PREPARACION, "marcar el pedido como listo");
-        exigirSaldoPagado(pedido);
-
-        String codigoEntrega = generarCodigoEntrega();
-        LocalDateTime ahora = LocalDateTime.now();
-        PedidoCumplimientoEntity cumplimiento = new PedidoCumplimientoEntity();
-        cumplimiento.setPedido(pedido);
-        cumplimiento.setMetodoConfirmacion(PedidoCumplimientoEntity.METODO_CODIGO_ENTREGA);
-        cumplimiento.setCodigoHash(passwordEncoder.encode(codigoEntrega));
-        cumplimiento.setFechaExpiracionCodigo(ahora.plus(VIGENCIA_CODIGO));
-        cumplimiento.setIntentosCodigo(0);
-        cumplimiento.setFechaListo(ahora);
-        cumplimientoRepository.save(cumplimiento);
 
         pedido.setEstadoPedido(PedidoEntity.ESTADO_LISTO);
         pedidoRepository.save(pedido);
-        programarEnvioCodigoEntrega(pedido, codigoEntrega);
+        habilitarCodigoEntregaSiCorresponde(pedido);
 
         return respuesta(pedido);
+    }
+
+    /**
+     * Habilita la entrega solo cuando el pedido ya esta listo y el pago esta
+     * completo. Se invoca tanto al marcar listo como despues del webhook de
+     * pago, evitando estados combinados como LISTO_CON_SALDO.
+     */
+    @Transactional
+    public void habilitarCodigoEntregaSiPedidoListoYPagado(Long idPedido) {
+        PedidoEntity pedido = pedidoRepository.findActivoPorIdParaActualizar(idPedido)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el pedido solicitado"));
+        habilitarCodigoEntregaSiCorresponde(pedido);
     }
 
     @Transactional
@@ -98,6 +98,7 @@ public class PedidoCumplimientoService {
     ) {
         PedidoEntity pedido = obtenerPedidoVendedorParaActualizar(correoVendedor, idPedido);
         exigirEstado(pedido, PedidoEntity.ESTADO_LISTO, "confirmar la entrega");
+        exigirSaldoPagado(pedido);
 
         PedidoCumplimientoEntity cumplimiento = obtenerCumplimientoParaActualizar(idPedido);
         validarCodigoEntrega(cumplimiento, codigoEntrega);
@@ -121,6 +122,7 @@ public class PedidoCumplimientoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el pedido solicitado"));
 
         exigirEstado(pedido, PedidoEntity.ESTADO_LISTO, "solicitar un nuevo codigo de entrega");
+        exigirSaldoPagado(pedido);
         PedidoCumplimientoEntity cumplimiento = obtenerCumplimientoParaActualizar(idPedido);
 
         if (cumplimiento.getFechaConfirmacion() != null) {
@@ -167,14 +169,39 @@ public class PedidoCumplimientoService {
     }
 
     private void exigirSaldoPagado(PedidoEntity pedido) {
+        if (tieneSaldoPendiente(pedido)) {
+            throw new ReglaNegocioException("El cliente debe completar el pago antes de la entrega");
+        }
+    }
+
+    private void habilitarCodigoEntregaSiCorresponde(PedidoEntity pedido) {
+        if (!PedidoEntity.ESTADO_LISTO.equals(pedido.getEstadoPedido()) || tieneSaldoPendiente(pedido)) {
+            return;
+        }
+
+        if (cumplimientoRepository.findByPedidoIdPedidoForUpdate(pedido.getIdPedido()).isPresent()) {
+            return;
+        }
+
+        String codigoEntrega = generarCodigoEntrega();
+        LocalDateTime ahora = LocalDateTime.now();
+        PedidoCumplimientoEntity cumplimiento = new PedidoCumplimientoEntity();
+        cumplimiento.setPedido(pedido);
+        cumplimiento.setMetodoConfirmacion(PedidoCumplimientoEntity.METODO_CODIGO_ENTREGA);
+        cumplimiento.setCodigoHash(passwordEncoder.encode(codigoEntrega));
+        cumplimiento.setFechaExpiracionCodigo(ahora.plus(VIGENCIA_CODIGO));
+        cumplimiento.setIntentosCodigo(0);
+        cumplimiento.setFechaListo(ahora);
+        cumplimientoRepository.save(cumplimiento);
+        programarEnvioCodigoEntrega(pedido, codigoEntrega);
+    }
+
+    private boolean tieneSaldoPendiente(PedidoEntity pedido) {
         BigDecimal montoPagado = pagoRepository.sumarPagosAprobadosPorPedido(pedido.getIdPedido());
         BigDecimal saldoPendiente = pedido.getTotal().subtract(
                 montoPagado == null ? BigDecimal.ZERO : montoPagado
         ).max(BigDecimal.ZERO);
-
-        if (saldoPendiente.signum() > 0) {
-            throw new ReglaNegocioException("El cliente debe completar el pago antes de la entrega");
-        }
+        return saldoPendiente.signum() > 0;
     }
 
     private void validarCodigoEntrega(PedidoCumplimientoEntity cumplimiento, String codigoEntrega) {

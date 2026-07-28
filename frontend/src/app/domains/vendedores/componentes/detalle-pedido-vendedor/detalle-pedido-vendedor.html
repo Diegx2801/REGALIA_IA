@@ -165,8 +165,11 @@
         } @else if (pedidoActual.estadoPedido === 'EN_PREPARACION') {
           @if (pedidoActual.saldoPendiente > 0) {
             <p class="detalle-pedido__cumplimiento-ayuda">
-              El pedido sigue en preparación. Podrás marcarlo como listo cuando el saldo esté pagado.
+              Puedes marcarlo como listo cuando termines de prepararlo. La entrega se habilitará cuando el saldo esté pagado.
             </p>
+            <button type="button" class="detalle-pedido__accion-principal" [disabled]="procesandoCumplimiento()" (click)="marcarListo.emit()">
+              {{ procesandoCumplimiento() ? 'Actualizando…' : 'Marcar como listo' }}
+            </button>
           } @else {
             <p class="detalle-pedido__cumplimiento-ayuda">
               El pedido está pagado. Al marcarlo como listo, el cliente recibirá su código de entrega.
@@ -176,27 +179,33 @@
             </button>
           }
         } @else if (pedidoActual.estadoPedido === 'LISTO') {
-          <p class="detalle-pedido__cumplimiento-ayuda">
-            Solicita el código de seis dígitos que recibió el cliente y confírmalo solo durante la entrega.
-          </p>
-          <div class="detalle-pedido__confirmacion-codigo">
-            <label [for]="'codigo-entrega-' + pedidoActual.idPedido">Código de entrega</label>
-            <div>
-              <input
-                [id]="'codigo-entrega-' + pedidoActual.idPedido"
-                inputmode="numeric"
-                maxlength="6"
-                autocomplete="one-time-code"
-                [value]="codigoEntrega()"
-                (input)="actualizarCodigoEntrega($any($event.target).value)"
-                (keyup.enter)="confirmarEntregaActual()"
-                placeholder="000000"
-              />
-              <button type="button" class="detalle-pedido__accion-principal" [disabled]="procesandoCumplimiento() || codigoEntrega().length !== 6" (click)="confirmarEntregaActual()">
-                {{ procesandoCumplimiento() ? 'Confirmando…' : 'Confirmar entrega' }}
-              </button>
+          @if (pedidoActual.saldoPendiente > 0) {
+            <p class="detalle-pedido__cumplimiento-ayuda">
+              El pedido está listo. Espera el pago completo antes de entregarlo al cliente.
+            </p>
+          } @else {
+            <p class="detalle-pedido__cumplimiento-ayuda">
+              Solicita el código de seis dígitos que recibió el cliente y confírmalo solo durante la entrega.
+            </p>
+            <div class="detalle-pedido__confirmacion-codigo">
+              <label [for]="'codigo-entrega-' + pedidoActual.idPedido">Código de entrega</label>
+              <div>
+                <input
+                  [id]="'codigo-entrega-' + pedidoActual.idPedido"
+                  inputmode="numeric"
+                  maxlength="6"
+                  autocomplete="one-time-code"
+                  [value]="codigoEntrega()"
+                  (input)="actualizarCodigoEntrega($any($event.target).value)"
+                  (keyup.enter)="confirmarEntregaActual()"
+                  placeholder="000000"
+                />
+                <button type="button" class="detalle-pedido__accion-principal" [disabled]="procesandoCumplimiento() || codigoEntrega().length !== 6" (click)="confirmarEntregaActual()">
+                  {{ procesandoCumplimiento() ? 'Confirmando…' : 'Confirmar entrega' }}
+                </button>
+              </div>
             </div>
-          </div>
+          }
         } @else if (pedidoActual.estadoPedido === 'ENTREGADO') {
           <p class="detalle-pedido__cumplimiento-exito">La entrega fue confirmada y el pedido ya forma parte del historial.</p>
         }
@@ -243,7 +252,7 @@
           <span aria-hidden="true">04</span>
           <div>
             <h3 id="pagos-pedido-titulo">Historial de pagos</h3>
-            <p>Movimientos informados por la pasarela de pago.</p>
+            <p>Pagos registrados para este pedido.</p>
           </div>
         </div>
 
@@ -268,7 +277,7 @@
                     [variante]="presentacionEstadoPago(pago).variante"
                   />
                 </div>
-                <small>{{ pago.metodoPagoPasarela }} · {{ pago.codigoTransaccion }}</small>
+                <small>Pago registrado en REGALIA</small>
                 @if (pago.fechaCreacion) {
                   <time [attr.datetime]="pago.fechaCreacion">
                     {{ pago.fechaCreacion | date: 'dd/MM/yyyy, HH:mm' }}

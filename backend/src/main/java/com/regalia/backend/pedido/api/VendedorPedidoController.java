@@ -90,7 +90,10 @@ public class VendedorPedidoController {
         return ResponseEntity.ok(ApiResponse.success(pedido));
     }
 
-    /** Marca un pedido totalmente pagado como listo y envia el codigo al cliente. */
+    /**
+     * Marca el pedido preparado como listo. El codigo se emite solo cuando el
+     * pago este completo, ya sea ahora o despues de la confirmacion de pago.
+     */
     @PostMapping("/pedidos/{idPedido}/listo")
     public ResponseEntity<ApiResponse<EstadoCumplimientoPedidoResponse>> marcarListo(
             @PathVariable Long idPedido,

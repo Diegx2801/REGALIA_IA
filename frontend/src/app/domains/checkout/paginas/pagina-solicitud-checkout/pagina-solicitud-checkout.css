@@ -27,7 +27,6 @@
 .checkout-progress,
 .solicitud-checkout__formulario,
 .checkout-summary,
-.checkout-confirmation,
 .solicitud-checkout__estado {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(234, 219, 208, 0.96);
@@ -46,7 +45,6 @@
 .checkout-hero > div:first-child > span,
 .solicitud-checkout__cabecera > span,
 .checkout-summary__header > span,
-.checkout-confirmation > div > span,
 .solicitud-checkout__estado small {
   color: var(--rg-color-accent);
   font-size: 0.72rem;
@@ -67,7 +65,6 @@
 .solicitud-checkout__cabecera p,
 .checkout-login p,
 .checkout-summary__trust p,
-.checkout-confirmation p,
 .solicitud-checkout__estado p {
   color: var(--rg-color-muted);
   line-height: 1.55;
@@ -152,7 +149,6 @@
 
 .solicitud-checkout__cabecera h2,
 .checkout-summary h2,
-.checkout-confirmation h2,
 .solicitud-checkout__estado h1 {
   color: var(--rg-color-ink);
   letter-spacing: -0.04em;
@@ -445,32 +441,6 @@
   font-size: 0.78rem;
 }
 
-.checkout-confirmation {
-  align-items: center;
-  border-color: rgba(47, 123, 98, 0.28);
-  display: flex;
-  gap: 1.25rem;
-  justify-content: space-between;
-  padding: 1rem 1.15rem;
-}
-
-.checkout-confirmation:focus {
-  outline: 3px solid var(--rg-focus-ring);
-  outline-offset: 2px;
-}
-
-.checkout-confirmation h2 {
-  font-size: 1.25rem;
-  margin: 0.2rem 0 0.35rem;
-}
-
-.checkout-confirmation__actions {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
 .solicitud-checkout__estado {
   align-items: center;
   display: flex;
@@ -514,7 +484,6 @@
   }
 
   .checkout-hero,
-  .checkout-confirmation,
   .checkout-login {
     align-items: stretch;
     display: grid;
@@ -551,11 +520,6 @@
     padding: 0.85rem;
   }
 
-  .checkout-confirmation__actions {
-    display: grid;
-  }
-
-  .checkout-confirmation__actions > *,
   .checkout-login .rg-boton {
     width: 100%;
   }

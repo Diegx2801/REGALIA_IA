@@ -28,7 +28,7 @@ import { TipoEntregaApiService } from '../../../datos-maestros/acceso-datos/tipo
 import { TipoEntrega } from '../../../datos-maestros/modelos/tipo-entrega.model';
 import { CheckoutApiService } from '../../acceso-datos/checkout-api.service';
 import { ItemCarrito } from '../../../../core/carrito/carrito.model';
-import { OpcionPagoInicial, ResultadoCheckout } from '../../modelos/checkout.model';
+import { OpcionPagoInicial } from '../../modelos/checkout.model';
 import { CarritoCheckoutService } from '../../../../core/carrito/carrito-checkout.service';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import {
@@ -68,7 +68,6 @@ export class PaginaSolicitudCheckout implements OnInit {
   readonly cargandoDatos = signal(true);
   readonly enviandoSolicitud = signal(false);
   readonly mensajeError = signal<string | null>(null);
-  readonly resultadoCheckout = signal<ResultadoCheckout | null>(null);
   readonly cantidadSeleccionada = signal(1);
   readonly usaCarrito = signal(false);
   readonly fechaMinimaEntrega = this.obtenerFechaMinimaEntrega();
@@ -133,17 +132,16 @@ export class PaginaSolicitudCheckout implements OnInit {
     this.cargarDatosIniciales();
   }
 
-  prepararCheckout(): void {
+  continuarAlPago(): void {
     this.mensajeError.set(null);
-    this.resultadoCheckout.set(null);
 
     if (this.requiereLogin()) {
-      this.mensajeError.set('Inicia sesión como cliente para preparar el pago de tu solicitud.');
+      this.mensajeError.set('Inicia sesión como cliente para continuar con tu compra.');
       return;
     }
 
     if (this.requiereRolCliente()) {
-      this.mensajeError.set('El checkout está disponible únicamente para cuentas de cliente.');
+      this.mensajeError.set('Necesitas una cuenta de cliente para continuar con tu compra.');
       return;
     }
 
@@ -154,7 +152,7 @@ export class PaginaSolicitudCheckout implements OnInit {
 
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
-      this.mensajeError.set('Revisa los campos señalados antes de continuar al pago.');
+      this.mensajeError.set('Revisa los campos señalados antes de continuar.');
       this.enfocarPrimerCampoInvalido();
       return;
     }
@@ -163,18 +161,18 @@ export class PaginaSolicitudCheckout implements OnInit {
     const valorFormulario = this.formulario.getRawValue();
 
     if (items.length === 0 || valorFormulario.idTipoEntrega === null) {
-      this.mensajeError.set('Faltan productos o datos de entrega para preparar el checkout.');
+      this.mensajeError.set('Completa los productos y datos de entrega para continuar.');
       return;
     }
 
     if (!this.todosLosItemsSonDeLaMismaTienda(items)) {
-      this.mensajeError.set('El checkout solo puede prepararse con productos de una misma tienda.');
+      this.mensajeError.set('Para esta compra, elige productos de una sola tienda.');
       return;
     }
 
     this.enviandoSolicitud.set(true);
 
-    // El backend calcula montos, valida stock y prepara la pasarela; el frontend envia la intencion.
+    // El servidor crea una sesión de pago después de validar la compra.
     this.checkoutApiService
       .crearSesionCheckout({
         proveedor: 'MERCADO_PAGO',
@@ -194,16 +192,14 @@ export class PaginaSolicitudCheckout implements OnInit {
       )
       .subscribe({
         next: (resultado) => {
-          this.resultadoCheckout.set(resultado);
-          queueMicrotask(() => this.documento.getElementById('checkout-confirmacion')?.focus());
+          if (!resultado.urlRedireccion) {
+            this.mensajeError.set('No pudimos abrir el pago seguro. Inténtalo nuevamente.');
+            return;
+          }
+          window.location.assign(resultado.urlRedireccion);
         },
         error: (error: unknown) => this.mensajeError.set(this.obtenerMensajeErrorCheckout(error)),
       });
-  }
-
-  editarSolicitud(): void {
-    this.resultadoCheckout.set(null);
-    queueMicrotask(() => this.documento.getElementById('checkout-entrega')?.focus());
   }
 
   campoTieneError(campo: keyof typeof this.formulario.controls): boolean {
@@ -372,7 +368,7 @@ export class PaginaSolicitudCheckout implements OnInit {
   }
 
   private obtenerMensajeErrorCheckout(error: unknown): string {
-    return obtenerMensajeErrorUsuario(error, 'No pudimos preparar la solicitud de checkout.');
+    return obtenerMensajeErrorUsuario(error, 'No pudimos preparar tu compra. Inténtalo nuevamente.');
   }
 }
 

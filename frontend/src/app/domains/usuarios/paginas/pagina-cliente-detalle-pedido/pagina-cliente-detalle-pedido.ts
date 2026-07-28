@@ -62,7 +62,10 @@ export class PaginaClienteDetallePedido implements OnInit {
   });
 
   readonly puedeReenviarCodigoEntrega = computed(
-    () => this.store.pedidoDetalle()?.estadoPedido === 'LISTO',
+    () => {
+      const pedido = this.store.pedidoDetalle();
+      return Boolean(pedido?.estadoPedido === 'LISTO' && pedido.saldoPendiente <= 0);
+    },
   );
 
   readonly porcentajePagado = computed(() => {
@@ -124,10 +127,13 @@ export class PaginaClienteDetallePedido implements OnInit {
       };
     }
     if (pedido.estadoPedido === 'LISTO') {
+      const tieneSaldoPendiente = pedido.saldoPendiente > 0;
       return {
-        variante: 'advertencia',
-        titulo: 'Tu regalo está listo',
-        descripcion: `La entrega continuará mediante: ${pedido.tipoEntrega}.`,
+        variante: tieneSaldoPendiente ? 'advertencia' : 'informativa',
+        titulo: tieneSaldoPendiente ? 'Tu regalo está listo' : 'Tu entrega está lista para coordinarse',
+        descripcion: tieneSaldoPendiente
+          ? 'Completa el saldo pendiente para habilitar la entrega.'
+          : `La entrega continuará mediante: ${pedido.tipoEntrega}.`,
       };
     }
     if (pedido.estadoPedido === 'EN_PREPARACION') {
