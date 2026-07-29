@@ -68,17 +68,13 @@
           @if (!usuario.estado) {
             La cuenta no puede ingresar a REGALIA hasta que un administrador la reactive.
           } @else if (!usuario.correoVerificado) {
-            El usuario conserva el acceso permitido por el backend, pero aún debe verificar su
-            correo.
+            La cuenta conserva el acceso mientras completa la verificación de su correo.
           } @else {
             No hay alertas de acceso con la información disponible para esta cuenta.
           }
         </p>
       </div>
       <div class="detalle-admin__acciones-contextuales" aria-label="Acciones de la cuenta">
-        <a appBoton="secundario" appBotonTamano="sm" [href]="'mailto:' + usuario.correo">
-          Contactar
-        </a>
         <button
           [appBoton]="usuario.estado ? 'peligro' : 'secundario'"
           appBotonTamano="sm"
@@ -123,9 +119,6 @@
         [titulo]="usuario.correo"
         [descripcion]="usuario.telefono || 'Sin teléfono registrado'"
       >
-        <a appBoton="secundario" appBotonTamano="sm" [href]="'mailto:' + usuario.correo">
-          Enviar correo
-        </a>
       </app-tarjeta-informativa>
 
       <app-tarjeta-informativa
@@ -136,7 +129,7 @@
         [descripcion]="
           usuario.correoVerificado
             ? 'El correo principal fue confirmado por el usuario.'
-            : 'El backend todavía no registra la confirmación del correo principal.'
+            : 'El correo principal aún está pendiente de confirmación.'
         "
       >
         <dl class="detalle-admin__datos">
@@ -214,8 +207,7 @@
         </h3>
         <p>
           @if (!vendedor.estado) {
-            El perfil no está operativo. La API administrativa actual permite consultar su estado,
-            pero no modificarlo desde este módulo.
+            El perfil está inactivo. Su estado se consulta desde este espacio.
           } @else if (!vendedor.verificado) {
             La verificación se obtiene de la documentación de identidad registrada por el vendedor.
           } @else {
@@ -224,11 +216,13 @@
         </p>
       </div>
       <div class="detalle-admin__acciones-contextuales" aria-label="Acciones del vendedor">
-        <a appBoton="secundario" appBotonTamano="sm" [href]="'mailto:' + vendedor.correo">
-          Contactar
-        </a>
-        <a appBoton="secundario" appBotonTamano="sm" routerLink="/admin/tiendas">
-          Revisar tiendas
+        <a
+          appBoton="secundario"
+          appBotonTamano="sm"
+          routerLink="/admin/tiendas"
+          [queryParams]="{ campo: 'correo_vendedor', buscar: vendedor.correo }"
+        >
+          Ver tiendas
         </a>
       </div>
     </article>
@@ -269,8 +263,13 @@
             <dd>{{ vendedor.tiendasTotales - vendedor.tiendasActivas }}</dd>
           </div>
         </dl>
-        <a appBoton="secundario" appBotonTamano="sm" routerLink="/admin/tiendas">
-          Revisar tiendas
+        <a
+          appBoton="secundario"
+          appBotonTamano="sm"
+          routerLink="/admin/tiendas"
+          [queryParams]="{ campo: 'correo_vendedor', buscar: vendedor.correo }"
+        >
+          Ver tiendas
         </a>
       </app-tarjeta-informativa>
 
@@ -465,7 +464,7 @@
           tipo="vacio"
           etiqueta="Catálogo no público"
           titulo="La tienda todavía no tiene un catálogo público consultable"
-          descripcion="El backend publica sus productos cuando la tienda está activa y aprobada."
+          descripcion="Los productos se muestran cuando la tienda está activa y aprobada."
         />
       } @else if (cargandoCatalogoTienda()) {
         <app-estado-pantalla
@@ -516,7 +515,7 @@
           tipo="vacio"
           etiqueta="Catálogo vacío"
           titulo="Esta tienda no tiene productos públicos"
-          descripcion="No se muestran productos inactivos ni ocultos según el contrato del backend."
+          descripcion="Solo se muestran los productos disponibles para clientes."
         />
       }
     </article>
@@ -611,7 +610,7 @@
       <app-tarjeta-informativa
         etiqueta="Pago"
         [titulo]="(pedido.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2') ?? 'S/ 0.00'"
-        descripcion="Resumen financiero registrado por el backend."
+        descripcion="Resumen de pagos asociados al pedido."
       >
         <dl class="detalle-admin__datos">
           <div>

@@ -1,6 +1,8 @@
 package com.regalia.backend.usuariodocumento.infrastructure.repository;
 
 import com.regalia.backend.usuariodocumento.infrastructure.entity.UsuarioDocumentoEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,6 +28,32 @@ public interface UsuarioDocumentoJpaRepository extends JpaRepository<UsuarioDocu
 
     List<UsuarioDocumentoEntity> findByEstadoVerificacionIgnoreCaseOrderByIdUsuarioDocumentoAsc(
             String estadoVerificacion
+    );
+
+    @Query("""
+            SELECT ud
+            FROM UsuarioDocumentoEntity ud
+            JOIN ud.usuario usuario
+            JOIN ud.tipoDocumento tipoDocumento
+            WHERE (:estadoVerificacion IS NULL OR UPPER(ud.estadoVerificacion) = UPPER(:estadoVerificacion))
+              AND (
+                    :busqueda IS NULL OR :busqueda = ''
+                    OR (:campoBusqueda = 'TODOS' AND (
+                        LOWER(CONCAT(usuario.nombre, ' ', usuario.apellido)) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                        OR LOWER(usuario.correo) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                        OR LOWER(ud.numeroDocumento) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                        OR LOWER(tipoDocumento.abreviatura) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                    ))
+                    OR (:campoBusqueda = 'NOMBRE' AND LOWER(CONCAT(usuario.nombre, ' ', usuario.apellido)) LIKE LOWER(CONCAT('%', :busqueda, '%')))
+                    OR (:campoBusqueda = 'CORREO' AND LOWER(usuario.correo) LIKE LOWER(CONCAT('%', :busqueda, '%')))
+                    OR (:campoBusqueda = 'DOCUMENTO' AND LOWER(ud.numeroDocumento) LIKE LOWER(CONCAT('%', :busqueda, '%')))
+              )
+            """)
+    Page<UsuarioDocumentoEntity> buscarParaRevision(
+            @Param("estadoVerificacion") String estadoVerificacion,
+            @Param("campoBusqueda") String campoBusqueda,
+            @Param("busqueda") String busqueda,
+            Pageable pageable
     );
 
     Optional<UsuarioDocumentoEntity> findByIdUsuarioDocumentoAndEstadoTrue(Long idUsuarioDocumento);

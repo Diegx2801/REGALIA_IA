@@ -3,6 +3,7 @@ package com.regalia.backend.usuariodocumento.application;
 import com.regalia.backend.shared.exception.RecursoDuplicadoException;
 import com.regalia.backend.shared.exception.RecursoNoEncontradoException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.tipodocumento.infrastructure.entity.TipoDocumentoEntity;
 import com.regalia.backend.tipodocumento.infrastructure.repository.TipoDocumentoJpaRepository;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
@@ -16,10 +17,15 @@ import com.regalia.backend.usuariodocumento.infrastructure.entity.UsuarioDocumen
 import com.regalia.backend.usuariodocumento.infrastructure.mapper.UsuarioDocumentoMapper;
 import com.regalia.backend.usuariodocumento.infrastructure.repository.UsuarioDocumentoJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Servicio de aplicación para gestionar solicitudes de verificación de documentos.
@@ -27,6 +33,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UsuarioDocumentoService {
+
+    private static final int TAMANIO_PAGINA_MAXIMO = 50;
+    private static final Set<String> CAMPOS_BUSQUEDA_ADMINISTRATIVA = Set.of(
+            "TODOS", "NOMBRE", "CORREO", "DOCUMENTO"
+    );
+    private static final Set<String> CAMPOS_ORDEN_ADMINISTRATIVO = Set.of(
+            "idUsuarioDocumento", "fechaCreacion", "estadoVerificacion", "numeroDocumento"
+    );
 
     private final UsuarioDocumentoJpaRepository usuarioDocumentoRepository;
     private final UsuarioJpaRepository usuarioRepository;
@@ -93,20 +107,36 @@ public class UsuarioDocumentoService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminUsuarioDocumentoResponse> listarDocumentosParaRevision(String estadoVerificacion) {
-        List<UsuarioDocumentoEntity> documentos;
+    public PaginaResponse<AdminUsuarioDocumentoResponse> listarDocumentosParaRevision(
+            String estadoVerificacion,
+            String campoBusqueda,
+            String busqueda,
+            Integer pagina,
+            Integer tamanio,
+            String orden
+    ) {
+        String estadoNormalizado = estadoVerificacion == null || estadoVerificacion.isBlank()
+                ? null
+                : normalizarEstadoVerificacion(estadoVerificacion);
+        String campoNormalizado = normalizarCampoBusquedaAdministrativa(campoBusqueda);
+        String busquedaNormalizada = busqueda == null ? "" : busqueda.trim();
+        Pageable pageable = crearPaginacionAdministrativa(pagina, tamanio, orden);
 
-        if (estadoVerificacion == null || estadoVerificacion.isBlank()) {
-            documentos = usuarioDocumentoRepository.findAllByOrderByIdUsuarioDocumentoAsc();
-        } else {
-            String estadoNormalizado = normalizarEstadoVerificacion(estadoVerificacion);
-            documentos = usuarioDocumentoRepository
-                    .findByEstadoVerificacionIgnoreCaseOrderByIdUsuarioDocumentoAsc(estadoNormalizado);
-        }
+        Page<UsuarioDocumentoEntity> documentos = usuarioDocumentoRepository.buscarParaRevision(
+                estadoNormalizado,
+                campoNormalizado,
+                busquedaNormalizada,
+                pageable
+        );
 
-        return documentos.stream()
-                .map(usuarioDocumentoMapper::toAdminResponse)
-                .toList();
+        return new PaginaResponse<>(
+                documentos.getContent().stream().map(usuarioDocumentoMapper::toAdminResponse).toList(),
+                documentos.getNumber(),
+                documentos.getSize(),
+                documentos.getTotalElements(),
+                documentos.getTotalPages(),
+                documentos.isLast()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -289,5 +319,42 @@ public class UsuarioDocumentoService {
         }
 
         return estadoNormalizado;
+    }
+
+    private String normalizarCampoBusquedaAdministrativa(String campoBusqueda) {
+        String campoNormalizado = campoBusqueda == null || campoBusqueda.isBlank()
+                ? "TODOS"
+                : campoBusqueda.trim().toUpperCase();
+
+        if (!CAMPOS_BUSQUEDA_ADMINISTRATIVA.contains(campoNormalizado)) {
+            throw new ReglaNegocioException("El campo de busqueda documental no es valido");
+        }
+
+        return campoNormalizado;
+    }
+
+    private Pageable crearPaginacionAdministrativa(Integer pagina, Integer tamanio, String orden) {
+        int paginaNormalizada = pagina == null ? 0 : pagina;
+        int tamanioNormalizado = tamanio == null ? 10 : tamanio;
+
+        if (paginaNormalizada < 0) {
+            throw new ReglaNegocioException("La pagina no puede ser negativa");
+        }
+        if (tamanioNormalizado < 1 || tamanioNormalizado > TAMANIO_PAGINA_MAXIMO) {
+            throw new ReglaNegocioException("El tamanio maximo permitido por pagina es " + TAMANIO_PAGINA_MAXIMO);
+        }
+
+        String[] partesOrden = (orden == null || orden.isBlank() ? "fechaCreacion,desc" : orden)
+                .split(",", 2);
+        String campo = partesOrden[0].trim();
+        Sort.Direction direccion = partesOrden.length == 2 && "asc".equalsIgnoreCase(partesOrden[1].trim())
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        if (!CAMPOS_ORDEN_ADMINISTRATIVO.contains(campo)) {
+            throw new ReglaNegocioException("El campo de ordenamiento documental no es valido");
+        }
+
+        return PageRequest.of(paginaNormalizada, tamanioNormalizado, Sort.by(direccion, campo));
     }
 }

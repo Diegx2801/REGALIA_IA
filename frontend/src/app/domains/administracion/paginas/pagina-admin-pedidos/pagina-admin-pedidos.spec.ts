@@ -25,7 +25,7 @@ describe('PaginaAdminPedidos', () => {
 
     expect(adminApi.obtenerPedidos).toHaveBeenCalledWith({
       page: 0,
-      size: 10,
+      size: 20,
       estadoPago: undefined,
       estadoPedido: undefined,
       idTienda: undefined,
@@ -49,7 +49,6 @@ describe('PaginaAdminPedidos', () => {
       fechaDesde: '2026-07-01',
       fechaHasta: '2026-07-20',
       orden: 'saldoPendiente,desc',
-      tamanioPagina: 20,
     });
 
     fixture.componentInstance.aplicarFiltros();
@@ -122,7 +121,6 @@ function crearPagina(contenido: PedidoAdministracion[]) {
   return {
     contenido,
     paginaActual: 0,
-    tamanioPagina: 10,
     totalElementos: contenido.length,
     totalPaginas: contenido.length > 0 ? 1 : 0,
     ultimaPagina: true,

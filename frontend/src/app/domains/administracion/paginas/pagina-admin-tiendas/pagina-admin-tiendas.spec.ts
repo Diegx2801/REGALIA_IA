@@ -9,17 +9,11 @@ describe('PaginaAdminTiendas', () => {
   let fixture: ComponentFixture<PaginaAdminTiendas>;
   let adminApi: {
     obtenerTiendas: ReturnType<typeof vi.fn>;
-    aprobarTienda: ReturnType<typeof vi.fn>;
-    observarTienda: ReturnType<typeof vi.fn>;
-    rechazarTienda: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
     adminApi = {
       obtenerTiendas: vi.fn(() => of(crearPagina([crearTienda()]))),
-      aprobarTienda: vi.fn(() => of(crearTienda({ estadoRevision: 'APROBADA' }))),
-      observarTienda: vi.fn(() => of(crearTienda({ estadoRevision: 'OBSERVADA' }))),
-      rechazarTienda: vi.fn(() => of(crearTienda({ estadoRevision: 'RECHAZADA' }))),
     };
 
     TestBed.configureTestingModule({
@@ -38,7 +32,7 @@ describe('PaginaAdminTiendas', () => {
 
     expect(adminApi.obtenerTiendas).toHaveBeenCalledWith({
       page: 0,
-      size: 10,
+      size: 20,
       estadoRevision: undefined,
       searchField: 'nombre',
       search: '',
@@ -54,7 +48,6 @@ describe('PaginaAdminTiendas', () => {
       campoBusqueda: 'correo_vendedor',
       busqueda: '  vendedor@regalia.pe  ',
       orden: 'nombreVendedor,asc',
-      tamanioPagina: 20,
     });
 
     fixture.componentInstance.aplicarFiltros();
@@ -81,26 +74,6 @@ describe('PaginaAdminTiendas', () => {
     );
   });
 
-  it('no rechaza una tienda cuando se cancela la confirmación', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
-    await fixture.whenStable();
-
-    fixture.componentInstance.rechazarTienda(crearTienda());
-
-    expect(adminApi.rechazarTienda).not.toHaveBeenCalled();
-  });
-
-  it('aprueba una tienda, informa el resultado y actualiza la consulta', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    await fixture.whenStable();
-
-    fixture.componentInstance.aprobarTienda(crearTienda());
-    await fixture.whenStable();
-
-    expect(adminApi.aprobarTienda).toHaveBeenCalledWith(9);
-    expect(adminApi.obtenerTiendas).toHaveBeenCalledTimes(2);
-    expect(fixture.componentInstance.mensajeExito()).toContain('ahora está aprobada');
-  });
 });
 
 function crearTienda(cambios: Partial<TiendaAdministracion> = {}): TiendaAdministracion {
@@ -129,7 +102,6 @@ function crearPagina(contenido: TiendaAdministracion[]) {
   return {
     contenido,
     paginaActual: 0,
-    tamanioPagina: 10,
     totalElementos: contenido.length,
     totalPaginas: contenido.length > 0 ? 1 : 0,
     ultimaPagina: true,

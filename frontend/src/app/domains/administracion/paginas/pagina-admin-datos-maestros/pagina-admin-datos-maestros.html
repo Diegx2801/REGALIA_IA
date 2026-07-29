@@ -26,14 +26,14 @@
       tipo="carga"
       etiqueta="Sincronización"
       titulo="Consultando datos maestros"
-      descripcion="Estamos reuniendo los cinco catálogos administrativos desde el backend."
+      descripcion="Estamos preparando los catálogos administrativos."
     />
   } @else if (mensajeError() && !cargaCompletada()) {
     <app-estado-pantalla
       tipo="error"
       etiqueta="Configuración no disponible"
       [titulo]="mensajeError() ?? 'No pudimos cargar datos maestros.'"
-      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
+      descripcion="Vuelve a intentarlo en unos instantes."
       textoAccion="Reintentar"
       (accion)="cargarDatosMaestros()"
     />
@@ -200,8 +200,8 @@
           </svg>
           <p>
             <strong>Códigos protegidos por reglas de negocio</strong>
-            El backend permite actualizar el nombre y la descripción, pero no crear ni cambiar el
-            estado de los tipos de pago.
+            Los tipos de pago conservan su código y estado; aquí solo se actualizan su nombre y
+            descripción.
           </p>
         </div>
       } @else if (tipoSeleccionado() === 'TIPO_DOCUMENTO' && categoriasDocumento().length === 0) {

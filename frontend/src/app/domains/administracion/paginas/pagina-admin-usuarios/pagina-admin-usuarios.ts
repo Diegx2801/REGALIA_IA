@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Observable, of, switchMap } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
@@ -26,6 +26,12 @@ import {
   PanelAdministracionApiService,
 } from '../../acceso-datos/panel-administracion-api.service';
 import { UsuarioAdministracion } from '../../modelos/panel-administracion.model';
+import {
+  enteroDesdeUrl,
+  parametrosDeConsulta,
+  textoDesdeUrl,
+  valorPermitidoDesdeUrl,
+} from '../../utilidades/consulta-admin-url.util';
 
 type CampoBusquedaUsuario = NonNullable<ConsultaUsuariosAdmin['searchField']>;
 type OrdenUsuarios = NonNullable<ConsultaUsuariosAdmin['sort']>;
@@ -48,8 +54,11 @@ type OrdenUsuarios = NonNullable<ConsultaUsuariosAdmin['sort']>;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaAdminUsuarios implements OnInit {
+  private static readonly TAMANIO_PAGINA = 20;
   private readonly adminApi = inject(PanelAdministracionApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   readonly usuarios = signal<UsuarioAdministracion[]>([]);
   readonly totalUsuarios = signal(0);
@@ -78,11 +87,13 @@ export class PaginaAdminUsuarios implements OnInit {
     campoBusqueda: new FormControl<CampoBusquedaUsuario>('correo', { nonNullable: true }),
     busqueda: new FormControl('', { nonNullable: true }),
     orden: new FormControl<OrdenUsuarios>('fechaCreacion,desc', { nonNullable: true }),
-    tamanioPagina: new FormControl<10 | 20 | 50>(10, { nonNullable: true }),
   });
 
   ngOnInit(): void {
-    this.cargarUsuarios();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
+      this.aplicarParametrosUrl(parametros);
+      this.cargarUsuarios();
+    });
   }
 
   cargarUsuarios(): void {
@@ -105,9 +116,8 @@ export class PaginaAdminUsuarios implements OnInit {
   }
 
   aplicarFiltros(): void {
-    this.paginaActual.set(0);
     this.limpiarMensajesAccion();
-    this.cargarUsuarios();
+    this.actualizarUrlConsulta(0);
   }
 
   limpiarFiltros(): void {
@@ -116,21 +126,18 @@ export class PaginaAdminUsuarios implements OnInit {
       campoBusqueda: 'correo',
       busqueda: '',
       orden: 'fechaCreacion,desc',
-      tamanioPagina: 10,
     });
-    this.aplicarFiltros();
+    this.actualizarUrlConsulta(0);
   }
 
   paginaAnterior(): void {
     if (this.paginaActual() === 0 || this.cargando()) return;
-    this.paginaActual.update((pagina) => pagina - 1);
-    this.cargarUsuarios();
+    this.actualizarUrlConsulta(this.paginaActual() - 1);
   }
 
   paginaSiguiente(): void {
     if (this.paginaActual() + 1 >= this.totalPaginas() || this.cargando()) return;
-    this.paginaActual.update((pagina) => pagina + 1);
-    this.cargarUsuarios();
+    this.actualizarUrlConsulta(this.paginaActual() + 1);
   }
 
   cambiarEstadoUsuario(usuario: UsuarioAdministracion): void {
@@ -189,12 +196,55 @@ export class PaginaAdminUsuarios implements OnInit {
     const filtros = this.formularioFiltros.getRawValue();
     return {
       page: this.paginaActual(),
-      size: filtros.tamanioPagina,
+      size: PaginaAdminUsuarios.TAMANIO_PAGINA,
       estado: filtros.estado,
       searchField: filtros.campoBusqueda,
       search: filtros.busqueda,
       sort: filtros.orden,
     };
+  }
+
+  private aplicarParametrosUrl(parametros: import('@angular/router').ParamMap): void {
+    const estado = valorPermitidoDesdeUrl(parametros, 'estado', 'ACTIVO', [
+      'ACTIVO',
+      'INACTIVO',
+      'TODOS',
+    ] as const);
+    const campoBusqueda = valorPermitidoDesdeUrl(parametros, 'campo', 'correo', [
+      'nombre',
+      'correo',
+      'telefono',
+      'id_usuario',
+    ] as const);
+    const orden = valorPermitidoDesdeUrl(parametros, 'orden', 'fechaCreacion,desc', [
+      'idUsuario,asc', 'idUsuario,desc', 'nombre,asc', 'nombre,desc', 'correo,asc', 'correo,desc',
+      'fechaCreacion,asc', 'fechaCreacion,desc',
+    ] as const);
+    this.paginaActual.set(enteroDesdeUrl(parametros, 'pagina', 0));
+    this.formularioFiltros.patchValue({
+      estado,
+      campoBusqueda,
+      busqueda: textoDesdeUrl(parametros, 'buscar', ''),
+      orden,
+    }, { emitEvent: false });
+  }
+
+  private actualizarUrlConsulta(pagina: number): void {
+    const filtros = this.formularioFiltros.getRawValue();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: parametrosDeConsulta(
+        {
+          estado: filtros.estado,
+          campo: filtros.campoBusqueda,
+          buscar: filtros.busqueda.trim(),
+          orden: filtros.orden,
+          pagina,
+        },
+        { estado: 'ACTIVO', campo: 'correo', buscar: '', orden: 'fechaCreacion,desc', pagina: 0 },
+      ),
+      replaceUrl: true,
+    });
   }
 
   private actualizarPagina(pagina: RespuestaPaginada<UsuarioAdministracion>): void {

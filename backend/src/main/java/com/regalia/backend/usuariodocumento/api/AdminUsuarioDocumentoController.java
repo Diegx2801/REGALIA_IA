@@ -1,13 +1,12 @@
 package com.regalia.backend.usuariodocumento.api;
 
 import com.regalia.backend.shared.response.ApiResponse;
+import com.regalia.backend.shared.response.PaginaResponse;
 import com.regalia.backend.usuariodocumento.api.dto.AdminUsuarioDocumentoResponse;
 import com.regalia.backend.usuariodocumento.application.UsuarioDocumentoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Controlador REST administrativo para revisar solicitudes de verificación de documentos.
@@ -21,11 +20,23 @@ public class AdminUsuarioDocumentoController {
     private final UsuarioDocumentoService usuarioDocumentoService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminUsuarioDocumentoResponse>>> listarDocumentosParaRevision(
-            @RequestParam(required = false) String estadoVerificacion
+    public ResponseEntity<ApiResponse<PaginaResponse<AdminUsuarioDocumentoResponse>>> listarDocumentosParaRevision(
+            @RequestParam(required = false) String estadoVerificacion,
+            @RequestParam(required = false) String campoBusqueda,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "fechaCreacion,desc") String sort
     ) {
-        List<AdminUsuarioDocumentoResponse> documentos = usuarioDocumentoService
-                .listarDocumentosParaRevision(estadoVerificacion);
+        PaginaResponse<AdminUsuarioDocumentoResponse> documentos = usuarioDocumentoService
+                .listarDocumentosParaRevision(
+                        estadoVerificacion,
+                        campoBusqueda,
+                        busqueda,
+                        page,
+                        size,
+                        sort
+                );
 
         return ResponseEntity.ok(
                 ApiResponse.success(documentos)

@@ -81,7 +81,6 @@ describe('PaginaAdminUsuarios', () => {
       campoBusqueda: 'nombre',
       busqueda: '  María  ',
       orden: 'nombre,asc',
-      tamanioPagina: 20,
     });
     fixture.componentInstance.aplicarFiltros();
     await fixture.whenStable();
@@ -129,7 +128,6 @@ function crearPagina(contenido: UsuarioAdministracion[]) {
   return {
     contenido,
     paginaActual: 0,
-    tamanioPagina: 12,
     totalElementos: contenido.length,
     totalPaginas: contenido.length > 0 ? 1 : 0,
     ultimaPagina: true,

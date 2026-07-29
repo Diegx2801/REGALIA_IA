@@ -5,17 +5,18 @@
       <h2 id="admin-documents-title">Revisión documental</h2>
       <p>Evalúa solicitudes reales y conserva trazabilidad del estado comunicado al usuario.</p>
     </div>
-    <strong>{{ pendientes() }} pendiente(s)</strong>
+    <strong>{{ totalDocumentos() }} resultado(s)</strong>
   </header>
 
   <form
     class="admin-documents__filters"
     aria-label="Filtros documentales"
-    (submit)="$event.preventDefault()"
+    [formGroup]="formularioFiltros"
+    (ngSubmit)="aplicarFiltros()"
   >
     <label>
       <span>Estado</span>
-      <select [ngModel]="estado()" (ngModelChange)="actualizarEstado($event)" name="estado">
+      <select formControlName="estado">
         <option value="TODOS">Todos</option>
         <option value="PENDIENTE">Pendientes</option>
         <option value="OBSERVADO">Observados</option>
@@ -23,18 +24,35 @@
         <option value="RECHAZADO">Rechazados</option>
       </select>
     </label>
+    <label>
+      <span>Buscar por</span>
+      <select formControlName="campoBusqueda">
+        <option value="TODOS">Todos los datos</option>
+        <option value="NOMBRE">Nombre</option>
+        <option value="CORREO">Correo</option>
+        <option value="DOCUMENTO">Documento</option>
+      </select>
+    </label>
     <label class="admin-documents__search">
       <span>Buscar</span>
       <input
         type="search"
-        [ngModel]="busqueda()"
-        (ngModelChange)="actualizarBusqueda($event)"
-        name="busqueda"
+        formControlName="busqueda"
         placeholder="Usuario, correo o documento"
         autocomplete="off"
       />
     </label>
-    <button type="button" (click)="cargarDocumentos()" [disabled]="cargando()">Actualizar</button>
+    <label>
+      <span>Ordenar</span>
+      <select formControlName="orden">
+        <option value="fechaCreacion,desc">Más recientes</option>
+        <option value="fechaCreacion,asc">Más antiguos</option>
+        <option value="numeroDocumento,asc">Documento A-Z</option>
+        <option value="numeroDocumento,desc">Documento Z-A</option>
+      </select>
+    </label>
+    <button type="submit" [disabled]="cargando()">Aplicar filtros</button>
+    <button type="button" (click)="limpiarFiltros()" [disabled]="cargando()">Limpiar</button>
   </form>
 
   @if (mensajeExito()) {
@@ -50,7 +68,7 @@
       etiqueta="Documentos"
       titulo="Consultando solicitudes documentales"
     />
-  } @else if (documentosFiltrados().length === 0) {
+  } @else if (documentos().length === 0) {
     <app-estado-pantalla
       tipo="vacio"
       etiqueta="Sin resultados"
@@ -60,7 +78,7 @@
   } @else {
     <div class="admin-documents__layout">
       <div class="admin-documents__list" aria-label="Solicitudes documentales">
-        @for (documento of documentosFiltrados(); track documento.idDocumento) {
+        @for (documento of documentos(); track documento.idDocumento) {
           <article
             [class.is-selected]="documentoSeleccionado()?.idDocumento === documento.idDocumento"
           >
@@ -157,5 +175,11 @@
         }
       </aside>
     </div>
+    <app-paginacion-panel
+      [paginaActual]="paginaActual()"
+      [totalPaginas]="totalPaginas()"
+      (anterior)="paginaAnterior()"
+      (siguiente)="paginaSiguiente()"
+    />
   }
 </section>

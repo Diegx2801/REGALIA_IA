@@ -4,8 +4,8 @@
       <span>Operación comercial</span>
       <h2 id="titulo-tiendas">Gestión de tiendas</h2>
       <p>
-        Revisa altas comerciales, documentación y estado de publicación desde una vista conectada al
-        backend real de REGALIA.
+        Revisa altas comerciales, documentación y estado de publicación desde una vista centralizada
+        de REGALIA.
       </p>
     </div>
     <div class="admin-tiendas__hero-sello" aria-label="Centro de moderación de tiendas">
@@ -67,14 +67,6 @@
         <option value="nombreVendedor,asc">Vendedor A–Z</option>
       </select>
     </label>
-    <label>
-      Por página
-      <select formControlName="tamanioPagina">
-        <option [ngValue]="10">10</option>
-        <option [ngValue]="20">20</option>
-        <option [ngValue]="50">50</option>
-      </select>
-    </label>
     <div class="admin-tiendas__acciones-filtros">
       <button type="submit" [disabled]="cargando()">
         {{ cargando() ? 'Consultando…' : 'Aplicar filtros' }}
@@ -102,36 +94,20 @@
       tipo="error"
       etiqueta="Directorio no disponible"
       [titulo]="mensajeErrorCarga() ?? 'No pudimos cargar las tiendas.'"
-      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
+      descripcion="Vuelve a intentarlo en unos instantes."
       textoAccion="Reintentar"
       (accion)="cargarTiendas()"
     />
   } @else {
-    <div class="admin-tiendas__mensajes" aria-live="polite">
-      @if (mensajeExito()) {
-        <app-estado-pantalla
-          tipo="exito"
-          etiqueta="Estado actualizado"
-          [titulo]="mensajeExito() ?? ''"
-        />
-      }
-      @if (mensajeErrorAccion()) {
-        <app-estado-pantalla
-          tipo="error"
-          etiqueta="Moderación no completada"
-          [titulo]="mensajeErrorAccion() ?? ''"
-        />
-      }
-      @if (mensajeErrorCarga()) {
-        <app-estado-pantalla
-          tipo="error"
-          etiqueta="Consulta no actualizada"
-          [titulo]="mensajeErrorCarga() ?? ''"
-          textoAccion="Reintentar"
-          (accion)="cargarTiendas(true)"
-        />
-      }
-    </div>
+    @if (mensajeErrorCarga()) {
+      <app-estado-pantalla
+        tipo="error"
+        etiqueta="Consulta no actualizada"
+        [titulo]="mensajeErrorCarga() ?? ''"
+        textoAccion="Reintentar"
+        (accion)="cargarTiendas()"
+      />
+    }
 
     <app-grupo-metricas-panel ariaEtiqueta="Resumen de tiendas filtradas">
       <app-tarjeta-metrica
@@ -237,46 +213,10 @@
                         appBoton="fantasma"
                         appBotonTamano="sm"
                         [routerLink]="['/admin/tiendas', tienda.idTienda]"
-                        [attr.aria-label]="'Revisar detalle de ' + tienda.nombre"
+                        [attr.aria-label]="'Abrir revisión de ' + tienda.nombre"
                       >
-                        Revisar
+                        Abrir revisión
                       </a>
-                      @if (tienda.estadoRevision !== 'APROBADA') {
-                        <button
-                          appBoton
-                          appBotonTamano="sm"
-                          type="button"
-                          [appBotonCargando]="estaProcesando(tienda, 'aprobar')"
-                          [disabled]="tiendaEnProceso() !== null"
-                          (click)="aprobarTienda(tienda)"
-                        >
-                          Aprobar
-                        </button>
-                      }
-                      @if (tienda.estadoRevision !== 'OBSERVADA') {
-                        <button
-                          appBoton="secundario"
-                          appBotonTamano="sm"
-                          type="button"
-                          [appBotonCargando]="estaProcesando(tienda, 'observar')"
-                          [disabled]="tiendaEnProceso() !== null"
-                          (click)="observarTienda(tienda)"
-                        >
-                          Observar
-                        </button>
-                      }
-                      @if (tienda.estadoRevision !== 'RECHAZADA') {
-                        <button
-                          appBoton="peligro"
-                          appBotonTamano="sm"
-                          type="button"
-                          [appBotonCargando]="estaProcesando(tienda, 'rechazar')"
-                          [disabled]="tiendaEnProceso() !== null"
-                          (click)="rechazarTienda(tienda)"
-                        >
-                          Rechazar
-                        </button>
-                      }
                     </div>
                   </td>
                 </tr>
@@ -321,46 +261,10 @@
                   appBoton="fantasma"
                   appBotonTamano="sm"
                   [routerLink]="['/admin/tiendas', tienda.idTienda]"
-                  [attr.aria-label]="'Revisar detalle de ' + tienda.nombre"
+                  [attr.aria-label]="'Abrir revisión de ' + tienda.nombre"
                 >
-                  Ver detalle
+                  Abrir revisión
                 </a>
-                @if (tienda.estadoRevision !== 'APROBADA') {
-                  <button
-                    appBoton
-                    appBotonTamano="sm"
-                    type="button"
-                    [appBotonCargando]="estaProcesando(tienda, 'aprobar')"
-                    [disabled]="tiendaEnProceso() !== null"
-                    (click)="aprobarTienda(tienda)"
-                  >
-                    Aprobar
-                  </button>
-                }
-                @if (tienda.estadoRevision !== 'OBSERVADA') {
-                  <button
-                    appBoton="secundario"
-                    appBotonTamano="sm"
-                    type="button"
-                    [appBotonCargando]="estaProcesando(tienda, 'observar')"
-                    [disabled]="tiendaEnProceso() !== null"
-                    (click)="observarTienda(tienda)"
-                  >
-                    Observar
-                  </button>
-                }
-                @if (tienda.estadoRevision !== 'RECHAZADA') {
-                  <button
-                    appBoton="peligro"
-                    appBotonTamano="sm"
-                    type="button"
-                    [appBotonCargando]="estaProcesando(tienda, 'rechazar')"
-                    [disabled]="tiendaEnProceso() !== null"
-                    (click)="rechazarTienda(tienda)"
-                  >
-                    Rechazar
-                  </button>
-                }
               </div>
             </article>
           }
