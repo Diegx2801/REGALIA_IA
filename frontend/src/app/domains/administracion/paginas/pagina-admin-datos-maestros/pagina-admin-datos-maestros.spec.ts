@@ -7,32 +7,10 @@ import { PaginaAdminDatosMaestros } from './pagina-admin-datos-maestros';
 describe('PaginaAdminDatosMaestros', () => {
   let fixture: ComponentFixture<PaginaAdminDatosMaestros>;
   let component: PaginaAdminDatosMaestros;
-  let api: {
-    obtenerDatosMaestros: ReturnType<typeof vi.fn>;
-    guardarDatoMaestro: ReturnType<typeof vi.fn>;
-    cambiarEstadoDatoMaestro: ReturnType<typeof vi.fn>;
-  };
+  const api = { obtenerDatosMaestros: vi.fn().mockReturnValue(of(DATOS_MAESTROS)) };
 
   beforeEach(() => {
-    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
-      configurable: true,
-      value(this: HTMLDialogElement) {
-        this.setAttribute('open', '');
-      },
-    });
-    Object.defineProperty(HTMLDialogElement.prototype, 'close', {
-      configurable: true,
-      value(this: HTMLDialogElement) {
-        this.removeAttribute('open');
-      },
-    });
-
-    api = {
-      obtenerDatosMaestros: vi.fn().mockReturnValue(of(DATOS_MAESTROS)),
-      guardarDatoMaestro: vi.fn().mockReturnValue(of(DATOS_MAESTROS[0])),
-      cambiarEstadoDatoMaestro: vi.fn().mockReturnValue(of(undefined)),
-    };
-
+    api.obtenerDatosMaestros.mockClear();
     TestBed.configureTestingModule({
       providers: [{ provide: DatosMaestrosAdminApiService, useValue: api }],
     });
@@ -40,58 +18,23 @@ describe('PaginaAdminDatosMaestros', () => {
     component = fixture.componentInstance;
   });
 
-  it('presenta los catálogos reales y el directorio responsive', async () => {
+  it('muestra catalogos de solo consulta', async () => {
     await fixture.whenStable();
 
     const contenido = fixture.nativeElement.textContent as string;
     expect(api.obtenerDatosMaestros).toHaveBeenCalledOnce();
+    expect(contenido).toContain('Configuracion del marketplace');
     expect(contenido).toContain('Rubros');
-    expect(contenido).toContain('Tipos de pago');
-    expect(contenido).toContain('Regalos personalizados');
-    expect(fixture.nativeElement.querySelector('.admin-datos__tabla')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.admin-datos__tarjetas')).not.toBeNull();
-  });
-
-  it('filtra el catálogo seleccionado por texto y estado', async () => {
-    await fixture.whenStable();
-    component.formularioFiltros.setValue({ busqueda: 'corporativos', estado: 'INACTIVOS' });
-
-    component.aplicarFiltros();
-    await fixture.whenStable();
-
-    expect(component.datosFiltrados().map((dato) => dato.nombre)).toEqual(['Regalos corporativos']);
-    expect(fixture.nativeElement.textContent).toContain('Regalos corporativos');
-    expect(fixture.nativeElement.textContent).not.toContain('Regalos personalizados');
-  });
-
-  it('respeta las restricciones reales de tipos de pago', async () => {
-    await fixture.whenStable();
-
-    component.seleccionarTipo('TIPO_PAGO');
-    await fixture.whenStable();
-
-    const contenido = fixture.nativeElement.textContent as string;
-    expect(component.puedeCrearSeleccionado()).toBe(false);
-    expect(contenido).toContain('Códigos protegidos por reglas de negocio');
     expect(contenido).not.toContain('Nuevo registro');
   });
 
-  it('solicita confirmación accesible antes de desactivar', async () => {
+  it('cambia el catalogo visible sin mutar datos', async () => {
     await fixture.whenStable();
-    const rubro = DATOS_MAESTROS[0];
-
-    component.solicitarCambioEstado(rubro);
+    component.seleccionarTipo('TIPO_PAGO');
     await fixture.whenStable();
 
-    expect(api.cambiarEstadoDatoMaestro).not.toHaveBeenCalled();
-    expect(component.datoPendienteEstado()).toBe(rubro);
-    expect(fixture.nativeElement.textContent).toContain('¿Desactivar “Regalos personalizados”?');
-
-    component.confirmarCambioEstado();
-    await fixture.whenStable();
-
-    expect(api.cambiarEstadoDatoMaestro).toHaveBeenCalledWith(rubro);
-    expect(component.datoPendienteEstado()).toBeNull();
+    expect(component.datosDeCategoria().map((dato) => dato.nombre)).toEqual(['Pago completo']);
+    expect(fixture.nativeElement.textContent).toContain('Pago completo');
   });
 });
 
@@ -114,7 +57,7 @@ function crearDato(cambios: Partial<DatoMaestroAdmin> & Pick<DatoMaestroAdmin, '
     tipo: cambios.tipo ?? 'RUBRO',
     categoria: cambios.categoria ?? 'Rubros',
     nombre: cambios.nombre,
-    descripcion: cambios.descripcion ?? 'Clasificación operativa',
+    descripcion: cambios.descripcion ?? 'Clasificacion operativa',
     estado: cambios.estado ?? true,
     codigo: cambios.codigo ?? null,
     abreviatura: cambios.abreviatura ?? null,

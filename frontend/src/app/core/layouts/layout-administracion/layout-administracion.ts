@@ -57,7 +57,7 @@ export class LayoutAdministracion {
       patronesActivos: [/^\/admin\/pedidos(?:\/[^/]+)?$/],
     },
     {
-      etiqueta: 'Datos maestros',
+      etiqueta: 'Configuracion',
       ruta: '/admin/datos-maestros',
       descripcion: 'Catálogos base de la plataforma',
       icono: 'datos',
