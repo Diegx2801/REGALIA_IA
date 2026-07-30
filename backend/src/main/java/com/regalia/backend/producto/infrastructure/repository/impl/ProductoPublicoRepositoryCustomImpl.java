@@ -91,6 +91,12 @@ public class ProductoPublicoRepositoryCustomImpl implements ProductoPublicoRepos
                  AND p.stock > 0
                  AND t.estado = true
                  AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
+                 AND EXISTS (
+                     SELECT 1
+                     FROM ProductoImagenEntity pi
+                     WHERE pi.producto = p
+                     AND pi.estado = true
+                 )
                 """);
         parametros.put("estadoRevision", estadoRevision);
 
@@ -148,6 +154,12 @@ public class ProductoPublicoRepositoryCustomImpl implements ProductoPublicoRepos
                  AND p.visibleEnTienda = true
                  AND t.estado = true
                  AND UPPER(t.estadoRevision) = UPPER(:estadoRevision)
+                 AND EXISTS (
+                     SELECT 1
+                     FROM ProductoImagenEntity pi
+                     WHERE pi.producto = p
+                     AND pi.estado = true
+                 )
                 """);
         parametros.put("estadoRevision", estadoRevision);
 

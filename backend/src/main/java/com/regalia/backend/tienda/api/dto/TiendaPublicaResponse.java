@@ -13,8 +13,9 @@ public record TiendaPublicaResponse(
         String nombre,
         String descripcion,
         String direccionReferencia,
-        String estadoRevision,
         Boolean tiendaFormalizada,
+        String urlLogo,
+        String urlPortada,
         List<RubroResumen> rubros
 ) {
 

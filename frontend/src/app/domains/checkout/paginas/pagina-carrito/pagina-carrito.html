@@ -13,11 +13,24 @@
     </header>
 
     <nav class="checkout-steps" aria-label="Progreso del checkout">
-      <span class="checkout-steps__item checkout-steps__item--active" aria-current="step">
+      <span
+        class="checkout-steps__item"
+        [class.checkout-steps__item--active]="!vieneDeCheckout()"
+        [class.checkout-steps__item--done]="vieneDeCheckout()"
+        [attr.aria-current]="!vieneDeCheckout() ? 'step' : null"
+      >
         <b>1</b> Carrito
       </span>
-      <span class="checkout-steps__item"><b>2</b> Entrega y pago</span>
-      <span class="checkout-steps__item"><b>3</b> Confirmación</span>
+      <span class="checkout-steps__item" [class.checkout-steps__item--done]="vieneDeCheckout()">
+        <b>2</b> Entrega y pago
+      </span>
+      <span
+        class="checkout-steps__item"
+        [class.checkout-steps__item--active]="vieneDeCheckout()"
+        [attr.aria-current]="vieneDeCheckout() ? 'step' : null"
+      >
+        <b>3</b> Confirmación
+      </span>
     </nav>
 
     @if (vieneDeCheckout()) {
@@ -32,7 +45,7 @@
         @switch (estadoPago()) {
           @case ('success') {
             <h2>Pago aprobado</h2>
-            <p>La pasarela aceptó el pago. Puedes consultar el pedido y su seguimiento.</p>
+            <p>Tu compra fue confirmada. Consulta el pedido y su seguimiento cuando quieras.</p>
           }
           @case ('failure') {
             <h2>El pago no se completó</h2>
@@ -40,7 +53,7 @@
           }
           @case ('pending') {
             <h2>Pago pendiente de confirmación</h2>
-            <p>Actualizaremos el pedido cuando la pasarela confirme el resultado.</p>
+            <p>Actualizaremos el pedido cuando recibamos la confirmación del pago.</p>
           }
           @default {
             <h2>Revisa el estado de tu operación</h2>
@@ -49,7 +62,7 @@
         }
         <div class="cart-result__actions">
           <a class="cart-button cart-button--primary" routerLink="/cliente/pedidos">Ver mis pedidos</a>
-          <a class="cart-button cart-button--secondary" routerLink="/catalogo">Volver al catálogo</a>
+          <a class="cart-button cart-button--secondary" routerLink="/catalogo">Seguir comprando</a>
         </div>
       </section>
     }
@@ -171,7 +184,7 @@
           @if (cantidadTiendas() > 1) {
             <div class="cart-summary__notice" role="alert">
               <strong>Hay productos de {{ cantidadTiendas() }} tiendas</strong>
-              <span>El backend prepara un checkout por tienda. Deja productos de una sola tienda para continuar.</span>
+              <span>Por ahora, cada compra se realiza con productos de una sola tienda.</span>
             </div>
           }
 
@@ -198,7 +211,7 @@
 
           <div class="cart-confirmation">
             <strong>Compra protegida por REGALIA</strong>
-            <p>No se genera un pedido hasta que la pasarela confirme el pago inicial.</p>
+            <p>Tu pedido se confirmará cuando se apruebe el pago inicial.</p>
           </div>
         </aside>
       </section>

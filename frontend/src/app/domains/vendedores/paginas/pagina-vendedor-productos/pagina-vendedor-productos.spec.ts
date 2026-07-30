@@ -1,12 +1,15 @@
+import { Location } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { VendedorApiService } from '../../acceso-datos/vendedor-api.service';
+import { CargaImagenProductoService } from '../../acceso-datos/carga-imagen-producto.service';
 import { VendedorPanelStore } from '../../estado/vendedor-panel.store';
 import { confirmarCambiosProductoGuard } from '../../guards/confirmar-cambios-producto.guard';
 import {
+  ImagenProductoVendedor,
   ProductoVendedor,
   SolicitudProductoVendedor,
   TiendaVendedor,
@@ -34,9 +37,13 @@ describe('PaginaVendedorProductos', () => {
     cargarContexto: ReturnType<typeof vi.fn>;
     limpiarMensajes: ReturnType<typeof vi.fn>;
     guardarProducto: ReturnType<typeof vi.fn>;
+    actualizarImagenesProducto: ReturnType<typeof vi.fn>;
   };
   let vendedorApiMock: {
     obtenerProductoPorId: ReturnType<typeof vi.fn>;
+  };
+  let cargaImagenProductoMock: {
+    cargarArchivo: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -60,15 +67,20 @@ describe('PaginaVendedorProductos', () => {
         mensajeExito.set(null);
       }),
       guardarProducto: vi.fn(),
+      actualizarImagenesProducto: vi.fn(),
     };
     vendedorApiMock = {
       obtenerProductoPorId: vi.fn(() => of(crearProducto())),
+    };
+    cargaImagenProductoMock = {
+      cargarArchivo: vi.fn(),
     };
 
     TestBed.configureTestingModule({
       providers: [
         { provide: VendedorPanelStore, useValue: storeMock },
         { provide: VendedorApiService, useValue: vendedorApiMock },
+        { provide: CargaImagenProductoService, useValue: cargaImagenProductoMock },
         provideRouter([
           {
             path: 'vendedor/tiendas/:idTienda/productos/nuevo',
@@ -134,7 +146,7 @@ describe('PaginaVendedorProductos', () => {
     );
   });
 
-  it('crea el producto y cambia a edición antes de permitir cargar imágenes', async () => {
+  it('crea el producto y cambia a edición sin navegación visible', async () => {
     const pagina = await abrirPagina('/vendedor/tiendas/10/productos/nuevo');
     completarFormularioValido(pagina);
 
@@ -160,7 +172,65 @@ describe('PaginaVendedorProductos', () => {
     alCompletar(crearProducto({ idProducto: 88 }));
     await harness.fixture.whenStable();
 
-    expect(TestBed.inject(Router).url).toBe('/vendedor/tiendas/10/productos/88/editar');
+    expect(pagina.esEdicion()).toBe(true);
+    expect(pagina.idProducto()).toBe(88);
+    expect(TestBed.inject(Location).path()).toBe('/vendedor/tiendas/10/productos/88/editar');
+  });
+
+  it('inicia la carga de imágenes locales después de crear, aunque cambie el estado del formulario', async () => {
+    const pagina = await abrirPagina('/vendedor/tiendas/10/productos/nuevo');
+    const imagenConfirmada: ImagenProductoVendedor = {
+      idProductoImagen: 501,
+      urlImagen: 'https://cdn.regalia.test/producto.webp',
+      orden: 1,
+    };
+    completarFormularioValido(pagina);
+    pagina.imagenesPendientes.set([
+      {
+        idLocal: 'imagen-local-1',
+        archivo: new File(['imagen'], 'flores.webp', { type: 'image/webp' }),
+        urlVistaPrevia: 'blob:imagen-local-1',
+      },
+    ]);
+    cargaImagenProductoMock.cargarArchivo.mockReturnValue(of(imagenConfirmada));
+
+    pagina.guardarProducto();
+    pagina.formularioProducto.controls.nombre.markAsTouched();
+    const alCompletar = storeMock.guardarProducto.mock.calls[0][3] as (
+      producto: ProductoVendedor,
+    ) => void;
+    alCompletar(crearProducto({ idProducto: 88 }));
+    await harness.fixture.whenStable();
+
+    expect(cargaImagenProductoMock.cargarArchivo).toHaveBeenCalledWith(
+      10,
+      88,
+      expect.objectContaining({ name: 'flores.webp', type: 'image/webp' }),
+    );
+    expect(pagina.imagenesPendientes()).toEqual([]);
+    expect(pagina.imagenesProducto()).toEqual([imagenConfirmada]);
+  });
+
+  it('conserva el orden de portada elegido antes de crear el producto', async () => {
+    const pagina = await abrirPagina('/vendedor/tiendas/10/productos/nuevo');
+    const primera = {
+      idLocal: 'imagen-local-1',
+      archivo: new File(['uno'], 'uno.webp', { type: 'image/webp' }),
+      urlVistaPrevia: 'blob:imagen-local-1',
+    };
+    const portada = {
+      idLocal: 'imagen-local-2',
+      archivo: new File(['dos'], 'dos.webp', { type: 'image/webp' }),
+      urlVistaPrevia: 'blob:imagen-local-2',
+    };
+
+    pagina.imagenesPendientes.set([primera, portada]);
+    pagina.actualizarOrdenImagenesPendientes([portada, primera]);
+
+    expect(pagina.imagenesPendientes().map((imagen) => imagen.idLocal)).toEqual([
+      'imagen-local-2',
+      'imagen-local-1',
+    ]);
   });
 
   it('precarga las imágenes confirmadas al editar', async () => {
@@ -318,6 +388,8 @@ function crearTienda(): TiendaVendedor {
     direccionReferencia: 'Lima',
     estadoRevision: 'APROBADA',
     formalizada: true,
+    urlLogo: null,
+    urlPortada: null,
     idDocumentoFiscal: 1,
     rubros: [{ idRubro: 1, nombre: 'Regalos' }],
     estado: true,

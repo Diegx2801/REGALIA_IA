@@ -20,6 +20,8 @@ export interface TiendaVendedor {
   direccionReferencia: string;
   estadoRevision: string;
   formalizada: boolean;
+  urlLogo: string | null;
+  urlPortada: string | null;
   idDocumentoFiscal: number | null;
   rubros: RubroTiendaVendedor[];
   estado: boolean;
@@ -29,6 +31,15 @@ export interface ImagenProductoVendedor {
   idProductoImagen: number;
   urlImagen: string;
   orden: number;
+}
+
+export type TipoImagenTienda = 'LOGO' | 'PORTADA';
+
+export interface ImagenTiendaVendedor {
+  tipoImagen: TipoImagenTienda;
+  urlImagen: string;
+  ancho: number;
+  alto: number;
 }
 
 export interface ProductoVendedor {

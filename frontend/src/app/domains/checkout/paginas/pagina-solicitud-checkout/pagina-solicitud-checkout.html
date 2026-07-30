@@ -21,9 +21,9 @@
     } @else if (itemsSolicitud().length > 0) {
       <header class="checkout-hero">
         <div>
-          <span>Checkout REGALIA</span>
+          <span>Tu compra en REGALIA</span>
           <h1>Completa la entrega y revisa tu pago</h1>
-          <p>El backend validará stock, monto y disponibilidad antes de enviarte a la pasarela.</p>
+          <p>Revisaremos disponibilidad, fecha e importe antes de abrir el pago seguro.</p>
         </div>
         <div class="checkout-hero__security">
           <strong>Pago protegido</strong>
@@ -37,47 +37,11 @@
         <span><b>3</b> Confirmación</span>
       </nav>
 
-      @if (resultadoCheckout(); as resultado) {
-        <section
-          id="checkout-confirmacion"
-          class="checkout-confirmation"
-          role="status"
-          aria-live="polite"
-          tabindex="-1"
-        >
-          <div>
-            <span>Checkout preparado</span>
-            <h2>Tu solicitud está lista para continuar</h2>
-            <p>
-              REGALIA validó el monto inicial de
-              <strong>{{
-                resultado.monto | currency: resultado.moneda : 'symbol-narrow' : '1.2-2'
-              }}</strong
-              >. El pedido se confirmará cuando la pasarela apruebe el pago.
-            </p>
-          </div>
-          <div class="checkout-confirmation__actions">
-            @if (resultado.urlRedireccion) {
-              <a
-                appBoton
-                [href]="resultado.urlRedireccion"
-                target="_blank"
-                rel="noopener noreferrer"
-                >Continuar al pago <span class="sr-only">(se abre en una pestaña nueva)</span></a
-              >
-            }
-            <button appBoton="secundario" type="button" (click)="editarSolicitud()">
-              Revisar datos
-            </button>
-          </div>
-        </section>
-      }
-
       <section class="solicitud-checkout__layout">
         <form
           class="solicitud-checkout__formulario"
           [formGroup]="formulario"
-          (ngSubmit)="prepararCheckout()"
+          (ngSubmit)="continuarAlPago()"
           novalidate
         >
           <header class="solicitud-checkout__cabecera">
@@ -187,7 +151,7 @@
                   <span>
                     <strong>{{ opcion.nombre }}</strong>
                     <small>{{
-                      opcion.descripcion || 'El backend calculará el importe correspondiente.'
+                      opcion.descripcion || 'Verás el importe correspondiente antes de continuar.'
                     }}</small>
                   </span>
                 </label>
@@ -291,17 +255,15 @@
             appBotonBloque
             [appBotonCargando]="enviandoSolicitud()"
             type="submit"
-            [disabled]="enviandoSolicitud() || checkoutBloqueado() || !!resultadoCheckout()"
+            [disabled]="enviandoSolicitud() || checkoutBloqueado()"
           >
             @if (enviandoSolicitud()) {
-              Validando y preparando pago…
-            } @else if (resultadoCheckout()) {
-              Checkout preparado
+              Abriendo pago seguro…
             } @else {
-              Validar y preparar pago
+              Continuar al pago seguro
             }
           </button>
-          <p class="checkout-submit-help">No se realizará ningún cobro al presionar este botón.</p>
+          <p class="checkout-submit-help">Serás dirigido a un pago seguro para completar tu compra.</p>
         </form>
 
         <aside class="checkout-summary" aria-labelledby="checkout-summary-title">
@@ -349,8 +311,8 @@
           </dl>
 
           <div class="checkout-summary__trust">
-            <strong>Validación antes del cobro</strong>
-            <p>El backend vuelve a comprobar stock, tienda, importe y condiciones de entrega.</p>
+            <strong>Compra segura</strong>
+            <p>Confirmaremos los datos de tu compra antes de abrir el pago.</p>
           </div>
         </aside>
       </section>

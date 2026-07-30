@@ -5,7 +5,7 @@
       <h2 id="titulo-vendedores">Gestión de vendedores</h2>
       <p>
         Supervisa perfiles comerciales, validación de identidad y cobertura de tiendas desde un
-        directorio conectado al backend real.
+        directorio comercial de REGALIA.
       </p>
     </div>
     <div class="admin-vendedores__hero-sello" aria-label="Entorno de supervisión comercial">
@@ -71,14 +71,6 @@
         <option value="idVendedor,desc">ID descendente</option>
       </select>
     </label>
-    <label>
-      Por página
-      <select formControlName="tamanioPagina">
-        <option [ngValue]="10">10</option>
-        <option [ngValue]="20">20</option>
-        <option [ngValue]="50">50</option>
-      </select>
-    </label>
     <div class="admin-vendedores__acciones-filtros">
       <button type="submit" [disabled]="cargando()">
         {{ cargando() ? 'Consultando…' : 'Aplicar filtros' }}
@@ -106,7 +98,7 @@
       tipo="error"
       etiqueta="Directorio no disponible"
       [titulo]="mensajeError() ?? 'No pudimos cargar vendedores.'"
-      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
+      descripcion="Vuelve a intentarlo en unos instantes."
       textoAccion="Reintentar"
       (accion)="cargarVendedores()"
     />

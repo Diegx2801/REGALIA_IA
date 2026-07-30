@@ -39,6 +39,23 @@ public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>,
     Optional<PedidoEntity> findByIdPedidoAndEstadoTrue(Long idPedido);
 
     /**
+     * Bloquea un pedido activo durante transiciones automaticas disparadas por
+     * una confirmacion de pago. No expone este acceso a usuarios finales.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT p
+            FROM PedidoEntity p
+            JOIN FETCH p.usuario
+            JOIN FETCH p.tienda tienda
+            JOIN FETCH tienda.vendedor vendedor
+            JOIN FETCH vendedor.usuario
+            WHERE p.idPedido = :idPedido
+              AND p.estado = true
+            """)
+    Optional<PedidoEntity> findActivoPorIdParaActualizar(@Param("idPedido") Long idPedido);
+
+    /**
      * Devuelve pedido solo si pertenece al vendedor autenticado. Un pedido de
      * otro vendedor no se distingue de uno inexistente.
      */
@@ -55,6 +72,27 @@ public interface PedidoJpaRepository extends JpaRepository<PedidoEntity, Long>,
               AND p.estado = true
             """)
     Optional<PedidoEntity> buscarPedidoRecibidoPorVendedor(
+            @Param("correoVendedor") String correoVendedor,
+            @Param("idPedido") Long idPedido
+    );
+
+    /**
+     * Bloquea el pedido solo si pertenece al vendedor autenticado. La condicion
+     * de propiedad evita revelar pedidos ajenos durante cambios de estado.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT p
+            FROM PedidoEntity p
+            JOIN FETCH p.usuario cliente
+            JOIN FETCH p.tienda tienda
+            JOIN FETCH tienda.vendedor vendedor
+            JOIN FETCH vendedor.usuario usuarioVendedor
+            WHERE usuarioVendedor.correo = :correoVendedor
+              AND p.idPedido = :idPedido
+              AND p.estado = true
+            """)
+    Optional<PedidoEntity> buscarPedidoRecibidoPorVendedorParaActualizar(
             @Param("correoVendedor") String correoVendedor,
             @Param("idPedido") Long idPedido
     );

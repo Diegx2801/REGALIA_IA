@@ -99,9 +99,8 @@ describe('PaginaAdminDetalle', () => {
     expect(adminApi.obtenerVendedorPorId).toHaveBeenCalledWith(7);
     expect(pagina.vendedor()?.nombreCompleto).toBe('María Cliente');
     expect(harness.routeNativeElement?.textContent).toContain('Perfil habilitado y verificado');
-    expect(
-      harness.routeNativeElement?.querySelector('a[href="mailto:maria@regalia.pe"]'),
-    ).not.toBeNull();
+    expect(harness.routeNativeElement?.textContent).toContain('Ver tiendas');
+    expect(harness.routeNativeElement?.querySelector('a[href^="mailto:"]')).toBeNull();
   });
 
   it('carga la tienda indicada por la ruta', async () => {

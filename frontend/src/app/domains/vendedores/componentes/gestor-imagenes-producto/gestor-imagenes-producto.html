@@ -4,6 +4,7 @@
       <span>Imágenes del producto</span>
       <h3 id="titulo-imagenes-producto">Presenta tu producto</h3>
       <p>Agrega hasta 5 imágenes JPEG, PNG o WebP de máximo 5 MB.</p>
+      <small>Los cambios en tus imágenes se actualizan al instante.</small>
     </div>
     <label class="gestor-imagenes__accion" [class.gestor-imagenes__accion--bloqueada]="cargando()">
       <input type="file" accept="image/jpeg,image/png,image/webp" multiple [disabled]="cargando()" (change)="seleccionarArchivos($event)" />
@@ -19,10 +20,30 @@
   } @else {
     <ol class="gestor-imagenes__lista">
       @for (imagen of imagenes(); track imagen.idProductoImagen; let indice = $index) {
-        <li>
-          <img [src]="imagen.urlImagen" [alt]="'Imagen ' + (indice + 1) + ' del producto'" />
-          <div><strong>{{ indice === 0 ? 'Portada' : 'Imagen ' + (indice + 1) }}</strong><span>Orden {{ indice + 1 }}</span></div>
+        <li
+          [class.gestor-imagenes__item--arrastrando]="indiceArrastre() === indice"
+          [attr.draggable]="cargando() || procesandoId() !== null ? null : 'true'"
+          (dragstart)="iniciarArrastre(indice, $event)"
+          (dragover)="permitirSoltar($event)"
+          (drop)="soltarEn(indice, $event)"
+          (dragend)="finalizarArrastre()"
+        >
+          <img [src]="imagen.urlImagen" [alt]="nombreProducto() + ': imagen ' + (indice + 1)" />
+          <div>
+            <strong>{{ indice === 0 ? 'Portada' : 'Imagen ' + (indice + 1) }}</strong>
+            <span>{{ indice === 0 ? 'Imagen principal del producto' : 'Arrastra o usa los controles para ordenar' }}</span>
+          </div>
           <div class="gestor-imagenes__controles">
+            @if (indice > 0) {
+              <button
+                type="button"
+                [disabled]="procesandoId() !== null"
+                aria-label="Usar esta imagen como portada"
+                (click)="establecerPortada(indice)"
+              >
+                Portada
+              </button>
+            }
             <button type="button" [disabled]="indice === 0 || procesandoId() !== null" (click)="mover(indice, -1)">Subir</button>
             <button type="button" [disabled]="indice === imagenes().length - 1 || procesandoId() !== null" (click)="mover(indice, 1)">Bajar</button>
             <button type="button" [disabled]="procesandoId() !== null" (click)="eliminar(imagen)">Eliminar</button>

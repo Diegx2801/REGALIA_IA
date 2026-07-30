@@ -202,6 +202,20 @@ describe('VendedorPanelStore', () => {
     expect(alCompletar).toHaveBeenCalledWith(productoCreado);
   });
 
+  it('sincroniza las imágenes confirmadas en el inventario local sin recargar la tienda', () => {
+    store.cargarCentroTienda(10);
+    const imagenes = [
+      { idProductoImagen: 8, urlImagen: '/productos/box-portada.webp', orden: 1 },
+    ];
+
+    store.actualizarImagenesProducto(10, 1, imagenes);
+
+    expect(store.productos()[0].imagenes).toEqual(imagenes);
+    expect(store.productos()[0].urlImagen).toBe('/productos/box-portada.webp');
+    expect(store.productosVisibles()).toBe(1);
+    expect(vendedorApi.obtenerProductosPorTienda).toHaveBeenCalledOnce();
+  });
+
   it('actualiza el producto sin duplicarlo y ejecuta el callback con el resultado', () => {
     const productoActualizado: ProductoVendedor = {
       ...crearProducto(10),
@@ -380,6 +394,8 @@ function crearTienda(idTienda = 10): TiendaVendedor {
     direccionReferencia: 'Centro',
     estadoRevision: 'APROBADA',
     formalizada: true,
+    urlLogo: null,
+    urlPortada: null,
     idDocumentoFiscal: null,
     rubros: [{ idRubro: 1, nombre: 'Regalos' }],
     estado: true,

@@ -45,7 +45,7 @@ export class PaginaAdminResumen implements OnInit {
     { etiqueta: 'Revisar vendedores', ruta: '/admin/vendedores' },
     { etiqueta: 'Moderar tiendas', ruta: '/admin/tiendas' },
     { etiqueta: 'Supervisar pedidos', ruta: '/admin/pedidos' },
-    { etiqueta: 'Datos maestros', ruta: '/admin/datos-maestros' },
+    { etiqueta: 'Configuracion', ruta: '/admin/datos-maestros' },
   ];
 
   readonly totalAlertas = computed(

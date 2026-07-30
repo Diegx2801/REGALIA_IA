@@ -29,7 +29,7 @@ describe('PaginaAdminVendedores', () => {
 
     expect(adminApi.obtenerVendedores).toHaveBeenCalledWith({
       page: 0,
-      size: 10,
+      size: 20,
       estado: 'TODOS',
       verificacion: 'TODOS',
       searchField: 'nombre',
@@ -47,7 +47,6 @@ describe('PaginaAdminVendedores', () => {
       campoBusqueda: 'correo',
       busqueda: '  vendedor@regalia.pe  ',
       orden: 'correo,asc',
-      tamanioPagina: 20,
     });
 
     fixture.componentInstance.aplicarFiltros();
@@ -97,7 +96,6 @@ function crearPagina(contenido: VendedorAdministracion[]) {
   return {
     contenido,
     paginaActual: 0,
-    tamanioPagina: 10,
     totalElementos: contenido.length,
     totalPaginas: contenido.length > 0 ? 1 : 0,
     ultimaPagina: true,

@@ -67,4 +67,10 @@ export class PedidoClienteApiService {
         }),
       );
   }
+
+  reenviarCodigoEntrega(idPedido: number): Observable<void> {
+    return this.http
+      .post<RespuestaApi<void>>(ENDPOINTS_API.pedidos.reenviarCodigoEntrega(idPedido), {})
+      .pipe(timeout(TIEMPO_ESPERA_PEDIDOS_CLIENTE_MS), map(() => undefined));
+  }
 }

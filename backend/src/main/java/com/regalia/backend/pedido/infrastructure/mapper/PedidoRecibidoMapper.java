@@ -74,6 +74,7 @@ public class PedidoRecibidoMapper {
                 pedido.getTotal(),
                 montoPagado,
                 saldoPendiente,
+                calcularCantidadItems(detalles),
                 pedido.getEstado(),
                 pedido.getFechaCreacion(),
                 pedido.getFechaActualizacion(),

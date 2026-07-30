@@ -97,7 +97,7 @@ export const ADMINISTRACION_ROUTES: Routes = [
       },
       {
         path: 'datos-maestros',
-        title: 'Datos maestros | REGALIA',
+        title: 'Configuracion del marketplace | REGALIA',
         loadComponent: () =>
           import('./paginas/pagina-admin-datos-maestros/pagina-admin-datos-maestros').then(
             (m) => m.PaginaAdminDatosMaestros,

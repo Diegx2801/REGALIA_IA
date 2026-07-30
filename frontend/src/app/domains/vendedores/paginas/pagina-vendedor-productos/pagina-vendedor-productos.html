@@ -70,8 +70,8 @@
 
         <div class="editor-producto__hero-estado" aria-label="Estado de publicación">
           <app-insignia-ui
-            [texto]="visibleVistaPrevia() ? 'Visible al publicar' : 'Oculto en catálogo'"
-            [variante]="visibleVistaPrevia() ? 'exito' : 'neutral'"
+            [texto]="estadoCatalogoVistaPrevia().texto"
+            [variante]="estadoCatalogoVistaPrevia().variante"
           />
           <span>{{ tienda()?.nombre ?? 'Tu tienda REGALIA' }}</span>
         </div>
@@ -81,7 +81,7 @@
         class="editor-producto__workspace grid min-w-0 gap-4 xl:grid-cols-3"
         [formGroup]="formularioProducto"
         (ngSubmit)="guardarProducto()"
-        [attr.aria-busy]="store.guardandoProducto()"
+        [attr.aria-busy]="guardandoFormulario()"
         novalidate
       >
         @if (formularioEnviado() && formularioProducto.invalid) {
@@ -115,7 +115,7 @@
         }
 
         <div class="grid min-w-0 gap-4 xl:col-span-2">
-          <fieldset class="editor-producto__seccion" [disabled]="store.guardandoProducto()">
+          <fieldset class="editor-producto__seccion" [disabled]="guardandoFormulario()">
             <legend class="sr-only">Información esencial. Lo primero que verá el cliente.</legend>
             <div class="editor-producto__cabecera-seccion" aria-hidden="true">
               <span class="editor-producto__numero-seccion">01</span>
@@ -246,7 +246,7 @@
             </div>
           </fieldset>
 
-          <fieldset class="editor-producto__seccion" [disabled]="store.guardandoProducto()">
+          <fieldset class="editor-producto__seccion" [disabled]="guardandoFormulario()">
             <legend class="sr-only">
               Precio e inventario. Define la oferta disponible para vender.
             </legend>
@@ -325,27 +325,45 @@
             </div>
           </fieldset>
 
-          <fieldset class="editor-producto__seccion" [disabled]="store.guardandoProducto()">
+          <fieldset class="editor-producto__seccion" [disabled]="guardandoFormulario()">
             <legend class="sr-only">Imágenes del producto.</legend>
             @if (idProducto(); as idProducto) {
               @if (idTienda(); as idTienda) {
-                <app-gestor-imagenes-producto
-                  [idTienda]="idTienda"
-                  [idProducto]="idProducto"
-                  [imagenesIniciales]="imagenesProducto()"
-                  (imagenesCambiadas)="actualizarImagenesProducto($event)"
-                />
+                @if (mensajeCargaImagenesIniciales(); as mensaje) {
+                  <div class="editor-producto__aviso-medios" role="status">
+                    <p>{{ mensaje }}</p>
+                    @if (!cargandoImagenesIniciales() && imagenesPendientes().length > 0) {
+                      <button type="button" appBoton="fantasma" (click)="reintentarCargaImagenesIniciales()">
+                        Reintentar imágenes
+                      </button>
+                    }
+                  </div>
+                }
+                @if (!cargandoImagenesIniciales()) {
+                  <app-gestor-imagenes-producto
+                    [idTienda]="idTienda"
+                    [idProducto]="idProducto"
+                    [nombreProducto]="formularioProducto.controls.nombre.value"
+                    [imagenesIniciales]="imagenesProducto()"
+                    (imagenesCambiadas)="actualizarImagenesProducto($event)"
+                  />
+                }
               }
             } @else {
-              <div class="editor-producto__aviso-medios">
-                <p>Guarda el producto primero. Luego podrás subir imágenes desde una galería segura.</p>
-              </div>
+              <app-selector-imagenes-producto
+                [nombreProducto]="formularioProducto.controls.nombre.value"
+                [imagenes]="imagenesPendientes()"
+                [bloqueado]="guardandoFormulario()"
+                (imagenesSeleccionadas)="agregarImagenesPendientes($event)"
+                (imagenesReordenadas)="actualizarOrdenImagenesPendientes($event)"
+                (imagenEliminada)="eliminarImagenPendiente($event)"
+              />
             }
           </fieldset>
 
           <fieldset
             class="editor-producto__seccion editor-producto__seccion--publicacion"
-            [disabled]="store.guardandoProducto()"
+            [disabled]="guardandoFormulario()"
           >
             <legend class="sr-only">
               Publicación. Decide cuándo podrá descubrirlo el cliente.
@@ -362,9 +380,10 @@
               <input id="producto-visible" type="checkbox" formControlName="visibleEnTienda" />
               <span class="editor-producto__interruptor" aria-hidden="true"><span></span></span>
               <span>
-                <strong>Mostrar en el catálogo</strong>
+                <strong>Mostrar cuando esté listo</strong>
                 <small>
-                  Será visible cuando la tienda esté aprobada y el producto tenga stock.
+                  Se mostrará a clientes cuando tu tienda esté aprobada y tenga al menos una imagen.
+                  Si el stock llega a cero, se mostrará como agotado.
                 </small>
               </span>
             </label>
@@ -422,14 +441,14 @@
                     class="editor-producto__miniaturas"
                     aria-label="Seleccionar imagen para la vista previa"
                   >
-                    @for (imagen of imagenesVistaPrevia(); track imagen.idProductoImagen) {
+                    @for (imagen of imagenesVistaPrevia(); track imagen.idVistaPrevia) {
                       <button
                         type="button"
                         [class.editor-producto__miniatura--activa]="
-                          imagenSeleccionada()?.idProductoImagen === imagen.idProductoImagen
+                          imagenSeleccionada().idVistaPrevia === imagen.idVistaPrevia
                         "
                         [attr.aria-label]="'Ver imagen ' + imagen.orden"
-                        [attr.aria-pressed]="imagenSeleccionada()?.idProductoImagen === imagen.idProductoImagen"
+                        [attr.aria-pressed]="imagenSeleccionada().idVistaPrevia === imagen.idVistaPrevia"
                         (click)="seleccionarImagen(imagen.orden - 1)"
                       >
                         @if (!imagenNoDisponible(imagen.orden - 1)) {
@@ -570,7 +589,7 @@
             <button
               appBoton="fantasma"
               type="button"
-              [disabled]="store.guardandoProducto()"
+              [disabled]="guardandoFormulario()"
               (click)="cancelar()"
             >
               Cancelar
@@ -579,14 +598,14 @@
               appBoton
               appBotonTamano="lg"
               type="submit"
-              [appBotonCargando]="store.guardandoProducto()"
-              [disabled]="store.guardandoProducto() || store.tiposProducto().length === 0"
+              [appBotonCargando]="guardandoFormulario()"
+              [disabled]="guardandoFormulario() || store.tiposProducto().length === 0"
               aria-describedby="estado-guardado-producto"
             >
-              @if (store.guardandoProducto()) {
+              @if (guardandoFormulario()) {
                 Guardando…
               } @else {
-                {{ esEdicion() ? 'Guardar cambios' : 'Crear producto' }}
+                {{ esEdicion() ? 'Guardar información del producto' : 'Crear producto y agregar imágenes' }}
               }
             </button>
           </div>

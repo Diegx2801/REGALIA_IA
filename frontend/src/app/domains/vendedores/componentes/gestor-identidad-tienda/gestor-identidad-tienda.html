@@ -1,0 +1,63 @@
+<section class="identidad-tienda" aria-labelledby="identidad-tienda-titulo">
+  <header>
+    <span>Identidad visual</span>
+    <h3 id="identidad-tienda-titulo">Haz reconocible tu vitrina</h3>
+    <p>Agrega un logo y una portada que representen {{ nombreTienda() }}.</p>
+  </header>
+
+  @if (mensajeError(); as mensaje) {
+    <p class="identidad-tienda__mensaje identidad-tienda__mensaje--error" role="alert">{{ mensaje }}</p>
+  }
+  @if (mensajeExito(); as mensaje) {
+    <p class="identidad-tienda__mensaje identidad-tienda__mensaje--exito" role="status">{{ mensaje }}</p>
+  }
+
+  <div class="identidad-tienda__recursos">
+    <article class="identidad-tienda__recurso identidad-tienda__recurso--logo">
+      <div class="identidad-tienda__preview-logo" aria-label="Vista previa del logo">
+        @if (urlLogo(); as urlLogo) {
+          <img [src]="urlLogo" alt="Logo de {{ nombreTienda() }}" />
+        } @else {
+          <span aria-hidden="true">{{ nombreTienda().slice(0, 1).toUpperCase() }}</span>
+        }
+      </div>
+      <div class="identidad-tienda__contenido">
+        <h4>Logo</h4>
+        <p>{{ regla('LOGO').descripcion }}</p>
+        <label class="identidad-tienda__boton">
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            [disabled]="cargandoTipo() !== null"
+            (change)="seleccionarArchivo('LOGO', $event)"
+          />
+          {{ cargandoTipo() === 'LOGO' ? 'Actualizando...' : urlLogo() ? 'Cambiar logo' : 'Agregar logo' }}
+        </label>
+      </div>
+    </article>
+
+    <article class="identidad-tienda__recurso identidad-tienda__recurso--portada">
+      <div class="identidad-tienda__preview-portada" aria-label="Vista previa de la portada">
+        @if (urlPortada(); as urlPortada) {
+          <img [src]="urlPortada" alt="Portada de {{ nombreTienda() }}" />
+        } @else {
+          <span>Tu historia también se ve.</span>
+        }
+      </div>
+      <div class="identidad-tienda__contenido">
+        <h4>Portada</h4>
+        <p>{{ regla('PORTADA').descripcion }}</p>
+        <p class="identidad-tienda__ayuda">Ubica los elementos importantes en el centro para que se vean bien en cualquier pantalla.</p>
+        <label class="identidad-tienda__boton">
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            [disabled]="cargandoTipo() !== null"
+            (change)="seleccionarArchivo('PORTADA', $event)"
+          />
+          {{ cargandoTipo() === 'PORTADA' ? 'Actualizando...' : urlPortada() ? 'Cambiar portada' : 'Agregar portada' }}
+        </label>
+      </div>
+    </article>
+  </div>
+</section>

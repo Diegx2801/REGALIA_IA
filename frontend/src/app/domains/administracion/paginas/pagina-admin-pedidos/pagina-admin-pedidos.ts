@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
@@ -24,6 +24,12 @@ import {
   PanelAdministracionApiService,
 } from '../../acceso-datos/panel-administracion-api.service';
 import { PedidoAdministracion } from '../../modelos/panel-administracion.model';
+import {
+  enteroDesdeUrl,
+  parametrosDeConsulta,
+  textoDesdeUrl,
+  valorPermitidoDesdeUrl,
+} from '../../utilidades/consulta-admin-url.util';
 
 type EstadoPagoPedido = NonNullable<ConsultaPedidosAdmin['estadoPago']>;
 type EstadoPedido = NonNullable<ConsultaPedidosAdmin['estadoPedido']>;
@@ -50,8 +56,11 @@ type NivelPrioridadPedido = 'alta' | 'media' | 'normal' | 'cerrada';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaAdminPedidos implements OnInit {
+  private static readonly TAMANIO_PAGINA = 20;
   private readonly adminApi = inject(PanelAdministracionApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly fechaHoy = this.obtenerFechaLocalIso(new Date());
 
   readonly pedidos = signal<PedidoAdministracion[]>([]);
@@ -90,11 +99,13 @@ export class PaginaAdminPedidos implements OnInit {
     fechaDesde: new FormControl('', { nonNullable: true }),
     fechaHasta: new FormControl('', { nonNullable: true }),
     orden: new FormControl<OrdenPedidos>('fechaCreacion,desc', { nonNullable: true }),
-    tamanioPagina: new FormControl<10 | 20 | 50>(10, { nonNullable: true }),
   });
 
   ngOnInit(): void {
-    this.cargarPedidos();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
+      this.aplicarParametrosUrl(parametros);
+      this.cargarPedidos();
+    });
   }
 
   cargarPedidos(): void {
@@ -123,8 +134,7 @@ export class PaginaAdminPedidos implements OnInit {
 
   aplicarFiltros(): void {
     if (!this.validarFiltros()) return;
-    this.paginaActual.set(0);
-    this.cargarPedidos();
+    this.actualizarUrlConsulta(0);
   }
 
   limpiarFiltros(): void {
@@ -137,22 +147,19 @@ export class PaginaAdminPedidos implements OnInit {
       fechaDesde: '',
       fechaHasta: '',
       orden: 'fechaCreacion,desc',
-      tamanioPagina: 10,
     });
     this.mensajeValidacion.set(null);
-    this.aplicarFiltros();
+    this.actualizarUrlConsulta(0);
   }
 
   paginaAnterior(): void {
     if (this.paginaActual() === 0 || this.cargando()) return;
-    this.paginaActual.update((pagina) => pagina - 1);
-    this.cargarPedidos();
+    this.actualizarUrlConsulta(this.paginaActual() - 1);
   }
 
   paginaSiguiente(): void {
     if (this.paginaActual() + 1 >= this.totalPaginas() || this.cargando()) return;
-    this.paginaActual.update((pagina) => pagina + 1);
-    this.cargarPedidos();
+    this.actualizarUrlConsulta(this.paginaActual() + 1);
   }
 
   hayFiltrosActivos(): boolean {
@@ -237,7 +244,7 @@ export class PaginaAdminPedidos implements OnInit {
     const filtros = this.formularioFiltros.getRawValue();
     return {
       page: this.paginaActual(),
-      size: filtros.tamanioPagina,
+      size: PaginaAdminPedidos.TAMANIO_PAGINA,
       estadoPago: filtros.estadoPago === 'TODOS' ? undefined : filtros.estadoPago,
       estadoPedido: filtros.estadoPedido === 'TODOS' ? undefined : filtros.estadoPedido,
       idTienda: filtros.idTienda ?? undefined,
@@ -247,6 +254,64 @@ export class PaginaAdminPedidos implements OnInit {
       fechaHasta: filtros.fechaHasta || undefined,
       sort: filtros.orden,
     };
+  }
+
+  private aplicarParametrosUrl(parametros: import('@angular/router').ParamMap): void {
+    const estadoPago = valorPermitidoDesdeUrl(parametros, 'pago', 'TODOS', [
+      'TODOS', 'PAGADO', 'CON_SALDO',
+    ] as const);
+    const estadoPedido = valorPermitidoDesdeUrl(parametros, 'estado', 'TODOS', [
+      'TODOS', 'RESERVADO', 'EN_PREPARACION', 'LISTO', 'ENTREGADO', 'ANULADO',
+    ] as const);
+    const campoBusqueda = valorPermitidoDesdeUrl(parametros, 'campo', 'id_pedido', [
+      'id_pedido', 'nombre_tienda', 'id_usuario',
+    ] as const);
+    const orden = valorPermitidoDesdeUrl(parametros, 'orden', 'fechaCreacion,desc', [
+      'fechaCreacion,asc', 'fechaCreacion,desc', 'fechaEntrega,asc', 'fechaEntrega,desc',
+      'total,asc', 'total,desc',
+    ] as const);
+    const idTienda = enteroDesdeUrl(parametros, 'tienda', 0);
+
+    this.paginaActual.set(enteroDesdeUrl(parametros, 'pagina', 0));
+    this.formularioFiltros.patchValue({
+      estadoPago,
+      estadoPedido,
+      idTienda: idTienda > 0 ? idTienda : null,
+      campoBusqueda,
+      busqueda: textoDesdeUrl(parametros, 'buscar', ''),
+      fechaDesde: this.fechaDesdeValida(textoDesdeUrl(parametros, 'desde', '')),
+      fechaHasta: this.fechaDesdeValida(textoDesdeUrl(parametros, 'hasta', '')),
+      orden,
+    }, { emitEvent: false });
+  }
+
+  private actualizarUrlConsulta(pagina: number): void {
+    const filtros = this.formularioFiltros.getRawValue();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: parametrosDeConsulta(
+        {
+          pago: filtros.estadoPago,
+          estado: filtros.estadoPedido,
+          tienda: filtros.idTienda,
+          campo: filtros.campoBusqueda,
+          buscar: filtros.busqueda.trim(),
+          desde: filtros.fechaDesde,
+          hasta: filtros.fechaHasta,
+          orden: filtros.orden,
+          pagina,
+        },
+        {
+          pago: 'TODOS', estado: 'TODOS', tienda: null, campo: 'id_pedido', buscar: '',
+          desde: '', hasta: '', orden: 'fechaCreacion,desc', pagina: 0,
+        },
+      ),
+      replaceUrl: true,
+    });
+  }
+
+  private fechaDesdeValida(valor: string): string {
+    return /^\d{4}-\d{2}-\d{2}$/.test(valor) ? valor : '';
   }
 
   private obtenerFechaLocalIso(fecha: Date): string {

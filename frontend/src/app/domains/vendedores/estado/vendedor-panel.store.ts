@@ -8,6 +8,7 @@ import { Rubro } from '../../datos-maestros/modelos/rubro.model';
 import { TipoProducto } from '../../datos-maestros/modelos/tipo-producto.model';
 import { ConsultaPedidosVendedor, VendedorApiService } from '../acceso-datos/vendedor-api.service';
 import {
+  ImagenProductoVendedor,
   PedidoRecibidoDetalle,
   PedidoRecibidoResumen,
   ProductoVendedor,
@@ -93,7 +94,11 @@ export class VendedorPanelStore {
     );
   });
   readonly productosVisibles = computed(
-    () => this.productos().filter((producto) => producto.visibleEnTienda && producto.estado).length,
+    () =>
+      this.productos().filter(
+        (producto) =>
+          producto.visibleEnTienda && producto.estado && producto.imagenes.length > 0,
+      ).length,
   );
   readonly productosSinStock = computed(
     () => this.productos().filter((producto) => producto.stock <= 0).length,
@@ -405,6 +410,31 @@ export class VendedorPanelStore {
       });
   }
 
+  /**
+   * Mantiene el inventario local alineado con la confirmación de medios sin forzar
+   * una recarga completa del panel. El backend continúa siendo la fuente de verdad.
+   */
+  actualizarImagenesProducto(
+    idTienda: number,
+    idProducto: number,
+    imagenes: ImagenProductoVendedor[],
+  ): void {
+    if (this.idTiendaInventarioInterno() !== idTienda) return;
+
+    const imagenesOrdenadas = [...imagenes].sort((primera, segunda) => primera.orden - segunda.orden);
+    this.productos.update((productos) =>
+      productos.map((producto) =>
+        producto.idProducto === idProducto
+          ? {
+              ...producto,
+              imagenes: imagenesOrdenadas,
+              urlImagen: imagenesOrdenadas[0]?.urlImagen ?? '',
+            }
+          : producto,
+      ),
+    );
+  }
+
   desactivarProducto(idTienda: number, idProducto: number): void {
     this.desactivandoProducto.set(idProducto);
     this.mensajeError.set(null);
@@ -504,6 +534,16 @@ export class VendedorPanelStore {
       });
 
     this.suscripcionDetallePedido = suscripcion.closed ? null : suscripcion;
+  }
+
+  /** Sincroniza las vistas de bandeja tras una transicion operativa confirmada. */
+  actualizarEstadoPedido(idPedido: number, estadoPedido: string): void {
+    this.pedidos.update((pedidos) =>
+      pedidos.map((pedido) => (pedido.idPedido === idPedido ? { ...pedido, estadoPedido } : pedido)),
+    );
+    this.pedidosTodos.update((pedidos) =>
+      pedidos.map((pedido) => (pedido.idPedido === idPedido ? { ...pedido, estadoPedido } : pedido)),
+    );
   }
 
   cargarTiendasParaPedidos(forzar = false): void {

@@ -323,7 +323,7 @@ public class CheckoutService {
     }
 
     private ProductoEntity obtenerProductoActivoParaCheckout(Long idProducto) {
-        return productoRepository.findByIdProductoAndEstadoTrueAndVisibleEnTiendaTrue(idProducto)
+        return productoRepository.findProductoPublicoConImagenActiva(idProducto)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No se encontro el producto solicitado"
                 ));

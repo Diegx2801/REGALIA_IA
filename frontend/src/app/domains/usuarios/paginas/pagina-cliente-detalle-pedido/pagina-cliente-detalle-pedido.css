@@ -2,6 +2,13 @@
   display: block;
 }
 
+.detalle-pedido__mensaje-codigo {
+  color: var(--rg-color-muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .detalle-pedido {
   display: grid;
   gap: clamp(1rem, 2.4vw, 1.4rem);

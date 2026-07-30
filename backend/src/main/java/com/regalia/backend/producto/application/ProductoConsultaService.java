@@ -51,7 +51,7 @@ public class ProductoConsultaService {
         TiendaEntity tienda = obtenerTiendaPublicaActiva(idTienda);
 
         return productoJpaRepository
-                .findByTiendaIdTiendaAndEstadoTrueAndVisibleEnTiendaTrueOrderByIdProductoAsc(tienda.getIdTienda())
+                .findProductosPublicosDeTiendaConImagenActiva(tienda.getIdTienda())
                 .stream()
                 .map(this::construirProductoPublicoResponse)
                 .toList();
@@ -60,7 +60,7 @@ public class ProductoConsultaService {
     @Transactional(readOnly = true)
     public ProductoPublicoResponse obtenerProductoPublicoPorId(Long idProducto) {
         ProductoEntity producto = productoJpaRepository
-                .findByIdProductoAndEstadoTrueAndVisibleEnTiendaTrue(idProducto)
+                .findProductoPublicoConImagenActiva(idProducto)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No se encontró el producto solicitado"
                 ));

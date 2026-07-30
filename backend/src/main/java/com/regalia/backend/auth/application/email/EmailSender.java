@@ -8,4 +8,6 @@ public interface EmailSender {
     void enviarVerificacionCorreo(String destino, String nombre, String enlaceConfirmacion);
 
     void enviarRecuperacionContrasena(String destino, String nombre, String enlaceRestablecimiento);
+
+    void enviarCodigoEntrega(String destino, String nombre, Long idPedido, String nombreTienda, String codigoEntrega);
 }

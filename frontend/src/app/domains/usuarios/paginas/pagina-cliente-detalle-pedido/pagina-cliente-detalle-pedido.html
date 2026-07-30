@@ -86,7 +86,7 @@
           <span aria-hidden="true"></span>
           <div>
             <strong>Pedido anulado</strong>
-            <p>El backend no registra fechas por cada etapa, por lo que no mostramos avances que no puedan verificarse.</p>
+            <p>Te mostraremos cada avance cuando la tienda lo confirme.</p>
           </div>
         </div>
       } @else {
@@ -253,7 +253,7 @@
               {{ preparandoPago() ? 'Preparando pago seguro…' : 'Pagar saldo pendiente' }}
             </button>
             <small class="detalle-pedido__ayuda-pago">
-              Te redirigiremos a la pasarela configurada por REGALIA.
+              Te llevaremos a un pago seguro para completar el saldo.
             </small>
           }
 
@@ -270,13 +270,29 @@
         </article>
 
         <article class="detalle-pedido__card detalle-pedido__acciones">
+          @if (puedeReenviarCodigoEntrega()) {
+            <button
+              appBoton="secundario"
+              appBotonBloque
+              type="button"
+              [appBotonCargando]="reenviandoCodigoEntrega()"
+              [disabled]="reenviandoCodigoEntrega()"
+              (click)="reenviarCodigoEntrega(pedido.idPedido)"
+            >
+              {{ reenviandoCodigoEntrega() ? 'Enviando código…' : 'Reenviar código de entrega' }}
+            </button>
+            @if (mensajeCodigoEntrega()) {
+              <p class="detalle-pedido__mensaje-codigo" role="status" aria-live="polite">
+                {{ mensajeCodigoEntrega() }}
+              </p>
+            }
+          }
           <span class="detalle-pedido__sobrelinea">Acciones disponibles</span>
           <h3>¿Qué quieres hacer?</h3>
           <a appBoton="secundario" appBotonBloque routerLink="/cliente/pedidos">
             Volver a mis pedidos
           </a>
           <a appBoton="fantasma" appBotonBloque routerLink="/catalogo">Seguir comprando</a>
-          <p>Las acciones mostradas dependen del estado real y de los permisos de tu cuenta.</p>
         </article>
       </aside>
     </div>

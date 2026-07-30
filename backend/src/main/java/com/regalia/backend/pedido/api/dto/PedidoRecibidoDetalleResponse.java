@@ -27,6 +27,7 @@ public record PedidoRecibidoDetalleResponse(
         BigDecimal total,
         BigDecimal montoPagado,
         BigDecimal saldoPendiente,
+        Integer cantidadItems,
         Boolean estado,
         LocalDateTime fechaCreacion,
         LocalDateTime fechaActualizacion,

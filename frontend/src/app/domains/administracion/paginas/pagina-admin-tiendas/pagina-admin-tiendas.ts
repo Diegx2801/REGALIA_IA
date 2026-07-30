@@ -10,11 +10,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-api.model';
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
-import { confirmarAccionCritica } from '../../../../shared/utilidades/confirmar-accion.util';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { FiltrosPanelComponent } from '../../../../shared/ui/filtros-panel/filtros-panel';
 import { GrupoMetricasPanelComponent } from '../../../../shared/ui/grupo-metricas-panel/grupo-metricas-panel';
@@ -25,17 +24,11 @@ import {
   PanelAdministracionApiService,
 } from '../../acceso-datos/panel-administracion-api.service';
 import { TiendaAdministracion } from '../../modelos/panel-administracion.model';
+import { enteroDesdeUrl, parametrosDeConsulta, textoDesdeUrl, valorPermitidoDesdeUrl } from '../../utilidades/consulta-admin-url.util';
 
 type CampoBusquedaTienda = NonNullable<ConsultaTiendasAdmin['searchField']>;
 type EstadoRevisionTienda = NonNullable<ConsultaTiendasAdmin['estadoRevision']>;
 type OrdenTiendas = NonNullable<ConsultaTiendasAdmin['sort']>;
-type AccionModeracionTienda = 'aprobar' | 'observar' | 'rechazar';
-
-interface TiendaEnProceso {
-  idTienda: number;
-  accion: AccionModeracionTienda;
-}
-
 @Component({
   selector: 'app-pagina-admin-tiendas',
   imports: [
@@ -54,8 +47,11 @@ interface TiendaEnProceso {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginaAdminTiendas implements OnInit {
+  private static readonly TAMANIO_PAGINA = 20;
   private readonly adminApi = inject(PanelAdministracionApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   readonly tiendas = signal<TiendaAdministracion[]>([]);
   readonly totalTiendas = signal(0);
@@ -63,10 +59,7 @@ export class PaginaAdminTiendas implements OnInit {
   readonly totalPaginas = signal(0);
   readonly cargando = signal(true);
   readonly cargaCompletada = signal(false);
-  readonly tiendaEnProceso = signal<TiendaEnProceso | null>(null);
   readonly mensajeErrorCarga = signal<string | null>(null);
-  readonly mensajeErrorAccion = signal<string | null>(null);
-  readonly mensajeExito = signal<string | null>(null);
 
   readonly pendientesPagina = computed(
     () => this.tiendas().filter((tienda) => tienda.estadoRevision === 'PENDIENTE').length,
@@ -85,20 +78,18 @@ export class PaginaAdminTiendas implements OnInit {
     campoBusqueda: new FormControl<CampoBusquedaTienda>('nombre', { nonNullable: true }),
     busqueda: new FormControl('', { nonNullable: true }),
     orden: new FormControl<OrdenTiendas>('fechaCreacion,desc', { nonNullable: true }),
-    tamanioPagina: new FormControl<10 | 20 | 50>(10, { nonNullable: true }),
   });
 
   ngOnInit(): void {
-    this.cargarTiendas();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
+      this.aplicarParametrosUrl(parametros);
+      this.cargarTiendas();
+    });
   }
 
-  cargarTiendas(conservarMensajes = false): void {
+  cargarTiendas(): void {
     this.cargando.set(true);
     this.mensajeErrorCarga.set(null);
-    if (!conservarMensajes) {
-      this.mensajeErrorAccion.set(null);
-      this.mensajeExito.set(null);
-    }
 
     this.adminApi
       .obtenerTiendas(this.crearConsulta())
@@ -121,8 +112,7 @@ export class PaginaAdminTiendas implements OnInit {
   }
 
   aplicarFiltros(): void {
-    this.paginaActual.set(0);
-    this.cargarTiendas();
+    this.actualizarUrlConsulta(0);
   }
 
   limpiarFiltros(): void {
@@ -131,38 +121,18 @@ export class PaginaAdminTiendas implements OnInit {
       campoBusqueda: 'nombre',
       busqueda: '',
       orden: 'fechaCreacion,desc',
-      tamanioPagina: 10,
     });
-    this.aplicarFiltros();
+    this.actualizarUrlConsulta(0);
   }
 
   paginaAnterior(): void {
     if (this.paginaActual() === 0 || this.cargando()) return;
-    this.paginaActual.update((pagina) => pagina - 1);
-    this.cargarTiendas();
+    this.actualizarUrlConsulta(this.paginaActual() - 1);
   }
 
   paginaSiguiente(): void {
     if (this.paginaActual() + 1 >= this.totalPaginas() || this.cargando()) return;
-    this.paginaActual.update((pagina) => pagina + 1);
-    this.cargarTiendas();
-  }
-
-  aprobarTienda(tienda: TiendaAdministracion): void {
-    this.cambiarEstadoTienda(tienda, 'aprobar');
-  }
-
-  observarTienda(tienda: TiendaAdministracion): void {
-    this.cambiarEstadoTienda(tienda, 'observar');
-  }
-
-  rechazarTienda(tienda: TiendaAdministracion): void {
-    this.cambiarEstadoTienda(tienda, 'rechazar');
-  }
-
-  estaProcesando(tienda: TiendaAdministracion, accion?: AccionModeracionTienda): boolean {
-    const proceso = this.tiendaEnProceso();
-    return proceso?.idTienda === tienda.idTienda && (!accion || proceso.accion === accion);
+    this.actualizarUrlConsulta(this.paginaActual() + 1);
   }
 
   hayFiltrosActivos(): boolean {
@@ -180,67 +150,39 @@ export class PaginaAdminTiendas implements OnInit {
     return etiquetas[estadoRevision] ?? estadoRevision;
   }
 
-  private cambiarEstadoTienda(tienda: TiendaAdministracion, accion: AccionModeracionTienda): void {
-    if (!this.confirmarModeracionTienda(tienda, accion)) return;
-
-    this.tiendaEnProceso.set({ idTienda: tienda.idTienda, accion });
-    this.mensajeErrorAccion.set(null);
-    this.mensajeExito.set(null);
-
-    const operacion =
-      accion === 'aprobar'
-        ? this.adminApi.aprobarTienda(tienda.idTienda)
-        : accion === 'observar'
-          ? this.adminApi.observarTienda(tienda.idTienda)
-          : this.adminApi.rechazarTienda(tienda.idTienda);
-
-    operacion
-      .pipe(
-        finalize(() => this.tiendaEnProceso.set(null)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (tiendaActualizada) => {
-          this.tiendas.update((tiendas) =>
-            tiendas.map((item) =>
-              item.idTienda === tiendaActualizada.idTienda ? tiendaActualizada : item,
-            ),
-          );
-          this.mensajeExito.set(
-            `${tiendaActualizada.nombre} ahora está ${this.etiquetaEstado(tiendaActualizada.estadoRevision).toLowerCase()}.`,
-          );
-          this.cargarTiendas(true);
-        },
-        error: (error: unknown) =>
-          this.mensajeErrorAccion.set(
-            obtenerMensajeErrorUsuario(error, 'No pudimos actualizar el estado de la tienda.'),
-          ),
-      });
-  }
-
-  private confirmarModeracionTienda(
-    tienda: TiendaAdministracion,
-    accion: AccionModeracionTienda,
-  ): boolean {
-    const consecuencias: Record<AccionModeracionTienda, string> = {
-      aprobar: 'Su estado comercial pasará a APROBADA.',
-      observar: 'Quedará marcada como OBSERVADA para revisión.',
-      rechazar: 'Su estado comercial pasará a RECHAZADA.',
-    };
-    return confirmarAccionCritica(
-      `Vas a ${accion} la tienda "${tienda.nombre}". ${consecuencias[accion]}`,
-    );
-  }
-
   private crearConsulta(): ConsultaTiendasAdmin {
     const filtros = this.formularioFiltros.getRawValue();
     return {
       page: this.paginaActual(),
-      size: filtros.tamanioPagina,
+      size: PaginaAdminTiendas.TAMANIO_PAGINA,
       estadoRevision: filtros.estadoRevision === 'TODOS' ? undefined : filtros.estadoRevision,
       searchField: filtros.campoBusqueda,
       search: filtros.busqueda,
       sort: filtros.orden,
     };
+  }
+
+  private aplicarParametrosUrl(parametros: import('@angular/router').ParamMap): void {
+    const estadoRevision = valorPermitidoDesdeUrl(parametros, 'estado', 'TODOS', ['PENDIENTE', 'APROBADA', 'OBSERVADA', 'RECHAZADA', 'TODOS'] as const);
+    const campoBusqueda = valorPermitidoDesdeUrl(parametros, 'campo', 'nombre', ['nombre', 'vendedor', 'correo_vendedor', 'id_tienda'] as const);
+    const orden = valorPermitidoDesdeUrl(parametros, 'orden', 'fechaCreacion,desc', [
+      'idTienda,asc', 'idTienda,desc', 'nombre,asc', 'nombre,desc', 'estadoRevision,asc', 'estadoRevision,desc',
+      'nombreVendedor,asc', 'nombreVendedor,desc', 'fechaCreacion,asc', 'fechaCreacion,desc',
+    ] as const);
+    this.paginaActual.set(enteroDesdeUrl(parametros, 'pagina', 0));
+    this.formularioFiltros.patchValue({ estadoRevision, campoBusqueda, orden,
+      busqueda: textoDesdeUrl(parametros, 'buscar', ''),
+    }, { emitEvent: false });
+  }
+
+  private actualizarUrlConsulta(pagina: number): void {
+    const filtros = this.formularioFiltros.getRawValue();
+    void this.router.navigate([], { relativeTo: this.route, replaceUrl: true,
+      queryParams: parametrosDeConsulta(
+        { estado: filtros.estadoRevision, campo: filtros.campoBusqueda, buscar: filtros.busqueda.trim(),
+          orden: filtros.orden, pagina },
+        { estado: 'TODOS', campo: 'nombre', buscar: '', orden: 'fechaCreacion,desc', pagina: 0 },
+      ),
+    });
   }
 }

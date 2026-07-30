@@ -5,6 +5,7 @@ import com.regalia.backend.pago.application.gateway.PaymentGatewayProvider;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationResult;
 import com.regalia.backend.pedido.application.PedidoService;
 import com.regalia.backend.pedido.infrastructure.entity.PedidoEntity;
+import com.regalia.backend.pedidocumplimiento.application.PedidoCumplimientoService;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class CheckoutPaymentConfirmationService {
 
     private final PedidoService pedidoService;
+    private final PedidoCumplimientoService pedidoCumplimientoService;
 
     public void confirmarPagoAprobado(
             CheckoutSessionEntity checkoutSession,
@@ -38,6 +40,12 @@ public class CheckoutPaymentConfirmationService {
         }
 
         pedidoService.confirmarPagoRestanteDesdeCheckoutSession(checkoutSession, paymentResult);
+
+        if (checkoutSession.getPedido() != null) {
+            pedidoCumplimientoService.habilitarCodigoEntregaSiPedidoListoYPagado(
+                    checkoutSession.getPedido().getIdPedido()
+            );
+        }
     }
 
     private void validarProveedor(

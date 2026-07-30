@@ -11,6 +11,9 @@ import com.regalia.backend.tienda.api.dto.TiendaResponse;
 import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
 import com.regalia.backend.tienda.infrastructure.mapper.TiendaMapper;
 import com.regalia.backend.tienda.infrastructure.repository.TiendaJpaRepository;
+import com.regalia.backend.tiendaimagen.infrastructure.entity.TiendaImagenEntity;
+import com.regalia.backend.tiendaimagen.infrastructure.entity.TipoImagenTienda;
+import com.regalia.backend.tiendaimagen.infrastructure.repository.TiendaImagenJpaRepository;
 import com.regalia.backend.tiendarubro.infrastructure.entity.TiendaRubroEntity;
 import com.regalia.backend.tiendarubro.infrastructure.repository.TiendaRubroJpaRepository;
 import com.regalia.backend.usuariodocumento.infrastructure.entity.UsuarioDocumentoEntity;
@@ -57,6 +60,7 @@ public class TiendaService {
     private final UsuarioDocumentoJpaRepository usuarioDocumentoRepository;
     private final RubroJpaRepository rubroRepository;
     private final TiendaRubroJpaRepository tiendaRubroRepository;
+    private final TiendaImagenJpaRepository tiendaImagenRepository;
     private final TiendaMapper tiendaMapper;
 
     @Transactional
@@ -453,8 +457,24 @@ public class TiendaService {
                 .toList();
 
         Boolean tiendaFormalizada = calcularTiendaFormalizada(tienda);
+        Map<TipoImagenTienda, String> imagenes = urlsImagenes(tienda.getIdTienda());
 
-        return tiendaMapper.toResponse(tienda, tiendaFormalizada, rubros);
+        return tiendaMapper.toResponse(
+                tienda,
+                tiendaFormalizada,
+                imagenes.get(TipoImagenTienda.LOGO),
+                imagenes.get(TipoImagenTienda.PORTADA),
+                rubros
+        );
+    }
+
+    private Map<TipoImagenTienda, String> urlsImagenes(Long idTienda) {
+        return tiendaImagenRepository.findByTiendaIdTienda(idTienda)
+                .stream()
+                .collect(Collectors.toMap(
+                        TiendaImagenEntity::getTipo,
+                        TiendaImagenEntity::getUrlImagen
+                ));
     }
 
     private Boolean calcularTiendaFormalizada(TiendaEntity tienda) {

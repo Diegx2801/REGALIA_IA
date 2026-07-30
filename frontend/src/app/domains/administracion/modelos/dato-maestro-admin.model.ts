@@ -4,53 +4,15 @@ export type TipoDatoMaestroAdmin =
 export interface ConfiguracionDatoMaestroAdmin {
   readonly tipo: TipoDatoMaestroAdmin;
   readonly etiqueta: string;
-  readonly singular: string;
-  readonly permiteCrear: boolean;
-  readonly permiteCambiarEstado: boolean;
 }
 
 export const CONFIGURACIONES_DATOS_MAESTROS: readonly ConfiguracionDatoMaestroAdmin[] = [
-  {
-    tipo: 'RUBRO',
-    etiqueta: 'Rubros',
-    singular: 'rubro',
-    permiteCrear: true,
-    permiteCambiarEstado: true,
-  },
-  {
-    tipo: 'TIPO_PRODUCTO',
-    etiqueta: 'Tipos de producto',
-    singular: 'tipo de producto',
-    permiteCrear: true,
-    permiteCambiarEstado: true,
-  },
-  {
-    tipo: 'TIPO_ENTREGA',
-    etiqueta: 'Tipos de entrega',
-    singular: 'tipo de entrega',
-    permiteCrear: true,
-    permiteCambiarEstado: true,
-  },
-  {
-    tipo: 'TIPO_PAGO',
-    etiqueta: 'Tipos de pago',
-    singular: 'tipo de pago',
-    permiteCrear: false,
-    permiteCambiarEstado: false,
-  },
-  {
-    tipo: 'TIPO_DOCUMENTO',
-    etiqueta: 'Tipos de documento',
-    singular: 'tipo de documento',
-    permiteCrear: true,
-    permiteCambiarEstado: true,
-  },
+  { tipo: 'RUBRO', etiqueta: 'Rubros' },
+  { tipo: 'TIPO_PRODUCTO', etiqueta: 'Tipos de producto' },
+  { tipo: 'TIPO_ENTREGA', etiqueta: 'Tipos de entrega' },
+  { tipo: 'TIPO_PAGO', etiqueta: 'Tipos de pago' },
+  { tipo: 'TIPO_DOCUMENTO', etiqueta: 'Tipos de documento' },
 ];
-
-export interface CategoriaDocumentoAdmin {
-  readonly id: number;
-  readonly nombre: string;
-}
 
 export interface DatoMaestroAdmin {
   readonly id: number;
@@ -67,21 +29,6 @@ export interface DatoMaestroAdmin {
   readonly longitudMaxima: number | null;
   readonly fechaCreacion: string | null;
   readonly fechaActualizacion: string | null;
-}
-
-export interface ValoresFormularioDatoMaestro {
-  readonly nombre: string;
-  readonly descripcion: string;
-  readonly abreviatura: string;
-  readonly longitudMinima: number | null;
-  readonly longitudMaxima: number | null;
-  readonly idCategoriaDocumento: number | null;
-}
-
-export interface SolicitudGuardarDatoMaestro {
-  readonly tipo: TipoDatoMaestroAdmin;
-  readonly id: number | null;
-  readonly valores: ValoresFormularioDatoMaestro;
 }
 
 export function obtenerConfiguracionDatoMaestro(

@@ -35,4 +35,21 @@ public class LoggingEmailSender implements EmailSender {
                 enlaceRestablecimiento
         );
     }
+
+    @Override
+    public void enviarCodigoEntrega(
+            String destino,
+            String nombre,
+            Long idPedido,
+            String nombreTienda,
+            String codigoEntrega
+    ) {
+        LOGGER.info(
+                "Codigo de entrega REGALIA del pedido {} para {} <{}>: {}",
+                idPedido,
+                nombre,
+                destino,
+                codigoEntrega
+        );
+    }
 }

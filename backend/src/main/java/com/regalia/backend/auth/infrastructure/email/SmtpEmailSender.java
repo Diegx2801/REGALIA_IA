@@ -59,6 +59,35 @@ public class SmtpEmailSender implements EmailSender {
         );
     }
 
+    @Override
+    public void enviarCodigoEntrega(
+            String destino,
+            String nombre,
+            Long idPedido,
+            String nombreTienda,
+            String codigoEntrega
+    ) {
+        try {
+            MimeMessage mensaje = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    mensaje,
+                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                    StandardCharsets.UTF_8.name()
+            );
+            helper.setFrom(construirRemitente());
+            helper.setTo(destino);
+            helper.setSubject("Tu codigo de entrega de REGALIA");
+            helper.setText(
+                    construirContenidoTextoCodigoEntrega(nombre, idPedido, nombreTienda, codigoEntrega),
+                    construirContenidoHtmlCodigoEntrega(nombre, idPedido, nombreTienda, codigoEntrega)
+            );
+            agregarLogoInline(helper);
+            mailSender.send(mensaje);
+        } catch (MessagingException | UnsupportedEncodingException | MailException ex) {
+            throw new IllegalStateException("No se pudo enviar el codigo de entrega", ex);
+        }
+    }
+
     private void enviarCorreo(
             String destino,
             String nombre,
@@ -163,6 +192,50 @@ public class SmtpEmailSender implements EmailSender {
                 escapeHtml(titulo), LOGO_CONTENT_ID, escapeHtml(titulo), saludo, escapeHtml(descripcion),
                 enlaceSeguro, escapeHtml(textoBoton), enlaceSeguro, enlaceSeguro, escapeHtml(avisoSeguridad)
         );
+    }
+
+    private String construirContenidoTextoCodigoEntrega(
+            String nombre,
+            Long idPedido,
+            String nombreTienda,
+            String codigoEntrega
+    ) {
+        String saludo = StringUtils.hasText(nombre) ? "Hola " + nombre.trim() + "," : "Hola,";
+        return saludo + System.lineSeparator()
+                + System.lineSeparator()
+                + "Tu pedido #" + idPedido + " de " + nombreTienda + " esta listo para entregarse."
+                + System.lineSeparator()
+                + "Comparte este codigo solo cuando recibas tu pedido: " + codigoEntrega
+                + System.lineSeparator()
+                + System.lineSeparator()
+                + "No compartas este codigo antes de recibir tu pedido.";
+    }
+
+    private String construirContenidoHtmlCodigoEntrega(
+            String nombre,
+            Long idPedido,
+            String nombreTienda,
+            String codigoEntrega
+    ) {
+        String saludo = StringUtils.hasText(nombre) ? "Hola " + escapeHtml(nombre.trim()) + "," : "Hola,";
+        return """
+                <!doctype html>
+                <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Codigo de entrega REGALIA</title></head>
+                <body style="margin:0;padding:0;background:#f8f1ea;color:#20182a;font-family:Arial,Helvetica,sans-serif;">
+                  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background:#f8f1ea;padding:32px 16px;"><tr><td align="center">
+                    <table role="presentation" width="560" cellspacing="0" cellpadding="0" style="width:100%%;max-width:560px;background:#fffaf6;border:1px solid #ead8cc;border-radius:18px;overflow:hidden;">
+                      <tr><td style="padding:28px 32px 18px;background:#fffaf6;border-bottom:1px solid #ead8cc;"><img src="cid:%s" width="168" alt="REGALIA" style="display:block;width:168px;max-width:100%%;height:auto;border:0;" />
+                        <div style="margin-top:18px;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#8a5b0f;font-weight:700;">Entrega de pedido</div>
+                        <h1 style="margin:12px 0 0;font-size:28px;line-height:1.15;color:#5b1f3f;">Tu pedido esta listo</h1></td></tr>
+                      <tr><td style="padding:28px 32px 32px;"><p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#3b2d40;">%s</p>
+                        <p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:#6f6074;">El pedido <strong>#%s</strong> de <strong>%s</strong> ya puede entregarse.</p>
+                        <div style="margin:0 0 22px;padding:18px;background:#f8f1ea;border:1px solid #ead8cc;border-radius:14px;text-align:center;"><div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#8a5b0f;font-weight:700;">Codigo de entrega</div><div style="margin-top:8px;font-size:32px;letter-spacing:8px;color:#5b1f3f;font-weight:800;">%s</div></div>
+                        <p style="margin:0;font-size:13px;line-height:1.6;color:#7a6d7d;">Comparte este codigo solo cuando recibas tu pedido. No lo envíes antes de la entrega.</p>
+                      </td></tr>
+                    </table>
+                  </td></tr></table>
+                </body></html>
+                """.formatted(LOGO_CONTENT_ID, saludo, idPedido, escapeHtml(nombreTienda), escapeHtml(codigoEntrega));
     }
 
     private void agregarLogoInline(MimeMessageHelper helper) throws MessagingException {

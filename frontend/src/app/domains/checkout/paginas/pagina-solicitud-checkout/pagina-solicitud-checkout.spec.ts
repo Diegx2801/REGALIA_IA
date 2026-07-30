@@ -91,7 +91,7 @@ describe('PaginaSolicitudCheckout', () => {
     await crearPagina();
     pagina.formulario.controls.fechaEntrega.setValue('2020-01-01');
 
-    pagina.prepararCheckout();
+    pagina.continuarAlPago();
     await fixture.whenStable();
 
     expect(checkoutApi.crearSesionCheckout).not.toHaveBeenCalled();
@@ -99,10 +99,10 @@ describe('PaginaSolicitudCheckout', () => {
     expect(fixture.nativeElement.textContent).toContain('Elige una fecha válida');
   });
 
-  it('presenta una confirmación accesible al preparar el checkout', async () => {
+  it('crea la sesión de pago al continuar con una solicitud válida', async () => {
     await crearPagina();
 
-    pagina.prepararCheckout();
+    pagina.continuarAlPago();
     expect(checkoutApi.crearSesionCheckout).toHaveBeenCalledWith(
       expect.objectContaining({
         proveedor: 'MERCADO_PAGO',
@@ -111,19 +111,6 @@ describe('PaginaSolicitudCheckout', () => {
       }),
     );
 
-    resultado$.next({
-      proveedor: 'MERCADO_PAGO',
-      referenciaExterna: 'checkout-1',
-      monto: 45,
-      moneda: 'PEN',
-      urlRedireccion: 'https://sandbox.mercadopago.com/checkout',
-    });
-    resultado$.complete();
-    await fixture.whenStable();
-
-    const confirmacion = fixture.nativeElement.querySelector('#checkout-confirmacion');
-    expect(confirmacion.getAttribute('role')).toBe('status');
-    expect(confirmacion.textContent).toContain('PEN45.00');
   });
 
   it('solicita login con retorno y no consulta pagos protegidos sin sesión', async () => {
@@ -140,7 +127,7 @@ describe('PaginaSolicitudCheckout', () => {
     rolCliente = false;
     await crearPagina();
 
-    pagina.prepararCheckout();
+    pagina.continuarAlPago();
 
     expect(checkoutApi.crearSesionCheckout).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('cuenta de cliente');
@@ -150,7 +137,7 @@ describe('PaginaSolicitudCheckout', () => {
     usuarioActual.set({ correoVerificado: false });
     await crearPagina();
 
-    pagina.prepararCheckout();
+    pagina.continuarAlPago();
 
     expect(checkoutApi.crearSesionCheckout).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Verifica tu correo');

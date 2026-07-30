@@ -108,6 +108,12 @@
   color: #ffffff;
 }
 
+.checkout-steps__item--done {
+  background: rgba(47, 123, 98, 0.08);
+  border-color: rgba(47, 123, 98, 0.28);
+  color: #2f6f5b;
+}
+
 .cart-layout {
   align-items: start;
   display: grid;

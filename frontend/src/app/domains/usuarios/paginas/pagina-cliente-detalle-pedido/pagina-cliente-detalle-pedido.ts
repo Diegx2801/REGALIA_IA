@@ -15,6 +15,7 @@ import { obtenerMensajeErrorUsuario } from '../../../../core/http/modelos/error-
 import { BotonDirective } from '../../../../shared/directivas/boton.directive';
 import { EstadoPantallaComponent } from '../../../../shared/ui/estado-pantalla/estado-pantalla';
 import { CheckoutApiService } from '../../../checkout/acceso-datos/checkout-api.service';
+import { PedidoClienteApiService } from '../../acceso-datos/pedido-cliente-api.service';
 import { PedidosClienteStore } from '../../estado/pedidos-cliente.store';
 import { obtenerEtiquetaEstadoPedidoCliente } from '../../modelos/pedido-cliente.model';
 
@@ -34,9 +35,12 @@ export class PaginaClienteDetallePedido implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly checkoutApi = inject(CheckoutApiService);
+  private readonly pedidoClienteApi = inject(PedidoClienteApiService);
 
   readonly store = inject(PedidosClienteStore);
   readonly preparandoPago = signal(false);
+  readonly reenviandoCodigoEntrega = signal(false);
+  readonly mensajeCodigoEntrega = signal<string | null>(null);
   private readonly mensajePagoAccion = signal<string | null>(null);
   private readonly estadoMensajePagoAccion = signal<EstadoMensajePago | null>(null);
   private readonly estadoRetornoPago = signal<string | null>(null);
@@ -56,6 +60,13 @@ export class PaginaClienteDetallePedido implements OnInit {
     const pedido = this.store.pedidoDetalle();
     return Boolean(pedido && pedido.saldoPendiente > 0 && pedido.estadoPedido !== 'ANULADO');
   });
+
+  readonly puedeReenviarCodigoEntrega = computed(
+    () => {
+      const pedido = this.store.pedidoDetalle();
+      return Boolean(pedido?.estadoPedido === 'LISTO' && pedido.saldoPendiente <= 0);
+    },
+  );
 
   readonly porcentajePagado = computed(() => {
     const pedido = this.store.pedidoDetalle();
@@ -116,10 +127,13 @@ export class PaginaClienteDetallePedido implements OnInit {
       };
     }
     if (pedido.estadoPedido === 'LISTO') {
+      const tieneSaldoPendiente = pedido.saldoPendiente > 0;
       return {
-        variante: 'advertencia',
-        titulo: 'Tu regalo está listo',
-        descripcion: `La entrega continuará mediante: ${pedido.tipoEntrega}.`,
+        variante: tieneSaldoPendiente ? 'advertencia' : 'informativa',
+        titulo: tieneSaldoPendiente ? 'Tu regalo está listo' : 'Tu entrega está lista para coordinarse',
+        descripcion: tieneSaldoPendiente
+          ? 'Completa el saldo pendiente para habilitar la entrega.'
+          : `La entrega continuará mediante: ${pedido.tipoEntrega}.`,
       };
     }
     if (pedido.estadoPedido === 'EN_PREPARACION') {
@@ -215,6 +229,27 @@ export class PaginaClienteDetallePedido implements OnInit {
           );
           this.estadoMensajePagoAccion.set('error');
         },
+      });
+  }
+
+  reenviarCodigoEntrega(idPedido: number): void {
+    if (!this.puedeReenviarCodigoEntrega() || this.reenviandoCodigoEntrega()) return;
+
+    this.reenviandoCodigoEntrega.set(true);
+    this.mensajeCodigoEntrega.set(null);
+
+    this.pedidoClienteApi
+      .reenviarCodigoEntrega(idPedido)
+      .pipe(
+        finalize(() => this.reenviandoCodigoEntrega.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => this.mensajeCodigoEntrega.set('Te enviamos un nuevo código a tu correo.'),
+        error: (error: unknown) =>
+          this.mensajeCodigoEntrega.set(
+            obtenerMensajeErrorUsuario(error, 'No pudimos enviar un nuevo código. Inténtalo más tarde.'),
+          ),
       });
   }
 

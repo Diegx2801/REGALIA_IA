@@ -1,434 +1,97 @@
-<section class="admin-datos" aria-labelledby="titulo-datos-maestros">
+<section class="admin-datos" aria-labelledby="titulo-configuracion-marketplace">
   <header class="admin-datos__hero">
     <div>
-      <span>Gobierno de catálogos</span>
-      <h2 id="titulo-datos-maestros">Datos maestros</h2>
-      <p>
-        Administra las clasificaciones que conectan catálogo, checkout, documentación y operación
-        comercial en REGALIA.
-      </p>
+      <span>Consulta de configuraci&oacute;n</span>
+      <h2 id="titulo-configuracion-marketplace">Configuraci&oacute;n del marketplace</h2>
+      <p>Consulta las opciones que hacen posible la experiencia de compra, entrega y verificaci&oacute;n en REGALIA.</p>
     </div>
-    <div class="admin-datos__hero-sello" aria-label="Centro de configuración operativa">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-        <ellipse cx="12" cy="5" rx="7.5" ry="3" />
-        <path d="M4.5 5v7c0 1.65 3.36 3 7.5 3s7.5-1.35 7.5-3V5" />
-        <path d="M4.5 12v7c0 1.65 3.36 3 7.5 3s7.5-1.35 7.5-3v-7" />
-      </svg>
-      <div>
-        <strong>Configuración central</strong>
-        <small>Cambios controlados y trazables</small>
-      </div>
+    <div class="admin-datos__hero-sello" aria-label="Cambios controlados">
+      <strong>Cat&aacute;logos protegidos</strong>
+      <small>Los cambios se gestionan mediante controles internos.</small>
     </div>
   </header>
 
   @if (cargando() && !cargaCompletada()) {
-    <app-estado-pantalla
-      tipo="carga"
-      etiqueta="Sincronización"
-      titulo="Consultando datos maestros"
-      descripcion="Estamos reuniendo los cinco catálogos administrativos desde el backend."
-    />
+    <app-estado-pantalla tipo="carga" etiqueta="Configuraci&oacute;n" titulo="Cargando opciones del marketplace" />
   } @else if (mensajeError() && !cargaCompletada()) {
     <app-estado-pantalla
       tipo="error"
-      etiqueta="Configuración no disponible"
-      [titulo]="mensajeError() ?? 'No pudimos cargar datos maestros.'"
-      descripcion="Comprueba la conexión con el backend y vuelve a intentarlo."
+      etiqueta="Configuraci&oacute;n no disponible"
+      [titulo]="mensajeError() ?? 'No pudimos cargar la configuraci&oacute;n.'"
       textoAccion="Reintentar"
       (accion)="cargarDatosMaestros()"
     />
   } @else {
-    <div class="admin-datos__mensajes" aria-live="polite">
-      @if (mensajeExito()) {
-        <app-estado-pantalla
-          tipo="exito"
-          etiqueta="Operación completada"
-          [titulo]="mensajeExito() ?? ''"
-        />
-      }
-      @if (mensajeError()) {
-        <app-estado-pantalla
-          tipo="error"
-          etiqueta="Operación no completada"
-          [titulo]="mensajeError() ?? ''"
-          textoAccion="Actualizar catálogos"
-          (accion)="cargarDatosMaestros(true)"
-        />
-      }
-    </div>
+    @if (mensajeExito()) {
+      <app-estado-pantalla tipo="exito" etiqueta="Actualizado" [titulo]="mensajeExito() ?? ''" />
+    }
 
-    <section class="admin-datos__metricas" aria-label="Resumen global de datos maestros">
-      <app-tarjeta-metrica
-        etiqueta="Registros totales"
-        [valor]="datosMaestros().length"
-        descripcion="Consolidado de los cinco catálogos."
-      />
-      <app-tarjeta-metrica
-        etiqueta="Registros activos"
-        [valor]="totalActivos()"
-        descripcion="Disponibles para la operación actual."
-      />
-      <app-tarjeta-metrica
-        etiqueta="Registros inactivos"
-        [valor]="totalInactivos()"
-        descripcion="Conservados para trazabilidad."
-      />
-      <app-tarjeta-metrica
-        etiqueta="Catálogos"
-        [valor]="configuraciones.length"
-        descripcion="Áreas de configuración conectadas."
-      />
+    <section class="admin-datos__metricas" aria-label="Resumen de configuraci&oacute;n">
+      <app-tarjeta-metrica etiqueta="Opciones registradas" [valor]="datosMaestros().length" descripcion="Distribuidas en cinco cat&aacute;logos." />
+      <app-tarjeta-metrica etiqueta="Opciones activas" [valor]="totalActivos()" descripcion="Disponibles para los flujos actuales." />
+      <app-tarjeta-metrica etiqueta="Opciones inactivas" [valor]="totalInactivos()" descripcion="Conservadas para referencia hist&oacute;rica." />
+      <app-tarjeta-metrica etiqueta="Cat&aacute;logos" [valor]="configuraciones.length" descripcion="&Aacute;reas consultables de la operaci&oacute;n." />
     </section>
 
     <section class="admin-datos__catalogos" aria-labelledby="titulo-catalogos">
       <header>
         <div>
-          <span>Mapa de configuración</span>
-          <h3 id="titulo-catalogos">Selecciona un catálogo</h3>
+          <span>Consulta por categor&iacute;a</span>
+          <h3 id="titulo-catalogos">Opciones disponibles</h3>
         </div>
-        <button
-          appBoton="fantasma"
-          appBotonTamano="sm"
-          type="button"
-          [disabled]="cargando()"
-          [appBotonCargando]="cargando()"
-          (click)="cargarDatosMaestros(true)"
-        >
-          {{ cargando() ? 'Actualizando…' : 'Actualizar datos' }}
+        <button appBoton="fantasma" appBotonTamano="sm" type="button" [disabled]="cargando()" (click)="cargarDatosMaestros(true)">
+          {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
         </button>
       </header>
-      <nav class="admin-datos__catalogos-grid" aria-label="Catálogos de datos maestros">
+      <nav class="admin-datos__catalogos-grid" aria-label="Categor&iacute;as de configuraci&oacute;n">
         @for (configuracion of configuraciones; track configuracion.tipo) {
-          <button
-            class="admin-datos__catalogo"
-            type="button"
-            [class.admin-datos__catalogo--activo]="tipoSeleccionado() === configuracion.tipo"
-            [attr.aria-pressed]="tipoSeleccionado() === configuracion.tipo"
-            (click)="seleccionarTipo(configuracion.tipo)"
-          >
-            <span class="admin-datos__catalogo-icono" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z" />
-                <path d="M8 9h8M8 13h5" />
-              </svg>
-            </span>
-            <span class="admin-datos__catalogo-contenido">
-              <strong>{{ configuracion.etiqueta }}</strong>
-              <small>
-                {{ contarActivosPorTipo(configuracion.tipo) }} activos de
-                {{ contarPorTipo(configuracion.tipo) }}
-              </small>
-            </span>
-            <span class="admin-datos__catalogo-flecha" aria-hidden="true">›</span>
+          <button class="admin-datos__catalogo" type="button" [class.admin-datos__catalogo--activo]="tipoSeleccionado() === configuracion.tipo" [attr.aria-pressed]="tipoSeleccionado() === configuracion.tipo" (click)="seleccionarTipo(configuracion.tipo)">
+            <span><strong>{{ configuracion.etiqueta }}</strong><small>{{ contarActivosPorTipo(configuracion.tipo) }} activas de {{ contarPorTipo(configuracion.tipo) }}</small></span>
           </button>
         }
       </nav>
     </section>
 
-    <form
-      class="admin-datos__filtros"
-      [formGroup]="formularioFiltros"
-      aria-label="Filtros del catálogo seleccionado"
-      (ngSubmit)="aplicarFiltros()"
-    >
-      <label class="admin-datos__busqueda">
-        Buscar en {{ configuracionSeleccionada().etiqueta.toLowerCase() }}
-        <span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <circle cx="11" cy="11" r="6.5" />
-            <path d="m16 16 4 4" />
-          </svg>
-          <input
-            type="search"
-            formControlName="busqueda"
-            autocomplete="off"
-            placeholder="Nombre, código o identificador"
-          />
-        </span>
-      </label>
-      <label>
-        Estado
-        <select formControlName="estado">
-          <option value="TODOS">Todos</option>
-          <option value="ACTIVOS">Activos</option>
-          <option value="INACTIVOS">Inactivos</option>
-        </select>
-      </label>
-      <div class="admin-datos__acciones-filtros">
-        <button appBoton type="submit">Aplicar filtros</button>
-        <button appBoton="fantasma" type="button" (click)="limpiarFiltros()">Limpiar</button>
-      </div>
-    </form>
-
-    <section
-      class="admin-datos__directorio"
-      [attr.aria-busy]="cargando()"
-      aria-labelledby="titulo-directorio-datos"
-    >
+    <section class="admin-datos__directorio" [attr.aria-busy]="cargando()" aria-labelledby="titulo-directorio-datos">
       <header class="admin-datos__cabecera-directorio">
         <div>
-          <span>Catálogo operativo</span>
+          <span>Cat&aacute;logo consultado</span>
           <h3 id="titulo-directorio-datos">{{ configuracionSeleccionada().etiqueta }}</h3>
-          <p>
-            {{ activosSeleccionados() }} activos · {{ inactivosSeleccionados() }} inactivos
-          </p>
+          <p>{{ activosSeleccionados() }} opciones activas</p>
         </div>
-        <div class="admin-datos__cabecera-acciones">
-          <span>{{ datosFiltrados().length }} resultado(s)</span>
-          @if (configuracionSeleccionada().permiteCrear) {
-            <button
-              appBoton
-              type="button"
-              [disabled]="!puedeCrearSeleccionado()"
-              (click)="abrirCreacion()"
-            >
-              Nuevo registro
-            </button>
-          }
-        </div>
+        <span>{{ datosDeCategoria().length }} registro(s)</span>
       </header>
 
-      @if (cargando()) {
-        <p class="admin-datos__actualizando" role="status">Actualizando los catálogos…</p>
-      }
+      @if (cargando()) { <p class="admin-datos__actualizando" role="status">Actualizando informaci&oacute;n...</p> }
 
-      @if (tipoSeleccionado() === 'TIPO_PAGO') {
-        <div class="admin-datos__aviso">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 10v6M12 7.25v.5" />
-          </svg>
-          <p>
-            <strong>Códigos protegidos por reglas de negocio</strong>
-            El backend permite actualizar el nombre y la descripción, pero no crear ni cambiar el
-            estado de los tipos de pago.
-          </p>
-        </div>
-      } @else if (tipoSeleccionado() === 'TIPO_DOCUMENTO' && categoriasDocumento().length === 0) {
-        <div class="admin-datos__aviso admin-datos__aviso--alerta" role="alert">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <path d="M12 3 2.8 19h18.4z" />
-            <path d="M12 9v4.5M12 17h.01" />
-          </svg>
-          <p>
-            <strong>Falta una categoría de documento</strong>
-            Se necesita al menos una categoría existente para crear nuevos tipos de documento.
-          </p>
-        </div>
-      }
-
-      @if (datosFiltrados().length > 0) {
+      @if (datosDeCategoria().length > 0) {
         <div class="admin-datos__tabla-contenedor">
           <table class="admin-datos__tabla">
-            <caption>
-              Registros del catálogo seleccionado según los filtros aplicados
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Registro</th>
-                <th scope="col">Uso operativo</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Último cambio</th>
-                <th scope="col" class="admin-datos__columna-accion">Acciones</th>
-              </tr>
-            </thead>
+            <caption>Opciones disponibles en {{ configuracionSeleccionada().etiqueta }}</caption>
+            <thead><tr><th scope="col">Opci&oacute;n</th><th scope="col">Uso en REGALIA</th><th scope="col">Disponibilidad</th><th scope="col">Actualizaci&oacute;n</th></tr></thead>
             <tbody>
-              @for (dato of datosFiltrados(); track crearClave(dato)) {
+              @for (dato of datosDeCategoria(); track dato.tipo + '-' + dato.id) {
                 <tr>
-                  <td>
-                    <strong>{{ dato.nombre }}</strong>
-                    <small>{{ etiquetaSecundaria(dato) }}</small>
-                  </td>
+                  <td><strong>{{ dato.nombre }}</strong>@if (etiquetaSecundaria(dato); as etiqueta) { <small>{{ etiqueta }}</small> }</td>
                   <td><p>{{ detalleOperativo(dato) }}</p></td>
-                  <td>
-                    <app-insignia-ui
-                      [texto]="dato.estado ? 'Activo' : 'Inactivo'"
-                      [variante]="dato.estado ? 'exito' : 'neutral'"
-                    />
-                  </td>
-                  <td>
-                    @if (fechaReferencia(dato); as fecha) {
-                      <time [attr.datetime]="fecha">{{ fecha | date: 'dd MMM yyyy' }}</time>
-                    } @else {
-                      <span class="admin-datos__sin-fecha">Sin auditoría</span>
-                    }
-                  </td>
-                  <td class="admin-datos__columna-accion">
-                    <div class="admin-datos__acciones" [attr.aria-label]="'Acciones para ' + dato.nombre">
-                      @if (dato.estado) {
-                        <button
-                          appBoton="secundario"
-                          appBotonTamano="sm"
-                          type="button"
-                          [disabled]="procesandoEstado() !== null"
-                          (click)="abrirEdicion(dato)"
-                        >
-                          Editar
-                        </button>
-                      }
-                      @if (configuracionSeleccionada().permiteCambiarEstado) {
-                        <button
-                          [appBoton]="dato.estado ? 'peligro' : 'fantasma'"
-                          appBotonTamano="sm"
-                          type="button"
-                          [disabled]="procesandoEstado() !== null"
-                          (click)="solicitarCambioEstado(dato)"
-                        >
-                          {{ dato.estado ? 'Desactivar' : 'Reactivar' }}
-                        </button>
-                      }
-                    </div>
-                  </td>
+                  <td><app-insignia-ui [texto]="dato.estado ? 'Disponible' : 'No disponible'" [variante]="dato.estado ? 'exito' : 'neutral'" /></td>
+                  <td>@if (fechaReferencia(dato); as fecha) { <time [attr.datetime]="fecha">{{ fecha | date: 'dd MMM yyyy' }}</time> } @else { <span>Sin fecha registrada</span> }</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
-
-        <div class="admin-datos__tarjetas" aria-label="Datos maestros en vista móvil">
-          @for (dato of datosFiltrados(); track crearClave(dato)) {
+        <div class="admin-datos__tarjetas" aria-label="Opciones en vista m&oacute;vil">
+          @for (dato of datosDeCategoria(); track dato.tipo + '-' + dato.id) {
             <article class="admin-datos__tarjeta">
-              <header>
-                <div class="admin-datos__monograma" aria-hidden="true">
-                  {{ dato.nombre.charAt(0) }}
-                </div>
-                <div>
-                  <small>{{ etiquetaSecundaria(dato) }}</small>
-                  <h4>{{ dato.nombre }}</h4>
-                </div>
-                <app-insignia-ui
-                  [texto]="dato.estado ? 'Activo' : 'Inactivo'"
-                  [variante]="dato.estado ? 'exito' : 'neutral'"
-                />
-              </header>
+              <header><div><small>{{ etiquetaSecundaria(dato) ?? configuracionSeleccionada().etiqueta }}</small><h4>{{ dato.nombre }}</h4></div><app-insignia-ui [texto]="dato.estado ? 'Disponible' : 'No disponible'" [variante]="dato.estado ? 'exito' : 'neutral'" /></header>
               <p>{{ detalleOperativo(dato) }}</p>
-              <div class="admin-datos__tarjeta-meta">
-                <span>Último cambio</span>
-                @if (fechaReferencia(dato); as fecha) {
-                  <strong>{{ fecha | date: 'dd/MM/yyyy' }}</strong>
-                } @else {
-                  <strong>Sin auditoría</strong>
-                }
-              </div>
-              <div class="admin-datos__acciones admin-datos__acciones--movil">
-                @if (dato.estado) {
-                  <button
-                    appBoton="secundario"
-                    appBotonTamano="sm"
-                    type="button"
-                    [disabled]="procesandoEstado() !== null"
-                    (click)="abrirEdicion(dato)"
-                  >
-                    Editar registro
-                  </button>
-                }
-                @if (configuracionSeleccionada().permiteCambiarEstado) {
-                  <button
-                    [appBoton]="dato.estado ? 'peligro' : 'fantasma'"
-                    appBotonTamano="sm"
-                    type="button"
-                    [disabled]="procesandoEstado() !== null"
-                    (click)="solicitarCambioEstado(dato)"
-                  >
-                    {{ dato.estado ? 'Desactivar' : 'Reactivar' }}
-                  </button>
-                }
-              </div>
             </article>
           }
         </div>
       } @else {
-        <app-estado-pantalla
-          tipo="vacio"
-          etiqueta="Sin coincidencias"
-          titulo="No encontramos registros con estos filtros"
-          descripcion="Ajusta el texto o el estado para ampliar la búsqueda."
-          [textoAccion]="hayFiltrosActivos() ? 'Limpiar filtros' : null"
-          (accion)="limpiarFiltros()"
-        />
+        <app-estado-pantalla tipo="vacio" etiqueta="Sin opciones" titulo="No hay opciones disponibles en esta categor&iacute;a" />
       }
     </section>
   }
 </section>
-
-<app-dialogo-ui
-  [abierto]="formularioActivo() !== null"
-  idDialogo="dialogo-dato-maestro"
-  idTitulo="titulo-formulario-dato"
-  tamano="lg"
-  (solicitudCierre)="cerrarFormulario()"
->
-  <div class="admin-datos__dialogo-formulario">
-    <button
-      class="admin-datos__cerrar-dialogo"
-      type="button"
-      aria-label="Cerrar formulario"
-      [disabled]="guardando()"
-      (click)="cerrarFormulario()"
-    >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-        <path d="m6 6 12 12M18 6 6 18" />
-      </svg>
-    </button>
-    @if (formularioActivo(); as formulario) {
-      <app-formulario-dato-maestro
-        [tipo]="formulario.tipo"
-        [dato]="formulario.dato"
-        [categoriasDocumento]="categoriasDocumento()"
-        [procesando]="guardando()"
-        (guardar)="guardarDatoMaestro($event)"
-        (cancelar)="cerrarFormulario()"
-      />
-    }
-  </div>
-</app-dialogo-ui>
-
-<app-dialogo-ui
-  [abierto]="datoPendienteEstado() !== null"
-  idDialogo="dialogo-confirmar-estado-dato"
-  idTitulo="titulo-confirmar-estado-dato"
-  idDescripcion="descripcion-confirmar-estado-dato"
-  tamano="sm"
-  (solicitudCierre)="cancelarCambioEstado()"
->
-  @if (datoPendienteEstado(); as dato) {
-    <section class="admin-datos__confirmacion">
-      <div class="admin-datos__confirmacion-icono" [class.admin-datos__confirmacion-icono--reactivar]="!dato.estado">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-          <path d="M12 3 2.8 19h18.4z" />
-          <path d="M12 9v4.5M12 17h.01" />
-        </svg>
-      </div>
-      <span>{{ dato.estado ? 'Acción sensible' : 'Recuperar registro' }}</span>
-      <h3 id="titulo-confirmar-estado-dato">
-        {{ dato.estado ? '¿Desactivar' : '¿Reactivar' }} “{{ dato.nombre }}”?
-      </h3>
-      <p id="descripcion-confirmar-estado-dato">
-        @if (dato.estado) {
-          Dejará de estar disponible para nuevas operaciones, pero se conservará su historial.
-        } @else {
-          Volverá a estar disponible en los flujos que utilizan este catálogo.
-        }
-      </p>
-      <div class="admin-datos__confirmacion-acciones">
-        <button
-          [appBoton]="dato.estado ? 'peligro' : 'primario'"
-          type="button"
-          [disabled]="procesandoEstado() !== null"
-          [appBotonCargando]="procesandoEstado() !== null"
-          (click)="confirmarCambioEstado()"
-        >
-          {{ dato.estado ? 'Sí, desactivar' : 'Sí, reactivar' }}
-        </button>
-        <button
-          appBoton="fantasma"
-          type="button"
-          [disabled]="procesandoEstado() !== null"
-          (click)="cancelarCambioEstado()"
-        >
-          Cancelar
-        </button>
-      </div>
-    </section>
-  }
-</app-dialogo-ui>

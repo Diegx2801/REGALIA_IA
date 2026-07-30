@@ -8,6 +8,7 @@ import com.regalia.backend.productoimagen.infrastructure.entity.ProductoImagenEn
 import com.regalia.backend.productoimagen.infrastructure.repository.ProductoImagenJpaRepository;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.shared.response.PaginaResponse;
+import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
 import com.regalia.backend.tienda.infrastructure.repository.TiendaJpaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -134,6 +136,49 @@ class ProductoConsultaServiceTest {
         assertThat(pagina.totalElementos()).isZero();
         verify(productoImagenJpaRepository, never())
                 .findByProductoIdProductoInAndEstadoTrueOrderByProductoIdProductoAscOrdenAsc(any());
+    }
+
+    @Test
+    void consultaDetallePublicoSoloMedianteLaBusquedaQueExigeImagenActiva() {
+        TiendaEntity tienda = new TiendaEntity();
+        tienda.setEstado(true);
+        tienda.setEstadoRevision("APROBADA");
+
+        ProductoEntity producto = new ProductoEntity();
+        producto.setIdProducto(7L);
+        producto.setTienda(tienda);
+
+        ProductoImagenEntity imagen = new ProductoImagenEntity();
+        imagen.setProducto(producto);
+        imagen.setUrlImagen("/producto-7.png");
+        imagen.setOrden(1);
+
+        ProductoPublicoResponse.ImagenResumen imagenResumen =
+                new ProductoPublicoResponse.ImagenResumen("/producto-7.png", 1);
+        ProductoPublicoResponse response = new ProductoPublicoResponse(
+                7L,
+                2L,
+                "Tienda REGALIA",
+                3L,
+                "Box",
+                "Box especial",
+                "Detalle",
+                new BigDecimal("129.90"),
+                5,
+                List.of(imagenResumen)
+        );
+
+        when(productoJpaRepository.findProductoPublicoConImagenActiva(7L))
+                .thenReturn(Optional.of(producto));
+        when(productoImagenJpaRepository.findByProductoIdProductoAndEstadoTrueOrderByOrdenAsc(7L))
+                .thenReturn(List.of(imagen));
+        when(productoMapper.toPublicaImagenResumen(imagen)).thenReturn(imagenResumen);
+        when(productoMapper.toPublicoResponse(producto, List.of(imagenResumen))).thenReturn(response);
+
+        ProductoPublicoResponse detalle = productoConsultaService.obtenerProductoPublicoPorId(7L);
+
+        assertThat(detalle).isEqualTo(response);
+        verify(productoJpaRepository).findProductoPublicoConImagenActiva(7L);
     }
 
     @Test
