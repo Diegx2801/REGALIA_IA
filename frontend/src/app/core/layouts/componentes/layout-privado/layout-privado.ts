@@ -80,8 +80,10 @@ const ACCIONES_RAPIDAS_PREDETERMINADAS: readonly AccionRapidaLayoutPrivado[] = [
   styleUrl: './layout-privado.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown.escape)': 'cerrarMenuMovil()',
+    '(document:keydown.escape)': 'cerrarSuperficieActiva()',
     '(document:keydown.tab)': 'mantenerFocoMenu($event)',
+    '(document:keydown.control.k)': 'abrirPaleta($event)',
+    '(document:keydown.meta.k)': 'abrirPaleta($event)',
   },
 })
 export class LayoutPrivadoComponent {
@@ -91,8 +93,11 @@ export class LayoutPrivadoComponent {
   private readonly botonAbrirMenu = viewChild<ElementRef<HTMLButtonElement>>('botonAbrirMenu');
   private readonly botonCerrarMenu = viewChild<ElementRef<HTMLButtonElement>>('botonCerrarMenu');
   private readonly menuLateral = viewChild<ElementRef<HTMLElement>>('menuLateral');
+  private readonly dialogoNavegacion = viewChild<ElementRef<HTMLElement>>('dialogoNavegacion');
+  private readonly campoBusqueda = viewChild<ElementRef<HTMLInputElement>>('campoBusqueda');
   private readonly contenidoPrincipal = viewChild<ElementRef<HTMLElement>>('contenidoPrincipal');
   private readonly rutaActual = signal(this.obtenerRutaBase(this.router.url));
+  private elementoAntesDePaleta: HTMLElement | null = null;
 
   readonly titulo = input.required<string>();
   readonly etiqueta = input.required<string>();
@@ -107,6 +112,9 @@ export class LayoutPrivadoComponent {
   );
   readonly mostrarAccionesEnMenuMovil = input(false);
   readonly menuMovilAbierto = signal(false);
+  readonly paletaAbierta = signal(false);
+  readonly consultaPaleta = signal('');
+  readonly contenidoEntrando = signal(true);
 
   readonly sesion = inject(SesionAutenticacionService);
   readonly nombreVisible = computed(() => {
@@ -138,10 +146,39 @@ export class LayoutPrivadoComponent {
     this.enlaces().find((enlace) => this.coincideEnlace(enlace, this.rutaActual())),
   );
   readonly tituloSeccionActual = computed(() => this.enlaceActual()?.etiqueta ?? this.titulo());
+  readonly destinosPaleta = computed(() => {
+    const destinos = [
+      ...this.enlaces().map((enlace) => ({
+        etiqueta: enlace.etiqueta,
+        descripcion: enlace.descripcion,
+        ruta: enlace.ruta,
+        icono: enlace.icono,
+      })),
+      ...this.accionesRapidas().map((accion) => ({
+        etiqueta: accion.etiqueta,
+        descripcion: accion.descripcion,
+        ruta: accion.ruta,
+        icono: accion.icono,
+      })),
+    ];
+
+    return destinos.filter(
+      (destino, indice) =>
+        destinos.findIndex((candidato) => candidato.ruta === destino.ruta) === indice,
+    );
+  });
+  readonly resultadosPaleta = computed(() => {
+    const consulta = this.normalizarTexto(this.consultaPaleta());
+    if (!consulta) return this.destinosPaleta();
+
+    return this.destinosPaleta().filter((destino) =>
+      this.normalizarTexto(`${destino.etiqueta} ${destino.descripcion}`).includes(consulta),
+    );
+  });
 
   constructor() {
     effect((limpiar) => {
-      if (!this.menuMovilAbierto()) return;
+      if (!this.menuMovilAbierto() && !this.paletaAbierta()) return;
 
       const overflowAnterior = this.document.body.style.overflow;
       this.document.body.style.overflow = 'hidden';
@@ -158,8 +195,40 @@ export class LayoutPrivadoComponent {
         if (rutaSiguiente === this.rutaActual()) return;
 
         this.rutaActual.set(rutaSiguiente);
+        this.cerrarPaleta(false);
+        this.contenidoEntrando.set(false);
+        requestAnimationFrame(() => this.contenidoEntrando.set(true));
         setTimeout(() => this.contenidoPrincipal()?.nativeElement.focus(), 0);
       });
+  }
+
+  abrirPaleta(evento?: Event): void {
+    evento?.preventDefault();
+    if (this.paletaAbierta()) return;
+
+    this.elementoAntesDePaleta = this.document.activeElement as HTMLElement | null;
+    this.consultaPaleta.set('');
+    this.paletaAbierta.set(true);
+    setTimeout(() => this.campoBusqueda()?.nativeElement.focus(), 0);
+  }
+
+  cerrarPaleta(restaurarFoco = true): void {
+    if (!this.paletaAbierta()) return;
+    this.paletaAbierta.set(false);
+    this.consultaPaleta.set('');
+    if (restaurarFoco) setTimeout(() => this.elementoAntesDePaleta?.focus(), 0);
+  }
+
+  cerrarSuperficieActiva(): void {
+    if (this.paletaAbierta()) {
+      this.cerrarPaleta();
+      return;
+    }
+    this.cerrarMenuMovil();
+  }
+
+  actualizarBusqueda(evento: Event): void {
+    this.consultaPaleta.set((evento.target as HTMLInputElement).value);
   }
 
   alternarMenuMovil(): void {
@@ -179,15 +248,16 @@ export class LayoutPrivadoComponent {
   }
 
   mantenerFocoMenu(evento: Event): void {
-    if (!this.menuMovilAbierto()) return;
-
     const eventoTeclado = evento as KeyboardEvent;
-
-    const menu = this.menuLateral()?.nativeElement;
-    if (!menu) return;
+    const superficie = this.paletaAbierta()
+      ? this.dialogoNavegacion()?.nativeElement
+      : this.menuMovilAbierto()
+        ? this.menuLateral()?.nativeElement
+        : null;
+    if (!superficie) return;
 
     const elementos = Array.from(
-      menu.querySelectorAll<HTMLElement>(
+      superficie.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       ),
     ).filter((elemento) => elemento.offsetParent !== null);
@@ -196,7 +266,7 @@ export class LayoutPrivadoComponent {
     if (!primero || !ultimo) return;
 
     const activo = document.activeElement;
-    if (!menu.contains(activo)) {
+    if (!superficie.contains(activo)) {
       eventoTeclado.preventDefault();
       primero.focus();
     } else if (eventoTeclado.shiftKey && activo === primero) {
@@ -227,5 +297,13 @@ export class LayoutPrivadoComponent {
 
   private obtenerRutaBase(url: string): string {
     return url.split(/[?#]/, 1)[0] || '/';
+  }
+
+  private normalizarTexto(texto: string): string {
+    return texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLocaleLowerCase('es');
   }
 }

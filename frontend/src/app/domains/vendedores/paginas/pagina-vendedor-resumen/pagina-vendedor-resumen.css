@@ -449,3 +449,92 @@
     padding-top: 0.7rem;
   }
 }
+
+/* REGALIA Atelier: composicion editorial, sin mosaico de tarjetas flotantes. */
+.vendedor-resumen__hero {
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 1.4rem) 0,
+    100% 1.4rem,
+    100% 100%,
+    1.4rem 100%,
+    0 calc(100% - 1.4rem)
+  );
+}
+
+.vendedor-resumen__hero::after {
+  background: linear-gradient(90deg, var(--rg-color-gold), #f3a58c);
+  bottom: 0;
+  content: '';
+  height: 0.28rem;
+  left: 0;
+  position: absolute;
+  width: min(36%, 24rem);
+}
+
+.vendedor-resumen__credencial {
+  border-radius: 0;
+  border-width: 0 0 0 1px;
+  box-shadow: none;
+}
+
+.vendedor-resumen__metricas {
+  background: rgba(255, 255, 255, 0.72);
+  border-block: 1px solid var(--rg-color-border);
+  gap: 0;
+}
+
+.vendedor-resumen__metricas > * {
+  border-right: 1px solid var(--rg-color-border);
+}
+
+.vendedor-resumen__metricas > *:last-child {
+  border-right: 0;
+}
+
+.vendedor-resumen__panel {
+  border: 0;
+  border-top: 3px solid var(--rg-color-primary);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.vendedor-resumen__panel--principal {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.vendedor-resumen__cobro {
+  border-top-color: var(--rg-color-success);
+}
+
+.vendedor-resumen__acciones {
+  border-top-color: var(--rg-color-gold);
+}
+
+.vendedor-resumen__pedido {
+  border-bottom: 1px solid var(--rg-color-border);
+  padding-block: 1rem;
+}
+
+@media (max-width: 739.98px) {
+  .vendedor-resumen__hero {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 1rem) 0,
+      100% 1rem,
+      100% 100%,
+      1rem 100%,
+      0 calc(100% - 1rem)
+    );
+  }
+
+  .vendedor-resumen__metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vendedor-resumen__metricas > * {
+    border-bottom: 1px solid var(--rg-color-border);
+  }
+}

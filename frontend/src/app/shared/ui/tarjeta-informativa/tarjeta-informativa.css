@@ -3,13 +3,13 @@
 }
 
 .tarjeta-informativa {
-  background: rgba(255, 250, 245, 0.8);
-  border: 1px solid rgba(234, 219, 208, 0.9);
-  border-radius: 0.95rem;
+  background: linear-gradient(90deg, rgba(255, 250, 245, 0.94), rgba(255, 255, 255, 0.5));
+  border-left: 3px solid var(--rg-color-gold);
+  border-top: 1px solid rgba(234, 219, 208, 0.9);
   display: grid;
   gap: 0.42rem;
   min-width: 0;
-  padding: 1rem;
+  padding: 0.95rem 1rem 1rem 1.15rem;
 }
 
 .tarjeta-informativa span {

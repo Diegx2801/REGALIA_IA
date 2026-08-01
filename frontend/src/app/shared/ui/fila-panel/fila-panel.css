@@ -3,7 +3,37 @@
 }
 
 .fila-panel {
+  align-items: center;
+  border-bottom: 1px solid var(--rg-color-border);
+  display: grid;
+  gap: 1rem;
   grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 1rem 0.35rem;
+  position: relative;
+  transition:
+    background-color var(--rg-transition-standard),
+    padding-inline var(--rg-transition-standard);
+}
+
+.fila-panel::before {
+  background: var(--rg-color-gold);
+  content: '';
+  inset-block: 0.8rem;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  transition: opacity var(--rg-transition-standard);
+  width: 3px;
+}
+
+.fila-panel:hover {
+  background: color-mix(in srgb, var(--rg-color-gold-soft) 45%, transparent);
+  padding-inline: 0.85rem 0.35rem;
+}
+
+.fila-panel:hover::before {
+  opacity: 1;
 }
 
 .fila-panel--triple {

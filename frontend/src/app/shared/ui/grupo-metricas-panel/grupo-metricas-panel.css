@@ -1,3 +1,36 @@
 :host {
   display: block;
 }
+
+.grupo-metricas-panel {
+  background: rgba(255, 255, 255, 0.72);
+  border-block: 1px solid var(--rg-color-border);
+  display: grid;
+  grid-template-columns: 1fr;
+  overflow: hidden;
+}
+
+.grupo-metricas-panel--dos-movil {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grupo-metricas-panel > * {
+  border-bottom: 1px solid var(--rg-color-border);
+  min-width: 0;
+}
+
+@media (min-width: 40rem) {
+  .grupo-metricas-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 80rem) {
+  .grupo-metricas-panel {
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  }
+
+  .grupo-metricas-panel > * {
+    border-bottom: 0;
+  }
+}

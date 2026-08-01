@@ -1,8 +1,7 @@
 <!-- Agrupa tarjetas de metricas sin calcular datos; cada pagina conserva su estado y sus computeds. -->
 <section
-  class="grid gap-3 sm:grid-cols-2 xl:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))]"
-  [class.grid-cols-1]="columnasMovil() === 1"
-  [class.grid-cols-2]="columnasMovil() === 2"
+  class="grupo-metricas-panel"
+  [class.grupo-metricas-panel--dos-movil]="columnasMovil() === 2"
   [attr.aria-label]="ariaEtiqueta()"
 >
   <ng-content />

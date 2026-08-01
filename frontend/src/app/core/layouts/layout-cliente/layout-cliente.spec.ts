@@ -90,4 +90,42 @@ describe('LayoutCliente', () => {
     expect(accesosCompra?.textContent).toContain('Explorar');
     expect(accesosCompra?.textContent).toContain('Carrito');
   });
+  it('permite encontrar destinos reales desde el buscador de secciones', async () => {
+    const botonBusqueda = fixture.nativeElement.querySelector(
+      'button[aria-haspopup="dialog"]',
+    ) as HTMLButtonElement;
+
+    botonBusqueda.click();
+    await fixture.whenStable();
+
+    const dialogo = fixture.nativeElement.querySelector(
+      '[role="dialog"][aria-labelledby="titulo-paleta-navegacion"]',
+    ) as HTMLElement;
+    const campo = dialogo.querySelector('input[type="search"]') as HTMLInputElement;
+
+    campo.value = 'carrito';
+    campo.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+
+    const resultados = Array.from(dialogo.querySelectorAll('nav a')) as HTMLAnchorElement[];
+    expect(resultados).toHaveLength(1);
+    expect(resultados[0].getAttribute('href')).toBe('/carrito');
+    expect(resultados[0].textContent).toContain('Preparar una compra');
+  });
+
+  it('cierra el buscador con Escape y devuelve el foco al disparador', async () => {
+    const botonBusqueda = fixture.nativeElement.querySelector(
+      'button[aria-haspopup="dialog"]',
+    ) as HTMLButtonElement;
+
+    botonBusqueda.focus();
+    botonBusqueda.click();
+    await fixture.whenStable();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await fixture.whenStable();
+    await new Promise((resolver) => setTimeout(resolver, 0));
+
+    expect(fixture.nativeElement.querySelector('#titulo-paleta-navegacion')).toBeNull();
+    expect(document.activeElement).toBe(botonBusqueda);
+  });
 });

@@ -51,8 +51,10 @@
   --rg-radius-xl: 28px;
   --rg-shadow-soft: 0 18px 44px rgba(35, 25, 39, 0.1);
   --rg-shadow-elevated: 0 28px 80px rgba(35, 25, 39, 0.14);
+  --rg-shadow-interactive: 0 18px 46px rgba(61, 24, 48, 0.13);
   --rg-focus-ring: 0 0 0 4px rgba(215, 173, 75, 0.22);
   --rg-transition-standard: 180ms ease;
+  --rg-transition-emphasis: 280ms cubic-bezier(0.22, 1, 0.36, 1);
   --rg-font-base:
     'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --rg-gradient-brand: linear-gradient(
@@ -87,6 +89,16 @@ body {
   min-height: 100%;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--rg-color-gold) 48%, white);
+  color: var(--rg-color-primary-dark);
+}
+
+html {
+  scrollbar-color: color-mix(in srgb, var(--rg-color-primary) 38%, transparent) transparent;
+  scrollbar-width: thin;
 }
 
 .rg-skip-link {
@@ -156,6 +168,11 @@ textarea {
 .rg-boton:hover:not(:disabled) {
   box-shadow: 0 14px 28px rgba(35, 25, 39, 0.12);
   transform: translateY(-1px);
+}
+
+.rg-boton:active:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(35, 25, 39, 0.1);
+  transform: translateY(0) scale(0.985);
 }
 
 .rg-boton:disabled,
@@ -242,6 +259,20 @@ textarea {
   width: 100%;
 }
 
+.rg-campo-formulario input:hover,
+.rg-campo-formulario select:hover,
+.rg-campo-formulario textarea:hover {
+  border-color: color-mix(in srgb, var(--rg-color-primary) 26%, var(--rg-color-border));
+}
+
+.rg-campo-formulario input:focus,
+.rg-campo-formulario select:focus,
+.rg-campo-formulario textarea:focus {
+  border-color: var(--rg-color-primary);
+  box-shadow: var(--rg-focus-ring);
+  outline: none;
+}
+
 .rg-error-campo {
   color: var(--rg-color-rose);
   font-weight: 800;
@@ -317,6 +348,181 @@ textarea {
 .rg-panel__tarjeta p {
   color: var(--rg-color-muted);
   margin: 0;
+}
+
+/* Lenguaje privado REGALIA Atelier: continuidad, reglas y jerarquia editorial. */
+.layout-privado {
+  --rg-radius-lg: 0.45rem;
+  --rg-radius-xl: 0.75rem;
+  --rg-shadow-soft: 0 1px 0 rgba(35, 25, 39, 0.08);
+  --rg-shadow-elevated: 0 14px 36px rgba(35, 25, 39, 0.1);
+}
+
+.layout-privado .rg-panel__hero {
+  border: 0;
+  border-top: 4px solid var(--rg-color-primary);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.layout-privado .rg-panel__grid {
+  background: rgba(255, 255, 255, 0.68);
+  border-block: 1px solid var(--rg-color-border);
+  gap: 0;
+}
+
+.layout-privado .rg-panel__tarjeta {
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--rg-color-border);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.layout-privado .rg-panel__tarjeta:last-child {
+  border-right: 0;
+}
+
+.layout-privado .cliente-pedidos__hero {
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 1.35rem) 0,
+    100% 1.35rem,
+    100% 100%,
+    1.35rem 100%,
+    0 calc(100% - 1.35rem)
+  );
+}
+
+.layout-privado .cliente-pedidos__hero::before {
+  background: linear-gradient(90deg, var(--rg-color-gold), #ffb59e);
+  bottom: 0;
+  content: '';
+  height: 0.3rem;
+  left: 0;
+  position: absolute;
+  width: 42%;
+}
+
+.layout-privado .cliente-pedidos__hero-dato {
+  border-radius: 0;
+  border-width: 0 0 0 1px;
+}
+
+.layout-privado .cliente-pedidos__metricas {
+  background: rgba(255, 255, 255, 0.72);
+  border-block: 1px solid var(--rg-color-border);
+  gap: 0;
+}
+
+.layout-privado .cliente-pedidos .cliente-pedidos__metricas {
+  gap: 0;
+}
+
+.layout-privado .cliente-pedidos__metricas article {
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--rg-color-border);
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 7.5rem;
+  padding: 1rem 1.15rem;
+}
+
+.layout-privado .cliente-pedidos .cliente-pedidos__metricas article {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.layout-privado .cliente-pedidos__metricas article:last-child {
+  border-right: 0;
+}
+
+.layout-privado .cliente-pedidos__bandeja {
+  background: rgba(255, 255, 255, 0.5);
+  border: 0;
+  border-top: 4px solid var(--rg-color-primary);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.layout-privado .cliente-pedidos__contador-filtros,
+.layout-privado .cliente-pedidos__vistas button,
+.layout-privado .cliente-pedidos__filtros input,
+.layout-privado .cliente-pedidos__filtros select,
+.layout-privado .pedido-cliente__estado,
+.layout-privado .pedido-cliente__datos > div,
+.layout-privado .pedido-cliente__anulado {
+  border-radius: 0;
+}
+
+.layout-privado .cliente-pedidos__vistas {
+  border-bottom: 1px solid var(--rg-color-border);
+  gap: 0;
+}
+
+.layout-privado .cliente-pedidos__vistas button {
+  border-width: 0 0 2px;
+  min-height: 2.9rem;
+}
+
+.layout-privado .cliente-pedidos__vistas button[aria-pressed='true'] {
+  background: transparent;
+  border-color: var(--rg-color-primary);
+  color: var(--rg-color-primary);
+}
+
+.layout-privado .pedido-cliente {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rg-color-border);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 1.35rem 0;
+}
+
+.layout-privado .pedido-cliente:hover {
+  background: linear-gradient(90deg, rgba(215, 173, 75, 0.08), transparent 70%);
+  border-color: var(--rg-color-gold);
+  box-shadow: none;
+  transform: none;
+}
+
+.layout-privado .pedido-cliente__datos > div {
+  background: transparent;
+  border-width: 0 0 0 1px;
+}
+
+@media (max-width: 699.98px) {
+  .layout-privado .cliente-pedidos .cliente-pedidos__metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .layout-privado .cliente-pedidos .cliente-pedidos__metricas article {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid var(--rg-color-border);
+  }
+
+  .layout-privado .cliente-pedidos__metricas article:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .layout-privado .cliente-pedidos__hero {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 1rem) 0,
+      100% 1rem,
+      100% 100%,
+      1rem 100%,
+      0 calc(100% - 1rem)
+    );
+  }
 }
 
 @media (max-width: 1199.98px) {

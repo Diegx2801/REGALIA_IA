@@ -1,16 +1,14 @@
 .rg-filtros-panel {
   align-items: end;
-  /* Panel reutilizable: mantiene filtros consistentes sin acoplarlos a cada dominio. */
-  background:
-    radial-gradient(circle at top right, rgba(215, 173, 75, 0.12), transparent 7rem),
-    rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(90, 36, 64, 0.1);
-  border-radius: 1.4rem;
-  box-shadow: 0 16px 38px rgba(35, 25, 39, 0.07);
+  background: rgba(255, 255, 255, 0.64);
+  border-block: 1px solid var(--rg-color-border);
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(var(--rg-filtros-columna-inicial, 13rem), 100%), 1fr));
-  padding: 1rem;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--rg-filtros-columna-inicial, 13rem), 100%), 1fr)
+  );
+  padding: 1rem 0;
 }
 
 .rg-filtros-panel > * {
@@ -25,9 +23,10 @@
 
 .rg-filtros-panel input,
 .rg-filtros-panel select {
-  background: #fffaf5;
-  border: 1px solid var(--rg-color-border);
-  border-radius: 0.9rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--rg-color-border);
+  border-radius: 0;
   min-height: 2.85rem;
   padding: 0.75rem;
   width: 100%;
@@ -36,7 +35,7 @@
 .rg-filtros-panel input:focus,
 .rg-filtros-panel select:focus {
   border-color: var(--rg-color-primary);
-  box-shadow: 0 0 0 0.2rem rgba(90, 36, 64, 0.12);
+  box-shadow: none;
   outline: none;
 }
 

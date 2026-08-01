@@ -521,3 +521,104 @@
     text-align: left;
   }
 }
+
+/* REGALIA Atelier: tablero de control tratado como libro operativo. */
+.admin-resumen__hero {
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 1.5rem) 0,
+    100% 1.5rem,
+    100% 100%,
+    1.5rem 100%,
+    0 calc(100% - 1.5rem)
+  );
+}
+
+.admin-resumen__hero::after {
+  background: linear-gradient(90deg, var(--rg-color-gold), transparent);
+  bottom: 0;
+  content: '';
+  height: 0.3rem;
+  left: 0;
+  position: absolute;
+  width: 44%;
+}
+
+.admin-resumen__radar {
+  border-radius: 0;
+  border-width: 0 0 0 1px;
+}
+
+.admin-resumen__metricas {
+  background: rgba(255, 255, 255, 0.72);
+  border-block: 1px solid var(--rg-color-border);
+  gap: 0;
+}
+
+.admin-resumen__metricas > * {
+  border-right: 1px solid var(--rg-color-border);
+}
+
+.admin-resumen__metricas > *:nth-child(3n) {
+  border-right: 0;
+}
+
+.admin-resumen__panel {
+  border: 0;
+  border-top: 3px solid var(--rg-color-primary);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.admin-resumen__riesgo {
+  border-top-color: var(--rg-color-rose);
+}
+
+.admin-resumen__pedidos,
+.admin-resumen__accesos {
+  border-top-color: var(--rg-color-gold);
+}
+
+.admin-resumen__tienda,
+.admin-resumen__pedido,
+.admin-resumen__alerta,
+.admin-resumen__accesos nav a,
+.admin-resumen__actividad-marca {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.admin-resumen__tienda,
+.admin-resumen__pedido {
+  border-width: 0 0 1px;
+}
+
+@media (max-width: 1199.98px) {
+  .admin-resumen__metricas > *:nth-child(3n) {
+    border-right: 1px solid var(--rg-color-border);
+  }
+
+  .admin-resumen__metricas > *:nth-child(2n) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 739.98px) {
+  .admin-resumen__hero {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 1rem) 0,
+      100% 1rem,
+      100% 100%,
+      1rem 100%,
+      0 calc(100% - 1rem)
+    );
+  }
+
+  .admin-resumen__metricas > * {
+    border-bottom: 1px solid var(--rg-color-border);
+    border-right: 0;
+  }
+}
