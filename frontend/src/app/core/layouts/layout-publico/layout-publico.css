@@ -28,16 +28,19 @@
   align-items: center;
   display: inline-flex;
   justify-self: start;
+  overflow: hidden;
   min-width: 0;
   text-decoration: none;
+  width: 13.5rem;
 }
 
 .public-shell__brand img {
-  height: auto;
-  max-height: 4.6rem;
-  object-fit: contain;
-  object-position: left center;
-  width: min(100%, 13.5rem);
+  filter: brightness(1.08) contrast(1.08) saturate(1.1);
+  height: 4rem;
+  mix-blend-mode: multiply;
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
 }
 
 .public-shell__search {
@@ -271,11 +274,11 @@
   .public-shell__brand {
     grid-column: 1;
     grid-row: 1;
+    width: min(13rem, 62vw);
   }
 
   .public-shell__brand img {
-    max-height: 4.4rem;
-    width: min(13rem, 62vw);
+    width: 100%;
   }
 
   .public-shell__search--desktop {
@@ -375,6 +378,10 @@
   }
 
   .public-shell__brand img {
+    width: 100%;
+  }
+
+  .public-shell__brand {
     width: min(11rem, 52vw);
   }
 
