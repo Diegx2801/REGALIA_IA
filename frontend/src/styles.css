@@ -1,5 +1,6 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'tailwindcss' important;
+@import './styles/public-marketplace.css';
 
 @theme inline {
   --color-regalia-primary: var(--rg-color-primary);
@@ -23,6 +24,184 @@
   --radius-regalia-lg: var(--rg-radius-xl);
   --shadow-regalia: var(--rg-shadow-soft);
   --shadow-regalia-elevated: var(--rg-shadow-elevated);
+}
+
+/* Home publico: historia editorial de la tienda destacada. */
+.landing-page .store-feature {
+  background: var(--rg-color-primary);
+  color: #fff;
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.85fr) minmax(0, 1.15fr);
+  min-height: 22rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.landing-page .store-feature::after {
+  background: var(--rg-color-gold);
+  content: '';
+  height: 100%;
+  left: calc(42.5% - 0.2rem);
+  position: absolute;
+  top: 0;
+  width: 0.4rem;
+}
+
+.landing-page .store-feature__media {
+  align-items: center;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(247, 217, 142, 0.38), transparent 35%),
+    linear-gradient(145deg, #351326, #713453);
+  display: grid;
+  min-height: 22rem;
+  overflow: hidden;
+  place-items: center;
+}
+
+.landing-page .store-feature__media img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.landing-page .store-feature__media > span {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  display: grid;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3rem;
+  height: 9rem;
+  place-items: center;
+  width: 9rem;
+}
+
+.landing-page .store-feature__content {
+  align-content: center;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(2rem, 5vw, 4.5rem);
+}
+
+.landing-page .store-feature__topline {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.landing-page .store-feature__topline > span {
+  color: #f7d98e;
+}
+
+.landing-page .store-feature__topline strong {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.36);
+  font-size: 0.72rem;
+  padding-bottom: 0.25rem;
+}
+
+.landing-page .store-feature h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+  margin: 0;
+}
+
+.landing-page .store-feature p {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 42rem;
+}
+
+.landing-page .store-feature ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-page .store-feature li {
+  color: #f7d98e;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.landing-page .store-feature button {
+  background: #fff;
+  border: 0;
+  color: var(--rg-color-primary);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 950;
+  justify-self: start;
+  min-height: 3rem;
+  padding: 0.75rem 1.1rem;
+}
+
+.landing-page .seller-cta {
+  align-items: center;
+  background: var(--rg-color-gold-soft);
+  border-top: 0.35rem solid var(--rg-color-gold);
+  display: grid;
+  gap: 1.3rem;
+  grid-template-columns: auto minmax(0, 1fr) minmax(15rem, 0.7fr) auto;
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+}
+
+.landing-page .seller-cta__icon {
+  align-items: center;
+  background: var(--rg-color-primary);
+  display: flex;
+  height: 4rem;
+  justify-content: center;
+  position: relative;
+  width: 4rem;
+}
+
+.landing-page .seller-cta__icon span {
+  background: #fff;
+  height: 0.3rem;
+  position: absolute;
+  width: 2rem;
+}
+
+.landing-page .seller-cta__icon span:last-child {
+  transform: rotate(90deg);
+}
+
+.landing-page .seller-cta > div > span {
+  color: var(--rg-color-primary);
+  font-size: 0.7rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.landing-page .seller-cta h2 {
+  font-size: 1.9rem;
+  margin-top: 0.25rem;
+}
+
+.landing-page .seller-cta p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.landing-page .seller-cta a {
+  align-items: center;
+  background: var(--rg-color-primary);
+  color: #fff;
+  display: inline-flex;
+  font-weight: 950;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem 1.1rem;
+  text-align: center;
+  text-decoration: none;
 }
 
 :root {

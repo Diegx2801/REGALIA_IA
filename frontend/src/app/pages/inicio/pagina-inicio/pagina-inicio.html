@@ -1,13 +1,19 @@
 <div class="landing-page">
   <app-hero-inicio
     [controlBusqueda]="controlBusqueda"
+    [controlTipo]="controlTipo"
+    [controlPresupuesto]="controlPresupuesto"
     [categorias]="categorias()"
+    [intenciones]="intenciones"
     [cargandoCategorias]="cargandoCategorias()"
     [mensajeErrorCategorias]="mensajeErrorCategorias()"
     (buscarRegalos)="buscarRegalos()"
+    (buscarIntencion)="buscarIntencion($event)"
     (buscarCategoria)="buscarCategoria($event)"
     (reintentarCategorias)="cargarCategorias()"
   />
+
+  <app-calendario-comercial [campanas]="campanas" [meses]="meses" />
 
   <app-destacados-inicio
     [tiendas]="tiendasDestacadas()"
@@ -22,8 +28,6 @@
     (reintentarTiendas)="cargarTiendasDestacadas()"
     (reintentarProductos)="cargarProductosDestacados()"
   />
-
-  <app-calendario-comercial [campanas]="campanas" [meses]="meses" [diasSemana]="diasSemana" />
 
   <app-modelo-negocio-inicio [pasos]="pasosModeloNegocio" />
   <app-cta-vendedor-inicio />

@@ -91,7 +91,30 @@ describe('PaginaInicio', () => {
     fixture.componentInstance.buscarRegalos();
 
     expect(navegar).toHaveBeenCalledWith(['/catalogo'], {
-      queryParams: { busqueda: 'flores premium' },
+      queryParams: {
+        busqueda: 'flores premium',
+        tipo: undefined,
+        precioMaximo: undefined,
+      },
+    });
+  });
+
+  it('combina categoría y presupuesto con filtros reales del catálogo', async () => {
+    const fixture = TestBed.createComponent(PaginaInicio);
+    const router = TestBed.inject(Router);
+    const navegar = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    await fixture.whenStable();
+
+    fixture.componentInstance.controlTipo.setValue('PACK O BOX');
+    fixture.componentInstance.controlPresupuesto.setValue(100);
+    fixture.componentInstance.buscarRegalos();
+
+    expect(navegar).toHaveBeenCalledWith(['/catalogo'], {
+      queryParams: {
+        busqueda: undefined,
+        tipo: 'PACK O BOX',
+        precioMaximo: 100,
+      },
     });
   });
 
@@ -120,11 +143,11 @@ describe('PaginaInicio', () => {
     expect(obtenerProductos).toHaveBeenCalledOnce();
   });
 
-  it('actualiza la campaña seleccionada en lugar de ofrecer botones sin acción', async () => {
+  it('actualiza la próxima ocasión sin desplegar un calendario pesado', async () => {
     const fixture = TestBed.createComponent(PaginaInicio);
     await fixture.whenStable();
     const botones = fixture.nativeElement.querySelectorAll(
-      '.festive-calendar__events button',
+      '.occasion-rail__events button',
     ) as NodeListOf<HTMLButtonElement>;
 
     botones[1].click();
@@ -134,34 +157,21 @@ describe('PaginaInicio', () => {
       'Día de la Mujer',
     );
     expect(botones[1].getAttribute('aria-pressed')).toBe('true');
-    expect(
-      fixture.nativeElement.querySelector('.festive-calendar__month h2')?.textContent,
-    ).toContain('MAR 2026');
-    const fechaDestacada = fixture.nativeElement.querySelector(
-      '.festive-calendar__days button.is-event',
-    ) as HTMLButtonElement | null;
-    expect(fechaDestacada?.getAttribute('aria-label')).toContain('8 de MAR: Día de la Mujer');
+    expect(fixture.nativeElement.querySelector('.occasion-rail__copy p')?.textContent).toContain(
+      'Experiencias delicadas',
+    );
   });
 
-  it('actualiza el calendario completo y explica los meses sin campaña', async () => {
+  it('permite buscar directamente por una intención frecuente', async () => {
     const fixture = TestBed.createComponent(PaginaInicio);
+    const router = TestBed.inject(Router);
+    const navegar = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     await fixture.whenStable();
 
-    const botonAbril = Array.from(
-      fixture.nativeElement.querySelectorAll(
-        '.festive-calendar__months button',
-      ) as NodeListOf<HTMLButtonElement>,
-    ).find((boton) => boton.textContent?.trim() === 'ABR');
-    botonAbril?.click();
-    await fixture.whenStable();
+    fixture.componentInstance.buscarIntencion(fixture.componentInstance.intenciones[5]);
 
-    expect(botonAbril?.getAttribute('aria-pressed')).toBe('true');
-    expect(
-      fixture.nativeElement.querySelector('.festive-calendar__month h2')?.textContent,
-    ).toContain('ABR 2026');
-    expect(fixture.nativeElement.querySelectorAll('.festive-calendar__days button')).toHaveLength(
-      0,
-    );
-    expect(fixture.nativeElement.textContent).toContain('No hay una campaña destacada en ABR');
+    expect(navegar).toHaveBeenCalledWith(['/catalogo'], {
+      queryParams: { busqueda: undefined, precioMaximo: 100 },
+    });
   });
 });

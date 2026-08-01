@@ -1,7 +1,12 @@
 <div class="public-shell">
   <header class="public-shell__header">
     <div class="public-shell__bar rg-page__container--retail">
-      <a class="public-shell__brand" routerLink="/" (click)="cerrarMenuMovil()" aria-label="Ir al inicio de REGALIA">
+      <a
+        class="public-shell__brand"
+        routerLink="/"
+        (click)="cerrarMenuMovil()"
+        aria-label="Ir al inicio de REGALIA"
+      >
         <img
           src="/assets/brand/logos/logo-principal-horizontal.png"
           alt="REGALIA"
@@ -11,6 +16,23 @@
           fetchpriority="high"
         />
       </a>
+
+      <form
+        class="public-shell__search public-shell__search--desktop"
+        role="search"
+        (ngSubmit)="buscarDesdeCabecera()"
+      >
+        <label class="sr-only" for="busqueda-cabecera">Buscar regalos</label>
+        <span aria-hidden="true"></span>
+        <input
+          id="busqueda-cabecera"
+          type="search"
+          [formControl]="controlBusquedaCabecera"
+          placeholder="Busca un regalo"
+          autocomplete="off"
+        />
+        <button type="submit">Buscar</button>
+      </form>
 
       <button
         type="button"
@@ -31,8 +53,26 @@
         [class.is-open]="menuMovilAbierto()"
         aria-label="Navegacion publica principal"
       >
+        <form
+          class="public-shell__search public-shell__search--mobile"
+          role="search"
+          (ngSubmit)="buscarDesdeCabecera()"
+        >
+          <label class="sr-only" for="busqueda-cabecera-movil">Buscar regalos</label>
+          <span aria-hidden="true"></span>
+          <input
+            id="busqueda-cabecera-movil"
+            type="search"
+            [formControl]="controlBusquedaCabecera"
+            placeholder="Busca un regalo"
+            autocomplete="off"
+          />
+          <button type="submit">Buscar</button>
+        </form>
         @for (enlace of enlacesNavegacion; track enlace.ruta) {
           <a
+            class="public-shell__nav-link"
+            [class.public-shell__nav-link--secondary]="enlace.secundario"
             routerLinkActive="is-active"
             ariaCurrentWhenActive="page"
             [routerLinkActiveOptions]="{ exact: enlace.ruta === '/' }"
@@ -42,11 +82,27 @@
             {{ enlace.etiqueta }}
           </a>
         }
+
+        <div class="public-shell__nav-account">
+          @if (sesion.estaAutenticado()) {
+            <a [routerLink]="rutaPanel()" (click)="cerrarMenuMovil()">Ir a mi panel</a>
+            <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+          } @else {
+            <a routerLink="/login" (click)="cerrarMenuMovil()">Ingresar a mi cuenta</a>
+          }
+        </div>
       </nav>
 
       <div class="public-shell__actions">
-        <a class="public-shell__cart" routerLink="/carrito" [attr.aria-label]="'Abrir carrito con ' + carrito.cantidadItems() + ' productos'">
-          <span class="public-shell__cart-icon" aria-hidden="true"></span>
+        <a
+          class="public-shell__cart"
+          routerLink="/carrito"
+          [attr.aria-label]="'Abrir carrito con ' + carrito.cantidadItems() + ' productos'"
+        >
+          <svg class="public-shell__cart-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+            <path d="M3 4h2l1.7 9.1a2 2 0 0 0 2 1.65h7.9a2 2 0 0 0 1.95-1.55L20 7H6" />
+            <path d="M9 19.25h.01M17 19.25h.01" />
+          </svg>
           <span>Carrito</span>
           @if (carrito.cantidadItems() > 0) {
             <strong aria-hidden="true">{{ carrito.cantidadItems() }}</strong>
@@ -55,12 +111,15 @@
 
         @if (sesion.estaAutenticado()) {
           <a class="public-shell__secondary" [routerLink]="rutaPanel()">Mi panel</a>
-          <button class="public-shell__secondary public-shell__secondary--button" type="button" (click)="cerrarSesion()">
+          <button
+            class="public-shell__secondary public-shell__secondary--button"
+            type="button"
+            (click)="cerrarSesion()"
+          >
             Salir
           </button>
         } @else {
           <a class="public-shell__secondary" routerLink="/login">Ingresar</a>
-          <a class="public-shell__primary" routerLink="/pedir-con-ia">Crear solicitud</a>
         }
       </div>
     </div>
@@ -74,7 +133,10 @@
     <div class="public-shell__footer-grid rg-page__container--retail">
       <div>
         <strong>REGALIA</strong>
-        <p>Marketplace local para regalos personalizados, reservas con se&ntilde;a y vendedores verificados.</p>
+        <p>
+          Marketplace local para regalos personalizados, reservas con se&ntilde;a y vendedores
+          verificados.
+        </p>
       </div>
       <div class="public-shell__footer-meta">
         <span>Reservas con se&ntilde;a</span>

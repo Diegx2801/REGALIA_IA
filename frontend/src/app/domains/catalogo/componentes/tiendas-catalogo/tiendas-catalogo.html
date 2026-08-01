@@ -2,9 +2,9 @@
   <div class="catalog-toolbar catalog-toolbar--compact">
     <app-encabezado-seccion
       etiqueta="Vendedores locales"
-      [titulo]="tiendas().length + ' tiendas publicas'"
+      [titulo]="tiendas().length + ' tiendas locales para conocer'"
     />
-    <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">Crear solicitud</a>
+    <a class="catalog-toolbar__link" routerLink="/pedir-con-ia">No sé qué elegir →</a>
   </div>
 
   @if (cargando()) {
@@ -17,15 +17,15 @@
     <app-estado-pantalla
       tipo="error"
       etiqueta="Error de tiendas"
-      titulo="No pudimos cargar tiendas publicas"
+      titulo="No pudimos cargar tiendas públicas"
       [descripcion]="mensajeError()"
     />
   } @else if (tiendas().length === 0) {
     <app-estado-pantalla
       tipo="vacio"
       etiqueta="Sin tiendas"
-      titulo="No hay tiendas publicas disponibles."
-      descripcion="Pronto encontraras nuevos emprendimientos y regalos para descubrir."
+      titulo="No hay tiendas públicas disponibles."
+      descripcion="Pronto encontrarás nuevos emprendimientos y regalos para descubrir."
     />
   } @else {
     <div class="seller-grid">

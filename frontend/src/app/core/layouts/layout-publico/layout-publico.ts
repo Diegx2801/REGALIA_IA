@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SesionAutenticacionService } from '../../autenticacion/sesion-autenticacion.service';
 import { CarritoCheckoutService } from '../../carrito/carrito-checkout.service';
@@ -6,11 +7,12 @@ import { CarritoCheckoutService } from '../../carrito/carrito-checkout.service';
 interface EnlaceNavegacionPublica {
   readonly etiqueta: string;
   readonly ruta: string;
+  readonly secundario?: boolean;
 }
 
 @Component({
   selector: 'app-layout-publico',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [ReactiveFormsModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './layout-publico.html',
   styleUrl: './layout-publico.css',
 })
@@ -25,13 +27,14 @@ export class LayoutPublico {
     return '/cliente';
   });
   readonly menuMovilAbierto = signal(false);
+  readonly controlBusquedaCabecera = new FormControl('', { nonNullable: true });
   readonly enlacesNavegacion: readonly EnlaceNavegacionPublica[] = [
     { etiqueta: 'Inicio', ruta: '/' },
-    { etiqueta: 'Pedir con IA', ruta: '/pedir-con-ia' },
     { etiqueta: 'Catálogo', ruta: '/catalogo' },
-    { etiqueta: 'Vendedores', ruta: '/vendedores' },
+    { etiqueta: 'Pedir con IA', ruta: '/pedir-con-ia' },
     { etiqueta: 'Vender en REGALIA', ruta: '/vender' },
-    { etiqueta: 'Cómo funciona', ruta: '/modelo' },
+    { etiqueta: 'Vendedores', ruta: '/vendedores', secundario: true },
+    { etiqueta: 'Cómo funciona', ruta: '/modelo', secundario: true },
   ];
 
   private readonly router = inject(Router);
@@ -41,6 +44,11 @@ export class LayoutPublico {
     void this.router.navigate(['/catalogo'], {
       queryParams: busqueda ? { busqueda } : undefined,
     });
+  }
+
+  buscarDesdeCabecera(): void {
+    this.buscarProductos(this.controlBusquedaCabecera.value);
+    this.cerrarMenuMovil();
   }
 
   cerrarSesion(): void {

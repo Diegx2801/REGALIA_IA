@@ -1,8 +1,8 @@
-<aside class="catalog-filters" aria-label="Filtros del catalogo">
+<aside class="catalog-filters" aria-label="Filtros del catálogo">
   <div class="catalog-filters__head">
     <div>
-      <span class="catalog-filters__eyebrow">Explorar</span>
-      <h2 class="catalog-filters__title">Filtros</h2>
+      <span class="catalog-filters__eyebrow">Afina la selección</span>
+      <h2 class="catalog-filters__title">¿Qué tienes en mente?</h2>
     </div>
     <button class="catalog-filters__clear" type="button" (click)="limpiarFiltros.emit()">
       Limpiar
@@ -19,14 +19,14 @@
 
   <app-campo-select
     id="category"
-    etiqueta="Categoria"
+    etiqueta="Categoría"
     [control]="controlCategoria"
     [opciones]="opcionesCategoria()"
   />
 
   <app-campo-texto
     id="maxPrice"
-    etiqueta="Precio maximo"
+    etiqueta="Precio máximo"
     tipo="number"
     ayuda="Filtra productos hasta el monto indicado en soles."
     [control]="controlPrecioMaximo"

@@ -25,7 +25,7 @@ import { CtaVendedorInicio } from '../componentes/cta-vendedor-inicio/cta-vended
 import { DestacadosInicio } from '../componentes/destacados-inicio/destacados-inicio';
 import { HeroInicio } from '../componentes/hero-inicio/hero-inicio';
 import { ModeloNegocioInicio } from '../componentes/modelo-negocio-inicio/modelo-negocio-inicio';
-import { CampanaComercial, PasoModeloNegocio } from '../modelos/inicio.model';
+import { CampanaComercial, IntencionRegalo, PasoModeloNegocio } from '../modelos/inicio.model';
 
 @Component({
   selector: 'app-pagina-inicio',
@@ -51,6 +51,8 @@ export class PaginaInicio implements AfterViewInit, OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly controlBusqueda = new FormControl('', { nonNullable: true });
+  readonly controlTipo = new FormControl('Todas', { nonNullable: true });
+  readonly controlPresupuesto = new FormControl(300, { nonNullable: true });
   readonly categorias = signal<TipoProducto[]>([]);
   readonly tiendasDestacadas = signal<TiendaPublica[]>([]);
   readonly productosDestacados = signal<Producto[]>([]);
@@ -78,7 +80,14 @@ export class PaginaInicio implements AfterViewInit, OnInit {
     'NOV',
     'DIC',
   ];
-  readonly diasSemana = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
+  readonly intenciones: readonly IntencionRegalo[] = [
+    { etiqueta: 'Cumpleaños', busqueda: 'cumpleaños', icono: 'box' },
+    { etiqueta: 'Para mamá', busqueda: 'mamá', icono: 'floral' },
+    { etiqueta: 'Para pareja', busqueda: 'romántico', icono: 'personalizado' },
+    { etiqueta: 'Para agradecer', busqueda: 'agradecimiento', icono: 'comestible' },
+    { etiqueta: 'Graduación', busqueda: 'graduación', icono: 'accesorio' },
+    { etiqueta: 'Menos de S/ 100', busqueda: '', icono: 'fisico' },
+  ];
   readonly campanas: readonly CampanaComercial[] = [
     {
       dia: 14,
@@ -157,8 +166,23 @@ export class PaginaInicio implements AfterViewInit, OnInit {
 
   buscarRegalos(): void {
     const busqueda = this.controlBusqueda.value.trim();
+    const tipo = this.controlTipo.value;
+    const precioMaximo = this.controlPresupuesto.value;
     void this.router.navigate(['/catalogo'], {
-      queryParams: busqueda ? { busqueda } : undefined,
+      queryParams: {
+        busqueda: busqueda || undefined,
+        tipo: tipo !== 'Todas' ? tipo : undefined,
+        precioMaximo: precioMaximo !== 300 ? precioMaximo : undefined,
+      },
+    });
+  }
+
+  buscarIntencion(intencion: IntencionRegalo): void {
+    void this.router.navigate(['/catalogo'], {
+      queryParams: {
+        busqueda: intencion.busqueda || undefined,
+        precioMaximo: intencion.etiqueta === 'Menos de S/ 100' ? 100 : undefined,
+      },
     });
   }
 

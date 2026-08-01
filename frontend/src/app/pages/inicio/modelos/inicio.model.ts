@@ -15,3 +15,9 @@ export interface PasoModeloNegocio {
   readonly numero: string;
   readonly descripcion: string;
 }
+
+export interface IntencionRegalo {
+  readonly etiqueta: string;
+  readonly busqueda: string;
+  readonly icono: IconoRegalia;
+}

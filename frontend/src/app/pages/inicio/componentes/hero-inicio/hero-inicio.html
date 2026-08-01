@@ -1,55 +1,101 @@
-<section class="landing-hero rg-page__container--retail" aria-labelledby="titulo-inicio">
+<section class="landing-hero" aria-labelledby="titulo-inicio">
   <div class="landing-hero__frame">
     <div class="landing-hero__content">
       <span class="landing-hero__eyebrow">Regalos locales, elegidos con intención</span>
-      <h1 id="titulo-inicio">Encuentra el detalle que sí se siente personal.</h1>
+      <h1 id="titulo-inicio">Encuentra un regalo que hable por ti.</h1>
       <p>
-        Explora productos de tiendas aprobadas, compara opciones reales y prepara una sorpresa
-        memorable desde un solo lugar.
+        Dinos qué imaginas. REGALIA organiza opciones reales de tiendas locales para que decidas
+        con claridad.
       </p>
 
-      <form class="hero-search" (ngSubmit)="buscarRegalos.emit()" role="search">
-        <label for="busqueda-regalos">¿Qué regalo estás buscando?</label>
-        <div class="hero-search__control">
-          <span class="hero-search__icon" aria-hidden="true"></span>
-          <input
-            id="busqueda-regalos"
-            type="search"
-            [formControl]="controlBusqueda()"
-            placeholder="Ej. flores, box, graduación..."
-            autocomplete="off"
-          />
-          <button type="submit">Buscar regalos</button>
+      <form class="gift-finder" (ngSubmit)="buscarRegalos.emit()" role="search">
+        <div class="gift-finder__query">
+          <label for="busqueda-regalos">¿Qué tienes en mente?</label>
+          <div>
+            <span class="gift-finder__search-icon" aria-hidden="true"></span>
+            <input
+              id="busqueda-regalos"
+              type="search"
+              [formControl]="controlBusqueda()"
+              placeholder="Flores, un box, algo para graduación..."
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="gift-finder__filters">
+          <label>
+            <span>Tipo de detalle</span>
+            <select [formControl]="controlTipo()">
+              <option value="Todas">Todos los tipos</option>
+              @for (categoria of categorias(); track categoria.idTipoProducto) {
+                <option [value]="categoria.nombre">{{ categoria.nombre }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Presupuesto máximo</span>
+            <select [formControl]="controlPresupuesto()">
+              <option [ngValue]="80">Hasta S/ 80</option>
+              <option [ngValue]="100">Hasta S/ 100</option>
+              <option [ngValue]="150">Hasta S/ 150</option>
+              <option [ngValue]="200">Hasta S/ 200</option>
+              <option [ngValue]="300">Hasta S/ 300</option>
+            </select>
+          </label>
+
+          <button type="submit">
+            Encontrar regalos
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
       </form>
 
-      <div class="landing-hero__actions" aria-label="Acciones para descubrir regalos">
-        <a class="landing-button landing-button--primary" routerLink="/catalogo"
-          >Explorar catálogo</a
-        >
-        <a class="landing-button landing-button--secondary" routerLink="/pedir-con-ia">
-          Pedir ayuda a REGALIA IA
-        </a>
-      </div>
-
-      <ul class="landing-hero__assurances" aria-label="Beneficios de comprar en REGALIA">
-        <li>Tiendas revisadas</li>
-        <li>Disponibilidad real</li>
-        <li>Compra organizada</li>
-      </ul>
+      <a class="landing-hero__ai" routerLink="/pedir-con-ia">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3 13.8 8.2 19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" />
+          <path d="m18 16 .8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8L18 16Z" />
+        </svg>
+        No sé qué elegir; quiero ayuda de REGALIA IA
+      </a>
     </div>
+
     <div class="landing-hero__visual" aria-hidden="true">
-      <span>Ideas que emocionan</span>
+      <div class="landing-hero__seal">
+        <span>Hecho cerca</span>
+        <strong>Elegido<br />para alguien</strong>
+      </div>
     </div>
   </div>
 
-  <div class="category-discovery" aria-labelledby="titulo-categorias">
+  <nav class="intent-ribbon" aria-label="Buscar regalos por intención">
+    <div class="intent-ribbon__intro">
+      <span>Empieza por la persona</span>
+      <strong>¿Qué quieres celebrar?</strong>
+    </div>
+    <div class="intent-ribbon__items">
+      @for (intencion of intenciones(); track intencion.etiqueta) {
+        <button type="button" (click)="buscarIntencion.emit(intencion)">
+          <span
+            class="regalia-sprite intent-ribbon__icon"
+            [attr.data-icono]="intencion.icono"
+            aria-hidden="true"
+          ></span>
+          <strong>{{ intencion.etiqueta }}</strong>
+          <small>Explorar <span aria-hidden="true">→</span></small>
+        </button>
+      }
+    </div>
+  </nav>
+
+  <section class="category-discovery" aria-labelledby="titulo-categorias">
     <header class="discovery-heading">
       <div>
-        <span>Explora a tu manera</span>
-        <h2 id="titulo-categorias">Encuentra por categoría</h2>
+        <span>O si ya sabes qué buscas</span>
+        <h2 id="titulo-categorias">Elige el tipo de detalle</h2>
       </div>
-      <a routerLink="/catalogo">Ver todo el catálogo <span aria-hidden="true">→</span></a>
+      <a routerLink="/catalogo">Ver catálogo completo <span aria-hidden="true">→</span></a>
     </header>
 
     <div class="category-discovery__grid" aria-live="polite">
@@ -82,12 +128,7 @@
             ></span>
             <span class="category-card__content">
               <strong>{{ categoria.nombre }}</strong>
-              <small>
-                Explorar productos
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </small>
+              <small>Ver productos <span aria-hidden="true">→</span></small>
             </span>
           </button>
         } @empty {
@@ -95,5 +136,5 @@
         }
       }
     </div>
-  </div>
+  </section>
 </section>

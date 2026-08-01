@@ -2,8 +2,12 @@
   <div class="rg-page__container--retail cart-page__container">
     <header class="cart-hero">
       <div>
+        <nav class="cart-breadcrumb" aria-label="Ruta de navegación">
+          <a routerLink="/">Inicio</a><span>/</span><a routerLink="/catalogo">Catálogo</a
+          ><span>/</span><strong>Carrito</strong>
+        </nav>
         <span class="cart-hero__eyebrow">Tu selección</span>
-        <h1>Revisa tus regalos antes de continuar</h1>
+        <h1>El regalo ya está elegido.<br />Ahora revisemos los detalles.</h1>
         <p>
           Ajusta cantidades y personalización. El stock, la entrega y el importe final se validan
           antes de abrir el pago seguro.
@@ -61,7 +65,9 @@
           }
         }
         <div class="cart-result__actions">
-          <a class="cart-button cart-button--primary" routerLink="/cliente/pedidos">Ver mis pedidos</a>
+          <a class="cart-button cart-button--primary" routerLink="/cliente/pedidos"
+            >Ver mis pedidos</a
+          >
           <a class="cart-button cart-button--secondary" routerLink="/catalogo">Seguir comprando</a>
         </div>
       </section>
@@ -69,20 +75,27 @@
 
     @if (carrito.estaVacio() && !vieneDeCheckout()) {
       <section class="cart-empty">
-        <img
-          src="/assets/brand/iconos/carrito.png"
-          alt=""
-          width="160"
-          height="160"
-          loading="eager"
-          decoding="async"
-        />
-        <span class="cart-hero__eyebrow">Carrito vacío</span>
-        <h2>Aún no agregaste regalos</h2>
-        <p>Explora productos disponibles o pídele al asistente una recomendación personalizada.</p>
-        <div class="cart-empty__actions">
-          <a class="cart-button cart-button--primary" routerLink="/catalogo">Explorar catálogo</a>
-          <a class="cart-button cart-button--secondary" routerLink="/pedir-con-ia">Pedir con IA</a>
+        <div class="cart-empty__gift" aria-hidden="true">
+          <svg viewBox="0 0 180 180" fill="none">
+            <path d="M28 73h124v79H28zM21 55h138v26H21zM90 55v97" />
+            <path
+              d="M90 55c-7-24-18-35-31-31-14 4-11 23 2 28 8 3 18 3 29 3ZM90 55c7-24 18-35 31-31 14 4 11 23-2 28-8 3-18 3-29 3Z"
+            />
+          </svg>
+          <span>Tu próximo detalle<br />puede empezar aquí</span>
+        </div>
+        <div class="cart-empty__copy">
+          <span class="cart-hero__eyebrow">Carrito vacío</span>
+          <h2>Aún no agregaste regalos</h2>
+          <p>
+            Explora productos disponibles o pídele al asistente una recomendación personalizada.
+          </p>
+          <div class="cart-empty__actions">
+            <a class="cart-button cart-button--primary" routerLink="/catalogo">Explorar catálogo</a>
+            <a class="cart-button cart-button--secondary" routerLink="/pedir-con-ia"
+              >Pedir con IA</a
+            >
+          </div>
         </div>
       </section>
     } @else if (!carrito.estaVacio()) {
@@ -116,9 +129,12 @@
                     <div>
                       <span class="cart-item__seller">{{ item.nombreTienda }}</span>
                       <h2>{{ item.nombre }}</h2>
-                      <small>{{ item.tipoProducto }} · Stock disponible: {{ item.stockDisponible }}</small>
+                      <small
+                        >{{ item.tipoProducto }} · Stock disponible:
+                        {{ item.stockDisponible }}</small
+                      >
                     </div>
-                    <strong>{{ item.precioUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+                    <strong>{{ item.precioUnitario | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
                   </div>
 
                   <label class="cart-checkout-field">
@@ -141,7 +157,9 @@
                         (click)="actualizarCantidad(item.idProducto, item.cantidad - 1)"
                         [disabled]="item.cantidad <= 1"
                         [attr.aria-label]="'Disminuir cantidad de ' + item.nombre"
-                      >−</button>
+                      >
+                        −
+                      </button>
                       <input
                         type="number"
                         inputmode="numeric"
@@ -156,12 +174,16 @@
                         (click)="actualizarCantidad(item.idProducto, item.cantidad + 1)"
                         [disabled]="item.cantidad >= item.stockDisponible"
                         [attr.aria-label]="'Aumentar cantidad de ' + item.nombre"
-                      >+</button>
+                      >
+                        +
+                      </button>
                     </div>
 
                     <strong class="cart-item__subtotal">
                       Subtotal
-                      <span>{{ item.precioUnitario * item.cantidad | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span>
+                      <span>{{
+                        item.precioUnitario * item.cantidad | currency: 'PEN' : 'S/ ' : '1.2-2'
+                      }}</span>
                     </strong>
 
                     <button
@@ -169,7 +191,9 @@
                       type="button"
                       [attr.aria-label]="'Quitar ' + item.nombre + ' del carrito'"
                       (click)="carrito.quitarProducto(item.idProducto)"
-                    >Quitar</button>
+                    >
+                      Quitar
+                    </button>
                   </div>
                 </div>
               </article>
@@ -189,22 +213,30 @@
           }
 
           <div class="cart-summary__rows" aria-live="polite">
-            <div><span>Unidades</span><strong>{{ carrito.cantidadItems() }}</strong></div>
-            <div><span>Tienda(s)</span><strong>{{ cantidadTiendas() }}</strong></div>
+            <div>
+              <span>Unidades</span><strong>{{ carrito.cantidadItems() }}</strong>
+            </div>
+            <div>
+              <span>Tienda(s)</span><strong>{{ cantidadTiendas() }}</strong>
+            </div>
             <div><span>Entrega</span><strong>Por definir</strong></div>
             <div class="cart-summary__total">
               <span>Total referencial</span>
-              <strong>{{ carrito.total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+              <strong>{{ carrito.total() | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
             </div>
           </div>
 
-          <p class="cart-summary__helper">El total definitivo se valida con stock y modalidad de pago.</p>
+          <p class="cart-summary__helper">
+            El total definitivo se valida con stock y modalidad de pago.
+          </p>
           <button
             class="cart-button cart-button--primary cart-button--block"
             type="button"
             [disabled]="!puedePrepararCheckout()"
             (click)="prepararCheckout()"
-          >Continuar con entrega y pago</button>
+          >
+            Continuar con entrega y pago
+          </button>
           <a class="cart-button cart-button--secondary cart-button--block" routerLink="/catalogo">
             Seguir comprando
           </a>
@@ -230,10 +262,24 @@
   <div class="cart-dialog">
     <span class="cart-dialog__eyebrow">Confirmar acción</span>
     <h2 id="confirmar-vaciar-titulo">¿Vaciar todo el carrito?</h2>
-    <p id="confirmar-vaciar-descripcion">Se eliminarán todos los productos y sus notas de personalización.</p>
+    <p id="confirmar-vaciar-descripcion">
+      Se eliminarán todos los productos y sus notas de personalización.
+    </p>
     <div class="cart-dialog__actions">
-      <button class="cart-button cart-button--secondary" type="button" (click)="cerrarConfirmacionVaciar()">Conservar productos</button>
-      <button class="cart-button cart-button--danger" type="button" (click)="confirmarVaciarCarrito()">Sí, vaciar carrito</button>
+      <button
+        class="cart-button cart-button--secondary"
+        type="button"
+        (click)="cerrarConfirmacionVaciar()"
+      >
+        Conservar productos
+      </button>
+      <button
+        class="cart-button cart-button--danger"
+        type="button"
+        (click)="confirmarVaciarCarrito()"
+      >
+        Sí, vaciar carrito
+      </button>
     </div>
   </div>
 </app-dialogo-ui>

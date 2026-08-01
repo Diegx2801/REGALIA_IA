@@ -119,6 +119,7 @@
   color: var(--rg-color-ink);
   font-size: 1.15rem;
   font-weight: 950;
+  white-space: nowrap;
 }
 
 .product-card__footer {

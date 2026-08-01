@@ -37,7 +37,7 @@
     <div class="product-card__footer">
       <div class="product-card__price">
         <span>Precio</span>
-        <strong>{{ productoActual.precio | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        <strong>{{ productoActual.precio | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
       </div>
       <div class="product-card__actions">
         <a class="product-card__detail" [routerLink]="['/catalogo', productoActual.idProducto]">
