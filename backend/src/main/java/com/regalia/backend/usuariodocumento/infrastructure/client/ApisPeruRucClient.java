@@ -2,7 +2,9 @@ package com.regalia.backend.usuariodocumento.infrastructure.client;
 
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
-import com.regalia.backend.usuariodocumento.api.dto.ConsultaRucResponse;
+import com.regalia.backend.usuariodocumento.application.ConsultaRuc;
+import com.regalia.backend.usuariodocumento.application.ConsultaRucProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -17,15 +19,27 @@ import java.time.Duration;
  * El token se conserva exclusivamente en la configuracion del backend.
  */
 @Component
-public class ApisPeruRucClient {
+public class ApisPeruRucClient implements ConsultaRucProvider {
 
     private final ApisPeruRucProperties properties;
+    private final RestClient.Builder restClientBuilder;
 
-    public ApisPeruRucClient(ApisPeruRucProperties properties) {
+    @Autowired
+    public ApisPeruRucClient(
+            ApisPeruRucProperties properties,
+            RestClient.Builder restClientBuilder
+    ) {
         this.properties = properties;
+        this.restClientBuilder = restClientBuilder;
     }
 
-    public ConsultaRucResponse consultar(String numeroRuc) {
+    /** Constructor mantenido para usos directos fuera del contenedor Spring. */
+    public ApisPeruRucClient(ApisPeruRucProperties properties) {
+        this(properties, RestClient.builder());
+    }
+
+    @Override
+    public ConsultaRuc consultar(String numeroRuc) {
         String token = obtenerToken();
         String url = obtenerUrl();
 
@@ -45,7 +59,7 @@ public class ApisPeruRucClient {
                 );
             }
 
-            return new ConsultaRucResponse(
+            return new ConsultaRuc(
                     respuesta.ruc(),
                     respuesta.razonSocial(),
                     respuesta.nombreComercial(),
@@ -71,7 +85,7 @@ public class ApisPeruRucClient {
         requestFactory.setConnectTimeout(timeout);
         requestFactory.setReadTimeout(timeout);
 
-        return RestClient.builder()
+        return restClientBuilder.clone()
                 .baseUrl(url)
                 .requestFactory(requestFactory)
                 .build();
@@ -97,7 +111,7 @@ public class ApisPeruRucClient {
         return token.trim();
     }
 
-    private record ApisPeruRucDto(
+    record ApisPeruRucDto(
             String ruc,
             String razonSocial,
             String nombreComercial,

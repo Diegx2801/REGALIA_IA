@@ -1,7 +1,5 @@
 package com.regalia.backend.usuariodocumento.application;
 
-import com.regalia.backend.usuariodocumento.api.dto.ConsultaRucResponse;
-import com.regalia.backend.usuariodocumento.infrastructure.client.ApisPeruRucClient;
 import com.regalia.backend.usuariodocumento.infrastructure.client.ApisPeruRucProperties;
 import org.springframework.stereotype.Service;
 
@@ -17,31 +15,31 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class ConsultaRucService {
 
-    private final ApisPeruRucClient apisPeruRucClient;
+    private final ConsultaRucProvider consultaRucProvider;
     private final ConsultaRucPolicy consultaRucPolicy;
     private final ApisPeruRucProperties properties;
     private final ConcurrentMap<String, EntradaCache> cache = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, CompletableFuture<ConsultaRucResponse>> consultasEnCurso =
+    private final ConcurrentMap<String, CompletableFuture<ConsultaRuc>> consultasEnCurso =
             new ConcurrentHashMap<>();
 
     public ConsultaRucService(
-            ApisPeruRucClient apisPeruRucClient,
+            ConsultaRucProvider consultaRucProvider,
             ConsultaRucPolicy consultaRucPolicy,
             ApisPeruRucProperties properties
     ) {
-        this.apisPeruRucClient = apisPeruRucClient;
+        this.consultaRucProvider = consultaRucProvider;
         this.consultaRucPolicy = consultaRucPolicy;
         this.properties = properties;
     }
 
-    public ConsultaRucResponse consultar(String numeroRuc) {
+    public ConsultaRuc consultar(String numeroRuc) {
         EntradaCache entrada = obtenerEntradaVigente(numeroRuc);
         if (entrada != null) {
             return entrada.respuesta();
         }
 
-        CompletableFuture<ConsultaRucResponse> nuevaConsulta = new CompletableFuture<>();
-        CompletableFuture<ConsultaRucResponse> consultaExistente = consultasEnCurso.putIfAbsent(
+        CompletableFuture<ConsultaRuc> nuevaConsulta = new CompletableFuture<>();
+        CompletableFuture<ConsultaRuc> consultaExistente = consultasEnCurso.putIfAbsent(
                 numeroRuc,
                 nuevaConsulta
         );
@@ -58,7 +56,7 @@ public class ConsultaRucService {
             }
 
             consultaRucPolicy.registrarConsultaPermitida();
-            ConsultaRucResponse respuesta = apisPeruRucClient.consultar(numeroRuc);
+            ConsultaRuc respuesta = consultaRucProvider.consultar(numeroRuc);
             guardarEnCache(numeroRuc, respuesta);
             nuevaConsulta.complete(respuesta);
             return respuesta;
@@ -84,7 +82,7 @@ public class ConsultaRucService {
         return null;
     }
 
-    private void guardarEnCache(String numeroRuc, ConsultaRucResponse respuesta) {
+    private void guardarEnCache(String numeroRuc, ConsultaRuc respuesta) {
         int maximoEntradas = Math.max(1, properties.getCacheMaxEntries());
         if (cache.size() >= maximoEntradas) {
             cache.entrySet()
@@ -103,7 +101,7 @@ public class ConsultaRucService {
         );
     }
 
-    private ConsultaRucResponse esperarConsulta(CompletableFuture<ConsultaRucResponse> consulta) {
+    private ConsultaRuc esperarConsulta(CompletableFuture<ConsultaRuc> consulta) {
         try {
             return consulta.join();
         } catch (CompletionException exception) {
@@ -114,6 +112,6 @@ public class ConsultaRucService {
         }
     }
 
-    private record EntradaCache(ConsultaRucResponse respuesta, Instant expiraEn) {
+    private record EntradaCache(ConsultaRuc respuesta, Instant expiraEn) {
     }
 }

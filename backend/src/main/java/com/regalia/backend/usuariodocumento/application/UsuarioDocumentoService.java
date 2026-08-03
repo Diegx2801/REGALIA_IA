@@ -77,7 +77,7 @@ public class UsuarioDocumentoService {
      */
     @Transactional(readOnly = true)
     public ConsultaRucResponse consultarRuc(String numeroRuc) {
-        return consultaRucService.consultar(normalizarRuc(numeroRuc));
+        return toConsultaRucResponse(consultaRucService.consultar(normalizarRuc(numeroRuc)));
     }
 
     /**
@@ -88,7 +88,7 @@ public class UsuarioDocumentoService {
     public UsuarioDocumentoResponse registrarRucPendiente(String correoUsuario, RegistrarRucRequest request) {
         UsuarioEntity usuario = obtenerUsuarioActivoPorCorreo(correoUsuario);
         String numeroRuc = normalizarRuc(request.numeroRuc());
-        ConsultaRucResponse consulta = consultaRucService.consultar(numeroRuc);
+        ConsultaRuc consulta = consultaRucService.consultar(numeroRuc);
 
         if (!numeroRuc.equals(consulta.ruc())) {
             throw new ReglaNegocioException("La respuesta del servicio no corresponde al RUC consultado");
@@ -306,6 +306,20 @@ public class UsuarioDocumentoService {
         }
 
         return ruc;
+    }
+
+    private ConsultaRucResponse toConsultaRucResponse(ConsultaRuc consulta) {
+        return new ConsultaRucResponse(
+                consulta.ruc(),
+                consulta.razonSocial(),
+                consulta.nombreComercial(),
+                consulta.estado(),
+                consulta.condicion(),
+                consulta.direccion(),
+                consulta.departamento(),
+                consulta.provincia(),
+                consulta.distrito()
+        );
     }
 
     private String normalizarEstadoVerificacion(String estadoVerificacion) {
