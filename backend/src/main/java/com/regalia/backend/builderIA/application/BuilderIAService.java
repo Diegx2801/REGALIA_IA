@@ -7,7 +7,6 @@ import com.regalia.backend.builderIA.api.dto.BuilderIAChatResponse;
 import com.regalia.backend.builderIA.api.dto.BuilderIAProductoRecomendadoResponse;
 import com.regalia.backend.builderIA.api.dto.BuilderIARecomendacionRequest;
 import com.regalia.backend.builderIA.api.dto.BuilderIARecomendacionResponse;
-import com.regalia.backend.builderIA.infrastructure.client.BuilderIAClient;
 import com.regalia.backend.producto.infrastructure.entity.ProductoEntity;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
 import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
@@ -29,7 +28,7 @@ public class BuilderIAService {
     private static final int MAX_RECOMENDACIONES = 3;
 
     private final BuilderIACandidatoService candidatoService;
-    private final BuilderIAClient builderIAClient;
+    private final BuilderIAProvider builderIAProvider;
     private final ObjectMapper objectMapper;
 
     public BuilderIARecomendacionResponse recomendarProductos(BuilderIARecomendacionRequest request) {
@@ -40,7 +39,7 @@ public class BuilderIAService {
 
         try {
             RespuestaRecomendacionIA respuestaIA = leerRespuestaRecomendacion(
-                    builderIAClient.consultarRecomendaciones(
+                    builderIAProvider.consultarRecomendaciones(
                             construirPromptRecomendacion(request.busqueda(), candidatos)
                     )
             );
@@ -70,7 +69,7 @@ public class BuilderIAService {
                 Pregunta del usuario:
                 %s
                 """.formatted(pregunta.trim());
-        return new BuilderIAChatResponse(builderIAClient.consultarChat(prompt));
+        return new BuilderIAChatResponse(builderIAProvider.consultarChat(prompt));
     }
 
     private String construirPromptRecomendacion(String busqueda, List<ProductoEntity> candidatos) {

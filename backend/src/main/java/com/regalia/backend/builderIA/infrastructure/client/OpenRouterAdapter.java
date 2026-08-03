@@ -1,9 +1,11 @@
 package com.regalia.backend.builderIA.infrastructure.client;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.builderIA.application.BuilderIAProvider;
 import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -15,49 +17,38 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
-/**
- * Cliente aislado para proveedores compatibles con OpenAI, incluido OpenRouter.
- */
+/** Adapter HTTP para OpenRouter y proveedores compatibles con Chat Completions. */
 @Component
 @RequiredArgsConstructor
-@Slf4j
-public class BuilderIAClient {
-
-    private static final String MENSAJE_SERVICIO_NO_DISPONIBLE =
-            "La asistencia inteligente no está disponible en este momento. Intenta nuevamente en unos minutos.";
+public class OpenRouterAdapter implements BuilderIAProvider {
 
     private final BuilderIAProperties properties;
     private final ObjectMapper objectMapper;
     private final RestTemplateBuilder restTemplateBuilder;
 
+    @Override
     public String consultarRecomendaciones(String prompt) {
-        return consultarJson(prompt, properties.getRecommendationMaxTokens());
+        return consultarIA(prompt, properties.getRecommendationMaxTokens(), true);
     }
 
+    @Override
     public String consultarChat(String prompt) {
         return consultarIA(prompt, properties.getChatMaxTokens(), false);
-    }
-
-    private String consultarJson(String prompt, int maxTokens) {
-        return consultarIA(prompt, maxTokens, true);
     }
 
     private String consultarIA(String prompt, int maxTokens, boolean requiereJson) {
         validarConfiguracion();
 
         try {
-            Map<String, Object> requestBody = new LinkedHashMap<>();
-            requestBody.put("model", properties.getModel());
-            requestBody.put("max_tokens", maxTokens);
-            requestBody.put("stream", false);
-            requestBody.put("messages", List.of(Map.of("role", "user", "content", prompt)));
-            if (requiereJson) {
-                requestBody.put("response_format", Map.of("type", "json_object"));
-            }
+            ChatCompletionRequest request = new ChatCompletionRequest(
+                    properties.getModel(),
+                    maxTokens,
+                    false,
+                    List.of(new ChatMessage("user", prompt)),
+                    requiereJson ? new ResponseFormat("json_object") : null
+            );
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -76,7 +67,7 @@ public class BuilderIAClient {
             String url = normalizarBaseUrl(properties.getBaseUrl()) + properties.getChatCompletionsPath();
             String response = restTemplate.postForObject(
                     url,
-                    new HttpEntity<>(requestBody, headers),
+                    new HttpEntity<>(request, headers),
                     String.class
             );
 
@@ -105,12 +96,14 @@ public class BuilderIAClient {
         }
 
         try {
-            String contenido = objectMapper.readTree(response)
-                    .path("choices")
-                    .path(0)
-                    .path("message")
-                    .path("content")
-                    .asText();
+            ChatCompletionResponse respuesta = objectMapper.readValue(response, ChatCompletionResponse.class);
+            if (respuesta.choices() == null || respuesta.choices().isEmpty()
+                    || respuesta.choices().getFirst() == null
+                    || respuesta.choices().getFirst().message() == null) {
+                throw new ServicioExternoNoDisponibleException("El proveedor IA devolvio una respuesta invalida");
+            }
+
+            String contenido = respuesta.choices().getFirst().message().content();
             if (!StringUtils.hasText(contenido)) {
                 throw new ServicioExternoNoDisponibleException("El proveedor IA devolvio una respuesta invalida");
             }
@@ -124,5 +117,33 @@ public class BuilderIAClient {
 
     private String normalizarBaseUrl(String baseUrl) {
         return baseUrl.trim().replaceAll("/+$", "");
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private record ChatCompletionRequest(
+            String model,
+            @JsonProperty("max_tokens") int maxTokens,
+            boolean stream,
+            List<ChatMessage> messages,
+            @JsonProperty("response_format") ResponseFormat responseFormat
+    ) {
+    }
+
+    private record ChatMessage(String role, String content) {
+    }
+
+    private record ResponseFormat(String type) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ChatCompletionResponse(List<ChatCompletionChoice> choices) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ChatCompletionChoice(ChatCompletionMessage message) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record ChatCompletionMessage(String content) {
     }
 }
