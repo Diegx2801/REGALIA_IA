@@ -22,7 +22,10 @@ public class EmailDeliveryService {
         try {
             emailSender.enviarVerificacionCorreo(destino, nombre, enlaceConfirmacion);
         } catch (RuntimeException exception) {
-            LOGGER.error("No se pudo enviar el correo de verificacion a {}", destino, exception);
+            LOGGER.error(
+                    "No se pudo enviar el correo de verificacion. exceptionType={}",
+                    exception.getClass().getSimpleName()
+            );
         }
     }
 
@@ -31,7 +34,10 @@ public class EmailDeliveryService {
         try {
             emailSender.enviarRecuperacionContrasena(destino, nombre, enlaceRestablecimiento);
         } catch (RuntimeException exception) {
-            LOGGER.error("No se pudo enviar el correo de recuperacion de contrasena a {}", destino, exception);
+            LOGGER.error(
+                    "No se pudo enviar el correo de recuperacion de contrasena. exceptionType={}",
+                    exception.getClass().getSimpleName()
+            );
         }
     }
 
@@ -46,7 +52,10 @@ public class EmailDeliveryService {
         try {
             emailSender.enviarCodigoEntrega(destino, nombre, idPedido, nombreTienda, codigoEntrega);
         } catch (RuntimeException exception) {
-            LOGGER.error("No se pudo enviar el codigo de entrega del pedido {}", idPedido, exception);
+            LOGGER.error(
+                    "No se pudo enviar el codigo de entrega. exceptionType={}",
+                    exception.getClass().getSimpleName()
+            );
         }
     }
 }

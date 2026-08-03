@@ -18,22 +18,12 @@ public class LoggingEmailSender implements EmailSender {
 
     @Override
     public void enviarVerificacionCorreo(String destino, String nombre, String enlaceConfirmacion) {
-        LOGGER.info(
-                "Verificacion de correo REGALIA para {} <{}>: {}",
-                nombre,
-                destino,
-                enlaceConfirmacion
-        );
+        LOGGER.info("Verificacion de correo REGALIA preparada");
     }
 
     @Override
     public void enviarRecuperacionContrasena(String destino, String nombre, String enlaceRestablecimiento) {
-        LOGGER.info(
-                "Recuperacion de contrasena REGALIA para {} <{}>: {}",
-                nombre,
-                destino,
-                enlaceRestablecimiento
-        );
+        LOGGER.info("Recuperacion de contrasena REGALIA preparada");
     }
 
     @Override
@@ -44,12 +34,6 @@ public class LoggingEmailSender implements EmailSender {
             String nombreTienda,
             String codigoEntrega
     ) {
-        LOGGER.info(
-                "Codigo de entrega REGALIA del pedido {} para {} <{}>: {}",
-                idPedido,
-                nombre,
-                destino,
-                codigoEntrega
-        );
+        LOGGER.info("Codigo de entrega REGALIA preparado para el pedido {}", idPedido);
     }
 }

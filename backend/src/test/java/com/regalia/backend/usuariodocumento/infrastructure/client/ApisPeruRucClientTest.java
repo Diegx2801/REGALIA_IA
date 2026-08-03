@@ -1,6 +1,7 @@
 package com.regalia.backend.usuariodocumento.infrastructure.client;
 
 import com.regalia.backend.usuariodocumento.application.ConsultaRuc;
+import com.regalia.backend.shared.exception.ConfiguracionExternaException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +17,7 @@ import java.net.URI;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -51,7 +53,10 @@ class ApisPeruRucClientTest {
         properties = new ApisPeruRucProperties();
         properties.setUrl(URL);
         properties.setToken("token-de-prueba");
+        client = new ApisPeruRucClient(properties, restClientBuilder);
+    }
 
+    private void stubSuccessfulResponse() {
         when(restClientBuilder.clone()).thenReturn(restClientBuilder);
         when(restClientBuilder.baseUrl(URL)).thenReturn(restClientBuilder);
         when(restClientBuilder.requestFactory(any(ClientHttpRequestFactory.class))).thenReturn(restClientBuilder);
@@ -71,12 +76,11 @@ class ApisPeruRucClientTest {
                         "TRUJILLO",
                         "TRUJILLO"
                 ));
-
-        client = new ApisPeruRucClient(properties, restClientBuilder);
     }
 
     @Test
     void consultaElProveedorYMapeaLaRespuestaAlModeloInterno() {
+        stubSuccessfulResponse();
         ConsultaRuc resultado = client.consultar(RUC);
 
         assertThat(resultado).isEqualTo(new ConsultaRuc(
@@ -97,5 +101,13 @@ class ApisPeruRucClientTest {
 
         URI uri = uriCaptor.getValue().apply(new DefaultUriBuilderFactory().builder());
         assertThat(uri.toString()).isEqualTo("/" + RUC + "?token=token-de-prueba");
+    }
+
+    @Test
+    void rechazaLaConsultaSiElTokenNoEstaConfigurado() {
+        properties.setToken(" ");
+
+        assertThatThrownBy(() -> client.consultar(RUC))
+                .isInstanceOf(ConfiguracionExternaException.class);
     }
 }

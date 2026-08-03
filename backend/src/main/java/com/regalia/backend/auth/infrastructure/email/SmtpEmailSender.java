@@ -1,6 +1,8 @@
 package com.regalia.backend.auth.infrastructure.email;
 
 import com.regalia.backend.auth.application.email.EmailSender;
+import com.regalia.backend.shared.exception.ConfiguracionExternaException;
+import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -83,8 +85,10 @@ public class SmtpEmailSender implements EmailSender {
             );
             agregarLogoInline(helper);
             mailSender.send(mensaje);
-        } catch (MessagingException | UnsupportedEncodingException | MailException ex) {
-            throw new IllegalStateException("No se pudo enviar el codigo de entrega", ex);
+        } catch (MessagingException | UnsupportedEncodingException ex) {
+            throw new ConfiguracionExternaException("La configuracion del correo SMTP no es valida", ex);
+        } catch (MailException ex) {
+            throw new ServicioExternoNoDisponibleException("El servicio de correo no esta disponible", ex);
         }
     }
 
@@ -116,14 +120,16 @@ public class SmtpEmailSender implements EmailSender {
             agregarLogoInline(helper);
 
             mailSender.send(mensaje);
-        } catch (MessagingException | UnsupportedEncodingException | MailException ex) {
-            throw new IllegalStateException("No se pudo enviar el correo transaccional", ex);
+        } catch (MessagingException | UnsupportedEncodingException ex) {
+            throw new ConfiguracionExternaException("La configuracion del correo SMTP no es valida", ex);
+        } catch (MailException ex) {
+            throw new ServicioExternoNoDisponibleException("El servicio de correo no esta disponible", ex);
         }
     }
 
     private InternetAddress construirRemitente() throws UnsupportedEncodingException {
         if (!StringUtils.hasText(properties.getFromAddress())) {
-            throw new IllegalStateException("El remitente SMTP de REGALIA es obligatorio");
+            throw new ConfiguracionExternaException("El remitente SMTP de REGALIA es obligatorio");
         }
 
         String nombre = StringUtils.hasText(properties.getFromName())
@@ -241,7 +247,7 @@ public class SmtpEmailSender implements EmailSender {
     private void agregarLogoInline(MimeMessageHelper helper) throws MessagingException {
         ClassPathResource logo = new ClassPathResource(LOGO_RESOURCE_PATH);
         if (!logo.exists()) {
-            throw new IllegalStateException("No se encontro el logo para el correo transaccional");
+            throw new ConfiguracionExternaException("No se encontro el logo para el correo transaccional");
         }
 
         helper.addInline(LOGO_CONTENT_ID, logo, LOGO_CONTENT_TYPE);

@@ -277,7 +277,10 @@ public class TiendaImagenService {
         try {
             mediaStorage.eliminarObjeto(clave);
         } catch (RuntimeException exception) {
-            log.warn("No se pudo limpiar un medio reemplazado de tienda: {}", clave, exception);
+            log.warn(
+                    "No se pudo limpiar un medio reemplazado de tienda. exceptionType={}",
+                    exception.getClass().getSimpleName()
+            );
         }
     }
 }
