@@ -3,7 +3,6 @@ package com.regalia.backend.builderIA.application;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.regalia.backend.builderIA.api.dto.BuilderIARecomendacionRequest;
 import com.regalia.backend.builderIA.api.dto.BuilderIARecomendacionResponse;
-import com.regalia.backend.builderIA.infrastructure.client.BuilderIAClient;
 import com.regalia.backend.producto.infrastructure.entity.ProductoEntity;
 import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
 import com.regalia.backend.tienda.infrastructure.entity.TiendaEntity;
@@ -30,13 +29,13 @@ class BuilderIAServiceTest {
     private BuilderIACandidatoService candidatoService;
 
     @Mock
-    private BuilderIAClient builderIAClient;
+    private BuilderIAProvider builderIAProvider;
 
     private BuilderIAService builderIAService;
 
     @BeforeEach
     void setUp() {
-        builderIAService = new BuilderIAService(candidatoService, builderIAClient, new ObjectMapper());
+        builderIAService = new BuilderIAService(candidatoService, builderIAProvider, new ObjectMapper());
     }
 
     @Test
@@ -44,7 +43,7 @@ class BuilderIAServiceTest {
         ProductoEntity primero = producto(10L, 1L, "Ramo clasico");
         ProductoEntity segundo = producto(11L, 2L, "Box de chocolates");
         when(candidatoService.obtenerCandidatos(any())).thenReturn(List.of(primero, segundo));
-        when(builderIAClient.consultarRecomendaciones(any())).thenReturn("""
+        when(builderIAProvider.consultarRecomendaciones(any())).thenReturn("""
                 {"mensaje":"Opciones para mama","productosRecomendados":[
                 {"idProducto":11,"razon":"Es un detalle dulce"},
                 {"idProducto":11,"razon":"Duplicado"},
@@ -69,7 +68,7 @@ class BuilderIAServiceTest {
                 producto(12L, 3L, "Peluche"),
                 producto(13L, 4L, "Torta")
         ));
-        when(builderIAClient.consultarRecomendaciones(any()))
+        when(builderIAProvider.consultarRecomendaciones(any()))
                 .thenThrow(new ServicioExternoNoDisponibleException("Proveedor caido"));
 
         BuilderIARecomendacionResponse respuesta = builderIAService.recomendarProductos(
@@ -90,7 +89,7 @@ class BuilderIAServiceTest {
         );
 
         assertThat(respuesta.productosRecomendados()).isEmpty();
-        verify(builderIAClient, never()).consultarRecomendaciones(any());
+        verify(builderIAProvider, never()).consultarRecomendaciones(any());
     }
 
     private ProductoEntity producto(Long id, Long idTipoProducto, String nombre) {
