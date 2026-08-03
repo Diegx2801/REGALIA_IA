@@ -9,11 +9,19 @@ import com.regalia.backend.pago.application.gateway.model.PaymentGatewayCheckout
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayRedirectUrls;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationCommand;
 import com.regalia.backend.pago.application.gateway.model.PaymentGatewayVerificationResult;
+import com.regalia.backend.shared.exception.ConfiguracionExternaException;
 import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
+import com.regalia.backend.shared.exception.ServicioExternoRespuestaInvalidaException;
+import com.regalia.backend.shared.integration.ExternalIntegrationExceptionMapper;
+import com.regalia.backend.shared.integration.ExternalIntegrationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
@@ -29,6 +37,10 @@ import java.util.Map;
  */
 @Component
 public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MercadoPagoPaymentGatewayClient.class);
+    private static final ExternalIntegrationExceptionMapper EXCEPTION_MAPPER =
+            new ExternalIntegrationExceptionMapper();
 
     private final PaymentGatewayProperties properties;
     private final RestClient restClient;
@@ -93,6 +105,8 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
             String accessToken,
             Map<String, Object> payload
     ) {
+        long startedAtNanos = System.nanoTime();
+
         try {
             MercadoPagoPreferenceResponse response = restClient.post()
                     .uri("/checkout/preferences")
@@ -103,21 +117,59 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
                     .body(MercadoPagoPreferenceResponse.class);
 
             if (response == null || !StringUtils.hasText(response.id())) {
-                throw new ReglaNegocioException("Mercado Pago no devolvio una preferencia valida");
+                throw new ServicioExternoRespuestaInvalidaException("Mercado Pago no devolvio una preferencia valida");
             }
 
             if (!StringUtils.hasText(response.initPoint())
                     && !StringUtils.hasText(response.sandboxInitPoint())) {
-                throw new ReglaNegocioException("Mercado Pago no devolvio una URL de checkout valida");
+                throw new ServicioExternoRespuestaInvalidaException(
+                        "Mercado Pago no devolvio una URL de checkout valida"
+                );
             }
 
+            ExternalIntegrationLogger.logSuccess(LOGGER, "mercado-pago", "create-preference", startedAtNanos);
             return response;
         } catch (RestClientResponseException exception) {
-            throw new ReglaNegocioException("No se pudo crear la preferencia de Mercado Pago");
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "mercado-pago",
+                    "create-preference",
+                    exception,
+                    startedAtNanos
+            );
+            throw EXCEPTION_MAPPER.map(
+                    exception,
+                    "La configuracion de Mercado Pago no es valida",
+                    "No se pudo crear la preferencia de Mercado Pago",
+                    "Mercado Pago no esta disponible en este momento"
+            );
+        } catch (ServicioExternoRespuestaInvalidaException exception) {
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "mercado-pago",
+                    "create-preference",
+                    exception,
+                    startedAtNanos
+            );
+            throw exception;
+        } catch (RestClientException exception) {
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "mercado-pago",
+                    "create-preference",
+                    exception,
+                    startedAtNanos
+            );
+            throw new ServicioExternoNoDisponibleException(
+                    "Mercado Pago no esta disponible en este momento",
+                    exception
+            );
         }
     }
 
     private MercadoPagoPaymentResponse getPayment(String accessToken, String paymentId) {
+        long startedAtNanos = System.nanoTime();
+
         try {
             MercadoPagoPaymentResponse response = restClient.get()
                     .uri("/v1/payments/{paymentId}", paymentId)
@@ -126,12 +178,46 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
                     .body(MercadoPagoPaymentResponse.class);
 
             if (response == null || response.id() == null) {
-                throw new ReglaNegocioException("Mercado Pago no devolvio un pago valido");
+                throw new ServicioExternoRespuestaInvalidaException("Mercado Pago no devolvio un pago valido");
             }
 
+            ExternalIntegrationLogger.logSuccess(LOGGER, "mercado-pago", "verify-payment", startedAtNanos);
             return response;
         } catch (RestClientResponseException exception) {
-            throw new ReglaNegocioException("No se pudo verificar el pago de Mercado Pago");
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "mercado-pago",
+                    "verify-payment",
+                    exception,
+                    startedAtNanos
+            );
+            throw EXCEPTION_MAPPER.map(
+                    exception,
+                    "La configuracion de Mercado Pago no es valida",
+                    "No se pudo verificar el pago de Mercado Pago",
+                    "Mercado Pago no esta disponible en este momento"
+            );
+        } catch (ServicioExternoRespuestaInvalidaException exception) {
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "mercado-pago",
+                    "verify-payment",
+                    exception,
+                    startedAtNanos
+            );
+            throw exception;
+        } catch (RestClientException exception) {
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "mercado-pago",
+                    "verify-payment",
+                    exception,
+                    startedAtNanos
+            );
+            throw new ServicioExternoNoDisponibleException(
+                    "Mercado Pago no esta disponible en este momento",
+                    exception
+            );
         }
     }
 
@@ -198,7 +284,7 @@ public class MercadoPagoPaymentGatewayClient implements PaymentGatewayClient {
         String accessToken = properties.getMercadoPago().getAccessToken();
 
         if (!StringUtils.hasText(accessToken)) {
-            throw new ReglaNegocioException("El Access Token de Mercado Pago no esta configurado");
+            throw new ConfiguracionExternaException("El Access Token de Mercado Pago no esta configurado");
         }
 
         return accessToken.trim();

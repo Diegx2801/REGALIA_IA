@@ -1,9 +1,14 @@
 package com.regalia.backend.usuariodocumento.infrastructure.client;
 
-import com.regalia.backend.shared.exception.ReglaNegocioException;
+import com.regalia.backend.shared.exception.ConfiguracionExternaException;
 import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
+import com.regalia.backend.shared.exception.ServicioExternoRespuestaInvalidaException;
+import com.regalia.backend.shared.integration.ExternalIntegrationExceptionMapper;
+import com.regalia.backend.shared.integration.ExternalIntegrationLogger;
 import com.regalia.backend.usuariodocumento.application.ConsultaRuc;
 import com.regalia.backend.usuariodocumento.application.ConsultaRucProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -20,6 +25,10 @@ import java.time.Duration;
  */
 @Component
 public class ApisPeruRucClient implements ConsultaRucProvider {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApisPeruRucClient.class);
+    private static final ExternalIntegrationExceptionMapper EXCEPTION_MAPPER =
+            new ExternalIntegrationExceptionMapper();
 
     private final ApisPeruRucProperties properties;
     private final RestClient.Builder restClientBuilder;
@@ -40,10 +49,11 @@ public class ApisPeruRucClient implements ConsultaRucProvider {
 
     @Override
     public ConsultaRuc consultar(String numeroRuc) {
-        String token = obtenerToken();
-        String url = obtenerUrl();
+        long startedAtNanos = System.nanoTime();
 
         try {
+            String token = obtenerToken();
+            String url = obtenerUrl();
             ApisPeruRucDto respuesta = crearCliente(url)
                     .get()
                     .uri(uriBuilder -> uriBuilder
@@ -54,12 +64,12 @@ public class ApisPeruRucClient implements ConsultaRucProvider {
                     .body(ApisPeruRucDto.class);
 
             if (respuesta == null || !StringUtils.hasText(respuesta.ruc())) {
-                throw new ServicioExternoNoDisponibleException(
+                throw new ServicioExternoRespuestaInvalidaException(
                         "El servicio de consulta RUC no devolvio una respuesta valida"
                 );
             }
 
-            return new ConsultaRuc(
+            ConsultaRuc resultado = new ConsultaRuc(
                     respuesta.ruc(),
                     respuesta.razonSocial(),
                     respuesta.nombreComercial(),
@@ -70,11 +80,42 @@ public class ApisPeruRucClient implements ConsultaRucProvider {
                     respuesta.provincia(),
                     respuesta.distrito()
             );
+            ExternalIntegrationLogger.logSuccess(LOGGER, "apis-peru", "ruc-consultation", startedAtNanos);
+            return resultado;
         } catch (RestClientResponseException exception) {
-            throw new ReglaNegocioException("No se encontro informacion valida para el RUC indicado");
-        } catch (RestClientException exception) {
-            throw new ServicioExternoNoDisponibleException(
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "apis-peru",
+                    "ruc-consultation",
+                    exception,
+                    startedAtNanos
+            );
+            throw EXCEPTION_MAPPER.map(
+                    exception,
+                    "La configuracion del servicio de consulta RUC no es valida",
+                    "No se encontro informacion valida para el RUC indicado",
                     "El servicio de consulta RUC no esta disponible en este momento"
+            );
+        } catch (ServicioExternoNoDisponibleException exception) {
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "apis-peru",
+                    "ruc-consultation",
+                    exception,
+                    startedAtNanos
+            );
+            throw exception;
+        } catch (RestClientException exception) {
+            ExternalIntegrationLogger.logFailure(
+                    LOGGER,
+                    "apis-peru",
+                    "ruc-consultation",
+                    exception,
+                    startedAtNanos
+            );
+            throw new ServicioExternoNoDisponibleException(
+                    "El servicio de consulta RUC no esta disponible en este momento",
+                    exception
             );
         }
     }
@@ -95,7 +136,7 @@ public class ApisPeruRucClient implements ConsultaRucProvider {
         String url = properties.getUrl();
 
         if (!StringUtils.hasText(url)) {
-            throw new ServicioExternoNoDisponibleException("La URL del servicio de consulta RUC no esta configurada");
+            throw new ConfiguracionExternaException("La URL del servicio de consulta RUC no esta configurada");
         }
 
         return url.trim().replaceAll("/+$", "");
@@ -105,7 +146,7 @@ public class ApisPeruRucClient implements ConsultaRucProvider {
         String token = properties.getToken();
 
         if (!StringUtils.hasText(token)) {
-            throw new ServicioExternoNoDisponibleException("El servicio de consulta RUC no esta configurado");
+            throw new ConfiguracionExternaException("El servicio de consulta RUC no esta configurado");
         }
 
         return token.trim();

@@ -5,14 +5,21 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.regalia.backend.builderIA.application.BuilderIAProvider;
+import com.regalia.backend.shared.exception.ConfiguracionExternaException;
 import com.regalia.backend.shared.exception.ServicioExternoNoDisponibleException;
+import com.regalia.backend.shared.exception.ServicioExternoRespuestaInvalidaException;
+import com.regalia.backend.shared.integration.ExternalIntegrationExceptionMapper;
+import com.regalia.backend.shared.integration.ExternalIntegrationLogger;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,6 +30,10 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class OpenRouterAdapter implements BuilderIAProvider {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenRouterAdapter.class);
+    private static final ExternalIntegrationExceptionMapper EXCEPTION_MAPPER =
+            new ExternalIntegrationExceptionMapper();
 
     private final BuilderIAProperties properties;
     private final ObjectMapper objectMapper;
@@ -39,9 +50,11 @@ public class OpenRouterAdapter implements BuilderIAProvider {
     }
 
     private String consultarIA(String prompt, int maxTokens, boolean requiereJson) {
-        validarConfiguracion();
+        long startedAtNanos = System.nanoTime();
+        String operation = requiereJson ? "recommendations" : "chat";
 
         try {
+            validarConfiguracion();
             ChatCompletionRequest request = new ChatCompletionRequest(
                     properties.getModel(),
                     maxTokens,
@@ -71,13 +84,26 @@ public class OpenRouterAdapter implements BuilderIAProvider {
                     String.class
             );
 
-            return extraerContenido(response);
+            String contenido = extraerContenido(response);
+            ExternalIntegrationLogger.logSuccess(LOGGER, "openrouter", operation, startedAtNanos);
+            return contenido;
         } catch (RestClientResponseException exception) {
-            throw new ServicioExternoNoDisponibleException("El proveedor IA no esta disponible en este momento");
+            ExternalIntegrationLogger.logFailure(LOGGER, "openrouter", operation, exception, startedAtNanos);
+            throw EXCEPTION_MAPPER.map(
+                    exception,
+                    "La configuracion del proveedor IA no es valida",
+                    "El proveedor IA rechazo la solicitud",
+                    "El proveedor IA no esta disponible en este momento"
+            );
         } catch (ServicioExternoNoDisponibleException exception) {
+            ExternalIntegrationLogger.logFailure(LOGGER, "openrouter", operation, exception, startedAtNanos);
             throw exception;
+        } catch (RestClientException exception) {
+            ExternalIntegrationLogger.logFailure(LOGGER, "openrouter", operation, exception, startedAtNanos);
+            throw new ServicioExternoNoDisponibleException("No se pudo consultar el proveedor IA", exception);
         } catch (Exception exception) {
-            throw new ServicioExternoNoDisponibleException("No se pudo consultar el proveedor IA");
+            ExternalIntegrationLogger.logFailure(LOGGER, "openrouter", operation, exception, startedAtNanos);
+            throw new ServicioExternoNoDisponibleException("No se pudo consultar el proveedor IA", exception);
         }
     }
 
@@ -86,13 +112,13 @@ public class OpenRouterAdapter implements BuilderIAProvider {
                 || !StringUtils.hasText(properties.getBaseUrl())
                 || !StringUtils.hasText(properties.getChatCompletionsPath())
                 || !StringUtils.hasText(properties.getModel())) {
-            throw new ServicioExternoNoDisponibleException("El proveedor IA no esta configurado");
+            throw new ConfiguracionExternaException("El proveedor IA no esta configurado");
         }
     }
 
     private String extraerContenido(String response) {
         if (!StringUtils.hasText(response)) {
-            throw new ServicioExternoNoDisponibleException("El proveedor IA no devolvio contenido");
+            throw new ServicioExternoRespuestaInvalidaException("El proveedor IA no devolvio contenido");
         }
 
         try {
@@ -100,18 +126,25 @@ public class OpenRouterAdapter implements BuilderIAProvider {
             if (respuesta.choices() == null || respuesta.choices().isEmpty()
                     || respuesta.choices().getFirst() == null
                     || respuesta.choices().getFirst().message() == null) {
-                throw new ServicioExternoNoDisponibleException("El proveedor IA devolvio una respuesta invalida");
+                throw new ServicioExternoRespuestaInvalidaException(
+                        "El proveedor IA devolvio una respuesta invalida"
+                );
             }
 
             String contenido = respuesta.choices().getFirst().message().content();
             if (!StringUtils.hasText(contenido)) {
-                throw new ServicioExternoNoDisponibleException("El proveedor IA devolvio una respuesta invalida");
+                throw new ServicioExternoRespuestaInvalidaException(
+                        "El proveedor IA devolvio una respuesta invalida"
+                );
             }
             return contenido.trim();
         } catch (ServicioExternoNoDisponibleException exception) {
             throw exception;
         } catch (Exception exception) {
-            throw new ServicioExternoNoDisponibleException("El proveedor IA devolvio una respuesta invalida");
+            throw new ServicioExternoRespuestaInvalidaException(
+                    "El proveedor IA devolvio una respuesta invalida",
+                    exception
+            );
         }
     }
 
