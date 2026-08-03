@@ -66,12 +66,13 @@ class UsuarioDocumentoServiceTest {
 
     @Test
     void normalizaElRucAntesDeConsultarElServicioCentral() {
-        ConsultaRucResponse respuesta = respuestaRuc();
+        ConsultaRuc respuesta = respuestaRuc();
         when(consultaRucService.consultar(RUC)).thenReturn(respuesta);
 
         ConsultaRucResponse resultado = usuarioDocumentoService.consultarRuc(" 20123456789 ");
 
-        assertThat(resultado).isSameAs(respuesta);
+        assertThat(resultado.ruc()).isEqualTo(respuesta.ruc());
+        assertThat(resultado.razonSocial()).isEqualTo(respuesta.razonSocial());
         verify(consultaRucService).consultar(RUC);
     }
 
@@ -90,7 +91,7 @@ class UsuarioDocumentoServiceTest {
         usuario.setIdUsuario(7L);
         TipoDocumentoEntity tipoRuc = new TipoDocumentoEntity();
         tipoRuc.setIdTipoDocumento(4L);
-        ConsultaRucResponse respuesta = respuestaRuc();
+        ConsultaRuc respuesta = respuestaRuc();
 
         when(usuarioRepository.findByCorreoIgnoreCaseAndEstadoTrue(CORREO))
                 .thenReturn(Optional.of(usuario));
@@ -129,8 +130,8 @@ class UsuarioDocumentoServiceTest {
         verify(usuarioDocumentoMapper).toResponse(any(UsuarioDocumentoEntity.class));
     }
 
-    private ConsultaRucResponse respuestaRuc() {
-        return new ConsultaRucResponse(
+    private ConsultaRuc respuestaRuc() {
+        return new ConsultaRuc(
                 RUC,
                 "REGALIA DEMO SAC",
                 "REGALIA",
