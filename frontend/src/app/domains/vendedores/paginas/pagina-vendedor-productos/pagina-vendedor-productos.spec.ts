@@ -250,7 +250,6 @@ describe('PaginaVendedorProductos', () => {
 
     pagina.guardarProducto();
 
-    const solicitud = storeMock.guardarProducto.mock.calls[0][1] as SolicitudProductoVendedor;
     expect(storeMock.guardarProducto.mock.calls[0][2]).toBe(77);
   });
 

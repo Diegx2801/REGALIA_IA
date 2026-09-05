@@ -29,4 +29,26 @@ describe('normalizarErrorApi', () => {
     expect(resultado.tipo).toBe('validacion');
     expect(resultado.message).toBe('La informacion enviada no es valida.');
   });
+
+  it('normaliza el bloqueo temporal y conserva el estado de intentos', () => {
+    const error = new HttpErrorResponse({
+      status: 429,
+      error: {
+        status: 'fail',
+        message: 'Demasiados intentos de inicio de sesion.',
+        data: {
+          intentosRestantes: 0,
+          bloqueadoHasta: '2026-09-04T23:00:00Z',
+          reintentarEnSegundos: 120,
+        },
+      },
+      url: '/api/auth/login',
+    });
+
+    const resultado = normalizarErrorApi(error);
+
+    expect(resultado.tipo).toBe('limite');
+    expect(resultado.estado).toBe(429);
+    expect(resultado.datos).toEqual(error.error.data);
+  });
 });

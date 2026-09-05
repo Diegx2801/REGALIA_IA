@@ -436,6 +436,25 @@
   width: 1rem;
 }
 
+.admin-login__message--attempts {
+  background: var(--rg-color-gold-soft);
+  border-color: rgba(215, 173, 75, 0.34);
+  color: var(--rg-color-primary);
+}
+
+.admin-login__message--attempts > span:first-child {
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  display: inline-flex;
+  flex: 0 0 1rem;
+  font-size: 0.64rem;
+  height: 1rem;
+  justify-content: center;
+  margin-top: 0.12rem;
+  width: 1rem;
+}
+
 .admin-login__submit {
   align-items: center;
   background: var(--rg-color-primary);

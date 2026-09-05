@@ -18,7 +18,7 @@
   background: linear-gradient(90deg, var(--rg-color-gold), #ffb59e);
   bottom: 0;
   content: '';
-  height: 0.3rem;
+  height: 0.18rem;
   left: 0;
   position: absolute;
   width: 100%;
@@ -92,7 +92,27 @@
   gap: 0.45rem;
   justify-content: center;
   padding: 0.7rem 1rem;
+  transition:
+    background-color var(--rg-transition-standard),
+    box-shadow var(--rg-transition-standard),
+    transform var(--rg-transition-standard);
   white-space: nowrap;
+}
+
+.occasion-rail__action:hover {
+  background: var(--rg-color-gold-soft);
+  box-shadow: 0 12px 24px rgba(35, 25, 39, 0.18);
+  transform: translateY(-1px);
+}
+
+.occasion-rail__action:focus-visible {
+  outline: 3px solid var(--rg-color-primary-dark);
+  outline-offset: -3px;
+}
+
+.occasion-rail__events button:focus-visible {
+  outline: 3px solid var(--rg-color-gold);
+  outline-offset: -3px;
 }
 
 .occasion-rail__events {
@@ -179,6 +199,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .occasion-rail__action,
   .occasion-rail__events button {
     transition: none;
   }

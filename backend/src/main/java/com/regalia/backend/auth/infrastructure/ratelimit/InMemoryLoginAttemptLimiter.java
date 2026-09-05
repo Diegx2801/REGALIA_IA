@@ -1,6 +1,7 @@
 package com.regalia.backend.auth.infrastructure.ratelimit;
 
 import com.regalia.backend.auth.application.LoginAttemptLimiter;
+import com.regalia.backend.auth.application.LoginAttemptStatus;
 import com.regalia.backend.auth.security.AuthContext;
 import com.regalia.backend.shared.exception.DemasiadosIntentosLoginException;
 import org.springframework.stereotype.Component;
@@ -12,7 +13,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Limitador en memoria para proteger los endpoints de login contra fuerza bruta.
@@ -39,18 +39,28 @@ public class InMemoryLoginAttemptLimiter implements LoginAttemptLimiter {
     }
 
     @Override
-    public boolean registrarFallo(AuthContext authContext, String correo, String ipCliente) {
+    public LoginAttemptStatus registrarFallo(AuthContext authContext, String correo, String ipCliente) {
         LoginAttemptProperties.Policy policy = properties.policyFor(authContext);
         Instant now = Instant.now();
 
-        boolean bloqueoPorIdentidad = registrarFallo(
+        AttemptState estadoIdentidad = registrarFallo(
                 identityKey(authContext, correo, ipCliente),
                 policy.getPerIdentity(),
                 now
         );
-        boolean bloqueoPorIp = registrarFallo(ipKey(authContext, ipCliente), policy.getPerIp(), now);
+        AttemptState estadoIp = registrarFallo(ipKey(authContext, ipCliente), policy.getPerIp(), now);
 
-        return bloqueoPorIdentidad || bloqueoPorIp;
+        int intentosRestantes = Math.min(
+                intentosRestantes(estadoIdentidad, policy.getPerIdentity()),
+                intentosRestantes(estadoIp, policy.getPerIp())
+        );
+        Instant bloqueadoHasta = maxInstanteFuturo(
+                estadoIdentidad.blockedUntil(),
+                estadoIp.blockedUntil(),
+                now
+        );
+
+        return LoginAttemptStatus.of(intentosRestantes, bloqueadoHasta, now);
     }
 
     @Override
@@ -66,7 +76,9 @@ public class InMemoryLoginAttemptLimiter implements LoginAttemptLimiter {
         }
 
         if (state.isBlocked(now)) {
-            throw new DemasiadosIntentosLoginException();
+            throw new DemasiadosIntentosLoginException(
+                    LoginAttemptStatus.of(0, state.blockedUntil(), now)
+            );
         }
 
         if (state.isBlockExpired(now) || state.isExpired(now, rule.windowDuration())) {
@@ -74,10 +86,8 @@ public class InMemoryLoginAttemptLimiter implements LoginAttemptLimiter {
         }
     }
 
-    private boolean registrarFallo(AttemptKey key, LoginAttemptProperties.Rule rule, Instant now) {
-        AtomicBoolean bloqueoAplicado = new AtomicBoolean(false);
-
-        attempts.compute(key, (ignored, currentState) -> {
+    private AttemptState registrarFallo(AttemptKey key, LoginAttemptProperties.Rule rule, Instant now) {
+        return attempts.compute(key, (ignored, currentState) -> {
             AttemptState state = currentState;
 
             if (state == null || state.isExpired(now, rule.windowDuration()) || state.isBlockExpired(now)) {
@@ -89,14 +99,27 @@ public class InMemoryLoginAttemptLimiter implements LoginAttemptLimiter {
                     ? now.plus(rule.blockDuration())
                     : state.blockedUntil();
 
-            if (blockedUntil != null && !state.isBlocked(now)) {
-                bloqueoAplicado.set(true);
-            }
-
             return new AttemptState(failedAttempts, blockedUntil, now);
         });
+    }
 
-        return bloqueoAplicado.get();
+    private int intentosRestantes(AttemptState state, LoginAttemptProperties.Rule rule) {
+        if (state.blockedUntil() != null) {
+            return 0;
+        }
+
+        return Math.max(rule.getMaxFailedAttempts() - state.failedAttempts(), 0);
+    }
+
+    private Instant maxInstanteFuturo(Instant primero, Instant segundo, Instant ahora) {
+        Instant maximo = null;
+        if (primero != null && primero.isAfter(ahora)) {
+            maximo = primero;
+        }
+        if (segundo != null && segundo.isAfter(ahora) && (maximo == null || segundo.isAfter(maximo))) {
+            maximo = segundo;
+        }
+        return maximo;
     }
 
     private AttemptKey identityKey(AuthContext authContext, String correo, String ipCliente) {

@@ -261,7 +261,7 @@
 }
 
 .builder-page .builder-hero__prompt-label {
-  color: var(--rg-color-accent);
+  color: var(--rg-color-primary);
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -600,5 +600,100 @@
 @media (prefers-reduced-motion: reduce) {
   .builder-page .builder-hero__prompt {
     transform: none;
+  }
+}
+
+/* Impeccable finish pass — home publico. */
+.landing-page .landing-hero__frame {
+  box-shadow: var(--rg-shadow-elevated);
+}
+
+@keyframes landing-rise {
+  from {
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.landing-page .landing-hero__content > * {
+  animation: landing-rise 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-page .landing-hero__content > :nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.landing-page .landing-hero__content > :nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.landing-page .landing-hero__content > :nth-child(4) {
+  animation-delay: 180ms;
+}
+
+.landing-page .landing-hero__content > :nth-child(5) {
+  animation-delay: 240ms;
+}
+
+.landing-page .gift-finder {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.landing-page .gift-finder input:focus-visible,
+.landing-page .gift-finder select:focus-visible {
+  border-radius: 0.35rem;
+  box-shadow: var(--rg-focus-ring);
+  outline: 3px solid var(--rg-color-primary-dark);
+  outline-offset: -3px;
+}
+
+.landing-page .gift-finder__filters button {
+  transition:
+    background-color var(--rg-transition-standard),
+    box-shadow var(--rg-transition-standard),
+    transform var(--rg-transition-standard);
+}
+
+.landing-page .gift-finder__filters button:hover {
+  background: var(--rg-color-primary-dark);
+  box-shadow: inset 0 -0.2rem var(--rg-color-gold);
+}
+
+.landing-page .gift-finder__filters button:focus-visible {
+  outline: 3px solid var(--rg-color-gold);
+  outline-offset: -3px;
+}
+
+.landing-page .gift-finder__filters button:active {
+  transform: scale(0.985);
+}
+
+.landing-page .landing-hero__ai:hover {
+  color: #fff;
+  text-decoration-color: var(--rg-color-gold);
+}
+
+.landing-page .intent-ribbon__items button:focus-visible,
+.landing-page .category-card:focus-visible {
+  background: var(--rg-color-gold-soft);
+  box-shadow: inset 0 0 0 3px var(--rg-color-primary);
+  outline: none;
+}
+
+.landing-page .discovery-heading > a:hover,
+.landing-page .discovery-trust > a:hover {
+  color: var(--rg-color-primary-dark);
+  text-decoration-thickness: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page .landing-hero__content > *,
+  .landing-page .gift-finder__filters button {
+    animation: none;
+    transition: none;
   }
 }

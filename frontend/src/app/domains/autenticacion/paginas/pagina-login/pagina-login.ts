@@ -2,7 +2,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, interval } from 'rxjs';
 import {
   RolUsuario,
   SesionAutenticacion,
@@ -36,7 +36,33 @@ export class PaginaLogin implements OnInit {
 
   readonly estaEnviando = signal(false);
   readonly estaProcesandoGoogle = signal(false);
-  readonly estaBloqueado = computed(() => this.estaEnviando() || this.estaProcesandoGoogle());
+  readonly intentosRestantes = signal<number | null>(null);
+  private readonly bloqueadoHasta = signal<number | null>(null);
+  private readonly relojBloqueo = signal(0);
+  readonly segundosBloqueo = computed(() => {
+    this.relojBloqueo();
+    const hasta = this.bloqueadoHasta();
+    return hasta === null ? 0 : Math.max(Math.ceil((hasta - Date.now()) / 1000), 0);
+  });
+  readonly mensajeBloqueo = computed(() => {
+    const segundos = this.segundosBloqueo();
+    return segundos > 0
+      ? `Acceso bloqueado temporalmente. Intenta nuevamente en ${this.formatearTiempo(segundos)}.`
+      : '';
+  });
+  readonly mensajeIntentos = computed(() => {
+    const restantes = this.intentosRestantes();
+    if (restantes === null || restantes <= 0 || this.segundosBloqueo() > 0) return '';
+    return restantes === 1
+      ? 'Te queda 1 intento antes del bloqueo temporal.'
+      : `Te quedan ${restantes} intentos antes del bloqueo temporal.`;
+  });
+  readonly estaBloqueado = computed(
+    () =>
+      this.estaEnviando() ||
+      this.estaProcesandoGoogle() ||
+      (this.modo() === 'login' && this.segundosBloqueo() > 0),
+  );
   readonly mensajeError = signal('');
   readonly mensajeRegistro = signal('');
   readonly mostrarContrasena = signal(false);
@@ -108,6 +134,10 @@ export class PaginaLogin implements OnInit {
           );
         }
       });
+
+    interval(1000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.relojBloqueo.update((valor) => valor + 1));
   }
 
   cambiarModo(modo: ModoAutenticacion): void {
@@ -120,6 +150,8 @@ export class PaginaLogin implements OnInit {
   enviarLogin(): void {
     this.mensajeError.set('');
     this.estaProcesandoGoogle.set(false);
+
+    if (this.estaBloqueado()) return;
 
     if (this.formularioLogin.invalid) {
       this.formularioLogin.markAllAsTouched();
@@ -246,6 +278,7 @@ export class PaginaLogin implements OnInit {
   }
 
   private procesarLoginExitoso(resultado: ResultadoLogin): void {
+    this.limpiarEstadoIntentos();
     const rolPrincipal = this.obtenerRolPrincipal(resultado.roles);
     const sesion: SesionAutenticacion = {
       token: resultado.token,
@@ -291,6 +324,18 @@ export class PaginaLogin implements OnInit {
 
   private obtenerMensajeErrorLogin(error: unknown): string {
     const errorNormalizado = normalizarErrorApi(error);
+    this.aplicarEstadoIntentos(errorNormalizado.datos);
+
+    if (errorNormalizado.tipo === 'limite') {
+      return this.segundosBloqueo() > 0
+        ? ''
+        : errorNormalizado.message ||
+            'Acceso bloqueado temporalmente. Intenta nuevamente más tarde.';
+    }
+
+    if (this.segundosBloqueo() > 0) {
+      return '';
+    }
 
     if (errorNormalizado.estado === 401 || errorNormalizado.tipo === 'autenticacion') {
       return 'Correo o contraseña incorrectos.';
@@ -305,6 +350,18 @@ export class PaginaLogin implements OnInit {
 
   private obtenerMensajeErrorGoogle(error: unknown): string {
     const errorNormalizado = normalizarErrorApi(error);
+    this.aplicarEstadoIntentos(errorNormalizado.datos);
+
+    if (errorNormalizado.tipo === 'limite') {
+      return this.segundosBloqueo() > 0
+        ? ''
+        : errorNormalizado.message ||
+            'Acceso bloqueado temporalmente. Intenta nuevamente más tarde.';
+    }
+
+    if (this.segundosBloqueo() > 0) {
+      return '';
+    }
     const accion = this.modo() === 'registro' ? 'crear tu cuenta' : 'iniciar sesión';
 
     if (errorNormalizado.tipo === 'red' || errorNormalizado.tipo === 'timeout') {
@@ -332,5 +389,41 @@ export class PaginaLogin implements OnInit {
     }
 
     return errorNormalizado.message || `No se pudo ${accion} con Google.`;
+  }
+
+  private aplicarEstadoIntentos(datos: unknown): void {
+    if (!datos || typeof datos !== 'object') return;
+
+    const respuesta = datos as Record<string, unknown>;
+    const restantes = Number(respuesta['intentosRestantes']);
+    if (!Number.isFinite(restantes)) return;
+
+    this.intentosRestantes.set(Math.max(Math.trunc(restantes), 0));
+
+    const reintentarEnSegundos = Number(respuesta['reintentarEnSegundos']);
+    const bloqueadoHasta =
+      typeof respuesta['bloqueadoHasta'] === 'string'
+        ? Date.parse(respuesta['bloqueadoHasta'])
+        : Number.NaN;
+    const segundos = Number.isFinite(reintentarEnSegundos)
+      ? Math.max(Math.ceil(reintentarEnSegundos), 0)
+      : Number.isFinite(bloqueadoHasta)
+        ? Math.max(Math.ceil((bloqueadoHasta - Date.now()) / 1000), 0)
+        : 0;
+
+    this.bloqueadoHasta.set(segundos > 0 ? Date.now() + segundos * 1000 : null);
+    this.relojBloqueo.update((valor) => valor + 1);
+  }
+
+  private limpiarEstadoIntentos(): void {
+    this.intentosRestantes.set(null);
+    this.bloqueadoHasta.set(null);
+    this.relojBloqueo.update((valor) => valor + 1);
+  }
+
+  private formatearTiempo(segundosTotales: number): string {
+    const minutos = Math.floor(segundosTotales / 60);
+    const segundos = segundosTotales % 60;
+    return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
   }
 }

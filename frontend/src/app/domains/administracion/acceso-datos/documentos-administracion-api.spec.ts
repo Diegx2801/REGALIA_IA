@@ -21,15 +21,26 @@ describe('DocumentosAdministracionApi', () => {
   it('filtra documentos por estado y adapta el contrato administrativo', () => {
     let nombre = '';
     api
-      .listar('PENDIENTE')
-      .subscribe((documentos) => (nombre = documentos[0]?.nombreCompleto ?? ''));
+      .listar({ estado: 'PENDIENTE' })
+      .subscribe((pagina) => (nombre = pagina.contenido[0]?.nombreCompleto ?? ''));
 
     const request = http.expectOne(
       (solicitud) =>
         solicitud.url === ENDPOINTS_API.administracion.documentos &&
         solicitud.params.get('estadoVerificacion') === 'PENDIENTE',
     );
-    request.flush({ status: 'success', data: [DOCUMENTO_DTO], message: null });
+    request.flush({
+      status: 'success',
+      data: {
+        contenido: [DOCUMENTO_DTO],
+        paginaActual: 0,
+        tamanioPagina: 10,
+        totalElementos: 1,
+        totalPaginas: 1,
+        ultimaPagina: true,
+      },
+      message: null,
+    });
 
     expect(nombre).toBe('Ana Pérez');
   });

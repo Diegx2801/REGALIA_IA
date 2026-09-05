@@ -67,6 +67,7 @@ function crearProductoDto(
     precio: 129.9,
     stock: 8,
     visibleEnTienda: true,
+    imagenes: null,
     estado: true,
     fechaCreacion: '2026-07-20T10:00:00',
     fechaActualizacion: null,

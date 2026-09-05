@@ -9,6 +9,7 @@ export type TipoErrorApi =
   | 'autorizacion'
   | 'no-encontrado'
   | 'conflicto'
+  | 'limite'
   | 'servidor'
   | 'desconocido';
 
@@ -18,6 +19,7 @@ export interface DetalleErrorApi {
   estado?: number;
   mensajeTecnico?: string;
   errores?: unknown;
+  datos?: unknown;
 }
 
 export class ErrorApiRegalia extends Error {
@@ -25,6 +27,7 @@ export class ErrorApiRegalia extends Error {
   readonly estado?: number;
   readonly mensajeTecnico?: string;
   readonly errores?: unknown;
+  readonly datos?: unknown;
 
   constructor(detalle: DetalleErrorApi) {
     super(detalle.mensajeUsuario);
@@ -33,6 +36,7 @@ export class ErrorApiRegalia extends Error {
     this.estado = detalle.estado;
     this.mensajeTecnico = detalle.mensajeTecnico;
     this.errores = detalle.errores;
+    this.datos = detalle.datos;
   }
 }
 
@@ -58,7 +62,8 @@ export function normalizarErrorApi(error: unknown): ErrorApiRegalia {
   if (esErrorRedGenerico(error)) {
     return new ErrorApiRegalia({
       tipo: 'red',
-      mensajeUsuario: 'No pudimos conectar con el backend de REGALIA. Verifica que el servidor este activo.',
+      mensajeUsuario:
+        'No pudimos conectar con el backend de REGALIA. Verifica que el servidor este activo.',
       mensajeTecnico: obtenerMensajeTecnico(error),
     });
   }
@@ -82,14 +87,17 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
   const mensajeBackend = extraerMensajeBackend(error.error);
   const mensajeTecnico = error.message;
   const estado = error.status;
+  const datos = extraerDatosBackend(error.error);
 
   if (estado === 0) {
     return new ErrorApiRegalia({
       tipo: 'red',
       estado,
-      mensajeUsuario: 'No pudimos conectar con el backend de REGALIA. Verifica que el servidor este activo.',
+      mensajeUsuario:
+        'No pudimos conectar con el backend de REGALIA. Verifica que el servidor este activo.',
       mensajeTecnico,
       errores: error.error,
+      datos,
     });
   }
 
@@ -97,9 +105,11 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
     return new ErrorApiRegalia({
       tipo: 'validacion',
       estado,
-      mensajeUsuario: mensajeBackend || 'La informacion enviada no es valida. Revisa el formulario.',
+      mensajeUsuario:
+        mensajeBackend || 'La informacion enviada no es valida. Revisa el formulario.',
       mensajeTecnico,
       errores: error.error,
+      datos,
     });
   }
 
@@ -107,9 +117,11 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
     return new ErrorApiRegalia({
       tipo: 'autenticacion',
       estado,
-      mensajeUsuario: mensajeBackend || 'Tu sesion no es valida o las credenciales son incorrectas.',
+      mensajeUsuario:
+        mensajeBackend || 'Tu sesion no es valida o las credenciales son incorrectas.',
       mensajeTecnico,
       errores: error.error,
+      datos,
     });
   }
 
@@ -120,6 +132,7 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
       mensajeUsuario: mensajeBackend || 'No tienes permisos para realizar esta accion.',
       mensajeTecnico,
       errores: error.error,
+      datos,
     });
   }
 
@@ -130,6 +143,7 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
       mensajeUsuario: mensajeBackend || 'No encontramos el recurso solicitado.',
       mensajeTecnico,
       errores: error.error,
+      datos,
     });
   }
 
@@ -140,6 +154,19 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
       mensajeUsuario: mensajeBackend || 'La operacion entra en conflicto con el estado actual.',
       mensajeTecnico,
       errores: error.error,
+      datos,
+    });
+  }
+
+  if (estado === 429) {
+    return new ErrorApiRegalia({
+      tipo: 'limite',
+      estado,
+      mensajeUsuario:
+        mensajeBackend || 'Has realizado demasiados intentos. Inténtalo nuevamente más tarde.',
+      mensajeTecnico,
+      errores: error.error,
+      datos,
     });
   }
 
@@ -147,9 +174,11 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
     return new ErrorApiRegalia({
       tipo: 'servidor',
       estado,
-      mensajeUsuario: mensajeBackend || 'El backend de REGALIA tuvo un problema. Intentalo nuevamente.',
+      mensajeUsuario:
+        mensajeBackend || 'El backend de REGALIA tuvo un problema. Intentalo nuevamente.',
       mensajeTecnico,
       errores: error.error,
+      datos,
     });
   }
 
@@ -159,6 +188,7 @@ function normalizarErrorHttp(error: HttpErrorResponse): ErrorApiRegalia {
     mensajeUsuario: mensajeBackend || MENSAJE_ERROR_GENERICO,
     mensajeTecnico,
     errores: error.error,
+    datos,
   });
 }
 
@@ -177,6 +207,13 @@ function extraerMensajeBackend(error: unknown): string {
   }
 
   return '';
+}
+
+function extraerDatosBackend(error: unknown): unknown {
+  if (!error || typeof error !== 'object') return undefined;
+
+  const respuesta = error as Record<string, unknown>;
+  return respuesta['data'] ?? respuesta['datos'];
 }
 
 function esTimeout(error: unknown): boolean {

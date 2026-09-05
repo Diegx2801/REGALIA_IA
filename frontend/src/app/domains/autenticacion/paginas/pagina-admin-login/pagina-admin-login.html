@@ -79,7 +79,7 @@
       <form
         class="admin-login__form"
         [formGroup]="formularioLogin"
-        [attr.aria-busy]="estaEnviando()"
+        [attr.aria-busy]="estaBloqueado()"
         (ngSubmit)="enviarLogin()"
         novalidate
       >
@@ -174,7 +174,23 @@
           </div>
         }
 
-        <button class="admin-login__submit" type="submit" [disabled]="estaEnviando()">
+        @if (mensajeIntentos()) {
+          <div class="admin-login__message admin-login__message--attempts" role="status">
+            <span aria-hidden="true">!</span>
+            <span>{{ mensajeIntentos() }}</span>
+          </div>
+        }
+
+        @if (mensajeBloqueo()) {
+          <div class="admin-login__message" role="alert" aria-live="polite">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 8v5m0 3h.01M12 3 2 21h20L12 3Z"></path>
+            </svg>
+            <span>{{ mensajeBloqueo() }}</span>
+          </div>
+        }
+
+        <button class="admin-login__submit" type="submit" [disabled]="estaBloqueado()">
           @if (estaEnviando()) {
             <span class="admin-login__spinner" aria-hidden="true"></span>
             Validando acceso...

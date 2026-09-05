@@ -1,5 +1,6 @@
 package com.regalia.backend.shared.exception;
 
+import com.regalia.backend.auth.application.LoginAttemptStatus;
 import com.regalia.backend.shared.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -101,17 +102,21 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CredencialesInvalidasException.class)
-    public ResponseEntity<ApiResponse<Void>> manejarCredencialesInvalidas(CredencialesInvalidasException ex) {
+    public ResponseEntity<ApiResponse<LoginAttemptStatus>> manejarCredencialesInvalidas(
+            CredencialesInvalidasException ex
+    ) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.fail(ex.getEstadoIntentos(), ex.getMessage()));
     }
 
     @ExceptionHandler(DemasiadosIntentosLoginException.class)
-    public ResponseEntity<ApiResponse<Void>> manejarDemasiadosIntentosLogin(DemasiadosIntentosLoginException ex) {
+    public ResponseEntity<ApiResponse<LoginAttemptStatus>> manejarDemasiadosIntentosLogin(
+            DemasiadosIntentosLoginException ex
+    ) {
         return ResponseEntity
                 .status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.fail(ex.getEstadoIntentos(), ex.getMessage()));
     }
 
     @ExceptionHandler(LimiteReenvioVerificacionException.class)

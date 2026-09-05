@@ -8,6 +8,7 @@ import com.regalia.backend.auth.application.result.LoginResult;
 import com.regalia.backend.auth.security.AuthContext;
 import com.regalia.backend.auth.security.JwtService;
 import com.regalia.backend.shared.exception.CredencialesInvalidasException;
+import com.regalia.backend.shared.exception.DemasiadosIntentosLoginException;
 import com.regalia.backend.usuario.infrastructure.entity.UsuarioEntity;
 import com.regalia.backend.usuario.infrastructure.repository.UsuarioJpaRepository;
 import com.regalia.backend.usuariorol.infrastructure.repository.UsuarioRolJpaRepository;
@@ -113,7 +114,7 @@ public class AuthService {
 
             return construirLoginResult(usuario, roles, AuthContext.PUBLIC);
         } catch (CredencialesInvalidasException ex) {
-            boolean bloqueoAplicado = loginAttemptLimiter.registrarFallo(
+            LoginAttemptStatus estadoIntentos = loginAttemptLimiter.registrarFallo(
                     AuthContext.PUBLIC,
                     correoNormalizado,
                     ipCliente
@@ -124,9 +125,12 @@ public class AuthService {
                     correoNormalizado,
                     ipCliente,
                     userAgent,
-                    bloqueoAplicado
+                    estadoIntentos.estaBloqueado()
             );
-            throw ex;
+            if (estadoIntentos.estaBloqueado()) {
+                throw new DemasiadosIntentosLoginException(estadoIntentos);
+            }
+            throw new CredencialesInvalidasException(ex.getMessage(), estadoIntentos);
         }
     }
 
@@ -162,7 +166,7 @@ public class AuthService {
 
             return construirLoginResult(usuario, roles, authContext);
         } catch (CredencialesInvalidasException ex) {
-            boolean bloqueoAplicado = loginAttemptLimiter.registrarFallo(
+            LoginAttemptStatus estadoIntentos = loginAttemptLimiter.registrarFallo(
                     authContext,
                     correoNormalizado,
                     ipCliente
@@ -173,9 +177,12 @@ public class AuthService {
                     correoNormalizado,
                     ipCliente,
                     userAgent,
-                    bloqueoAplicado
+                    estadoIntentos.estaBloqueado()
             );
-            throw ex;
+            if (estadoIntentos.estaBloqueado()) {
+                throw new DemasiadosIntentosLoginException(estadoIntentos);
+            }
+            throw new CredencialesInvalidasException(ex.getMessage(), estadoIntentos);
         }
     }
 

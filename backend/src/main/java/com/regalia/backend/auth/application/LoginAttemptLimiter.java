@@ -9,7 +9,7 @@ public interface LoginAttemptLimiter {
 
     void validarPermitido(AuthContext authContext, String correo, String ipCliente);
 
-    boolean registrarFallo(AuthContext authContext, String correo, String ipCliente);
+    LoginAttemptStatus registrarFallo(AuthContext authContext, String correo, String ipCliente);
 
     void registrarExito(AuthContext authContext, String correo, String ipCliente);
 }

@@ -623,6 +623,30 @@
   color: var(--rg-color-success);
 }
 
+.auth-message--attempts {
+  background: var(--rg-color-gold-soft);
+  border-color: rgba(215, 173, 75, 0.34);
+  color: var(--rg-color-primary);
+}
+
+.auth-message--lock {
+  background: var(--rg-color-danger-soft);
+  border-color: rgba(159, 63, 71, 0.34);
+  color: var(--rg-color-danger);
+}
+
+.auth-help a {
+  color: var(--rg-color-primary);
+  font-weight: 800;
+  text-underline-offset: 0.18rem;
+}
+
+.auth-help a {
+  display: block;
+  font-size: 0.72rem;
+  margin-top: 0.3rem;
+}
+
 .auth-access-note {
   align-items: flex-start;
   background: var(--rg-color-gold-soft);
@@ -714,16 +738,24 @@
   border-color: rgba(90, 36, 64, 0.24);
 }
 
-.auth-panel__legal {
-  bottom: 1rem;
-  color: #91858e;
-  font-size: 0.66rem;
-  left: 50%;
-  margin: 0;
-  position: absolute;
-  text-align: center;
-  transform: translateX(-50%);
-  width: min(88%, 31rem);
+.auth-privacy {
+  border-top: 1px solid var(--auth-border);
+  color: var(--auth-text-soft);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+  width: min(100%, 30rem);
+}
+
+.auth-privacy summary {
+  color: var(--rg-color-primary);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.auth-privacy p {
+  margin: 0.45rem 0 0;
 }
 
 @keyframes spin {

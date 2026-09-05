@@ -211,6 +211,18 @@
               <p class="auth-message auth-message--error" role="alert">{{ mensajeError() }}</p>
             }
 
+            @if (mensajeIntentos()) {
+              <p class="auth-message auth-message--attempts" role="status">
+                {{ mensajeIntentos() }}
+              </p>
+            }
+
+            @if (mensajeBloqueo()) {
+              <p class="auth-message auth-message--lock" role="alert" aria-live="polite">
+                {{ mensajeBloqueo() }}
+              </p>
+            }
+
             @if (mensajeRegistro()) {
               <p class="auth-message auth-message--success" role="status">
                 {{ mensajeRegistro() }}
@@ -226,6 +238,20 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
               }
             </button>
+
+            <div class="auth-access-note auth-help" aria-labelledby="login-help-title">
+              <span class="auth-access-note__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 17h.01M9.1 9a3 3 0 1 1 5.2 2c-.9.8-2.3 1.3-2.3 3"></path>
+                  <circle cx="12" cy="12" r="9"></circle>
+                </svg>
+              </span>
+              <p>
+                <strong id="login-help-title">¿Necesitas ayuda?</strong>
+                Recupera tu acceso con un enlace seguro o revisa el bloqueo temporal.
+                <a routerLink="/restablecer-contrasena">Ayuda para recuperar mi acceso</a>
+              </p>
+            </div>
 
             <div class="auth-divider">
               <span>o continúa con</span>
@@ -501,11 +527,16 @@
             </p>
           </form>
         }
-      </div>
 
-      <p class="auth-panel__legal">
-        Al continuar, aceptas que REGALIA gestione tus datos según su política de privacidad.
-      </p>
+        <details class="auth-privacy" id="declaracion-privacidad" open>
+          <summary>Declaración de Privacidad</summary>
+          <p>
+            Al continuar, confirmas que has leído y aceptas la Declaración de Privacidad de REGALIA.
+            Usaremos los datos que compartas para autenticar tu cuenta, gestionar tus pedidos y
+            proteger la plataforma.
+          </p>
+        </details>
+      </div>
     </main>
   </div>
 </section>

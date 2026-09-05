@@ -322,7 +322,8 @@ textarea {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(215, 173, 75, 0.82);
+  box-shadow: 0 0 0 2px var(--rg-color-gold);
+  outline: 3px solid var(--rg-color-primary-dark);
   outline-offset: 3px;
 }
 
